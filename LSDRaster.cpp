@@ -2230,6 +2230,324 @@ LSDRaster LSDRaster::fill(double& MinSlope)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
+
+
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//D-inf modules
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Main function for generating a D-infinity flow area raster after Tarboton (1997).
+// Calls the recurisve D_infAccum function to get flow area for each pixel.
+// Returns flow area in pixels.
+//
+// Code is ported and optimised from a Java implementation of the algorithm
+// supplied under the GNU GPL licence through WhiteBox GAT:
+// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results
+// to the whitebox tool.
+//
+// SWDG - 26/07/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::D_inf_FlowArea(Array2D<double> FlowDir_array){
+
+  // Arrays of indexes of neighbour cells wrt target cell and their
+  //corresponding ranges of angles
+  int dX[] = {1, 1, 1, 0, -1, -1, -1, 0};
+  int dY[] = {-1, 0, 1, 1, 1, 0, -1, -1};
+  double startFD[] = {180, 225, 270, 315, 0, 45, 90, 135};
+  double endFD[] = {270, 315, 360, 45, 90, 135, 180, 225};
+
+  Array2D<double> Flowarea_Raster(NRows,NCols,1);
+  Array2D<double> CountGrid(NRows,NCols,NoDataValue); //array to hold no of inflowing neighbours
+
+  int inflow_neighbours; //counter for number of inflowing neighbours
+  double flowDir; //temp variable to store the flowdir of a neighbour
+
+  // Calculate the number of inflowing neighbours to each cell.
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      flowDir = FlowDir_array[i][j];
+      if (flowDir != NoDataValue){
+        inflow_neighbours = 0;
+
+        for (int c = 0; c < 8; ++c){ //loop through the 8 neighbours of the target cell
+          flowDir = FlowDir_array[i + dY[c]][j + dX[c]];
+          if (flowDir >= 0 && flowDir <= 360){
+            if (c != 3){  //handles the issue of 0,360 both pointing to North
+              if (flowDir > startFD[c] && flowDir < endFD[c]){
+                ++inflow_neighbours;
+              }
+            }
+            else{
+              if (flowDir > startFD[c] || flowDir < endFD[c]){
+                ++inflow_neighbours;
+              }
+            }
+          }
+        }
+        CountGrid[i][j] = inflow_neighbours;
+      }
+      else{
+        Flowarea_Raster[i][j] = NoDataValue;
+      }
+    }
+  }
+
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      if (CountGrid[i][j] == 0){ //there are no inflowing neighbours
+        //call the flowarea function and travel downstream from it
+        D_infAccum(i, j, CountGrid, Flowarea_Raster, FlowDir_array);
+      }
+    }
+  }
+
+  LSDRaster FlowArea(NRows, NCols, XMinimum, YMinimum, DataResolution,
+                          NoDataValue, Flowarea_Raster);
+
+  return FlowArea;
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Recursive function to calculate accumulating area for a given pixel. Called
+// by the driver for every cell which has no contributing cells - eg the highest
+// points on the landscape. Avoids the need to flatten and sort the DEM as
+// required in the original Tarboton (1997) implementation. For more detail on the
+// recursive algorithm following channels see Mark (1998) "Network Models in
+// Geomorphology".
+//
+// Code is ported and optimised from a Java implementation of the algorithm
+// supplied under the GNU GPL licence through WhiteBox GAT:
+// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results
+// to the whitebox tool.
+//
+// SWDG - 26/07/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::D_infAccum(int i, int j, Array2D<double> CountGrid, Array2D<double> Flowarea_Raster, Array2D<double> FlowDir){
+
+  double flowAccumVal = Flowarea_Raster[i][j];
+  double flowDir = FlowDir[i][j];
+
+  //tables of angles and indexes used to rotate around each neighbour
+  double FD_Low[] = {0, 45, 90, 135, 180, 225, 270, 315};
+  double FD_High_361[] = {45, 90, 135, 180, 225, 270, 315, 361};  //this array ends with 361 to catch angles up to 360
+  double FD_High[] = {45, 90, 135, 180, 225, 270, 315, 360};
+  int Di1[] = {-1, -1, 0, 1, 1, 1, 0, -1};
+  int Dj1[] = {0, 1, 1, 1, 0, -1, -1, -1};
+  int Di2[] = {-1, 0, 1, 1, 1, 0, -1, -1};
+  int Dj2[] = {1, 1, 1, 0, -1, -1, -1, 0};
+
+  double proportion1 = 0; //proportion of flow to the lowest neighbour
+  double proportion2 = 0; //proportion of flow to the second lowest neighbour
+
+  // indexes to store the coordinates of the neighbours where flow is to be routed
+  int a1 = 0;
+  int b1 = 0;
+  int a2 = 0;
+  int b2 = 0;
+
+  CountGrid[i][j] = -1; // flags a visted cell
+
+  if (flowDir >= 0){  //avoids flagged pits
+
+    // find which two cells receive flow and the proportion to each
+    for (int q = 0; q < 8; ++q){
+      if (flowDir >= FD_Low[q] && flowDir < FD_High_361[q]){
+        proportion1 = (FD_High[q] - flowDir) / 45;
+        a1 = i + Di1[q];
+        b1 = j + Dj1[q];
+        proportion2 = (flowDir - FD_Low[q]) / 45;
+        a2 = i + Di2[q];
+        b2 = j + Dj2[q];
+        }
+    }
+
+      if (proportion1 > 0 && Flowarea_Raster[a1][b1] != NoDataValue){
+        Flowarea_Raster[a1][b1] = Flowarea_Raster[a1][b1] + flowAccumVal * proportion1;
+        CountGrid[a1][b1] = CountGrid[a1][b1] - 1;
+        if (CountGrid[a1][b1] == 0){
+          D_infAccum(a1, b1, CountGrid, Flowarea_Raster, FlowDir); //recursive call
+        }
+      }
+      if (proportion2 > 0 && Flowarea_Raster[a2][b2] != NoDataValue){
+        Flowarea_Raster[a2][b2] = Flowarea_Raster[a2][b2] + flowAccumVal * proportion2;
+        CountGrid[a2][b2] = CountGrid[a2][b2] - 1;
+        if (CountGrid[a2][b2] == 0){
+          D_infAccum(a2, b2, CountGrid, Flowarea_Raster, FlowDir); //recursive call
+      }
+    }
+  }
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// D-infinity flow direction algorithm after Tarboton (1997).
+//
+// Algorithm takes a filled DEM and for each cell calculates the steepest descent
+// based on 8 triangular facets. Flow direction is assigned as an angle from 0-360
+// degrees with -1 used to flag unresolved areas such as pits.
+//
+// Code is ported and optimised from a Java implementation of the algorithm
+// supplied under the GNU GPL licence through WhiteBox GAT:
+// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results
+// to the whitebox tool.
+//
+// SWDG - 26/07/13
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Array2D<double> LSDRaster::D_inf_FlowDir(){
+
+  Array2D<double> FlowDir_Array(NRows,NCols,NoDataValue);
+
+  double maxSlope; //maxiumum slope
+  double flowDir = 0; //temp variable to hold flowdirections while looping thru the 8 facets
+
+  double pi = 3.14159265;
+
+  //components of the triangular facets as outlined in Tarboton (1997) fig 3
+  //& equations 1-5
+  double e0;
+  double e1;
+  double e2;
+  double s1;
+  double s2;
+  double r;
+  double s;
+
+  //Facet elevation factors from Tarboton (1997) Table 1
+  int acVals[] = {0, 1, 1, 2, 2, 3, 3, 4};
+  int afVals[] = {1, -1, 1, -1, 1, -1, 1, -1};
+  int e1Col[] = {1, 0, 0, -1, -1, 0, 0, 1};
+  int e1Row[] = {0, -1, -1, 0, 0, 1, 1, 0};
+  int e2Col[] = {1, 1, -1, -1, -1, -1, 1, 1};
+  int e2Row[] = {-1, -1, -1, -1, 1, 1, 1, 1};
+
+  for (int i = 1; i < NRows - 1; ++i){
+    for (int j = 1; j < NCols - 1; ++j){
+      e0 = RasterData[i][j];
+      if (e0 == NoDataValue){
+        FlowDir_Array[i][j] = NoDataValue; //if there is no elevation data we cant have a flowdir
+      }
+      else{
+        maxSlope = -9999999;  //set to a low value that != NDV so any slope will be bigger than it
+
+        for (int a = 0; a < 8; ++a){  //loop through the 8 facets
+          e1 = RasterData[i + e1Row[a]][j + e1Col[a]];
+          e2 = RasterData[i + e2Row[a]][j + e2Col[a]];
+          if (e1 != NoDataValue && e2 != NoDataValue){ //avoid facets lyng in no data
+            if (e0 > e1 && e0 > e2){
+              //calculate slopes (s1,s2,s) and bearings (r) along edges
+              //of the facet when e0 is higher than e1 and e2
+              s1 = (e0 - e1) / DataResolution;
+              if (s1 == 0){
+                s1 = 0.00001;
+              }
+              s2 = (e1 - e2) / DataResolution;
+              r = atan(s2 / s1);
+              s = sqrt(s1 * s1 + s2 * s2);
+
+              if (s1 < 0 && s2 < 0){
+                s = -1 * s;
+              }
+              if (s1 < 0 && s2 == 0){
+                s = -1 * s;
+              }
+              if (s1 == 0 && s2 < 0){
+                s = -1 * s;
+              }
+              if (s1 == 0.001 && s2 < 0){
+                s = -1 * s;
+              }
+              if (r < 0 || r > atan(1)){
+                if (r < 0){
+                  r = 0;
+                  s = s1;
+                }
+                else{
+                  r = atan(1);
+                  s = (e0 - e2) / (DataResolution * sqrt(2)); //diagonal cell length
+                }
+              }
+              if (s >= maxSlope && s != 0.00001){
+                maxSlope = s;
+                flowDir = afVals[a] * r + acVals[a] * (pi / 2);
+              }
+            }
+            //calculate slope (s) and bearing (r) along edges
+            //of the facet when e0 is higher than e1 or e2
+            else if (e0 > e1 || e0 > e2){
+              if (e0 > e1){
+                r = 0;
+                s = (e0 - e1) / DataResolution;
+              }
+              else{
+                r = atan(1);
+                s = (e0 - e2) / (DataResolution * sqrt(2));
+              }
+              if (s >= maxSlope && s != 0.00001){
+                maxSlope = s;
+                flowDir = afVals[a] * r + acVals[a] * (pi / 2);
+              }
+            }
+          }
+        }
+
+        if (maxSlope <= 0){
+          FlowDir_Array[i][j] = -1;  //unresolved - Tarboton uses D8 to fill these pits - we have a better fill algorithm
+        }
+        else{
+          flowDir = round((flowDir * (180 / pi)) * 10) / 10;
+          flowDir = 360 - flowDir + 90;
+          if (flowDir > 360){
+            flowDir = flowDir - 360;
+          }
+          FlowDir_Array[i][j] = flowDir;
+        }
+      }
+    }
+  }
+
+  return FlowDir_Array;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//Function to write the D-infinity flow directions to an LSDRaster.
+//
+//SWDG - 26/7/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::write_dinf_flowdir_to_LSDRaster(Array2D<double> dinflow){
+
+  LSDRaster FlowDirection(NRows, NCols, XMinimum, YMinimum, DataResolution,
+                          NoDataValue, dinflow);
+
+  return FlowDirection;
+
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//Wrapper Function to create a D-infinity flow area raster with one function call.
+//
+//SWDG - 26/7/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::D_inf(){
+
+  Array2D<double> Dinf_flow = D_inf_FlowDir();
+  LSDRaster Dinf_area = D_inf_FlowArea(Dinf_flow);
+
+  return Dinf_area;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//end of d-inf modules
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // ASPECT DRIVEN FLOW ROUTING
