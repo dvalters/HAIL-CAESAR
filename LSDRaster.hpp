@@ -24,9 +24,6 @@
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-//test line to try our svn - swdg
-
-
 #include <string>
 #include <vector>
 #include "TNT/tnt.h"
