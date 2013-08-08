@@ -1,28 +1,45 @@
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-// LSDRaster.h
-// header file for the LSDRaster object
-// LSD stands for Land Surface Dynamics
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-// This object is written by
-// Simon M. Mudd, University of Edinburgh
-// David T. Milodowski, University of Edinburgh
-// Martin D. Hurst, British Geological Survey
-// Fiona Clubb, University of Edinburgh
-// Stuart Grieve, University of Edinburgh
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-// Version 1.0.0		16/07/2013
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-// change log
-// MASSIVE MERGE: Starting version 1.0.0 on 15/07/2013
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+/** @file LSDRaster.hpp
+@author Simon M. Mudd, University of Edinburgh
+@author David Milodowski, University of Edinburgh
+@author Martin D. Hurst, British Geological Survey
+@author Stuart W. D. Grieve, University of Edinburgh
+@author Fiona Clubb, University of Edinburgh
+
+@version Version 1.0.0
+@brief Main analysis object to interface with other LSD objects.
+@details This object contains a diverse range of geomophological 
+analysis routines which can be used in conjunction with the other objects in
+the package.
+
+<b>change log</b>an
+MASSIVE MERGE: Starting version 1.0.0 on 15/07/2013
+
+@date 16/07/2013
+*/
+
+/**
+@mainpage
+This  is the documentation for Edinburgh Topographic Analysis Package (ETAP),
+incorporating LSDRaster.
+
+These pages will help you get started using this software.
+
+\image html ./logo.png
+
+
+Tools are included to:
+- Generate topographic metrics
+- Perform Chi analysis
+- And other important science stuff
+.
+
+@author Simon M. Mudd, University of Edinburgh
+@author David Milodowski, University of Edinburgh
+@author Martin D. Hurst, British Geological Survey
+@author Stuart W. D. Grieve, University of Edinburgh
+@author Fiona Clubb, University of Edinburgh
+
+*/
 
 #include <string>
 #include <vector>
@@ -34,117 +51,355 @@ using namespace TNT;
 #ifndef LSDRaster_H
 #define LSDRaster_H
 
+///@brief Main analysis object to interface with other LSD objects.
 class LSDRaster
 {
 	public:
 	// declare the LSDFlowInfo object to be a friend class
 	// this gives the LSDFlowInfo object access to the data elements
 	// in the LSDRaster
+	/// @brief Object to perform flow routing.
 	friend class LSDFlowInfo;
 
+  /// @brief The create function. This is default and throws an error.
 	LSDRaster()										{ create(); }
+	/// @brief Create an LSDRaster from a file. 
+  /// Uses a filename and file extension
+  /// @return LSDRaster
+  /// @param filename A String, the file to be loaded.
+  /// @param extension A String, the file extension to be loaded.
 	LSDRaster(string filename, string extension)	{ create(filename, extension); }
-	LSDRaster(int nrows, int ncols, double xmin, double ymin,
+	/// @brief Create an LSDRaster from memory. 
+  /// @return LSDRaster
+  /// @param nrows An integer of the number of rows.
+  /// @param ncols An integer of the number of columns.
+  /// @param xmin A double of the minimum X coordinate.
+  /// @param ymin A double of the minimum Y coordinate.
+  /// @param cellsize A double of the cellsize.
+  /// @param ndv An integer of the no data value.
+  /// @param data An Array2D of doubles in the shape nrows*ncols, 
+  ///containing the data to be written.  
+  LSDRaster(int nrows, int ncols, double xmin, double ymin,
 	          double cellsize, double ndv, Array2D<double> data)
 								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
 
-	// get functions
-	// these get data elements
+	// Get functions
+
+	/// @return Number of rows as an integer.
 	int get_NRows() const				{ return NRows; }
-	int get_NCols() const				{ return NCols; }
+	/// @return Number of columns as an integer.
+  int get_NCols() const				{ return NCols; }
+  /// @return Minimum X coordinate as an integer.
 	double get_XMinimum() const			{ return XMinimum; }
+	/// @return Minimum Y coordinate as an integer.
 	double get_YMinimum() const			{ return YMinimum; }
+	/// @return Data resolution as an integer.                            
 	double get_DataResolution() const	{ return DataResolution; }
-	double get_NoDataValue() const		{ return NoDataValue; }
-	Array2D<double> get_RasterData() const
-										{ return RasterData.copy(); }
+	/// @return No Data Value as an integer.
+	int get_NoDataValue() const			{ return NoDataValue; }
+	/// @return Raster values as a 2D Array.
+	Array2D<double> get_RasterData() const { return RasterData.copy(); }
 
-	// operator
+	/// Assignment operator.
 	LSDRaster& operator=(const LSDRaster& LSDR);
+  
 
-
-	// tools for reading and writing DEMs
-	// currently the supported formats are .asc and .flt,
-	// both exported and imported by arcmap
-	// the filename is the string of characters before the '.' in the extension
-	// the extension is the characters after the '.'
-	// for example, if the full filename is my_dem.01.asc
-	// then filename = "my_dem.01"
-	// and extension = "asc"
-	// for float files both a data file and a header is read/written
-	// the header file must have the same filename, before extention, of
-	// the raster data, and the extension must be .hdr
-	// EXPLANATION OF HOW TO EXPORT AND IMPORT FROM ARCMAP HERE
-    void read_raster(string filename, string extension);
-    void write_raster(string filename, string extension);
+	/// @brief Read a raster into memory from a file.
+  ///
+  /// The supported formats are .asc and .flt which are
+  /// both exported and imported by arcmap.
+	///
+	/// The filename is the string of characters before the '.' in the extension
+	/// and the extension is the characters after the '.'.
+	///
+	/// If the full filename is my_dem.01.asc then:
+  /// filename = "my_dem.01" and extension = "asc".
+  /// 
+	///
+	/// For float files both a data file and a header are read
+	/// the header file must have the same filename, before extention, of
+	/// the raster data, and the extension must be .hdr.
+  void read_raster(string filename, string extension);
+    
+  /// @brief Read a raster from memory to a file.
+  ///
+  /// The supported formats are .asc and .flt which are
+  /// both exported and imported by arcmap.
+	///
+	/// The filename is the string of characters before the '.' in the extension
+	/// and the extension is the characters after the '.'.
+	///
+	/// If the full filename is my_dem.01.asc then:
+  /// filename = "my_dem.01" and extension = "asc".
+	///
+	/// For float files both a data file and a header are written
+	/// the header file must have the same filename, before extention, of
+	/// the raster data, and the extension must be .hdr.
+  void write_raster(string filename, string extension);
 
 
 	// Functions relating to shading, shadowing and shielding
-	// This function calculates Hillshade
-	// it uses the Arc algorithm (but is in c++ so much faster
+	
+  /// @brief This function generates a hillshade raster.
+  ///
+  /// It uses the the algorithm outlined in Burrough and McDonnell Principles
+  /// of GIS (1990) and in the ArcMap web help
+  /// http://edndoc.esri.com/arcobjects/9.2/net/shared/geoprocessing/
+  /// spatial_analyst_tools/how_hillshade_works.htm
+  ///
+  /// Default values are altitude = 45, azimuth = 315, z_factor = 1
+  /// @param altitude of the illumination source in degrees.                          
+  /// @param azimuth of the illumination source in degrees
+  /// @param z_factor Scaling factor between vertical and horizontal.
+  /// @return Hillshaded LSDRaster object
+  /// @author SWDG
+  /// @date February 2013
 	LSDRaster hillshade(double altitude, double azimuth, double z_factor);
-	// shadow function: called by toposhield and should not be called directly
-	// hence the Array rather than raster output
-	Array2D<double> Shadow(int theta, int phi);
-	// this calucaltes the shielding factor for cosmogenic analyis
+  
+  /// @brief This function generates a hillshade derivative raster using the 
+  /// algorithm outlined in Codilean (2006). 
+  ///
+  /// @details It identifies areas in shadow as 1 and all other values as 0. Is 
+  /// interfaced through LSDRaster::TopoShield and should not be called directly,
+  /// to generate a hillshade use LSDRaster::hillshade instead.
+  /// @param theta The zenith angle of the illumination source in degrees.
+  /// @param phi The azimuth angle of the illumination source in degrees.
+  /// @return 2D Array of doubles.
+  /// @author SWDG
+  /// @date 11/4/13
+  Array2D<double> Shadow(int theta, int phi);
+	  
+	/// @brief This function generates a topographic shielding raster using the algorithm outlined in Codilean (2006).
+  ///
+  /// @details Creating a raster of values between 0 and 1 which can be used as a
+  /// scaling factor in Cosmo analysis.
+  ///
+  /// Goes further than the original algorithm allowing a theoretical theta, 
+  /// phi pair of 1,1 to be supplied and although this will increase the 
+  /// computation time significantly, it is much faster than the original 
+  /// Avenue and VBScript implementations.
+  ///
+  /// Takes 2 ints, representing the theta, phi paring required.
+  /// Codilean (2006) used 5,5 as the standard values, but in reality values of 
+  /// 10,15 are often preferred to save processing time.
+  /// @param theta_step Spacing of sampled theta values.
+  /// @param phi_step Spacing of sampled phi values.
+  /// @pre phi_step must be a factor of 360.
+  /// @author SWDG
+  /// @date 11/4/13 
 	LSDRaster TopoShield(int theta_step, int phi_step);
 
-    // this looks for isolated instances of no data
-    void check_isolated_nodata();
-
-    // functions for extracting data elements
-    double get_data_element(int row, int column)	{ return RasterData[row][column]; }
-
-    // this calculates coefficeint matrices for calculating a variety of
-    // surface metrics such as slope, aspect, curvature, etc.
-    void calculate_polyfit_coefficient_matrices(double window_radius,
+  /// @brief This looks for isolated instances of no data.
+  ///
+  /// Does nothing else but print their location to the screen. 
+  void check_isolated_nodata();
+  
+  /// @brief Get the raster data at a specified location.
+  /// @param row An integer, the X coordinate of the target cell.
+  /// @param column An integer, the Y coordinate of the target cell.
+  /// @return The raster value at the position (row, column).
+  double get_data_element(int row, int column)	{ return RasterData[row][column]; }
+  
+  // this calculates coefficeint matrices for calculating a variety of
+  // surface metrics such as slope, aspect, curvature, etc.
+  
+  /// @brief This function calculates 6 coefficient matrices that allow the user to
+  /// then calcualte slope, curvature, aspect, a classification for finding saddles and peaks
+  /// and other metrics.
+  ///
+  /// @details The coefficient matrices are overwritten during the running of this member function.
+  ///
+	/// Have N simultaneous linear equations, and N unknowns.
+	/// => b = Ax, where x is a 1xN array containing the coefficients we need for
+	/// surface fitting.
+	/// A is constructed using different combinations of x and y, thus we only need
+	/// to compute this once, since the window size does not change.
+	/// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
+	/// 6x6 matrix.
+  /// Updated 15/07/2013 to use a circular mask for surface fitting. DTM
+  /// @param window_radius Radius of the mask.
+  /// @param a coefficeint a.
+  /// @param b coefficeint b.
+  /// @param c coefficeint c.
+  /// @param d coefficeint d.
+  /// @param e coefficeint e. 
+  /// @param f coefficeint f. 
+  void calculate_polyfit_coefficient_matrices(double window_radius,
 									Array2D<double>& a, Array2D<double>& b,
 									Array2D<double>& c, Array2D<double>& d,
 									Array2D<double>& e, Array2D<double>& f);
 
 	// a series of functions for retrieving derived data from the polyfit calculations
-	LSDRaster calculate_polyfit_elevation(Array2D<double>& f);
+	
+  /// @brief  This function calculates the elevation based on a polynomial fit.
+  ///
+  /// @details the window is determined by the calculate_polyfit_coefficient_matrices
+  /// this function also calculates the a,b,c,d,e and f coefficient matrices.
+  /// @param f coefficeint f. 
+  /// @return LSDRaster of elevations. 
+  /// @author FC
+  /// @date 24/03/13
+  LSDRaster calculate_polyfit_elevation(Array2D<double>& f);
+  /// @brief  This function calculates the slope based on a polynomial fit.
+  ///
+  /// @details the window is determined by the calculate_polyfit_coefficient_matrices
+  /// this function also calculates the a,b,c,d,e and f coefficient matrices.
+  /// @param d coefficeint d.
+  /// @param e coefficeint e. 
+  /// @return LSDRaster of slope.
 	LSDRaster calculate_polyfit_slope(Array2D<double>& d, Array2D<double>& e);
+  /// @brief  This function calculates the aspect based on a polynomial fit.
+  ///
+  /// @details the window is determined by the calculate_polyfit_coefficient_matrices
+  /// this function also calculates the a,b,c,d,e and f coefficient matrices.
+  /// @param d coefficeint d.
+  /// @param e coefficeint e. 
+  /// @return LSDRaster of aspect.
 	LSDRaster calculate_polyfit_aspect(Array2D<double>& d,Array2D<double>& e);
+	/// @brief  This function calculates the curvature based on a polynomial fit.
+  ///
+  /// @details the window is determined by the calculate_polyfit_coefficient_matrices
+  /// this function also calculates the a,b,c,d,e and f coefficient matrices.
+  /// @param a coefficeint a.
+  /// @param b coefficeint b. 
+  /// @return LSDRaster of curvature.
 	LSDRaster calculate_polyfit_curvature(Array2D<double>& a,Array2D<double>& b);
-  	LSDRaster calculate_polyfit_planform_curvature(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
+	/// @brief  This function calculates the planform curvature based on a polynomial fit.
+  ///
+  /// @details the window is determined by the calculate_polyfit_coefficient_matrices
+  /// this function also calculates the a,b,c,d,e and f coefficient matrices.
+  /// @param a coefficeint a.
+  /// @param b coefficeint b.
+  /// @param c coefficeint c.
+  /// @param d coefficeint d.
+  /// @param e coefficeint e.   
+  /// @return LSDRaster of planform curvature.
+  LSDRaster calculate_polyfit_planform_curvature(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
   													Array2D<double>& d, Array2D<double>& e);
-  	LSDRaster calculate_polyfit_profile_curvature(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
+	/// @brief  This function calculates the profile curvature based on a polynomial fit.
+  ///
+  /// @details the window is determined by the calculate_polyfit_coefficient_matrices
+  /// this function also calculates the a,b,c,d,e and f coefficient matrices.
+  /// @param a coefficeint a.
+  /// @param b coefficeint b.
+  /// @param c coefficeint c.
+  /// @param d coefficeint d.
+  /// @param e coefficeint e.   
+  /// @return LSDRaster of profile curvature.
+  LSDRaster calculate_polyfit_profile_curvature(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
   													Array2D<double>& d, Array2D<double>& e);
+	/// @brief  This function calculates the tangential curvature based on a polynomial fit.
+  ///
+  /// @details the window is determined by the calculate_polyfit_coefficient_matrices
+  /// this function also calculates the a,b,c,d,e and f coefficient matrices.
+  /// @param a coefficeint a.
+  /// @param b coefficeint b.
+  /// @param c coefficeint c.
+  /// @param d coefficeint d.
+  /// @param e coefficeint e.   
+  /// @return LSDRaster of tangential curvature.										
 	LSDRaster calculate_polyfit_tangential_curvature(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
   													Array2D<double>& d, Array2D<double>& e);
+  /// @brief This function identifies approximate position of stationary points within
+  /// discrete surface using a threshold slope.
+  ///
+  /// @details The nature of the stationary point is then determined to discriminate 
+  /// peaks, depressions and saddles. \n
+  /// 0 = Non-stationary  \n
+  /// 1 = Peak             \n
+  /// 2 = Depression        \n
+  /// 3 = Saddle             \n
+  /// @param a coefficeint a.
+  /// @param b coefficeint b.
+  /// @param c coefficeint c.
+  /// @param d coefficeint d.
+  /// @param e coefficeint e.   
+  /// @return LSDRaster of classified elevation data.
+  /// @author DTM 
+  /// @date	17/09/2012												
 	LSDIndexRaster calculate_polyfit_classification(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
 	                                                Array2D<double>& d, Array2D<double>& e);
 
-	// Gets the hilltop curvature raster. Takes an index raster that has hilltops
-	LSDRaster 	get_hilltop_curvature(LSDRaster& curvature, LSDIndexRaster& Hilltops);
+	
+	/// @brief Gets the hilltop curvature raster.
+  ///
+  /// @param curvature LSDRaster of curvatures.
+  /// @param Hilltops LSDIndexRaster of hilltops.
+  /// @return LSDRaster of hilltop curvatures.
+  /// @author DTM 
+  /// @date 30/04/13
+	LSDRaster get_hilltop_curvature(LSDRaster& curvature, LSDIndexRaster& Hilltops);
 
 	// surface roughness
+	/// @brief Algorithm that assesses surface roughness based on a polynomial fit.
+  ///
+  /// @details Runs a moving window across the DEM and assesses the variability of 
+  /// surface normals within that window.  Specifically the components of the 
+  /// normals are combined into an orientation matrix, which is then solved to
+  /// find the eigenvalues s1, s2, s3 (Woodcock, 1977).
+  /// @param d coefficeint d.
+  /// @param e coefficeint e.
+  /// @param l coefficeint l.
+  /// @param m coefficeint m.
+  /// @param n coefficeint n.
+  /// @author DTM  
+  /// @date 13/09/2012
 	void calculate_polyfit_directional_cosines(Array2D<double>& d, Array2D<double>& e, Array2D<double>& l,
 	                                           Array2D<double>& m, Array2D<double>& n);
+	/// @brief Find eigenvalues for orientation matrix
+	/// @param window_radius
+  /// @param l coefficeint l.
+  /// @param m coefficeint m.
+  /// @param n coefficeint n.
+  /// @param s1 coefficeint s1.
+  /// @param s2 coefficeint s2.
+  /// @param s3 coefficeint s3.
+  /// @author DTM  
+  /// @date 13/09/2012                                       
 	void calculate_orientation_matrix_eigenvalues(double window_radius,
 													Array2D<double>& l, Array2D<double>& m,
 													Array2D<double>& n, Array2D<double>& s1,
                     								Array2D<double>& s2, Array2D<double>& s3);
 
   	// Rock exposure index
+    /// @brief This function is a wrapper to get the three roughness eigenvalues 
+    /// s1, s2 and s3.
+    /// @param window_radius
+    /// @param a_plane
+    /// @param b_plane
+    /// @param c_plane
+    /// @author DTM
+    /// @date 15/7/2013
   	void calculate_plane_coefficient_matrices(double window_radius, Array2D<double>& a_plane,
 										Array2D<double>& b_plane, Array2D<double>& c_plane);
+		/// @brief Create the REI raster
+    ///
+    /// @details 
+    /// @param a_plane
+    /// @param b_plane
+    /// @param CriticalSlope
+    /// @return LSDIndexRaster of rock exposure.
+    /// @author DTM					
   	LSDIndexRaster calculate_REI(Array2D<double>& a_plane, Array2D<double>& b_plane, double CriticalSlope);
 
-	// this function takes the polyfit functions and requires a window radius and a vector telling the
-	// function which rasters to print to file. The function is data efficient since one does not
-	// need to recalucalte the polyfit coefficeint matrices
-	// it also takes a string which is the prename of the data files
-	// the file codes in the vector are:
-	// 0 slope
-	// 1 aspect
-	// 2 curvature
-	// 3 planform curvature
-	// 4 profile curvature
-	// 6 tangential curvature
-	// 7 classification
-	// SMM 19-12-2012
+	/// @brief this function takes the polyfit functions and requires a window radius and a vector telling the
+	/// function which rasters to print to file.
+  ///
+  /// @details The function is data efficient since one does not need to 
+  /// recalculate the polyfit coefficeint matrices. It also takes a string 
+  /// which is the prename of the data files the file codes in the vector are:\n
+	/// 0 slope         \n
+	/// 1 aspect        \n
+	/// 2 curvature       \n
+	/// 3 planform curvature\n
+	/// 4 profile curvature   \n
+	/// 6 tangential curvature  \n
+	/// 7 classification          \n
+  /// @param window_radius Radius of the mask.
+  /// @param file_prefix Output filename string.
+  /// @param file_list Vector of files to be created.
+  /// @author SMM 
+  /// @date 19-12-2012
 	void calculate_and_print_polyfit_rasters(double window_radius,
 											string file_prefix, vector<int> file_list);
 
@@ -163,6 +418,28 @@ class LSDRaster
 	// 9 roughness s2
 	// 10 roughness s3
 	// SMM 19-12-2012
+  /// @brief This function takes the combines the polyfit functions and the roughness function in one package.
+  ///
+  /// @details The function is data efficient since one does not need to 
+  /// recalculate the polyfit coefficeint matrices. Itakes the window radius of
+  /// the polyfit and the window of the roughness calculation the file codes in 
+  /// the vector are:\n
+	/// 0 slope         \n
+	/// 1 aspect        \n
+	/// 2 curvature       \n
+	/// 3 planform curvature\n
+	/// 4 profile curvature   \n
+	/// 6 tangential curvature  \n
+	/// 7 classification          \n
+	/// 8 roughness s1   \n
+	/// 9 roughness s2  \n
+	/// 10 roughness s3 \n
+  /// @param window_radius Radius of the mask.
+  /// @param roughness_radius Radius of the roughness window.
+  /// @param file_prefix Output filename string.
+  /// @param file_list Vector of files to be created.
+  /// @author SMM 
+  /// @date 19-12-2012
 	void calculate_and_print_polyfit_and_roughness_rasters(double window_radius, double roughness_radius,
 										string file_prefix, vector<int> file_list);
 
@@ -174,126 +451,396 @@ class LSDRaster
 	// 1 roughness s2
 	// 2 roughness s3
 	// DTM 15-07-2013
-  	void calculate_roughness_rasters(double window_radius, double roughness_radius, string file_prefix, vector<int> file_code);
+	/// @brief This function takes the combines the roughness functions in one package.
+  /// 
+  /// @details The function is data efficient since one does not need to 
+  /// recalculate the polyfit coefficeint matrices. I takes the window radius of
+  /// the polyfit and the window of the roughness calculation the file codes in 
+  /// the vector are:\n
+	/// 0 roughness s1   \n
+	/// 1 roughness s2  \n
+	/// 2 roughness s3 \n
+  /// @param window_radius Radius of the mask.
+  /// @param roughness_radius Radius of the roughness window.
+  /// @param file_prefix Output filename string.
+  /// @param file_code Vector of files to be created.
+  /// @author DTM 
+  /// @date 15-07-2013
+  void calculate_roughness_rasters(double window_radius, double roughness_radius, string file_prefix, vector<int> file_code);
 
 
 	// hydrology tools
-	LSDRaster fill();
-	LSDRaster fill(double& MinSlope);
+	///@brief This function fills pits/sinks in a DEM by incrementing elevations for cells with
+  ///no downslope neighbour. The process is repeated adnausium until no cells require
+  ///incrementing.
+  ///
+  ///Inputs required are a DEM file in ascii raster format as created by ARCMap
+  ///and a file name to create a filled DEM grid.
+  ///
+  ///This code was built ontop of code made available by Jon D. Pelletier as part
+  ///of his book:
+  ///
+  ///Pelletier,J.D.,'Quantitative Modelling of Landscapes' Cambridge University Press
+  ///
+  ///---------------------------------------------------------------------------------
+  ///
+  /// v1.3 reduced fill increment to 1mm  to avoid 'overfilling'
+  ///
+  /// Martin Hurst, October 2011
+  ///
+  ///---------------------------------------------------------------------------------
+  ///
+  /// v1.2 modified to read *.flt files
+  ///
+  /// Martin Hurst, November 2010
+  ///
+  ///---------------------------------------------------------------------------------
+  ///
+  /// v1.1 function incorporated to allow the tool to fill adjacent pixels immediately
+  /// after filling a given pixel, should speed things up.
+  ///
+  /// Martin Hurst, October 2010
+  ///
+  ///---------------------------------------------------------------------------------
+  ///
+  /// v1.0 is slow as it requires many iterations through the dem
+  ///
+  /// Martin Hurst, June 2010 
+  /// @return Filled LSDRaster.
+  LSDRaster fill();
+	/// @brief This is a recursive algorithm that is called by the fill function.
+  /// @param fill_data
+  /// @param i
+  /// @param j
 	void fill_iterator(Array2D<double>& fill_data, int i, int j);
-
- 	//D-infinity tools
-
-  	/// @brief D-infinity flow direction algorithm after Tarboton (1997).
-  	///
-  	/// @detail Algorithm takes a filled DEM and for each cell calculates the steepest descent
-  	/// based on 8 triangular facets. Flow direction is assigned as an angle from 0-360
-  	/// degrees with -1 used to flag unresolved areas such as pits.
-  	///
-  	/// Code is ported and optimised from a Java implementation of the algorithm
-  	/// supplied under the GNU GPL licence through WhiteBox GAT:
-  	/// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results
-  	/// to the whitebox tool.
-  	/// @return Array of Flow directions in degrees.
-  	/// @author SWDG
-  	/// @date 26/07/13
-  	Array2D<double> D_inf_FlowDir();
-
-  	/// @brief Main function for generating a D-infinity flow area raster after Tarboton (1997).
-  	///
-  	/// @detail Calls the recurisve D_infAccum function to get flow area for each pixel.
-  	/// Returns flow area in pixels.
-  	///
-  	/// Code is ported and optimised from a Java implementation of the algorithm
-  	/// supplied under the GNU GPL licence through WhiteBox GAT:
-  	/// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results
-  	/// to the whitebox tool.
-  	/// @param FlowDir_array Array of Flowdirections generated by D_inf_FlowDir().
-  	/// @return LSDRaster of D-inf flow areas in pixels.
-  	/// @author SWDG
-  	/// @date 26/07/13
-  	LSDRaster D_inf_FlowArea(Array2D<double> FlowDir_array);
-
-  	/// @brief Recursive function to calculate accumulating area for a given pixel.
-  	///
-  	/// @detail Called by the driver for every cell which has no contributing
-  	/// cells - eg the highest points on the landscape. Avoids the need to flatten
-  	/// and sort the DEM as required in the original Tarboton (1997)
-  	/// implementation. For more detail on the recursive algorithm following
-  	/// channels see Mark (1998) "Network Models in Geomorphology".
-  	///
-  	/// Code is ported and optimised from a Java implementation of the algorithm
-  	/// supplied under the GNU GPL licence through WhiteBox GAT:
-  	/// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results
-  	/// to the whitebox tool.
-  	///
-  	/// @param i Row index of the target cell.
-  	/// @param j Column index of the target cell.
-  	/// @param CountGrid Array showing the number of cells flowing into each cell.
-  	/// @param Flowarea_Raster Array of the flow areas which is populated using this function.
-  	/// @param FlowDir_array Array of Flowdirections generated by D_inf_FlowDir().
-  	/// @author SWDG
-  	/// @date 26/07/13
-  	void D_infAccum(int i, int j, Array2D<double> CountGrid, Array2D<double> Flowarea_Raster, Array2D<double> FlowDir_array);
-
-  	/// @brief Wrapper Function to create a D-infinity flow area raster with one function call.
-  	/// @return LSDRaster of D-inf flow areas in pixels.
-  	/// @author SWDG
-  	/// @date 26/07/13
-  	LSDRaster D_inf();
-
-  	/// @brief Function to write the D-infinity flow directions to an LSDRaster.
-  	/// @param dinflow Array of Flowdirections generated by D_inf_FlowDir().
-  	///@return LSDRaster of D-inf flow directions in degrees.
-  	/// @author SWDG
-  	/// @date 26/07/13
-  	LSDRaster write_dinf_flowdir_to_LSDRaster(Array2D<double> dinflow);
-
-  	LSDRaster hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<double>& Hilltops, Array2D<double>& Aspect,
+  
+  
+  /// @brief This function fills pits/sinks in a DEM by checking for pits from 
+  ///lowest to highest elevation, starting at the DEM boundary (raster edge or 
+  /// adjacent to NDVs).
+  ///
+  /// @details Utilises a priority queue to progressively populate the stack and 
+  /// pop out the the lowest value before checking that the neighbouring cells 
+  /// that are yet to be visited must be higher in a hydrologically correct DEM.
+  /// This method is substantially faster on datasets with pits consisting of 
+  /// multiple cells since each cell only needs to be visited once.
+  ///
+  /// Method taken from Wang and Liu (2006), Int. J. of GIS. 20(2), 193-213
+  /// @param MinSlope The minimum slope between two Nodes once filled. If set 
+  /// to zero will create flats. 
+  /// @return Filled LSDRaster object.
+  /// @author Martin Hurst  
+  /// @date 12/3/13
+  LSDRaster fill(double& MinSlope);
+  
+  /// @brief Divergent flow routing algorithm to simulate hilltop flow routing, routing flow from
+  /// hilltops to valley bottoms.
+  /// 
+  /// @details The original algorithm was written in C++ by Martin Hurst
+  /// based on Lea [1991] 'An aspect driven kinematic routing algorithm'.
+  /// Records mean slope, hillslope length relief, and aspect for each hilltop-channel flow
+  /// path.
+  /// Pre-requisites are a hilltop or ridge network raster, with the network broken down
+  /// into segments; a slope raster; a curvature raster; a stream network raster.
+  /// Output is a text file that contains the the x and y coordinates and HilltopSegment id
+  /// and HilltopCurvature, in addition to the mean slope, hillslope length and relief for
+  /// each flow path.
+  /// New efficiency saving -> use mean slope = relief/total flow length, rather than using
+  /// the slope raster.  This means that you only have to update flow length along each flow
+  /// path and not mean_slope.
+  ///
+  /// Error in Aspect calculation fixed so output file now prints the aspect in radians and
+  /// degrees - SWDG 02/04/13
+  ///
+  /// Now returns an updated hilltop LSDRaster with each hilltop pixel assigned the unique
+  /// value for the stream network that the hilltop flows into  - SWDG 04/04/13
+  ///
+  /// Now takes an Array2D of doubles as the Hilltop network, as all ridges are defined as
+  /// LSDRaster objects - SWDG 8/4/13
+  /// @param StreamNetwork Array 2D of the stream network.
+  /// @param Hilltops Array 2D of hilltops.
+  /// @param Aspect Array 2D of aspect
+  /// @param Curvature Array of curvature values.
+  /// @return Curvature Array 2D of curvature.
+  /// @author DTM
+  /// @date 17/12/2012
+  LSDRaster hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<double>& Hilltops, Array2D<double>& Aspect,
                                           Array2D<double>& Curvature);
 
 	// multidirection flow routing
+	/// @brief Generate a flow area raster using a multi direction algorithm.
+  /// 
+  /// @details Computes the proportion of all downslope flows for each cell in 
+  /// the input DEM and routes the flow accordingly. Consequently the dem is 
+  /// sorted and indexed using LSDStatsTools. Can handle DEMs containing flats, 
+  /// but pits must be filled using the new LSDRaster fill.
+  ///
+  /// Currently only works with periodic boundaries. Function built around 
+  /// original c++ code by Martin Hurst. 
+  /// @param BoundaryConditions Vector as in LSDFlowInfo object.
+  /// @return LSDRaster of flow area.
+  /// @author SWDG
+  /// @date 18/4/13 - 24/4/13
 	LSDRaster MDFlow(vector<string> BoundaryConditions);
-	LSDRaster FreemanMDFlow();
+	/// @brief Generate a flow area raster using a multi direction algorithm.
+  /// 
+  /// @details Computes the proportion of all downslope flows for each cell in the input
+  /// DEM, and weights them using the equation from Freeman et al 1991 and routes the
+  /// flow accordingly.
+  ///
+  /// Paper link: http://www.sciencedirect.com/science/article/pii/009830049190048I
+  ///
+  /// Cardinal Weighting = (elevation_drop/total_elevation_drop)^1.1  \n
+  /// Diagonal Weighting = ((elevation_drop/total_elevation_drop)*(1/root(2)))^1.1
+  ///
+  /// Can <b>NOT</b> handle DEMs containing flats or pits -  must be filled using the new
+  /// LSDRaster fill. Function built around original c++ code by Martin Hurst. 
+  /// @return LSDRaster of flow area.
+  /// @author SWDG
+  /// @date 18/4/13
+  LSDRaster FreemanMDFlow();
+  /// @brief Generate a flow area raster using a multi direction algorithm.
+  /// 
+  /// @details Computes the proportion of all downslope flows for each cell in the input
+  /// DEM, and weights them using the equation from Quinn et al 1991 and routes the
+  /// flow accordingly.
+  ///
+  /// Paper link: http://onlinelibrary.wiley.com/doi/10.1002/hyp.3360050106/abstract
+  ///
+  /// Cardinal Weighting = (elevation_drop/total_elevation_drop)*DataResolution/2 \n
+  /// Diagonal Weighting = ((elevation_drop/total_elevation_drop)*(1/root(2)))* DataResolution*0.354
+  ///
+  /// Can <b>NOT</b> handle DEMs containing flats or pits -  must be filled using the new
+  /// LSDRaster fill. Function built around original c++ code by Martin Hurst. 
+  /// @return LSDRaster of flow area.
+  /// @author SWDG
+  /// @date 18/4/13
 	LSDRaster QuinnMDFlow();
+	/// @brief Generate a flow area raster using a multi 2-direction algorithm.
+  /// 
+  /// @details Computes the proportion of all downslope flows for each cell in the input
+  /// DEM. Finds the cell of the steepest descent and then checks the two
+  /// neighbouring cells slopes. If either is also downslope proportion flow 
+  /// between the steepest cell and the steepest neighbour. If neither neighbour
+  /// is downslope 100% of flow follows the steepest path.  
+  ///
+  /// Can <b>NOT</b> handle DEMs containing flats or pits -  must be filled using the new
+  /// LSDRaster fill. Function built around original c++ code by Martin Hurst. 
+  /// @return LSDRaster of flow area.
+  /// @author SWDG
+  /// @date 02/08/13
+  LSDRaster M2DFlow();
+
 
 	// channel head identification
+	/// @brief This function is used to predict channel head locations based on the method proposed by Pelletier (2013).
+  /// 
+  /// @details It creates a contour curvature map and identifies channel heads as pixels greater
+  /// than a user defined contour curvature threshold value, set by default at 0.1.  The threshold curvature
+  /// can also be defined as a multiple of the standard deviation of the curvature.  Before this function is called
+  /// the DEM must be filtered using the wiener filter in the LSDRasterSpectral object in order to remove high frequency
+  /// noise.
+  ///
+  /// Reference: Pelletier (2013) A robust, two-parameter method for the extraction of drainage
+  /// networks from high-resolution digital elevation models (DEMs): Evaluation using synthetic and real-world
+  /// DEMs, Water Resources Research 49: 1-15
+  /// 
+  /// Do these parameters need to be passed in? Are they not exposed as part of 
+  /// the LSDRaster object?
+  /// @param NRows Integer of the number of rows in the DEM.
+  /// @param NCols Integer of the number of columns in the DEM.
+  /// @param XMinimum Integer minimum X value.
+  /// @param YMinimum Integer minimum Y value.
+  /// @param DataResolution Integer Cellsize.
+  /// @param NoDataValue Integer no data values.
+  /// @param window_radius Integer window radius.
+  /// @param tan_curv_threshold Double curvature threshold value.
+  /// @param tan_curv_array 2D array of tangential curvature.
+  /// @return LSDRaster of predicted channel head locations. 
+  /// @author FC
+  /// @date 16/07/13
 	LSDRaster calculate_pelletier_channel_heads(int NRows,int NCols,int XMinimum,int YMinimum,double DataResolution,
 	                                                          int NoDataValue,double window_radius,
                                                           double tan_curv_threshold,Array2D<double>& tan_curv_array);
 
 	// some tools associated with ridgeline analyis
+		
+	/// @brief Module to sample LSDRaster values running along a ridgetop network.
+  /// 
+	/// @details Ridge network is generated from LSDChannelNetwork::ExtractRidges. 
+  /// @param Ridges 2D Array of ridge lines.
+  /// @return Sampled LSDRaster object.
+  /// @author SWDG
+  /// @date 04/2013
 	LSDRaster RidgeSample(Array2D<double>& Ridges);
+	/// @brief Pass a smoothing window over a ridge LSDRaster object to calculate 
+  /// an average value running along the ridgetop.
+  /// @param WindowRadius optional integer smoothing radius between 1 and 6.
+  /// @pre Default smoothing radius is 2 and will revert to that value if a 
+  /// radius outside the vaid range (1 to 6) is passed.
+  /// @return Averaged LSDRaster object.
+  /// @author SWDG
+  /// @date 04/2013
 	LSDRaster RidgeSmoother(int WindowRadius);
+	/// @brief Pass a buffer over a ridge LSDRaster object to increase sampling area.
+  /// 
+  /// @details Buffers equally in all directions, so use with care to avoid 
+  /// sampling areas away from the axis of the original ridge line.
+  /// @param BufferRadius optional integer buffer radius between 1 and 6.
+  /// @pre Default buffer radius is 2 and will revert to that value if a 
+  /// radius outside the vaid range (1 to 6) is passed.
+  /// @return LSDRaster object containing buffered ridges.
+  /// @author SWDG
+  /// @date 04/2013
 	LSDRaster RidgeBuffer(int BufferRadius);
+	/// @brief Module assigns an average LSDRaster value to each basin.
+  /// 
+  /// @details Works by searching for every hilltop value that falls within a 
+  /// basin, summing these values and writing the final average to every cell 
+  /// identified as the basin in question.
+  ///
+  /// Very inefficent at present. Module loops through every cell in LSDRaster
+  /// (2 * number of basins) + 1 times. Beware!
+  /// @param Basins LSDIndexRaster of Drainage basins, generated using
+  /// ChannelNetwork::ExtractBasinsOrder.
+  /// @return LSDRaster of average basin value for each identified basin.
+  /// @author SWDG
+  /// @date 04/2013
 	LSDRaster BasinAverager(LSDIndexRaster& Basins);
-
-
 
 	// Smoothing tools
 	//Nonlocal Means Filtering - Default values following Baudes et al [2005]
+	/// @brief Perform Non-local means filtering on a DEM following Baude et al [2005].
+  /// 
+  /// @details Smoothes non-gaussian noise. Martin Hurst, February, 2012
+	/// Modified by David Milodowski, May 2012- generates grid of recording filtered noise
+  ///
+	/// WindowRadius has to be <= SimilarityRadius ?
+  ///
+	/// Adapted from a matlab script by:
+	/// Author: Jose Vicente Manjon Herrera & Antoni Buades
+	/// Date: 09-03-2006
+  ///
+	/// Implementation of the Non local filter proposed for A. Buades, B. Coll and J.M. Morel in
+	/// "A non-local algorithm for image denoising"
+  /// 
+	/// **Added soft threshold optimal correction - David Milodowski, 05/2012
+  /// @param WindowRadius search window radius (defualt=2).
+  /// @param SimilarityRadius similarity window radius (defualt=2).
+  /// @param DegreeFiltering degree of filtering (defualt=2).
+  /// @param Sigma (default=1.25).
+  /// @return Filtered LSDRaster object.  
+  /// @author MDH, DTM
+  /// @date February 2012
 	LSDRaster NonLocalMeansFilter(int WindowRadius=2, int SimilarityRadius=2, int DegreeFiltering=2, double Sigma=1.25);
+	/// @brief Creates a buffer around an array (of size SimilarityRadius) and 
+  /// gives the new border mirror symmetric values of the original array reflected 
+  /// across the boundary.
+  /// 
+  /// @details SimilarityRadius should be the size of the window if filtering.
+	/// New array has size nrows + 2*SimilarityRadius by ncols + 2*SimilarityRadius.
+  /// @param PaddedRasterData Padded LSDRaster.
+  /// @param SimilarityRadius similarity window radius.
+  /// @author Martin Hurst
+  /// @date February 2012
 	void PadRasterSymmetric(Array2D<double>& PaddedRasterData, int& SimilarityRadius);
+	/// @brief Generate gaussian weighted kernel.
+  /// 
+  /// @details kernel array must be predeclared of size SimilarityRadius and consist of zeros:
+	/// Array2D<double> Kernel(SimilarityRadius,SimilarityRadius,0.0);
+	/// 
+	/// Kernel generated using: G(x,y) = (1/2*pi*sigma^2) exp ((-x^2+y^2)/(2*sigma^2))
+  /// @param Kernel
+  /// @param sigma 
+  /// @param SimilarityRadius similarity window radius.
+  /// @author Martin Hurst
+  /// @date February 2012
 	void MakeGaussianKernel(Array2D<double>& Kernel, double sigma, int SimilarityRadius);
 
-
-
-
-
-
+  //D-infinity tools
+ 
+  /// @brief D-infinity flow direction algorithm after Tarboton (1997).
+  ///
+  /// @details Algorithm takes a filled DEM and for each cell calculates the steepest descent
+  /// based on 8 triangular facets. Flow direction is assigned as an angle from 0-360
+  /// degrees with -1 used to flag unresolved areas such as pits.  
+  /// 
+  /// Code is ported and optimised from a Java implementation of the algorithm
+  /// supplied under the GNU GPL licence through WhiteBox GAT:
+  /// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results 
+  /// to the whitebox tool.
+  /// @return Array of Flow directions in degrees.
+  /// @author SWDG 
+  /// @date 26/07/13
+  Array2D<double> D_inf_FlowDir();
+  
+  /// @brief Main function for generating a D-infinity flow area raster after Tarboton (1997).
+  ///
+  /// @details Calls the recurisve D_infAccum function to get flow area for each pixel.
+  /// Returns flow area in pixels.
+  ///
+  /// Code is ported and optimised from a Java implementation of the algorithm
+  /// supplied under the GNU GPL licence through WhiteBox GAT:
+  /// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results 
+  /// to the whitebox tool.
+  /// @param FlowDir_array Array of Flowdirections generated by D_inf_FlowDir().
+  /// @return LSDRaster of D-inf flow areas in pixels.
+  /// @author SWDG 
+  /// @date 26/07/13
+  LSDRaster D_inf_FlowArea(Array2D<double> FlowDir_array);
+  
+  /// @brief Recursive function to calculate accumulating area for a given pixel. 
+  ///
+  /// @details Called by the driver for every cell which has no contributing 
+  /// cells - eg the highest points on the landscape. Avoids the need to flatten
+  /// and sort the DEM as required in the original Tarboton (1997) 
+  /// implementation. For more detail on the recursive algorithm following 
+  /// channels see Mark (1998) "Network Models in Geomorphology".
+  ///
+  /// Code is ported and optimised from a Java implementation of the algorithm
+  /// supplied under the GNU GPL licence through WhiteBox GAT:
+  /// http://www.uoguelph.ca/~hydrogeo/Whitebox/ and provides identical results 
+  /// to the whitebox tool.
+  ///
+  /// @param i Row index of the target cell.
+  /// @param j Column index of the target cell.
+  /// @param CountGrid Array showing the number of cells flowing into each cell.
+  /// @param Flowarea_Raster Array of the flow areas which is populated using this function.
+  /// @param FlowDir_array Array of Flowdirections generated by D_inf_FlowDir().
+  /// @author SWDG 
+  /// @date 26/07/13                                                               
+  void D_infAccum(int i, int j, Array2D<double> CountGrid, Array2D<double> Flowarea_Raster, Array2D<double> FlowDir_array);
+  
+  /// @brief Wrapper Function to create a D-infinity flow area raster with one function call.
+  /// @return LSDRaster of D-inf flow areas in pixels.
+  /// @author SWDG 
+  /// @date 26/07/13  
+  LSDRaster D_inf();
+  
+  /// @brief Function to write the D-infinity flow directions to an LSDRaster.
+  /// @param dinflow Array of Flowdirections generated by D_inf_FlowDir().
+  ///@return LSDRaster of D-inf flow directions in degrees.
+  /// @author SWDG 
+  /// @date 26/07/13
+  LSDRaster write_dinf_flowdir_to_LSDRaster(Array2D<double> dinflow);
+  
 	protected:
 
-	// data for georeferencing
-	int NRows;			// number of rows
-	int NCols;			// number of columns
-	double XMinimum;
+	///Number of rows.
+  int NRows;
+  ///Number of columns.
+	int NCols;
+	///Minimum X coordinate.
+  double XMinimum;
+	///Minimum Y coordinate.
 	double YMinimum;
 
-	// metadata
+	///Data resolution.
 	double DataResolution;
-	double NoDataValue;
+	///No data value.
+	int NoDataValue;
 
-	// the actual raster
+	/// Raster data.
 	Array2D<double> RasterData;
 
 	private:

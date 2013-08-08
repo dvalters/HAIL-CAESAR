@@ -2038,11 +2038,15 @@ void LSDRaster::fill_iterator(Array2D<double>& fill_data, int i, int j)
 //	Martin Hurst, 12/3/13 */
 //
 //	Declare the node structure
+///@brief Used in pit filling to store elevation data and row and colum indexes.
 struct FillNode
 {
+  /// @brief Elevation data.
 	double Zeta;
-	int RowIndex;
-	int ColIndex;
+	/// @brief Row index value.
+  int RowIndex;
+	/// @brief Column index value.
+  int ColIndex;
 };
 
 //Overload the less than and greater than operators to consider Zeta data only
@@ -3654,6 +3658,412 @@ LSDRaster LSDRaster::QuinnMDFlow(){
   return QuinnMultiFlow;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Function built around original c++ code by Martin Hurst to generate a flowarea
+// raster.
+//
+// Computes the proportion of all downslope flows for each cell in the input
+// DEM. Finds the cell of the steepest descent and then checks the two
+// neighbouring cells slopes. If either is also downslope proportion flow 
+// between the steepest cell and the steepest neighbour. If neither neighbour
+// is downslope 100% of flow follows the steepest path.  
+// 
+// Can *NOT* handle DEMs containing flats or pits -  must be filled using the new
+// LSDRaster fill.
+//
+// Outputs an LSDRaster
+//
+// SWDG - 02/08/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::M2DFlow(){
+
+  //create output array, populated with nodata
+  Array2D<double> area(NRows, NCols, NoDataValue);
+
+  //declare variables
+  vector<double> flat;
+  vector<double> sorted;
+  vector<size_t> index_map;
+  double one_ov_root_2 = 0.707106781187;
+
+  //loop through the dem cells creating a row major 1D vector, flat, and
+  //setting the cell area to every npn ndv cell
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      flat.push_back(RasterData[i][j]);
+      if (RasterData[i][j] != NoDataValue){
+        area[i][j] = DataResolution*DataResolution;
+      }
+    }
+  }
+
+  //sort the 1D elevation vector and produce an index
+  matlab_double_sort_descending(flat, sorted, index_map);
+
+  for(int q = 0 ;q < int(flat.size()); ++q){
+
+    if (sorted[q] != NoDataValue){
+
+		  //use row major ordering to reconstruct each cell's i,j coordinates
+  	  int i = index_map[q] / NCols;
+   	  int j = index_map[q] % NCols;
+
+      //skip edge cells
+      if (i != 0 && j != 0 && i != NRows-1 && j != NCols-1){
+      
+        //reset variables on each loop
+			  double slope0 = 0;
+        double slope1 = 0;
+        double slope2 = 0;
+        double slope3 = 0;
+        double slope4 = 0;
+        double slope5 = 0;
+        double slope6 = 0;
+        double slope7 = 0;
+        vector<double> slopes;
+        
+        double p1 = 0;
+        double p2 = 0;
+        int second_slope = -1; //initialized using value outside of range.
+        
+        //Get magnitude of downslope flow slope0->7 *Avoids NDVs*
+			  if (RasterData[i][j] > RasterData[i-1][j-1] && RasterData[i-1][j-1] != NoDataValue){
+          slope0 = ((RasterData[i][j] - RasterData[i-1][j-1]) * one_ov_root_2);
+          slopes.push_back(slope0);
+        }
+        else {
+          slopes.push_back(0);
+        }
+        
+			  if (RasterData[i][j] > RasterData[i-1][j] && RasterData[i-1][j] != NoDataValue){
+          slope1 = (RasterData[i][j] - RasterData[i-1][j]);
+          slopes.push_back(slope1);
+			  }
+        else {
+          slopes.push_back(0);
+        }
+        
+		  	if (RasterData[i][j] > RasterData[i-1][j+1] && RasterData[i-1][j+1] != NoDataValue){
+          slope2 = ((RasterData[i][j] - RasterData[i-1][j+1]) * one_ov_root_2);
+          slopes.push_back(slope2);
+		  	}
+        else {
+          slopes.push_back(0);
+        }
+        
+			  if (RasterData[i][j] > RasterData[i][j+1] && RasterData[i][j+1] != NoDataValue){
+          slope3 = (RasterData[i][j] - RasterData[i][j+1]);
+          slopes.push_back(slope3);
+        }
+        else {
+          slopes.push_back(0);
+        }
+        
+			  if (RasterData[i][j] > RasterData[i+1][j+1] && RasterData[i+1][j+1] != NoDataValue){
+          slope4 = ((RasterData[i][j] - RasterData[i+1][j+1]) * one_ov_root_2);
+          slopes.push_back(slope4);
+		  	}
+        else {
+          slopes.push_back(0);
+        }
+        
+			  if (RasterData[i][j] > RasterData[i+1][j] && RasterData[i+1][j] != NoDataValue){
+          slope5 = (RasterData[i][j] - RasterData[i+1][j]);
+          slopes.push_back(slope5);
+        }
+        else {
+          slopes.push_back(0);
+        }
+        
+			  if (RasterData[i][j] > RasterData[i+1][j-1] && RasterData[i+1][j-1] != NoDataValue){
+          slope6 = ((RasterData[i][j] - RasterData[i+1][j-1]) * one_ov_root_2);
+          slopes.push_back(slope6);
+			  }
+        else {
+          slopes.push_back(0);
+        }
+        
+			  if (RasterData[i][j] > RasterData[i][j-1] && RasterData[i][j-1] != NoDataValue){
+          slope7 = (RasterData[i][j] - RasterData[i][j-1]);
+          slopes.push_back(slope7);
+        }
+        else {
+          slopes.push_back(0);
+        }
+                
+        if (int(slopes.size()) > 0 ){   //catch outlets with no neighbours to drain to
+                
+          //find maximum slope & its index location in the slopes vector      
+          double S_max = *max_element(slopes.begin(), slopes.end());
+          int S_max_index = find(slopes.begin(), slopes.end(), S_max) - slopes.begin();
+          
+          //find steepest neighbour
+          if (S_max_index == 0){
+            if (slope7 > 0 && slope1 == 0){
+              second_slope = 7;            
+            }
+            if (slope7 == 0 && slope1 > 0){
+              second_slope = 1;          
+            }          
+            if (slope7 > 0 && slope1 > 0){
+              if (slope7 > slope1){
+                second_slope = 7;
+              }
+              else{
+                second_slope = 1;
+              }           
+            }
+            if (slope7 == slope1){
+              second_slope = 0;          
+            }            
+          }
+  
+          if (S_max_index == 1){
+            if (slope0 > 0 && slope2 == 0){
+              second_slope = 7;            
+            }
+            if (slope0 == 0 && slope2 > 0){
+              second_slope = 1;          
+            }          
+            if (slope0 > 0 && slope2 > 0){
+              if (slope0 > slope2){
+                second_slope = 7;
+              }
+              else{
+                second_slope = 1;
+              }           
+            }
+            if (slope0 == slope2){
+              second_slope = 0;          
+            }            
+          }
+                       
+          if (S_max_index == 2){
+            if (slope1 > 0 && slope3 == 0){
+              second_slope = 7;            
+            }
+            if (slope1 == 0 && slope3 > 0){
+              second_slope = 1;          
+            }          
+            if (slope1 > 0 && slope3 > 0){
+              if (slope1 > slope3){
+                second_slope = 7;
+              }
+              else{
+                second_slope = 1;
+              }           
+            }
+            if (slope1 == slope3){
+              second_slope = 0;          
+            }            
+          }
+          
+          if (S_max_index == 3){
+            if (slope2 > 0 && slope4 == 0){
+              second_slope = 7;            
+            }
+            if (slope2 == 0 && slope4 > 0){
+              second_slope = 1;          
+            }          
+            if (slope2 > 0 && slope4 > 0){
+              if (slope2 > slope4){
+                second_slope = 7;
+              }
+              else{
+                second_slope = 1;
+              }           
+            }
+            if (slope2 == slope4){
+              second_slope = 0;          
+            }            
+          }                
+  
+          if (S_max_index == 4){
+            if (slope3 > 0 && slope5 == 0){
+              second_slope = 7;            
+            }
+            if (slope3 == 0 && slope5 > 0){
+              second_slope = 1;          
+            }          
+            if (slope3 > 0 && slope5 > 0){
+              if (slope3 > slope5){
+                second_slope = 7;
+              }
+              else{
+                second_slope = 1;
+              }           
+            }
+            if (slope3 == slope5){
+              second_slope = 0;          
+            }            
+          }
+  
+          if (S_max_index == 5){
+            if (slope4 > 0 && slope6 == 0){
+              second_slope = 7;            
+            }
+            if (slope4 == 0 && slope6 > 0){
+              second_slope = 1;          
+            }          
+            if (slope4 > 0 && slope6 > 0){
+              if (slope4 > slope6){
+                second_slope = 7;
+              }
+              else{
+                second_slope = 1;
+              }           
+            }
+            if (slope4 == slope6){
+              second_slope = 0;          
+            }            
+          }
+          
+          
+          if (S_max_index == 6){
+            if (slope5 > 0 && slope7 == 0){
+              second_slope = 7;            
+            }
+            if (slope5 == 0 && slope7 > 0){
+              second_slope = 1;          
+            }          
+            if (slope5 > 0 && slope7 > 0){
+              if (slope5 > slope7){
+                second_slope = 7;
+              }
+              else{
+                second_slope = 1;
+              }           
+            }
+            if (slope5 == slope7){
+              second_slope = 0;          
+            }            
+          }
+          
+          if (S_max_index == 7){
+            if (slope6 > 0 && slope0 == 0){
+              second_slope = 7;            
+            }
+            if (slope6 == 0 && slope0 > 0){
+              second_slope = 1;          
+            }          
+            if (slope6 > 0 && slope0 > 0){
+              if (slope6 > slope0){
+                second_slope = 7;
+              }
+              else{
+                second_slope = 1;
+              }           
+            }
+            if (slope6 == slope0){
+              second_slope = 0;          
+            }            
+          }   
+  
+          //get proportions p1 and p2
+          if (second_slope != S_max_index){
+            p1 = S_max/(S_max + slopes[second_slope]);
+            p2 = slopes[second_slope]/(S_max + slopes[second_slope]);
+          }
+          else{ //flow only in 1 direction
+            p1 = 1;
+            p2 = 0;
+          }
+          
+          //partition flow following the steepest slope and it's steepest neighbour
+          if (S_max_index == 0 && area[i-1][j-1] != NoDataValue){ 
+            area[i-1][j-1] += area[i][j] * p1;
+            if (second_slope == 1){
+              area[i-1][j] += area[i][j] * p2;
+            }
+            if (second_slope == 7){
+              area[i][j-1] += area[i][j] * p2;
+            }
+          }
+          
+          if (S_max_index == 1 && area[i-1][j] != NoDataValue){ 
+            area[i-1][j] += area[i][j] * p1;
+            if (second_slope == 2){
+              area[i-1][j+1] += area[i][j] * p2;
+            }
+            if (second_slope == 0){
+              area[i-1][j-1] += area[i][j] * p2;
+            }
+          }        
+          
+          if (S_max_index == 2 && area[i-1][j+1] != NoDataValue){ 
+            area[i-1][j+1] += area[i][j] * p1;
+            if (second_slope == 3){
+              area[i][j+1] += area[i][j] * p2;
+            }
+            if (second_slope == 1){
+              area[i-1][j] += area[i][j] * p2;
+            }
+          }        
+  
+          if (S_max_index == 3 && area[i][j+1] != NoDataValue){ 
+            area[i][j+1] += area[i][j] * p1;
+            if (second_slope == 4){
+              area[i+1][j+1] += area[i][j] * p2;
+            }
+            if (second_slope == 2){
+              area[i-1][j+1] += area[i][j] * p2;
+            }
+          }
+  
+          if (S_max_index == 4 && area[i+1][j+1] != NoDataValue){ 
+            area[i+1][j+1] += area[i][j] * p1;
+            if (second_slope == 5){
+              area[i+1][j] += area[i][j] * p2;
+            }
+            if (second_slope == 3){
+              area[i][j+1] += area[i][j] * p2;
+            }
+          }
+          
+          if (S_max_index == 5 && area[i+1][j] != NoDataValue){ 
+            area[i+1][j] += area[i][j] * p1;
+            if (second_slope == 6){
+              area[i+1][j-1] += area[i][j] * p2;
+            }
+            if (second_slope == 4){
+              area[i+1][j+1] += area[i][j] * p2;
+            }
+          }        
+          
+          if (S_max_index == 6 && area[i+1][j-1] != NoDataValue){ 
+            area[i+1][j-1] += area[i][j] * p1;
+            if (second_slope == 7){
+              area[i][j-1] += area[i][j] * p2;
+            }
+            if (second_slope == 5){
+              area[i+1][j] += area[i][j] * p2;
+            }
+          }        
+  
+          if (S_max_index == 7 && area[i][j-1] != NoDataValue){ 
+            area[i][j-1] += area[i][j] * p1;
+            if (second_slope == 0){
+              area[i-1][j] += area[i][j] * p2;
+            }
+            if (second_slope == 6){
+              area[i-1][j-1] += area[i][j] * p2;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  //write output LSDRaster object
+  LSDRaster Multi2Flow(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, area);
+  return Multi2Flow;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
