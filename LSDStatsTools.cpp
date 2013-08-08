@@ -1946,15 +1946,18 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // SORT MODULE (required for constructing radial frequency)  S.M.Mudd
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Comparison struct used by sort
-// http://bytes.com/topic/c/answers/132045-sort-get-index
+///@brief Comparison struct used by sort.
+///@details http://bytes.com/topic/c/answers/132045-sort-get-index
 template<class T> struct index_cmp
 {
+  /// Comparison index.
   index_cmp(const T arr) : arr(arr) {}
+  /// Comparison operator.
   bool operator()(const size_t a, const size_t b) const
   {
     return arr[a] < arr[b];
   }
+  /// Array.
   const T arr;
 };
 
