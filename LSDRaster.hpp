@@ -24,7 +24,7 @@ incorporating LSDRaster.
 
 These pages will help you get started using this software.
 
-\image html http://www.geos.ed.ac.uk/~s0675405/images/logo.png
+\image html ./logo.png
 
 
 Tools are included to:
