@@ -41,6 +41,10 @@ Tools are included to:
 
 */
 
+//-----------------------------------------------------------------
+//DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
+//-----------------------------------------------------------------
+
 #include <string>
 #include <vector>
 #include "TNT/tnt.h"

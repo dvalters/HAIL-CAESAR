@@ -1,3 +1,8 @@
+
+//-----------------------------------------------------------------
+//DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
+//-----------------------------------------------------------------
+
 #include <vector>
 #include "TNT/tnt.h"
 using namespace std;
