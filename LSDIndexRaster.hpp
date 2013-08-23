@@ -111,6 +111,18 @@ class LSDIndexRaster
   /// @return The raster value at the position (row, column).
   int get_data_element(int row, int column)	{ return RasterData[row][column]; }
 
+  /// @brief Calculate the minimum bounding rectangle for an LSDIndexRaster Object and crop out
+  /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
+  ///
+  /// @details Ideal for use with chi analysis tools which output basin and chi m value rasters
+  /// which can be predominantly no data. As an example, a 253 Mb file can be reduced to 
+  /// ~5 Mb with no loss or resampling of data.  
+  ///
+  /// @return A trimmed LSDIndexRaster object.
+  /// @author SWDG 
+  /// @date 22/08/13
+  LSDIndexRaster RasterTrimmer();
+
 	protected:
 	///Number of rows.
   int NRows;

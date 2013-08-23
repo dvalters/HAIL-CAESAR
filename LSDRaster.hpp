@@ -141,6 +141,17 @@ class LSDRaster
 	/// the raster data, and the extension must be .hdr.
   void write_raster(string filename, string extension);
 
+  /// @brief Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
+  /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
+  ///
+  /// @details Ideal for use with chi analysis tools which output basin and chi m value rasters
+  /// which can be predominantly no data. As an example, a 253 Mb file can be reduced to 
+  /// ~5 Mb with no loss or resampling of data.  
+  ///
+  /// @return A trimmed LSDRaster object.
+  /// @author SWDG 
+  /// @date 22/08/13
+  LSDRaster RasterTrimmer();
 
 	// Functions relating to shading, shadowing and shielding
 	
