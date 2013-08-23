@@ -291,10 +291,109 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 		exit(EXIT_FAILURE);
 	}
 
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Calculate the minimum bounding rectangle for an LSDIndexRaster Object and crop out
+// all the surrounding NoDataValues to reduce the size and load times of output 
+// rasters.
+//
+// Ideal for use with chi analysis tools which output basin and chi m value rasters
+// which can be predominantly no data. As an example, a 253 Mb file can be reduced to 
+// ~5 Mb with no loss or resampling of data.  
+//
+// Returns A trimmed LSDIndexRaster object.
+//
+// SWDG 22/08/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDIndexRaster::RasterTrimmer(){
+ 
+  //minimum index value in a column
+  int a = 0;
+  int min_col = 100000; //a big number
+    
+  for (int row = 0; row < NRows; ++row){
+    a = 0;
+    while (RasterData[row][a] == NoDataValue && a < NCols-1){ 
+      ++a;
+    }
+    if (min_col > a){
+      min_col = a;
+    }
+  }
+  
+  //maximum index value in a column
+  a = NCols - 1;
+  int max_col = 0; //a small number
+    
+  for (int row = 0; row < NRows; ++row){
+    a = NCols - 1;
+    while (RasterData[row][a] == NoDataValue && a > 0){ 
+      --a;
+    }
+    if (max_col < a){
+      max_col = a;
+    }
+  }
+
+  //minimum index value in a row
+  a = 0;
+  int min_row = 100000; //a big number
+    
+  for (int col = 0; col < NCols; ++col){
+    a = 0;
+    while (RasterData[a][col] == NoDataValue && a < NRows - 1){ 
+      ++a;
+    }
+    if (min_row > a){
+      min_row = a;
+    }
+  }
+  
+  //maximum index value in a row
+  a = NRows - 1;
+  int max_row = 0; //a small number
+    
+  for (int col = 0; col < NCols; ++col){
+    a = NRows - 1;
+    while (RasterData[a][col] == NoDataValue && a > 0){ 
+      --a;
+    }
+    if (max_row < a){
+      max_row = a;
+    }
+  }
+ 
+  // create new row and col sizes taking account of zero indexing
+  int new_row_dimension = (max_row-min_row) + 1;
+  int new_col_dimension = (max_col-min_col) + 1;
+ 
+  Array2D<int>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);   
+  
+  //loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
+  int TrimmedRow = 0;
+  int TrimmedCol = 0;
+  for (int row = min_row - 1; row < max_row; ++row){
+    for(int col = min_col - 1; col < max_col; ++col){
+      TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
+      ++TrimmedCol;
+    }
+    ++TrimmedRow;
+    TrimmedCol = 0;
+  }
+   
+  //calculate lower left corner coordinates of new array
+  double new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
+  double new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
+
+  LSDIndexRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
+                          new_YLL, DataResolution, NoDataValue, TrimmedData);
+     
+  return TrimmedRaster;
 
 }
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-
 
 #endif
