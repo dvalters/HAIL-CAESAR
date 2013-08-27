@@ -3204,6 +3204,77 @@ LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
   return Averaged_out;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// Calulate drainage density of a set of input basins.
+//
+// Calculated as flow length/basin area.
+//
+// SWDG 04/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRaster& Basins, Array2D<int> FlowDir){
+  
+  vector<int> basin_index;
+  Array2D<int> basin_ids = Basins.get_RasterData();
+  double two_times_root2 = 2.828427;
+
+  Array2D<double> Density(NRows,NCols,NoDataValue);
+
+  //make list of unique basins in each raster
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      int id = basin_ids[i][j];
+      if (id != NoDataValue){
+        //check if next basin_id is unique
+        if(find(basin_index.begin(), basin_index.end(), id) == basin_index.end()){
+          basin_index.push_back(id);
+        }
+      }
+    }
+  }
+
+  //loop through each basin
+  for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
+    
+    int stream_px = 0;
+    int hillslope_px = 0;
+    double stream_length = 0;
+
+    for (int i = 0; i < NRows; ++i){
+      for (int j = 0; j < NCols; ++j){
+        if (RasterData[i][j] != NoDataValue && basin_ids[i][j] != *it ){
+          if (StreamNetwork.get_data_element(i,j) != NoDataValue){
+          
+            if ((FlowDir[i][j] % 2) != 0 && (FlowDir[i][j] != -1 )){ //is odd but not -1
+              stream_length += DataResolution * two_times_root2; //diagonal
+              ++stream_px;
+            }
+            else if (FlowDir[i][j] % 2 == 0){  //is even
+              stream_length += DataResolution;  //cardinal
+              ++stream_px;
+            }
+          }
+          else{
+            ++hillslope_px;
+          }
+        }
+      }
+    }
+    double density = (stream_length / ((hillslope_px+stream_px)*(DataResolution*DataResolution)));
+    cout << *it <<" " <<density << endl;
+    for (int i = 0; i < NRows; ++i){
+      for (int j = 0; j < NCols; ++j){
+        if(basin_ids[i][j] == *it){          
+          Density[i][j] = density;
+        }
+      }
+    }
+   
+  }
+
+  LSDRaster DrainageDensity(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Density);
+  return DrainageDensity;
+
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

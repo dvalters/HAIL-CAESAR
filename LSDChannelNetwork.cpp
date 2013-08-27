@@ -1709,6 +1709,56 @@ LSDIndexRaster LSDChannelNetwork::extract_basin_from_junction(int basin_junction
 	LSDIndexRaster IR(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Basin);
 	return IR;
 }
+
+
+
+LSDIndexRaster LSDChannelNetwork::extract_basins_from_junction_vector(vector<int> basin_junctions, LSDFlowInfo& FlowInfo)
+{
+
+  Array2D<int> Basin(NRows,NCols,NoDataValue);
+
+  for (vector<int>::iterator it = basin_junctions.begin(); it !=  basin_junctions.end(); ++it){
+
+    int basin_junction = *it;
+  
+		if (basin_junction >= int(JunctionVector.size()))
+		{
+			cout << "LSDChannelNetwork::extract_basin_from_junction junction not in list" << endl;
+			exit(EXIT_FAILURE);
+		}
+  
+    int receiver_junc, n_nodes_in_channel, basin_outlet;
+		
+		// get the reciever junction
+    	receiver_junc = ReceiverVector[basin_junction];
+  
+    	LSDIndexChannel StreamLinkVector = LSDIndexChannel(basin_junction, JunctionVector[basin_junction],
+                                                             receiver_junc, JunctionVector[receiver_junc], FlowInfo);
+  
+      // Find final nth order channel pixel, which is the penultimate pixel
+      // in channel.
+      n_nodes_in_channel = StreamLinkVector.get_n_nodes_in_channel();
+      int node,row,col;
+  
+      basin_outlet = StreamLinkVector.get_node_in_channel(n_nodes_in_channel-2);
+      vector<int> BasinNodeVector = FlowInfo.get_upslope_nodes(basin_outlet);
+      // Loop through basin to label basin pixels with basin ID
+      for (int BasinIndex = 0; BasinIndex < int(BasinNodeVector.size()); ++BasinIndex)
+      {
+			node = BasinNodeVector[BasinIndex];
+          FlowInfo.retrieve_current_row_and_col(node,row,col);
+          Basin[row][col] = basin_junction;
+      }
+    
+  }
+    
+	LSDIndexRaster IR(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Basin);
+	return IR;
+}
+
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 

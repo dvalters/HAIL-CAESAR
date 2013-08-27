@@ -247,6 +247,9 @@ class LSDChannelNetwork
   /// @return LSDIndexRaster of extracted basin. 
 	LSDIndexRaster extract_basin_from_junction(int basin_junction, int basin_reference_number, LSDFlowInfo& FlowInfo);
 
+
+  LSDIndexRaster extract_basins_from_junction_vector(vector<int> basin_junctions, LSDFlowInfo& FlowInfo);
+
   /// @brief Basin extraction - extracts all drainage basins of specified stream order.
   /// @param BasinOrder Integer basin order to extract.
   /// @param FlowInfo LSDFlowInfo object.
