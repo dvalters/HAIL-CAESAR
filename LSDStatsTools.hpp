@@ -117,11 +117,11 @@ string dtoa(double num);
 
 // Log binning module
 // two overloaded functions:
-//    -> for data stored in a 2D array (e.g. slope-area)
-void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, double log_bin_width,
-				  vector<double>&  MeanX_output, vector<double>& MeanY_output, vector<double>& midpoints_output,
-				  vector<double>&  StandardDeviationX_output, vector<double>&  StandardDeviationY_output,
-				  double NoDataValue = -9999);
+//    -> for data stored in a 2D array (e.g. slope-area)			  
+void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, double log_bin_width, vector<double>&  MeanX_output, vector<double>& MeanY_output,
+                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output, 
+                      vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, double NoDataValue);				  
+				  				  
 //    -> for data stored in a 1D vector (e.g. for spectral analysis)
 void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double log_bin_width,
 				  vector<double>&  MeanX_output, vector<double>& MeanY_output, vector<double>& midpoints_output,

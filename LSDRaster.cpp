@@ -310,6 +310,23 @@ void LSDRaster::write_raster(string filename, string extension)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Make LSDRaster object using a 'template' raster and an Array2D of data.
+// SWDG 29/8/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::LSDRasterTemplate(Array2D<double> InputData){
+
+  //do a dimensions check and exit on failure
+  if (InputData.dim1() == NRows && InputData.dim2() == NCols){
+    LSDRaster OutputRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, InputData);
+    return OutputRaster;
+  }
+  else{
+   	cout << "Array dimensions do not match template LSDRaster object" << endl;
+		exit(EXIT_FAILURE);
+  }
+
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1425,7 +1442,7 @@ void LSDRaster::calculate_and_print_polyfit_and_roughness_rasters(double window_
 // Output raster: hilltop curvature
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::get_hilltop_curvature(LSDRaster& curvature, LSDIndexRaster& Hilltops)
+LSDRaster LSDRaster::get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hilltops)
 {
 	// create the new planform curvature raster
 	Array2D<double> hilltop_curvature(NRows,NCols,NoDataValue);
@@ -2583,11 +2600,17 @@ LSDRaster LSDRaster::D_inf(){
 // Now takes an Array2D of doubles as the Hilltop network, as all ridges are defined as
 // LSDRaster objects - SWDG 8/4/13
 //
+// Updated to write aspect, slope, cht and Lh to LSDRasters - SWDG 27/8/13.
+//
+// Needs refactored to make what is going on clearer and the input/output needs streamlined. 
+//
 //---------------------------------------------------------------------------------------
 // David Milodowski, 17/12/2012
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<double>& Hilltops, Array2D<double>& Aspect,
-                                          Array2D<double>& Curvature)
+                                          Array2D<double>& Curvature, Array2D<double>& HilltopRelief, 
+                                          Array2D<double>& HilltopAspect, Array2D<double>& HilltopSlope,
+                                          Array2D<double>& HilltopLength, Array2D<double>& HilltopCurvature)
 {
 
 	Array2D<double> Hilltops_linked(NRows,NCols,NoDataValue);
@@ -2988,6 +3011,12 @@ LSDRaster LSDRaster::hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<d
           //mean_slope = slope_total/(length/DataResolution);
 
           Hilltops_linked[i][j] = StreamNetwork[a][b];
+          
+          HilltopRelief[i][j] = relief;
+          HilltopAspect[i][j] = asp;
+          HilltopSlope[i][j] = mean_slope; 
+          HilltopLength[i][j] = length;
+          HilltopCurvature[i][j] = Curvature[i][j];          
 
 					ofs << X << " " << Y << " " << StreamNetwork[a][b] /*Hilltops[i][j]*/ << " " << Curvature[i][j]
             << " " << mean_slope << " " << relief << " " << length << " " << asp << " " << aspect_rads << " \n";
@@ -3024,7 +3053,323 @@ LSDRaster LSDRaster::hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<d
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Write hilltop metrics to text file.
+//
+// This can probably be absorbed by the main hilltop flow routing as all this does is write a text file
+// with the hilltop pixels coded by basin id.
+// 
+// SWDG 27/8/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::BasinHilltopWriter(LSDRaster& Hilltops, LSDIndexRaster& Basins, Array2D<double>& HilltopRelief, Array2D<double>& HilltopAspect,
+                                   Array2D<double>& HilltopSlope, Array2D<double>& HilltopLength, Array2D<double>& HilltopCurvature)
+{
 
+  // *******************
+  // this can probably be absorbed by the main hilltop flow routing as all this does is write a text file
+  // with the hilltop pixels coded by basin id. This can be done in the main fn simply by getting the value 
+  // of the basin raster for the hilltop px. 
+  // ******************* 
+
+  Array2D<double> OutputData;
+                                          
+  vector<double> basin_no;
+  vector<double> relief;
+  vector<double> aspect;
+  vector<double> slope;
+  vector<double> length;
+  vector<double> cht;     
+  vector<double> sorted_basins;
+  vector<size_t> index_map;
+    
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){                                    
+    
+      if (Hilltops.get_data_element(i,j) != NoDataValue){
+        if (Basins.get_data_element(i,j) != NoDataValue && HilltopRelief[i][j] != NoDataValue && HilltopAspect[i][j] != NoDataValue && HilltopSlope[i][j] != NoDataValue && HilltopLength[i][j] != NoDataValue && HilltopCurvature[i][j] != NoDataValue){
+          basin_no.push_back(Basins.get_data_element(i,j));
+          relief.push_back(HilltopRelief[i][j]);
+          aspect.push_back(HilltopAspect[i][j]);
+          slope.push_back(HilltopSlope[i][j]);
+          length.push_back(HilltopLength[i][j]); 
+          cht.push_back(HilltopCurvature[i][j]);
+        }    
+      }
+    }
+  }                                        
+
+  ofstream ofs;
+	ofs.open("hilltop_data.txt");
+  
+  matlab_double_sort_descending(basin_no, sorted_basins, index_map);  
+  
+  ofs << "basin_no relief aspect mean_slope hillslope_length cht" << endl; 
+  
+  for(int a = 0 ;a < int(basin_no.size()); ++a){ 
+  
+    ofs << sorted_basins[a] << " " << relief[index_map[a]] << " " << aspect[index_map[a]] << " " << slope[index_map[a]] << " " << length[index_map[a]] << " " << " " << cht[index_map[a]] << endl;   
+  
+  }
+                                       
+  ofs.close();                                        
+                                          
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Generate data in two text files to create a boomerang plot as in Roering et al [2007].
+// SWDG 27/8/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilename, double log_bin_width){
+  
+  Array2D<double> slope = Slope.get_RasterData();
+  Array2D<double> area = Dinf.get_RasterData();
+   
+  //do some log binning
+  vector<double> Mean_x_out;
+  vector<double> Mean_y_out;
+  vector<double> Midpoints_out;
+  vector<double> STDDev_x_out;
+  vector<double> STDDev_y_out;
+  vector<double> STDErr_x_out;
+  vector<double> STDErr_y_out;        
+  
+  log_bin_data(area, slope, log_bin_width, Mean_x_out, Mean_y_out, Midpoints_out, STDDev_x_out, STDDev_y_out,STDErr_x_out,STDErr_y_out,NoDataValue);
+    
+  //set up a filestream object
+  ofstream file;
+ 
+  stringstream ss_bin;
+  ss_bin << RasterFilename << "_boom_binned.txt";
+  file.open(ss_bin.str().c_str());   //needs a null terminated character array, not a string. See pg 181 of accelerated c++
+  
+       
+  for(int q = 0; q < int(Mean_x_out.size()); q++){
+    file << Mean_x_out[q] << " " << Mean_y_out[q] << " " << STDDev_x_out[q] << " " << STDDev_y_out[q] << " " << STDErr_x_out[q] << " " << STDErr_y_out[q] << endl;
+  }
+  
+  file.close(); 
+  
+  //data cloud
+  ofstream cloud;
+  
+  stringstream ss_cloud;
+  ss_cloud << RasterFilename << "_boom_cloud.txt";  
+  cloud.open(ss_cloud.str().c_str());     //needs a null terminated character array, not a string. See pg 181 of accelerated c++
+  
+    
+  for (int i = 1; i < NRows-1; ++i){
+    for (int j = 1; j < NCols-1; ++j){
+      if(area[i][j] != NoDataValue && slope[i][j] != NoDataValue){
+        cloud << area[i][j] << " " << slope[i][j] << endl;  
+      }
+    }
+  }
+  
+  cloud.close();
+    
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Punch basins out of an LSDRaster to create DEMs of a single catchment.
+//
+// Writes files in the user supplied format (flt or asc) and returns a vector 
+// of their filenames so they can be loaded into other functions. 
+// SWDG 27/8/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<string> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray, string output_format, string raster_prefix){
+
+  Array2D<int> BasinRaster = BasinArray.get_RasterData();
+  
+  vector<string> OutputFiles; //vector to contain output filenames for use in other fns
+  
+  for(string::size_type a = 0; a < basin_ids.size(); ++a){
+  
+    Array2D<double> BasinDEM(NRows, NCols, NoDataValue);
+    bool Flag = false;
+    
+    for (int i=0; i<NRows; ++i){
+		  for (int j=0; j<NCols; ++j){
+		    if(BasinRaster[i][j] == basin_ids[a]){
+		      Flag = true;
+          BasinDEM[i][j] = RasterData[i][j];
+        }       
+		  }
+		}
+        
+    if (Flag == true){ //only write the raster if there is data to write
+      LSDRaster Basin(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,BasinDEM);
+    
+      stringstream ss;  
+      ss << raster_prefix << "_Basin_" << basin_ids[a]; 
+      
+      OutputFiles.push_back(ss.str());
+      
+      Basin.write_raster(ss.str(),output_format);
+    }
+  } 
+  return OutputFiles;   
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Collect all basin average metrics into a single file.
+//
+// File is written with the format: 
+// "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*"
+// SWDG 27/8/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect, 
+                              LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
+                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope)
+{
+
+  vector<int> basin_index;
+  Array2D<int> basin_ids = Basins.get_RasterData();
+  
+  
+  //vectors to contain output data
+  vector<int> BasinIDVector; 
+  vector<double> SlopeVector;
+  vector<double> ElevationVector;
+  vector<double> AspectVector;
+  vector<double> AreaVector;
+  vector<double> DrainageDensityVector;
+  vector<double> ChtVector;
+  vector<double> HillslopeLengthVector;
+  vector<double> MeanSlopeVector;
+  vector<double> ReliefVector;
+  vector<double> MeanAspectVector;
+  vector<double> EStarVector;
+  vector<double> RStarVector;
+  
+    
+  //make list of unique basins in each raster
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      int id = basin_ids[i][j];
+      if (id != NoDataValue){
+        //check if next basin_id is unique
+        if(find(basin_index.begin(), basin_index.end(), id) == basin_index.end()){
+          basin_index.push_back(id);
+        }
+      }
+    }
+  }
+
+  //loop through each basin
+  for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
+
+    int SlopeCounter = 0;
+    double SlopeSum = 0;
+    double ElevationSum = 0;
+    int ElevationCounter = 0;
+    double AspectSum = 0;
+    int AspectCounter = 0;
+    double AreaSum = 0;
+    int AreaCounter = 0;
+    double DrainageDensitySum = 0;
+    int DrainageDensityCounter = 0;
+    double ChtSum = 0;
+    int ChtCounter = 0;
+    double HillslopeLengthSum = 0;
+    int HillslopeLengthCounter = 0;
+    double MeanSlopeSum = 0;
+    int MeanSlopeCounter = 0;
+    double ReliefSum = 0;
+    int ReliefCounter = 0;
+    double MeanAspectSum = 0;
+    int MeanAspectCounter = 0;    
+
+    for (int i = 0; i < NRows; ++i){
+      for (int j = 0; j < NCols; ++j){
+
+       if (Slope.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         SlopeSum += Slope.get_data_element(i,j);
+         ++SlopeCounter;
+        }
+       if (Elevation.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         ElevationSum += Elevation.get_data_element(i,j);
+         ++ElevationCounter;
+        }
+       if (Aspect.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         AspectSum += Aspect.get_data_element(i,j);
+         ++AspectCounter;
+        }
+       if (Area.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         AreaSum += Area.get_data_element(i,j);
+         ++AreaCounter;
+        }
+       if (DrainageDensity.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         DrainageDensitySum += DrainageDensity.get_data_element(i,j);
+         ++DrainageDensityCounter;
+        }
+       if (Cht.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         ChtSum += Cht.get_data_element(i,j);
+         ++ChtCounter;
+        }
+       if (HillslopeLength.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         HillslopeLengthSum += HillslopeLength.get_data_element(i,j);
+         ++HillslopeLengthCounter;
+        }
+       if (MeanSlope.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         MeanSlopeSum += MeanSlope.get_data_element(i,j);
+         ++MeanSlopeCounter;
+        }
+       if (Relief.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         ReliefSum += Relief.get_data_element(i,j);
+         ++ReliefCounter;
+        }
+       if (MeanAspect.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         MeanAspectSum += MeanAspect.get_data_element(i,j);
+         ++MeanAspectCounter;
+        }
+                                                 
+      }
+    }
+    
+    //calculate means
+    double AVGSlope = SlopeSum/SlopeCounter;
+    double AVGElevation = ElevationSum/ElevationCounter;
+    double AVGAspect = AspectSum/AspectCounter;
+    double AVGArea = AreaSum/AreaCounter;
+    double AVGDrainageDensity = DrainageDensitySum/DrainageDensityCounter;
+    double AVGCht = ChtSum/ChtCounter;
+    double AVGHillslopeLength = HillslopeLengthSum/HillslopeLengthCounter;
+    double AVGMeanSlope = MeanSlopeSum/MeanSlopeCounter;
+    double AVGRelief = ReliefSum/ReliefCounter;
+    double AVGMeanAspect = MeanAspectSum/MeanAspectCounter;
+    double EStar = (2 * (abs(AVGCht)) * AVGHillslopeLength) / CriticalSlope;
+    double RStar = AVGRelief / (AVGHillslopeLength * CriticalSlope);
+    
+    //write means to vectors
+    BasinIDVector.push_back(*it);
+    SlopeVector.push_back(AVGSlope);
+    ElevationVector.push_back(AVGElevation);
+    AspectVector.push_back(AVGAspect);
+    AreaVector.push_back(AVGArea);
+    DrainageDensityVector.push_back(AVGDrainageDensity);
+    ChtVector.push_back(AVGCht);
+    HillslopeLengthVector.push_back(AVGHillslopeLength);
+    MeanSlopeVector.push_back(AVGMeanSlope);
+    ReliefVector.push_back(AVGRelief);
+    MeanAspectVector.push_back(AVGMeanAspect);
+    EStarVector.push_back(EStar);
+    RStarVector.push_back(RStar);
+  
+  }
+  
+   
+  ofstream file;
+  file.open("Basin_metrics.txt");  
+  file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*" << endl;   
+
+  for(int q = 0; q < int(BasinIDVector.size()); q++){
+    file << BasinIDVector[q] << " " << SlopeVector[q] << " " << ElevationVector[q] << " " << AspectVector[q] << " " << AreaVector[q] << " " << DrainageDensityVector[q] << " " << ChtVector[q] << " " << HillslopeLengthVector[q] << " " << MeanSlopeVector[q] <<  " " << ReliefVector[q] << " " << MeanAspectVector[q] << " " << EStarVector[q] << " " << RStarVector[q] << endl;
+  }
+  
+  file.close(); 
+
+
+
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -3153,7 +3498,7 @@ LSDRaster LSDRaster::RidgeBuffer(int BufferRadius){
 //
 // Very inefficent at present. Module loops through every cell in LSDRaster
 // (2 * number of basins) + 1 times. Beware!
-//
+// Bug fixed in assignment of basin IDs - SWDG 2/9/13
 // SWDG 04/2013
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
@@ -3184,7 +3529,7 @@ LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
     for (int i = 0; i < NRows; ++i){
       for (int j = 0; j < NCols; ++j){
 
-       if (RasterData[i][j] != NoDataValue && basin_ids[i][j] != *it ){
+       if (RasterData[i][j] != NoDataValue && basin_ids[i][j] == *it ){
          sum += RasterData[i][j];
          ++counter;
         }
@@ -3202,6 +3547,58 @@ LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
 
   LSDRaster Averaged_out(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Averaged);
   return Averaged_out;
+}
+
+                                                                                
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// Write the area(in units of area) of each basin to the basin's pixels.
+// SWDG 04/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-= 
+LSDRaster LSDRaster::BasinArea(LSDIndexRaster& Basins){
+
+  vector<int> basin_index;
+  Array2D<int> basin_ids = Basins.get_RasterData();
+
+  Array2D<double> Areas(NRows,NCols,NoDataValue);
+
+  //make list of unique basins in each raster
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      int id = basin_ids[i][j];
+      if (id != NoDataValue){
+        //check if next basin_id is unique
+        if(find(basin_index.begin(), basin_index.end(), id) == basin_index.end()){
+          basin_index.push_back(id);
+        }
+      }
+    }
+  }
+
+  //loop through each basin
+  for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
+    int counter = 0;
+
+    for (int i = 0; i < NRows; ++i){
+      for (int j = 0; j < NCols; ++j){
+
+       if (basin_ids[i][j] == *it){
+         ++counter;
+        }
+      }
+    }
+
+    for (int i = 0; i < NRows; ++i){
+      for (int j = 0; j < NCols; ++j){
+        if(basin_ids[i][j] == *it){
+          Areas[i][j] = counter*(DataResolution*DataResolution);
+        }
+      }
+    }
+  }
+
+  LSDRaster Area_out(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Areas);
+  return Area_out;
+
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
@@ -3260,7 +3657,6 @@ LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRast
       }
     }
     double density = (stream_length / ((hillslope_px+stream_px)*(DataResolution*DataResolution)));
-    cout << *it <<" " <<density << endl;
     for (int i = 0; i < NRows; ++i){
       for (int j = 0; j < NCols; ++j){
         if(basin_ids[i][j] == *it){          

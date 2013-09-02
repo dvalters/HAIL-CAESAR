@@ -1578,11 +1578,14 @@ LSDRaster LSDChannelNetwork::ExtractRidges(LSDFlowInfo& FlowInfo, int& min_order
 //------------------------------------------------------------------------------
 // Resticts ridgeline to part of ridge network where the slope is less than a
 // threshold value
+//
+// Now outputs an LSDRaster to fall in line with other hilltop tools - SWDG 29/8/13
+//
 // DTM 01/04/2013
 //------------------------------------------------------------------------------
-LSDIndexRaster LSDChannelNetwork::ExtractHilltops(LSDIndexRaster& RidgeRaster, LSDRaster& SlopeRaster, double MaxSlope)
+LSDRaster LSDChannelNetwork::ExtractHilltops(LSDRaster& RidgeRaster, LSDRaster& SlopeRaster, double MaxSlope)
 {
-  Array2D<int> Hilltops(NRows,NCols,NoDataValue) ;
+  Array2D<double> Hilltops(NRows,NCols,NoDataValue) ;
   for (int row = 0; row < NRows; ++row)
   {
     for (int col = 0; col < NCols; ++col)
@@ -1593,7 +1596,7 @@ LSDIndexRaster LSDChannelNetwork::ExtractHilltops(LSDIndexRaster& RidgeRaster, L
       }
     }
   }
-  LSDIndexRaster hilltop_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Hilltops);
+  LSDRaster hilltop_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Hilltops);
 	return hilltop_raster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1710,8 +1713,14 @@ LSDIndexRaster LSDChannelNetwork::extract_basin_from_junction(int basin_junction
 	return IR;
 }
 
-
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+//This function gets the an LSDIndexRaster of basins draining from a vector of junctions.
+//
+// IMPORTANT: the junctions always point downstream since they can have one and only
+// one receiver. However, for a basin of given order, this starts just upstream of the
+// confluence to the next basin order. So the basin ##INCLUDES## the channel flowing
+// downstream to the penultamite node
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDChannelNetwork::extract_basins_from_junction_vector(vector<int> basin_junctions, LSDFlowInfo& FlowInfo)
 {
 

@@ -241,13 +241,22 @@ class LSDChannelNetwork
 	/// confluence to the next basin order. So the basin <b>INCLUDES</b> the channel flowing
 	/// downstream to the penultamite node.
 	///
-  /// @param basin_junction Reference number for printing to the IndexRaster.
-  /// @param basin_reference_number
+  /// @param basin_junction Junction of basin to be extracted.
+  /// @param basin_reference_number Reference number for printing to the IndexRaster.
   /// @param FlowInfo LSDFlowInfo object.
   /// @return LSDIndexRaster of extracted basin. 
 	LSDIndexRaster extract_basin_from_junction(int basin_junction, int basin_reference_number, LSDFlowInfo& FlowInfo);
 
-
+  /// @brief This function gets the an LSDIndexRaster of basins draining from a vector of junctions.
+  ///
+  /// @details IMPORTANT: The junctions always point downstream since they can have one and only
+	/// one receiver. However, for a basin of given order, this starts just upstream of the
+	/// confluence to the next basin order. So the basin <b>INCLUDES</b> the channel flowing
+	/// downstream to the penultamite node.
+	///
+  /// @param basin_junctions Vector of junction numbers of basins to be extracted.
+  /// @param FlowInfo LSDFlowInfo object.
+  /// @return LSDIndexRaster of extracted basin. 
   LSDIndexRaster extract_basins_from_junction_vector(vector<int> basin_junctions, LSDFlowInfo& FlowInfo);
 
   /// @brief Basin extraction - extracts all drainage basins of specified stream order.
@@ -289,17 +298,19 @@ class LSDChannelNetwork
   /// @author DTM, SWDG 
   /// @date 18/10/2012, 28/03/2013
   LSDRaster ExtractRidges(LSDFlowInfo& FlowInfo, int& min_order, int& max_order);
-  /// @brief this last function gets the hilltops: ridges limited by a maximum slope.
+  /// @brief This last function gets the hilltops: ridges limited by a maximum slope.
   ///
   /// @details Resticts ridgeline to part of ridge network where the slope is less than a
   /// threshold value.
+  ///
+  /// Now outputs an LSDRaster to fall in line with other hilltop tools - SWDG 29/8/13
   /// @param RidgeRaster LSDIndexRaster of extracted ridges.
   /// @param SlopeRaster LSDRaster of slope.
   /// @param MaxSlope Maximum threshold slope value.
   /// @return LSDIndexRaster of hilltops. 
   /// @author DTM 
   /// @date 01/04/2013
-  LSDIndexRaster ExtractHilltops(LSDIndexRaster& RidgeRaster, LSDRaster& SlopeRaster, double MaxSlope);
+  LSDRaster ExtractHilltops(LSDRaster& RidgeRaster, LSDRaster& SlopeRaster, double MaxSlope);
 
 	/// @brief This function iterates through the junction nodes and assigns the unique
 	/// junction ID to every stream pixel.

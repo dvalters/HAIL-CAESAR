@@ -1618,13 +1618,11 @@ string dtoa(double num)
     return converter.str();
 }
 
-
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // LOG BINNING OF 2D ARRAY
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Takes 2D arrays for two corresponding variables (e.g. drainage area and slope)
-// and sorts into logarithmically spaced bins of a specified bin width.
+// Takes 2D arrays for two corresponding variables (e.g. drainage area and slope) 
+// and sorts into logarithmically spaced bins of a specified bin width.  
 // The inputs are:
 //    - InputArrayX = the independent variable (usually plotted on the x axis)
 //    - InputArrayY = the dependent variable (usually plotted on the y axis)
@@ -1633,17 +1631,20 @@ string dtoa(double num)
 //  The outputs are:
 //  FC 13/11/12; corrected and modified by DM 04/12/12. Now generalised to be
 //  appropriate for any data, nor just slope-area
+//
+// Original version of this module produced a bad_alloc memory error. Now it has been 
+// re-ported from the working LSDRaster original version and has now been tested and
+// produces the same results as the original with no memory errors. - SWDG 30/8/13
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, double log_bin_width,
-                  vector<double>&  MeanX_output, vector<double>& MeanY_output,
-                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output,
-                      vector<double>& StandardDeviationY_output,
-                      double NoDataValue)
+void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, double log_bin_width, vector<double>&  MeanX_output, vector<double>& MeanY_output,
+                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output, 
+                      vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, double NoDataValue)
 {
-
+  
   int NRows = InputArrayX.dim1();
   int NCols = InputArrayX.dim2();
-
+    
   // Finding max contributing area to use as upper limit for the bins
   double max_X = 0;
 	double min_X = 0;
@@ -1655,35 +1656,43 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
       {
         max_X = InputArrayX[row][col];
       }
-      if (InputArrayX[row][col] < min_X || min_X == 0)    // Cannot have take a logarithm of zero.
+      if (InputArrayX[row][col] < min_X || min_X ==0)    // Cannot have take a logarithm of zero.
       {
         min_X = InputArrayX[row][col];
       }
     }
   }
-
+  
   // Defining the upper limit, lower limit and width of the bins
   double upper_limit = ceil((log10(max_X)/log_bin_width))*log_bin_width;
-  double lower_limit = floor((log10(min_X)/log_bin_width))*log_bin_width;
-  int NBins = int( (upper_limit - lower_limit)/log_bin_width )+1;
-
+  double lower_limit;
+  if (min_X >= 1)
+  {
+    lower_limit = floor((log10(min_X)/log_bin_width))*log_bin_width;
+  }
+  else
+  {
+    lower_limit = 0;
+  }  
+  int NBins = int(((upper_limit - lower_limit)/log_bin_width)+1);     //changed
+ 
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
 
   vector<int> number_observations(NBins,0);
   vector<double> Y_data(NBins,0.0);
   vector<double> X_data(NBins,0.0);
-
+ 
   // These will be copied into their respective function output vectors
-  vector<double> MeanX(NBins,0);
-	vector<double> MeanY(NBins,0);
+  vector<double> MeanX(NBins,0.0);
+	vector<double> MeanY(NBins,0.0);
   vector<double> mid_points(NBins,NoDataValue);
-
+ 
   // vector<vector> objects house data in each bin.
   vector< vector<double> > binned_data_X;
   vector< vector<double> > binned_data_Y;
-
-	// create the vector of vectors.  Nested vectors will store data within that
+  
+  	// create the vector of vectors.  Nested vectors will store data within that 
   // bin.
   vector<double> empty_vector;
   for(int i = 0; i<NBins; i++)
@@ -1691,19 +1700,23 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 	  binned_data_X.push_back(empty_vector);
 	  binned_data_Y.push_back(empty_vector);
   }
-
+  
   // Bin Data into logarithmically spaced bins
   for (int row = 0; row < NRows; row++)
   {
     for (int col = 0; col < NCols; col++)
     {
       double Y = InputArrayY[row][col];
-
+      
       if (Y != NoDataValue)
       {
         double X = InputArrayX[row][col];
         // Get bin_id for this particular value of X
         int bin_id = int(((log10(X))-lower_limit)/log_bin_width);
+        if (bin_id < 0)
+        {
+          bin_id = 0;
+        }
         // Store X and corresponding Y into this bin, for their respective
         // vector<vector> object
         binned_data_X[bin_id].push_back(X);
@@ -1714,9 +1727,9 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
       }
     }
   }
-
+  
   // Calculating the midpoint in x direction of each bin and the mean of x and y
-  // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
+  // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of 
   // x vs Mean Y to be most robust.  At the moment the program returns both.
   double midpoint_value = lower_limit + log_bin_width/2;
   for (int bin_id = 0; bin_id < NBins; bin_id++)
@@ -1729,16 +1742,18 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
       MeanX[bin_id] = X_data[bin_id]/number_observations[bin_id];
     }
   }
-
+  
   // These will be copied into their respective function output vectors
   vector<double> StandardDeviationX(NBins,0.0);
   vector<double> StandardDeviationY(NBins,0.0);
-
+  vector<double> StandardErrorX(NBins,0.0);
+  vector<double> StandardErrorY(NBins,0.0);
+  
   // iterators to move through vec<vec>
 	vector<double>::iterator vec_iterator_X;
   vector<double>::iterator vec_iterator_Y;
-
-  // Getting the standard deviation of each bin.  First get sum of the squared
+  
+  // Getting the standard deviation of each bin.  First get sum of the squared 
   // deviations from the mean
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
@@ -1749,9 +1764,9 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 		  while (vec_iterator_X != binned_data_X[bin_id].end())
 		  {
 			  double Xi = (*vec_iterator_X);
-        StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
-        vec_iterator_X++;
-      }
+        StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);       
+        vec_iterator_X++;    
+      } 
 
       // ...and for the dependent variable Y
       vec_iterator_Y = binned_data_Y[bin_id].begin();
@@ -1759,11 +1774,11 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 		  {
 			  double Yi = (*vec_iterator_Y);
         StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
-        vec_iterator_Y++;
-      }
+        vec_iterator_Y++;       
+      } 
     }
   }
-  // Finally, divide by number of observations in each bin then square root
+  // Finally, divide by number of observations in each bin then square root 
   // to give standard deviation within the bin.
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
@@ -1771,15 +1786,18 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
     {
       StandardDeviationX[bin_id] = sqrt(StandardDeviationX[bin_id]/number_observations[bin_id]);
       StandardDeviationY[bin_id] = sqrt(StandardDeviationY[bin_id]/number_observations[bin_id]);
+      StandardErrorX[bin_id] = StandardDeviationX[bin_id]/sqrt(number_observations[bin_id]);
+      StandardErrorY[bin_id] = StandardDeviationY[bin_id]/sqrt(number_observations[bin_id]);
     }
   }
-
   // Copy output into output vectors
   MeanX_output = MeanX;
   MeanY_output = MeanY;
   midpoints_output = mid_points;
   StandardDeviationX_output = StandardDeviationX;
   StandardDeviationY_output = StandardDeviationY;
+  StandardErrorX_output = StandardErrorX;
+  StandardErrorY_output = StandardErrorY;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1794,6 +1812,9 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 //          InputArrayX
 //  The outputs are:
 //FC 13/11/12; modified by DM 04/12/12
+//
+// THIS HAS NOT BEEN TESTED AND MAY NEED RE-PORTED FROM THE LSDRASTER ORIGINAL.
+// SEE THE OTHER LOG BINNING COMMENTS FOR DETAILS -- SWDG 30/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double log_bin_width,
                   vector<double>&  MeanX_output, vector<double>& MeanY_output,

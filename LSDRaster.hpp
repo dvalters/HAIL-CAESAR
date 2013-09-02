@@ -153,6 +153,13 @@ class LSDRaster
   /// @date 22/08/13
   LSDRaster RasterTrimmer();
 
+  /// @brief Make LSDRaster object using a 'template' raster and an Array2D of data.
+  /// @param InputData 2DArray of doubles to be written to LSDRaster.
+  /// @return LSDRaster containing the data passed in.  
+  /// @author SWDG 
+  /// @date 29/8/13
+  LSDRaster LSDRasterTemplate(Array2D<double> InputData);
+
 	// Functions relating to shading, shadowing and shielding
 	
   /// @brief This function generates a hillshade raster.
@@ -337,13 +344,15 @@ class LSDRaster
 
 	
 	/// @brief Gets the hilltop curvature raster.
+	///
+	/// @details Modified to take an LSDRaster of hilltops - SWDG 29/8/13
   ///
   /// @param curvature LSDRaster of curvatures.
-  /// @param Hilltops LSDIndexRaster of hilltops.
+  /// @param Hilltops LSDRaster of hilltops.
   /// @return LSDRaster of hilltop curvatures.
   /// @author DTM 
   /// @date 30/04/13
-	LSDRaster get_hilltop_curvature(LSDRaster& curvature, LSDIndexRaster& Hilltops);
+	LSDRaster get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hilltops);
 
 	// surface roughness
 	/// @brief Algorithm that assesses surface roughness based on a polynomial fit.
@@ -572,15 +581,25 @@ class LSDRaster
   ///
   /// Now takes an Array2D of doubles as the Hilltop network, as all ridges are defined as
   /// LSDRaster objects - SWDG 8/4/13
+  ///
+  /// Updated to write aspect, slope, cht and Lh to LSDRasters - SWDG 27/8/13.
+  ///
+  /// Needs refactored to make what is going on clearer and the input/output needs streamlined.
   /// @param StreamNetwork Array 2D of the stream network.
   /// @param Hilltops Array 2D of hilltops.
   /// @param Aspect Array 2D of aspect
   /// @param Curvature Array of curvature values.
+  /// @param HilltopAspect Empty Array2D of doubles used to output values.
+  /// @param HilltopSlope Empty Array2D of doubles used to output values.
+  /// @param HilltopLength Empty Array2D of doubles used to output values.
+  /// @param HilltopCurvature Empty Array2D of doubles used to output values.
   /// @return Curvature Array 2D of curvature.
   /// @author DTM
   /// @date 17/12/2012
   LSDRaster hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<double>& Hilltops, Array2D<double>& Aspect,
-                                          Array2D<double>& Curvature);
+                                          Array2D<double>& Curvature, Array2D<double>& HilltopRelief, 
+                                          Array2D<double>& HilltopAspect, Array2D<double>& HilltopSlope,
+                                          Array2D<double>& HilltopLength, Array2D<double>& HilltopCurvature);
 
 	// multidirection flow routing
 	/// @brief Generate a flow area raster using a multi direction algorithm.
@@ -645,7 +664,6 @@ class LSDRaster
   /// @author SWDG
   /// @date 02/08/13
   LSDRaster M2DFlow();
-
 
 	// channel head identification
 	/// @brief This function is used to predict channel head locations based on the method proposed by Pelletier (2013).
@@ -718,13 +736,80 @@ class LSDRaster
   /// (2 * number of basins) + 1 times. Beware!
   /// @param Basins LSDIndexRaster of Drainage basins, generated using
   /// ChannelNetwork::ExtractBasinsOrder.
+  /// \n\n Bug fixed in assignment of basin IDs - SWDG 2/9/13.
   /// @return LSDRaster of average basin value for each identified basin.
   /// @author SWDG
   /// @date 04/2013
 	LSDRaster BasinAverager(LSDIndexRaster& Basins);
 
+  /// @brief Write the area(in units of area) of each basin to the basin's pixels.
+  /// @param Basins LSDIndexRaster of drainage basins to measure.
+  /// @return LSDRaster of basin areas.
+  /// @author SWDG
+  /// @date 04/2013
+  LSDRaster BasinArea(LSDIndexRaster& Basins);
 
-  /// @brief Calulate drainage density of a set of input basins.
+  /// @brief Write hilltop metrics to text file.
+  ///
+  /// @details This can probably be absorbed by the main hilltop flow routing as all this does is write a text file
+  /// with the hilltop pixels coded by basin id.
+  /// @param Hilltops
+  /// @param Basins
+  /// @param HilltopRelief
+  /// @param HilltopAspect
+  /// @param HilltopSlope
+  /// @param HilltopLength
+  /// @param HilltopCurvature
+  /// @author SWDG
+  /// @date 27/8/13
+  void BasinHilltopWriter(LSDRaster& Hilltops, LSDIndexRaster& Basins, Array2D<double>& HilltopRelief, Array2D<double>& HilltopAspect,
+                                   Array2D<double>& HilltopSlope, Array2D<double>& HilltopLength, Array2D<double>& HilltopCurvature);
+
+  /// @brief Punch basins out of an LSDRaster to create DEMs of a single catchment.
+  ///
+  /// @details Writes files in the user supplied format (flt or asc) and returns a vector 
+  /// of their filenames so they can be loaded into other functions.
+  /// @param basin_ids Vector of basins to punch out.
+  /// @param BasinArray Basin outlines used to punch out the LSDRasters.
+  /// @param output_format The output file format.
+  /// @param raster_prefix A prefix to name the output files with.
+  /// @return Vector of outout filenames. 
+  /// @author SWDG 
+  /// @date 27/8/13
+  vector<string> BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray, string output_format, string raster_prefix);
+
+  /// @brief Collect all basin average metrics into a single file.
+  ///
+  /// @details File is written with the format: \n\n 
+  /// "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*"
+  /// @param Basins LSDIndexRaster of drainage basins to sample.
+  /// @param Slope
+  /// @param Elevation
+  /// @param Aspect
+  /// @param Area
+  /// @param DrainageDensity
+  /// @param Cht
+  /// @param HillslopeLength
+  /// @param MeanSlope
+  /// @param Relief
+  /// @param MeanAspect
+  /// @param CriticalSlope Threshold value for E* and R* values
+  /// SWDG 27/8/13
+  void CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect, 
+                              LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
+                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope);
+
+
+  /// @brief Generate data in two text files to create a boomerang plot as in Roering et al [2007].
+  /// @param Slope LSDRaster of slope.
+  /// @param D_inf D-infinity Flowarea LSDRaster. 
+  /// @param RasterFilename Filename used to give unique name to output data.
+  /// @param log_bin_width Width (in log space) of the bins, with respect to D_inf.  
+  /// @author SWDG 
+  /// @date 27/8/13
+  void Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, double log_bin_width = 0.1);
+
+  /// @brief Calculate drainage density of a set of input basins.
   ///
   /// @details Calculated as flow length/basin area and written to every
   /// cell of the identified basin.
