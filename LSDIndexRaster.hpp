@@ -123,6 +123,13 @@ class LSDIndexRaster
   /// @date 22/08/13
   LSDIndexRaster RasterTrimmer();
 
+  /// @brief Make LSDIndexRaster object using a 'template' raster and an Array2D of data.
+  /// @param InputData 2DArray of ints to be written to LSDIndexRaster.
+  /// @return LSDRaster containing the data passed in.  
+  /// @author SWDG 
+  /// @date 02/9/13
+  LSDIndexRaster LSDRasterTemplate(Array2D<int> InputData);
+
 	protected:
 	///Number of rows.
   int NRows;

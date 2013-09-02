@@ -393,6 +393,23 @@ LSDIndexRaster LSDIndexRaster::RasterTrimmer(){
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Make LSDIndexRaster object using a 'template' raster and an Array2D of data.
+// SWDG 2/9/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDIndexRaster::LSDRasterTemplate(Array2D<int> InputData){
+
+  //do a dimensions check and exit on failure
+  if (InputData.dim1() == NRows && InputData.dim2() == NCols){
+    LSDIndexRaster OutputRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, InputData);
+    return OutputRaster;
+  }
+  else{
+   	cout << "Array dimensions do not match template LSDIndexRaster object" << endl;
+		exit(EXIT_FAILURE);
+  }
+
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
