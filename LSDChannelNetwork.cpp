@@ -42,6 +42,9 @@ using namespace TNT;
 // create
 // this defines a channel network based on a FlowInfo object
 // and a list of source nodes
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDChannelNetwork::create(vector<int> Sources, LSDFlowInfo& FlowInfo)
 {
@@ -567,6 +570,10 @@ void LSDChannelNetwork::create(vector<int> Sources, LSDFlowInfo& FlowInfo)
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // recursive add_to_stack routine, from Braun and Willett eq. 12 and 13
+//
+// SMM 01/09/2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDChannelNetwork::add_to_stack(int lm_index, int& j_index, int bl_node)
 {
 	//cout << "j_index: " << j_index << " and s_vec: " << lm_index << endl;
@@ -604,6 +611,9 @@ void LSDChannelNetwork::add_to_stack(int lm_index, int& j_index, int bl_node)
 //
 // This function returns a integer vector containing all the junction numbers upslope
 // of of the junction with number junction_number_outlet
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<int> LSDChannelNetwork::get_upslope_junctions(int junction_number_outlet)
 {
@@ -636,6 +646,9 @@ vector<int> LSDChannelNetwork::get_upslope_junctions(int junction_number_outlet)
 // junction. All of the junction pointing refers to the master junction list however.
 //
 // This function maps a junction onto the indexing of the upslope junction list
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 int LSDChannelNetwork::map_junction_to_upslope_junction_list(vector<int> upslope_junctions, int junction)
 {
@@ -664,6 +677,9 @@ int LSDChannelNetwork::map_junction_to_upslope_junction_list(vector<int> upslope
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function returns the maximum stream order
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 int LSDChannelNetwork::get_maximum_stream_order()
 {
@@ -687,6 +703,9 @@ int LSDChannelNetwork::get_maximum_stream_order()
 // This function generates and LSDIndexChannel given a starting junction
 // NOTE: Each junction is the UPSTREAM end of a channel
 // this is because junctions can have one and only once receiver
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexChannel LSDChannelNetwork::generate_link_index_channel_from_junction(int start_junction,
 													LSDFlowInfo& FlowInfo)
@@ -718,6 +737,9 @@ LSDIndexChannel LSDChannelNetwork::generate_link_index_channel_from_junction(int
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function extracts the longest channel originating from a junction number
 // outlet_junction
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexChannel LSDChannelNetwork::generate_longest_index_channel_from_junction(int outlet_junction, LSDFlowInfo& FInfo,
 									LSDRaster& dist_from_outlet)
@@ -769,6 +791,9 @@ LSDIndexChannel LSDChannelNetwork::generate_longest_index_channel_from_junction(
 // this function extracts the longest channel originating from a basin
 // this differs from the extract_longest_channel_from_junction in that
 // basins continue down to a reciever junction
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexChannel LSDChannelNetwork::generate_longest_index_channel_in_basin(int basin_junction, LSDFlowInfo& FInfo,
 									LSDRaster& dist_from_outlet)
@@ -829,7 +854,10 @@ LSDIndexChannel LSDChannelNetwork::generate_longest_index_channel_in_basin(int b
 // where the tributaries intersect the main stem
 // this second vector is used to calcualte the chi values of the downstream node
 // of the tributaries
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+// SMM 01/09/2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDChannelNetwork::extract_tributary_junctions_to_main_stem(LSDIndexChannel& MainStem, LSDFlowInfo& FlowInfo,
 																		vector<int>& tributary_junctions,
 																		vector<int>& nodes_on_main_stem_of_tributaries)
@@ -1056,8 +1084,11 @@ vector<int> LSDChannelNetwork::extract_basin_nodes_by_drainage_area(double Drain
 // IMPORTANT: the junctions always point downstream since they can have one and only
 // one receiver. However, for a basin of given order, this starts just upstream of the
 // confluence to the next basin order. So the basin ##INCLUDES## the channel flowing
-// downstream to the penultamite node
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// downstream to the penultimite node
+//
+// SMM 01/09/2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<int> LSDChannelNetwork::extract_basins_order_outlet_junctions(int BasinOrder, LSDFlowInfo& FlowInfo)
 {
   // declare the vector containeing the ##Junction## numbers of the basin outlets
@@ -1100,8 +1131,11 @@ vector<int> LSDChannelNetwork::extract_basins_order_outlet_junctions(int BasinOr
 // IMPORTANT: the junctions always point downstream since they can have one and only
 // one receiver. However, for a basin of given order, this starts just upstream of the
 // confluence to the next basin order. So the basin ##INCLUDES## the channel flowing
-// downstream to the penultamite node
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// downstream to the penultimite node
+//
+// SMM 01/09/2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<int> LSDChannelNetwork::extract_basins_order_outlet_nodes(vector<int>& BasinOutletJunctions, LSDFlowInfo& FlowInfo)
 {
 	// declare the vector containeing the ##Node## numbers of the basin outlets
@@ -1676,7 +1710,10 @@ LSDIndexRaster LSDChannelNetwork::ChannelIndexer(LSDFlowInfo& flowinfo)
 //
 // the basin_reference_number is just a reference number for printing to
 // the IndexRaster
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+//
+// SMM 01/09/2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDChannelNetwork::extract_basin_from_junction(int basin_junction, int basin_reference_number, LSDFlowInfo& FlowInfo)
 {
 
@@ -1720,7 +1757,10 @@ LSDIndexRaster LSDChannelNetwork::extract_basin_from_junction(int basin_junction
 // one receiver. However, for a basin of given order, this starts just upstream of the
 // confluence to the next basin order. So the basin ##INCLUDES## the channel flowing
 // downstream to the penultamite node
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+//
+// SMM 01/09/2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDChannelNetwork::extract_basins_from_junction_vector(vector<int> basin_junctions, LSDFlowInfo& FlowInfo)
 {
 
@@ -1729,26 +1769,26 @@ LSDIndexRaster LSDChannelNetwork::extract_basins_from_junction_vector(vector<int
   for (vector<int>::iterator it = basin_junctions.begin(); it !=  basin_junctions.end(); ++it){
 
     int basin_junction = *it;
-  
+
 		if (basin_junction >= int(JunctionVector.size()))
 		{
 			cout << "LSDChannelNetwork::extract_basin_from_junction junction not in list" << endl;
 			exit(EXIT_FAILURE);
 		}
-  
+
     int receiver_junc, n_nodes_in_channel, basin_outlet;
-		
+
 		// get the reciever junction
     	receiver_junc = ReceiverVector[basin_junction];
-  
+
     	LSDIndexChannel StreamLinkVector = LSDIndexChannel(basin_junction, JunctionVector[basin_junction],
                                                              receiver_junc, JunctionVector[receiver_junc], FlowInfo);
-  
+
       // Find final nth order channel pixel, which is the penultimate pixel
       // in channel.
       n_nodes_in_channel = StreamLinkVector.get_n_nodes_in_channel();
       int node,row,col;
-  
+
       basin_outlet = StreamLinkVector.get_node_in_channel(n_nodes_in_channel-2);
       vector<int> BasinNodeVector = FlowInfo.get_upslope_nodes(basin_outlet);
       // Loop through basin to label basin pixels with basin ID
@@ -1758,9 +1798,9 @@ LSDIndexRaster LSDChannelNetwork::extract_basins_from_junction_vector(vector<int
           FlowInfo.retrieve_current_row_and_col(node,row,col);
           Basin[row][col] = basin_junction;
       }
-    
+
   }
-    
+
 	LSDIndexRaster IR(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Basin);
 	return IR;
 }
@@ -1775,6 +1815,9 @@ LSDIndexRaster LSDChannelNetwork::extract_basins_from_junction_vector(vector<int
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this sends the StreamOrderArray to a LSDIndexRaster
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDChannelNetwork::StreamOrderArray_to_LSDIndexRaster()
 {
@@ -1788,6 +1831,9 @@ LSDIndexRaster LSDChannelNetwork::StreamOrderArray_to_LSDIndexRaster()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this sends the JunctionArray to a LSDIndexRaster
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDChannelNetwork::JunctionArray_to_LSDIndexRaster()
 {
@@ -1801,6 +1847,9 @@ LSDIndexRaster LSDChannelNetwork::JunctionArray_to_LSDIndexRaster()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this sends the JunctionIndexArray to a LSDIndexRaster
+//
+// SMM 01/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDChannelNetwork::JunctionIndexArray_to_LSDIndexRaster()
 {
@@ -1817,6 +1866,7 @@ LSDIndexRaster LSDChannelNetwork::JunctionIndexArray_to_LSDIndexRaster()
 // 1 == channel
 // 0 == hillslope
 //
+// SMM 01/09/2012
 // fixed bug where output was georef to Xmin,Xmin instead of Xmin,Ymin --SWDG 2/7/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDChannelNetwork::StreamOrderArray_to_BinaryNetwork_LSDIndexRaster()
@@ -1847,6 +1897,10 @@ LSDIndexRaster LSDChannelNetwork::StreamOrderArray_to_BinaryNetwork_LSDIndexRast
 // this prints the junction information
 // it does it in binary information
 // there is a seperate 'pickle' function that puts everyting into binary format
+//
+// SMM 01/09/2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDChannelNetwork::print_junction_info_vectors(string filename)
 {
 	string string_filename;
