@@ -621,6 +621,7 @@ class LSDRaster
   /// @param Curvature Array of curvature values.
   /// @param HilltopAspect Empty Array2D of doubles used to output values.
   /// @param HilltopSlope Empty Array2D of doubles used to output values.
+  /// @param HilltopRelief Empty Array2D of doubles used to output values.
   /// @param HilltopLength Empty Array2D of doubles used to output values.
   /// @param HilltopCurvature Empty Array2D of doubles used to output values.
   /// @return Curvature Array 2D of curvature.
