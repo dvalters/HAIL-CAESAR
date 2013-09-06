@@ -1,3 +1,51 @@
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+// LSDStatsTools
+// Land Surface Dynamics StatsTools
+//
+// A collection of statistical routines for use with the University
+//  of Edinburgh Land Surface Dynamics group topographic toolbox
+//
+// Developed by:
+//  Simon M. Mudd
+//  Martin D. Hurst
+//  David T. Milodowski
+//  Stuart W.D. Grieve
+//  Declan A. Valters
+//  Fiona Clubb
+//
+// Copyright (C) 2013 Simon M. Mudd 2013
+//
+// Developer can be contacted by simon.m.mudd _at_ ed.ac.uk
+//
+//    Simon Mudd
+//    University of Edinburgh
+//    School of GeoSciences
+//    Drummond Street
+//    Edinburgh, EH8 9XP
+//    Scotland
+//    United Kingdom
+//
+// This program is free software;
+// you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation;
+// either version 2 of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY;
+// without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the
+// GNU General Public License along with this program;
+// if not, write to:
+// Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor,
+// Boston, MA 02110-1301
+// USA
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //-----------------------------------------------------------------
 //DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
@@ -1621,8 +1669,8 @@ string dtoa(double num)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // LOG BINNING OF 2D ARRAY
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Takes 2D arrays for two corresponding variables (e.g. drainage area and slope) 
-// and sorts into logarithmically spaced bins of a specified bin width.  
+// Takes 2D arrays for two corresponding variables (e.g. drainage area and slope)
+// and sorts into logarithmically spaced bins of a specified bin width.
 // The inputs are:
 //    - InputArrayX = the independent variable (usually plotted on the x axis)
 //    - InputArrayY = the dependent variable (usually plotted on the y axis)
@@ -1632,19 +1680,19 @@ string dtoa(double num)
 //  FC 13/11/12; corrected and modified by DM 04/12/12. Now generalised to be
 //  appropriate for any data, nor just slope-area
 //
-// Original version of this module produced a bad_alloc memory error. Now it has been 
+// Original version of this module produced a bad_alloc memory error. Now it has been
 // re-ported from the working LSDRaster original version and has now been tested and
 // produces the same results as the original with no memory errors. - SWDG 30/8/13
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, double log_bin_width, vector<double>&  MeanX_output, vector<double>& MeanY_output,
-                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output, 
+                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output,
                       vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, double NoDataValue)
 {
-  
+
   int NRows = InputArrayX.dim1();
   int NCols = InputArrayX.dim2();
-    
+
   // Finding max contributing area to use as upper limit for the bins
   double max_X = 0;
 	double min_X = 0;
@@ -1662,7 +1710,7 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
       }
     }
   }
-  
+
   // Defining the upper limit, lower limit and width of the bins
   double upper_limit = ceil((log10(max_X)/log_bin_width))*log_bin_width;
   double lower_limit;
@@ -1673,26 +1721,26 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
   else
   {
     lower_limit = 0;
-  }  
+  }
   int NBins = int(((upper_limit - lower_limit)/log_bin_width)+1);     //changed
- 
+
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
 
   vector<int> number_observations(NBins,0);
   vector<double> Y_data(NBins,0.0);
   vector<double> X_data(NBins,0.0);
- 
+
   // These will be copied into their respective function output vectors
   vector<double> MeanX(NBins,0.0);
 	vector<double> MeanY(NBins,0.0);
   vector<double> mid_points(NBins,NoDataValue);
- 
+
   // vector<vector> objects house data in each bin.
   vector< vector<double> > binned_data_X;
   vector< vector<double> > binned_data_Y;
-  
-  	// create the vector of vectors.  Nested vectors will store data within that 
+
+  	// create the vector of vectors.  Nested vectors will store data within that
   // bin.
   vector<double> empty_vector;
   for(int i = 0; i<NBins; i++)
@@ -1700,14 +1748,14 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 	  binned_data_X.push_back(empty_vector);
 	  binned_data_Y.push_back(empty_vector);
   }
-  
+
   // Bin Data into logarithmically spaced bins
   for (int row = 0; row < NRows; row++)
   {
     for (int col = 0; col < NCols; col++)
     {
       double Y = InputArrayY[row][col];
-      
+
       if (Y != NoDataValue)
       {
         double X = InputArrayX[row][col];
@@ -1727,9 +1775,9 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
       }
     }
   }
-  
+
   // Calculating the midpoint in x direction of each bin and the mean of x and y
-  // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of 
+  // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
   // x vs Mean Y to be most robust.  At the moment the program returns both.
   double midpoint_value = lower_limit + log_bin_width/2;
   for (int bin_id = 0; bin_id < NBins; bin_id++)
@@ -1742,18 +1790,18 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
       MeanX[bin_id] = X_data[bin_id]/number_observations[bin_id];
     }
   }
-  
+
   // These will be copied into their respective function output vectors
   vector<double> StandardDeviationX(NBins,0.0);
   vector<double> StandardDeviationY(NBins,0.0);
   vector<double> StandardErrorX(NBins,0.0);
   vector<double> StandardErrorY(NBins,0.0);
-  
+
   // iterators to move through vec<vec>
 	vector<double>::iterator vec_iterator_X;
   vector<double>::iterator vec_iterator_Y;
-  
-  // Getting the standard deviation of each bin.  First get sum of the squared 
+
+  // Getting the standard deviation of each bin.  First get sum of the squared
   // deviations from the mean
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
@@ -1764,9 +1812,9 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 		  while (vec_iterator_X != binned_data_X[bin_id].end())
 		  {
 			  double Xi = (*vec_iterator_X);
-        StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);       
-        vec_iterator_X++;    
-      } 
+        StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
+        vec_iterator_X++;
+      }
 
       // ...and for the dependent variable Y
       vec_iterator_Y = binned_data_Y[bin_id].begin();
@@ -1774,11 +1822,11 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 		  {
 			  double Yi = (*vec_iterator_Y);
         StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
-        vec_iterator_Y++;       
-      } 
+        vec_iterator_Y++;
+      }
     }
   }
-  // Finally, divide by number of observations in each bin then square root 
+  // Finally, divide by number of observations in each bin then square root
   // to give standard deviation within the bin.
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {

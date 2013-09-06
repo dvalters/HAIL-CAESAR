@@ -1,4 +1,51 @@
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+// LSDStatsTools
+// Land Surface Dynamics StatsTools
+//
+// A collection of statistical routines for use with the University
+//  of Edinburgh Land Surface Dynamics group topographic toolbox
+//
+// Developed by:
+//  Simon M. Mudd
+//  Martin D. Hurst
+//  David T. Milodowski
+//  Stuart W.D. Grieve
+//  Declan A. Valters
+//  Fiona Clubb
+//
+// Copyright (C) 2013 Simon M. Mudd 2013
+//
+// Developer can be contacted by simon.m.mudd _at_ ed.ac.uk
+//
+//    Simon Mudd
+//    University of Edinburgh
+//    School of GeoSciences
+//    Drummond Street
+//    Edinburgh, EH8 9XP
+//    Scotland
+//    United Kingdom
+//
+// This program is free software;
+// you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation;
+// either version 2 of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY;
+// without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the
+// GNU General Public License along with this program;
+// if not, write to:
+// Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor,
+// Boston, MA 02110-1301
+// USA
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //-----------------------------------------------------------------
 //DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
 //-----------------------------------------------------------------
@@ -117,11 +164,11 @@ string dtoa(double num);
 
 // Log binning module
 // two overloaded functions:
-//    -> for data stored in a 2D array (e.g. slope-area)			  
+//    -> for data stored in a 2D array (e.g. slope-area)
 void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, double log_bin_width, vector<double>&  MeanX_output, vector<double>& MeanY_output,
-                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output, 
-                      vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, double NoDataValue);				  
-				  				  
+                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output,
+                      vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, double NoDataValue);
+
 //    -> for data stored in a 1D vector (e.g. for spectral analysis)
 void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double log_bin_width,
 				  vector<double>&  MeanX_output, vector<double>& MeanY_output, vector<double>& midpoints_output,
