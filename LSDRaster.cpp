@@ -677,6 +677,7 @@ void LSDRaster::check_isolated_nodata()
 // DTM
 //
 // Updated 15/07/2013 to use a circular mask for surface fitting. DTM
+// Updated 24/07/2013 to check window_radius size and correct values below data resolution. SWDG
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::calculate_polyfit_coefficient_matrices(double window_radius,
@@ -684,7 +685,17 @@ void LSDRaster::calculate_polyfit_coefficient_matrices(double window_radius,
 										Array2D<double>& c, Array2D<double>& d,
 										Array2D<double>& e, Array2D<double>& f)
 {
-	// this fits a polynomial surface over a kernel window. First, perpare the kernel
+	
+	
+	// catch if the supplied window radius is less than the data resolution and set
+	// it to equal the data resolution - SWDG
+  if (window_radius < DataResolution){
+    cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
+    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius = DataResolution;
+  }
+  
+  // this fits a polynomial surface over a kernel window. First, perpare the kernel
 	int kr = int(ceil(window_radius/DataResolution));           // Set radius of kernel
 	int kw=2*kr+1;                    						// width of kernel
 
