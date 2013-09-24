@@ -302,8 +302,9 @@ class LSDRaster
 	/// to compute this once, since the window size does not change.
 	/// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
 	/// 6x6 matrix.
-  /// Updated 15/07/2013 to use a circular mask for surface fitting. DTM
-  /// @param window_radius Radius of the mask.
+  /// Updated 15/07/2013 to use a circular mask for surface fitting - DTM.
+  /// Updated 24/07/2013 to check window_radius size and correct values below data resolution - SWDG.
+  /// @param window_radius Radius of the mask in <b>spatial units</b>.
   /// @param a coefficeint a.
   /// @param b coefficeint b.
   /// @param c coefficeint c.
