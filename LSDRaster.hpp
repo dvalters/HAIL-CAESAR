@@ -851,16 +851,15 @@ class LSDRaster
 
   /// @brief Punch basins out of an LSDRaster to create DEMs of a single catchment.
   ///
-  /// @details Writes files in the user supplied format (flt or asc) and returns a vector
-  /// of their filenames so they can be loaded into other functions.
+  /// @details Writes files in the user supplied format (flt or asc) and returns a vector 
+  /// of LSDRasters so they can be loaded into other functions.
+  /// Updated 24/9/13 to return a vector of LSDRasters - SWDG.
   /// @param basin_ids Vector of basins to punch out.
   /// @param BasinArray Basin outlines used to punch out the LSDRasters.
-  /// @param output_format The output file format.
-  /// @param raster_prefix A prefix to name the output files with.
-  /// @return Vector of outout filenames.
-  /// @author SWDG
+  /// @return Vector of outout filenames. 
+  /// @author SWDG 
   /// @date 27/8/13
-  vector<string> BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray, string output_format, string raster_prefix);
+  vector<LSDRaster> BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray);
 
   /// @brief Collect all basin average metrics into a single file.
   ///
