@@ -3274,42 +3274,38 @@ void LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilena
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Punch basins out of an LSDRaster to create DEMs of a single catchment.
 //
-// Writes files in the user supplied format (flt or asc) and returns a vector
-// of their filenames so they can be loaded into other functions.
+// Writes files in the user supplied format (flt or asc) and returns a vector 
+// LSDRasters so they can be loaded into other functions.
+// Updated 24/9/13 to return a vector of LSDRasters SWDG 
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-vector<string> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray, string output_format, string raster_prefix){
+vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray){
 
   Array2D<int> BasinRaster = BasinArray.get_RasterData();
-
-  vector<string> OutputFiles; //vector to contain output filenames for use in other fns
-
+  
+  vector<LSDRaster> BasinVector; //vector to contain individual basin LSDRasters
+  
   for(string::size_type a = 0; a < basin_ids.size(); ++a){
-
+  
     Array2D<double> BasinDEM(NRows, NCols, NoDataValue);
     bool Flag = false;
-
+    
     for (int i=0; i<NRows; ++i){
 		  for (int j=0; j<NCols; ++j){
 		    if(BasinRaster[i][j] == basin_ids[a]){
 		      Flag = true;
           BasinDEM[i][j] = RasterData[i][j];
-        }
+        }       
 		  }
 		}
-
+        
     if (Flag == true){ //only write the raster if there is data to write
       LSDRaster Basin(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,BasinDEM);
-
-      stringstream ss;
-      ss << raster_prefix << "_Basin_" << basin_ids[a];
-
-      OutputFiles.push_back(ss.str());
-
-      Basin.write_raster(ss.str(),output_format);
+      LSDRaster TidyBasin = Basin.RasterTrimmer();
+      BasinVector.push_back(TidyBasin);
     }
-  }
-  return OutputFiles;
+  } 
+  return BasinVector;   
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
