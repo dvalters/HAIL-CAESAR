@@ -77,6 +77,7 @@ contains a number of analysis tools built around drainage networks.
 #include "LSDFlowInfo.hpp"
 #include "LSDRaster.hpp"
 #include "LSDIndexChannel.hpp"
+#include "LSDChannel.hpp"
 using namespace std;
 using namespace TNT;
 
@@ -361,6 +362,44 @@ class LSDChannelNetwork
   /// @date 17/10/2012
   LSDIndexRaster ExtractBasinsOrder(int BasinOrder, LSDFlowInfo& FlowInfo);
 
+  /// @brief Get farthest upslope hilltops.
+  ///  This function looks at all the source junctions in a network
+  ///  upstream of a given junction and returns the node index of the
+  ///  hilltop node that is the farthest upstream from the source junction
+  /// @param int JunctionNumber: the junction number upstream of which you want to search for sources
+  /// LSDFlowInfo FlowInfo: the flow info object
+  /// LSDRaster FlowDistance: distance upslope
+  /// @return vector<int> a vector of node indices to the ridge nodes that are farthest upslope
+  /// of the sources
+  /// @author SMM
+  /// @date 26/09/2013
+  vector<int> FindFarthestUpslopeHilltopsFromSources(int JunctionNumber, LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance);
+
+  /// @brief This function generates LSDChannels that run from the hilltops above
+  /// all the sources of the junction JunctionNumber
+  /// @author SMM
+  /// @date 26/09/2013
+  vector<int> GetChannelsHeadsChiMethodFromJunction(int JunctionNumber,
+                              int MinSegLength, double A_0, double m_over_n,
+											        LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance, LSDRaster& ElevationRaster);
+
+
+
+	/// @brief This function returns all potential channel heads in a DEM. It looks for
+	/// channel heads organized by a basin order which is fed to the code
+	/// The basin order just determines how far downstream the algorithm looks for the 'fluvial'
+	/// section.
+	/// It returns a vector<int> of nodeindices where the channel heads are
+	/// @return vector<int> a vector of node_indices of potential channel heads
+  	/// @author SMM
+  	/// @date 26/09/2013
+	vector<int> GetChannelsHeadsChiMethodBasinOrder(int BasinOrder,
+                                      int MinSegLength, double A_0, double m_over_n,
+									  LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
+									  LSDRaster& ElevationRaster);
+
+
+
   /// @brief Ridge network extraction - extracts ridge network, defined as boundaries
   /// between two basins of the same stream order.
   ///
@@ -378,6 +417,8 @@ class LSDChannelNetwork
   /// @author DTM
   /// @date 18/10/2012
   LSDRaster ExtractRidges(LSDFlowInfo& FlowInfo);
+
+
   /// @brief
   ///
   /// @details This overloaded function extracts the ridge network for a defined stream
@@ -392,6 +433,9 @@ class LSDChannelNetwork
   /// @author DTM, SWDG
   /// @date 18/10/2012, 28/03/2013
   LSDRaster ExtractRidges(LSDFlowInfo& FlowInfo, int& min_order, int& max_order);
+
+
+
   /// @brief This last function gets the hilltops: ridges limited by a maximum slope.
   ///
   /// @details Resticts ridgeline to part of ridge network where the slope is less than a

@@ -1277,6 +1277,146 @@ LSDIndexRaster LSDChannelNetwork::ExtractBasinsOrder(int BasinOrder, LSDFlowInfo
 	return basin_raster;
 }
 
+
+
+
+
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function takes a junction number and then cycles through the upslope
+// junctions, looking for sources. Once it finds a source it then traces
+// the channel to the divide (finding the longest segment) and returns the
+// node indices of these hilltop nodes.
+//
+// SMM 25/9/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+vector<int> LSDChannelNetwork::FindFarthestUpslopeHilltopsFromSources(int JunctionNumber,
+                                          LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance)
+{
+	// get the list of upslope junctions
+	vector<int> upslope_juncs = get_upslope_junctions(JunctionNumber);
+
+
+	vector<int> hilltops_from_sources;
+	int upslope_node_index;
+	int this_source_node;
+
+	// loop through these junctions, looking for sources
+	int n_upslope_juncs = upslope_juncs.size();
+	for(int i = 0; i<n_upslope_juncs; i++)
+	{
+		// test to see if the junction has donor, if not it is a source
+		if (NDonorsVector[ upslope_juncs[i] ] == 0)
+		{
+			cout << "source found, junction: " << upslope_juncs[i] << endl;
+
+			// get the node
+			this_source_node =  JunctionVector[ upslope_juncs[i] ];
+
+			// now find the upslope node of this souce
+			upslope_node_index =  FlowInfo.find_farthest_upslope_node(this_source_node, FlowDistance);
+
+			// add it to the vector
+			hilltops_from_sources.push_back(upslope_node_index);
+		}
+	}
+
+	return hilltops_from_sources;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+// This function returns a vector of nodeindex values of potential channel heads
+// above a given junction
+//
+// SMM 26/09/2013
+//
+// Modified by FC 26/09/2013 to extract the node of the predicted channel heads for each
+// hilltop node; now returns a vector of integers.
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodFromJunction(int JunctionNumber,
+                                      int MinSegLength, double A_0, double m_over_n,
+											                LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance, LSDRaster& ElevationRaster)
+{
+	vector<int> ChannelHeadNodes;
+	double downslope_chi = 0;
+
+	// get the node index of this junction
+	int downstream_node_index = JunctionVector[JunctionNumber];
+
+	// get the nodes of the hilltops.
+	vector<int> hilltop_nodes = FindFarthestUpslopeHilltopsFromSources(JunctionNumber,
+                                          FlowInfo, FlowDistance);
+
+    // now loop through the hilltops, getting a channel for each one
+    int n_hilltops = hilltop_nodes.size();
+    ChannelHeadNodes.resize(n_hilltops);
+
+    for(int i = 0; i<n_hilltops; i++)
+    {
+		  LSDChannel new_channel(hilltop_nodes[i], downstream_node_index, downslope_chi, m_over_n, A_0, FlowInfo,  ElevationRaster);
+		  int channel_head_node = new_channel.calculate_channel_heads(MinSegLength, A_0, m_over_n, FlowInfo);
+		  ChannelHeadNodes[i] = channel_head_node;
+	  }
+
+  return ChannelHeadNodes;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+// This function returns all potential channel heads in a DEM. It looks for
+// channel heads organized by a basin order which is fed to the code
+// The basin order just determines how far downstream the algorithm looks for the 'fluvial'
+// section.
+// It returns a vector<int> of nodeindices where the channel heads are
+//
+// SMM 26/09/2013
+//
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodBasinOrder(int BasinOrder,
+                                      int MinSegLength, double A_0, double m_over_n,
+									  LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
+									  LSDRaster& ElevationRaster)
+{
+	vector<int> ChannelHeadNodes;
+
+  	vector<int> junction_list = extract_basins_order_outlet_junctions(BasinOrder, FlowInfo);
+  	int max_junctions = junction_list.size();
+  	int junction_number;
+
+	// loop through junctions collecting channel heads
+  	for (int i = 0; i < max_junctions; i++)
+  	{
+		cout << "Junction " << i << " of " << max_junctions << endl;
+
+		// get the junction number
+		junction_number = junction_list[i];
+
+		// get a local list of channel heads
+		vector<int> these_channel_heads = GetChannelsHeadsChiMethodFromJunction(junction_number,
+                                     			MinSegLength, A_0, m_over_n, FlowInfo,
+                                     			FlowDistance, ElevationRaster);
+
+        // now append these channel heads to the master list
+		ChannelHeadNodes.insert(ChannelHeadNodes.end(), these_channel_heads.begin(), these_channel_heads.end());
+	}
+
+
+
+  return ChannelHeadNodes;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function extracts the ridge network by defining it as the co-boundaries
 // of basins of equivalent order, for all basin orders within the landscape.
