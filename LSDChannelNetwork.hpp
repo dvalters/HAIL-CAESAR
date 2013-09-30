@@ -363,12 +363,13 @@ class LSDChannelNetwork
   LSDIndexRaster ExtractBasinsOrder(int BasinOrder, LSDFlowInfo& FlowInfo);
 
   /// @brief Get farthest upslope hilltops.
-  ///  This function looks at all the source junctions in a network
+  ///
+  /// @details This function looks at all the source junctions in a network
   ///  upstream of a given junction and returns the node index of the
   ///  hilltop node that is the farthest upstream from the source junction
-  /// @param int JunctionNumber: the junction number upstream of which you want to search for sources
-  /// LSDFlowInfo FlowInfo: the flow info object
-  /// LSDRaster FlowDistance: distance upslope
+  /// @param JunctionNumber the junction number upstream of which you want to search for sources
+  /// @param FlowInfo the flow info object
+  /// @param FlowDistance distance upslope
   /// @return vector<int> a vector of node indices to the ridge nodes that are farthest upslope
   /// of the sources
   /// @author SMM
