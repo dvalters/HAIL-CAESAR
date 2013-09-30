@@ -255,7 +255,7 @@ double get_durbin_watson_statistic(vector<double> residuals)
 // this gets a simple linear regression where the regression model is y = mx+b
 // it returns a vector with the best fit values for m, b, r^2 and the durban_watson
 // statistic (which is used to test if the residuals are autocorrelated
-// it also replaces the resibuals vector with the actual residuals from the
+// it also replaces the residuals vector with the actual residuals from the
 // best fit
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<double> simple_linear_regression(vector<double>& x_data, vector<double>& y_data, vector<double>& residuals)
@@ -1859,7 +1859,8 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 //    - log_bin_width = the width (in log space) of the bins, with respect to
 //          InputArrayX
 //  The outputs are:
-//FC 13/11/12; modified by DM 04/12/12
+// FC 13/11/12; modified by DM 04/12/12
+//
 //
 // THIS HAS NOT BEEN TESTED AND MAY NEED RE-PORTED FROM THE LSDRASTER ORIGINAL.
 // SEE THE OTHER LOG BINNING COMMENTS FOR DETAILS -- SWDG 30/8/13
@@ -1867,12 +1868,9 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double log_bin_width,
                   vector<double>&  MeanX_output, vector<double>& MeanY_output,
                       vector<double>& midpoints_output, vector<double>&  StandardDeviationX_output,
-                      vector<double>&  StandardDeviationY_output, int NoDataValue)
+                      vector<double>&  StandardDeviationY_output,int NoDataValue)
 {
-
-
-
-	// Finding max contributing area to use as upper limit for the bins
+  
 	int n_data = InputVectorY.size();
   double max_X = InputVectorX[n_data-1];
 	double min_X = InputVectorX[1];
@@ -1965,6 +1963,7 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
   // These will be copied into their respective function output vectors
   vector<double> StandardDeviationX(NBins,0.0);
   vector<double> StandardDeviationY(NBins,0.0);
+  
   // iterators to move through vec<vec>
 	vector<double>::iterator vec_iterator_X;
   vector<double>::iterator vec_iterator_Y;
@@ -1987,6 +1986,7 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
 
       // ...and for the dependent variable Y
       vec_iterator_Y = binned_data_Y[bin_id].begin();
+      
 		  while (vec_iterator_Y != binned_data_Y[bin_id].end())
 		  {
 			  double Yi = (*vec_iterator_Y);
@@ -1995,7 +1995,6 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
       }
     }
   }
-
 
   // Finally, divide by number of observations in each bin then square root
   // to give standard deviation within the bin.
@@ -2014,6 +2013,191 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
   midpoints_output = mid_points;
   StandardDeviationX_output = StandardDeviationX;
   StandardDeviationY_output = StandardDeviationY;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// BINNING OF 1D VECTOR AND CALCULATION OF THE 95th PERCENTILE OF EACH BIN
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Takes vectors for two corresponding variables (e.g. drainage area and slope)
+// and sorts into bins of a specified bin width.
+// The inputs are:
+//    - InputVectorX = the independent variable (usually plotted on the x axis)
+//    - InputVectorY = the dependent variable (usually plotted on the y axis)
+//    - log_bin_width = the width of the bins, with respect to
+//          InputArrayX
+//  The outputs are:
+//FC 13/11/12; modified by DM 04/12/12
+//
+// Modified by FC 30/09/13 to calculate the range of the 95th percentile for each bin - 
+// used for channel head prediction through chi segment fitting.  Changed from log binning to
+// regular binning.
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double bin_width,
+                  vector<double>&  MeanX_output, vector<double>& MeanY_output,
+                      vector<double>& midpoints_output, vector<double>&  StandardDeviationX_output,
+                      vector<double>&  StandardDeviationY_output, vector<double>& RangeMin_output, 
+                      vector<double>& RangeMax_output, int NoDataValue)
+{
+
+
+
+	// Finding max contributing area to use as upper limit for the bins
+	int n_data = InputVectorY.size();
+  double max_X = InputVectorX[n_data-1];
+	double min_X = InputVectorX[1];
+
+	//cout << "LSDStatsTools line 1757, n_data_X: " << n_data << " and Y: " << InputVectorX.size() << endl;
+
+  for (int i = 0; i < n_data; ++i)
+	{
+    if (InputVectorX[i] > max_X)
+    {
+      max_X = InputVectorX[i];
+    }
+    if (InputVectorX[i] < min_X || min_X == 0)    // Cannot have take a logarithm of zero.
+    {
+      min_X = InputVectorX[i];
+    }
+  }
+
+  // Defining the upper limit, lower limit and width of the bins
+  double upper_limit = ceil(max_X/bin_width)*bin_width;
+  double lower_limit = floor(min_X/bin_width)*bin_width;
+  int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
+
+  // Looping through all the rows and columns and calculating which bin the
+  // contributing area is in, and putting the slope in this bin
+  vector<int> number_observations(NBins,0);
+  vector<double> Y_data(NBins,0.0);
+  vector<double> X_data(NBins,0.0);
+
+  // These will be copied into their respective function output vectors
+  vector<double> MeanX(NBins,0.0);
+	vector<double> MeanY(NBins,0.0);
+  vector<double> mid_points(NBins,NoDataValue);
+
+  // vector<vector> objects house data in each bin.
+  vector< vector<double> > binned_data_X;
+  vector< vector<double> > binned_data_Y;
+
+	// create the vector of vectors.  Nested vectors will store data within that
+  // bin.
+  vector<double> empty_vector;
+  for(int i = 0; i<NBins; i++)
+  {
+	  binned_data_X.push_back(empty_vector);
+	  binned_data_Y.push_back(empty_vector);
+  }
+
+  // Bin Data into logarithmically spaced bins
+  for (int i = 0; i < n_data; ++i)
+  {
+    double Y = InputVectorY[i];
+    if (Y != NoDataValue)
+    {
+      double X = InputVectorX[i];
+      if (X > 0)
+      {
+        // Get bin_id for this particular value of X
+        int bin_id = int((X-lower_limit)/bin_width);
+
+		//cout << "LINE 1818, bin id: " << bin_id << " i: " << i << " XDsz: " << X_data.size() << " YDsz: " << Y_data.size() << endl;
+		//cout << "LINE 1819, bdxsz: " << binned_data_X.size() << " bdysz: " << binned_data_Y.size() << endl << endl;
+        // Store X and corresponding Y into this bin, for their respective
+        // vector<vector> object
+        binned_data_X[bin_id].push_back(X);
+        binned_data_Y[bin_id].push_back(Y);
+        Y_data[bin_id] += Y;
+        X_data[bin_id] += X;
+        ++number_observations[bin_id];
+      }
+    }
+  }
+
+
+  // Calculating the midpoint in x direction of each bin and the mean of x and y
+  // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
+  // x vs Mean Y to be most robust.  At the moment the program returns both.
+  double midpoint_value = lower_limit + bin_width/2;
+  for (int bin_id = 0; bin_id < NBins; bin_id++)
+  {
+    mid_points[bin_id] = midpoint_value;
+    midpoint_value = midpoint_value + bin_width;
+    if (number_observations[bin_id] != 0)
+    {
+      MeanY[bin_id] = Y_data[bin_id]/number_observations[bin_id];
+      MeanX[bin_id] = X_data[bin_id]/number_observations[bin_id];
+    }
+  }
+
+
+  // These will be copied into their respective function output vectors
+  vector<double> StandardDeviationX(NBins,0.0);
+  vector<double> StandardDeviationY(NBins,0.0);
+  vector<double> YDataVector;
+  vector<double> RangeMin;
+  vector<double> RangeMax;
+  RangeMax.resize(NBins);
+  RangeMin.resize(NBins);
+  // iterators to move through vec<vec>
+	vector<double>::iterator vec_iterator_X;
+  vector<double>::iterator vec_iterator_Y;
+
+  // Getting the standard deviation of each bin.  First get sum of the squared
+  // deviations from the mean
+  for (int bin_id = 0; bin_id < NBins; bin_id++)
+  {
+	  if (number_observations[bin_id] != 0)
+    {
+		  // for the independent variable X...
+      vec_iterator_X = binned_data_X[bin_id].begin();
+
+      while (vec_iterator_X != binned_data_X[bin_id].end())
+		  {
+        double Xi = (*vec_iterator_X);
+        StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
+        vec_iterator_X++;
+      }
+
+      // ...and for the dependent variable Y
+      vec_iterator_Y = binned_data_Y[bin_id].begin();
+      
+		  while (vec_iterator_Y != binned_data_Y[bin_id].end())
+		  {
+			  double Yi = (*vec_iterator_Y);
+        StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
+        vec_iterator_Y++;
+        YDataVector.push_back(Yi);
+      }
+      
+      //find the range of the 95th percentile of the independent variable for each bin
+      sort(YDataVector.begin(), YDataVector.end());
+      RangeMax[bin_id] = YDataVector.back();
+      double percentile_pointer = floor(YDataVector.size()/100 * 95);
+      RangeMin[bin_id] = YDataVector[percentile_pointer];
+    }
+  }
+
+  // Finally, divide by number of observations in each bin then square root
+  // to give standard deviation within the bin.
+  for (int bin_id = 0; bin_id < NBins; bin_id++)
+  {
+    if (number_observations[bin_id] != 0)
+    {
+      StandardDeviationX[bin_id] = sqrt(StandardDeviationX[bin_id]/number_observations[bin_id]);
+      StandardDeviationY[bin_id] = sqrt(StandardDeviationY[bin_id]/number_observations[bin_id]);
+    }
+  }
+
+  // Copy output into output vectors
+  MeanX_output = MeanX;
+  MeanY_output = MeanY;
+  midpoints_output = mid_points;
+  StandardDeviationX_output = StandardDeviationX;
+  StandardDeviationY_output = StandardDeviationY;
+  RangeMin_output = RangeMin;
+  RangeMax_output = RangeMax;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
