@@ -326,6 +326,7 @@ void LSDRaster::write_raster(string filename, string extension)
 				<< "\ncellsize      " << DataResolution
 				<< "\nNODATA_value  " << NoDataValue << endl;
 
+
 		for (int i=0; i<NRows; ++i)
 		{
 			for (int j=0; j<NCols; ++j)
@@ -352,7 +353,8 @@ void LSDRaster::write_raster(string filename, string extension)
 			<< "\nxllcorner     " << setprecision(14) << XMinimum
 			<< "\nyllcorner     " << setprecision(14) << YMinimum
 			<< "\ncellsize      " << DataResolution
-			<< "\nNODATA_value  " << NoDataValue << endl;
+			<< "\nNODATA_value  " << NoDataValue
+			<< "\nbyteorder     LSBFIRST" << endl;
 		header_ofs.close();
 
 		// now do the main data
@@ -685,8 +687,8 @@ void LSDRaster::calculate_polyfit_coefficient_matrices(double window_radius,
 										Array2D<double>& c, Array2D<double>& d,
 										Array2D<double>& e, Array2D<double>& f)
 {
-	
-	
+
+
 	// catch if the supplied window radius is less than the data resolution and set
 	// it to equal the data resolution - SWDG
   if (window_radius < DataResolution){
@@ -694,7 +696,7 @@ void LSDRaster::calculate_polyfit_coefficient_matrices(double window_radius,
     DataResolution << ".\nWindow radius has been set to data resolution." << endl;
     window_radius = DataResolution;
   }
-  
+
   // this fits a polynomial surface over a kernel window. First, perpare the kernel
 	int kr = int(ceil(window_radius/DataResolution));           // Set radius of kernel
 	int kw=2*kr+1;                    						// width of kernel
@@ -3274,38 +3276,38 @@ void LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilena
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Punch basins out of an LSDRaster to create DEMs of a single catchment.
 //
-// Writes files in the user supplied format (flt or asc) and returns a vector 
+// Writes files in the user supplied format (flt or asc) and returns a vector
 // LSDRasters so they can be loaded into other functions.
-// Updated 24/9/13 to return a vector of LSDRasters SWDG 
+// Updated 24/9/13 to return a vector of LSDRasters SWDG
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray){
 
   Array2D<int> BasinRaster = BasinArray.get_RasterData();
-  
+
   vector<LSDRaster> BasinVector; //vector to contain individual basin LSDRasters
-  
+
   for(string::size_type a = 0; a < basin_ids.size(); ++a){
-  
+
     Array2D<double> BasinDEM(NRows, NCols, NoDataValue);
     bool Flag = false;
-    
+
     for (int i=0; i<NRows; ++i){
 		  for (int j=0; j<NCols; ++j){
 		    if(BasinRaster[i][j] == basin_ids[a]){
 		      Flag = true;
           BasinDEM[i][j] = RasterData[i][j];
-        }       
+        }
 		  }
 		}
-        
+
     if (Flag == true){ //only write the raster if there is data to write
       LSDRaster Basin(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,BasinDEM);
       LSDRaster TidyBasin = Basin.RasterTrimmer();
       BasinVector.push_back(TidyBasin);
     }
-  } 
-  return BasinVector;   
+  }
+  return BasinVector;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

@@ -328,7 +328,8 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 			<< "\nxllcorner     " << setprecision(14) << XMinimum
 			<< "\nyllcorner     " << setprecision(14) << YMinimum
 			<< "\ncellsize      " << DataResolution
-			<< "\nNODATA_value  " << NoDataValue << endl;
+			<< "\nNODATA_value  " << NoDataValue
+			<< "\nbyteorder     LSBFIRST" << endl;
 		header_ofs.close();
 
 		// now do the main data
