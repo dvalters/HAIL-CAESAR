@@ -171,8 +171,16 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 
 //    -> for data stored in a 1D vector (e.g. for spectral analysis)
 void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double log_bin_width,
-				  vector<double>&  MeanX_output, vector<double>& MeanY_output, vector<double>& midpoints_output,
-				  vector<double>&  StandardDeviationX_output, vector<double>&  StandardDeviationY_output, int NoDataValue);
+                  vector<double>&  MeanX_output, vector<double>& MeanY_output,
+                      vector<double>& midpoints_output, vector<double>&  StandardDeviationX_output,
+                      vector<double>&  StandardDeviationY_output, int NoDataValue);
+
+// Regular binning algoritm for data stored in a 1D vector with added statistical output (for channel head prediction), added by FC 30/09/13
+void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double bin_width,
+                  vector<double>&  MeanX_output, vector<double>& MeanY_output,
+                      vector<double>& midpoints_output, vector<double>&  StandardDeviationX_output,
+                      vector<double>&  StandardDeviationY_output, vector<double>& RangeMin_output, 
+                      vector<double>& RangeMax_output, int NoDataValue);
 
 // tools for sorting
 template<class T> struct index_cmp;
