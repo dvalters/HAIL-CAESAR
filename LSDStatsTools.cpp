@@ -2037,7 +2037,7 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
                   vector<double>&  MeanX_output, vector<double>& MeanY_output,
                       vector<double>& midpoints_output, vector<double>&  StandardDeviationX_output,
                       vector<double>&  StandardDeviationY_output, vector<double>& RangeMin_output, 
-                      vector<double>& RangeMax_output, int NoDataValue)
+                      vector<double>& RangeMax_output, double& bin_lower_limit, int NoDataValue)
 {
 
 
