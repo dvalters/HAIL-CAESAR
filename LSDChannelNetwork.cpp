@@ -82,10 +82,11 @@
 #include <string>
 #include <fstream>
 #include "TNT/tnt.h"
-//#include "LSDFlowInfo.hpp"
-//#include "LSDRaster.hpp"
+#include "LSDFlowInfo.hpp"
+#include "LSDRaster.hpp"
 #include "LSDChannelNetwork.hpp"
 #include "LSDIndexChannel.hpp"
+#include "LSDStatsTools.hpp"
 using namespace std;
 using namespace TNT;
 
@@ -1415,7 +1416,184 @@ vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodBasinOrder(int BasinOrde
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+// This function returns a 2D integer array containing the locations of all pixels identified
+// as being part of the channel using chi profiles.  It calculates the chi and elevation value
+// of every pixel upstream of the given junction, then bins this data and calculates the pixels
+// in the 95th percentile of each bin.  Any pixels above the 95th percentile are considered part
+// of the channel, and any below are considered to be hillslopes.  This is the first part of the 
+// channel head prediction using chi profiles.
+//
+// Parameters: Junction number, A_0, m over n, bin width (suggested value of 10), FlowInfo object,
+// Elevation raster
+// Returns: Array2D<int> with the channel pixel locations
+//
+// FC 01/10/13
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionNumber,
+                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo, 
+                                      LSDRaster& ElevationRaster)
+{
+  Array2D<int> channel_pixels(NRows,NCols,NoDataValue);
+  // get the node index of this junction
+	int starting_node = JunctionVector[JunctionNumber];
+	string jn_name = itoa(JunctionNumber);
+	string uscore = "_";
+	jn_name = uscore+jn_name;
+  
+  //get the chi and elevation values of each upslope node
+  vector<int> upslope_nodes = FlowInfo.get_upslope_nodes(starting_node);
+  vector<double> upslope_chi = FlowInfo.get_upslope_chi(starting_node, m_over_n, A_0);
+  vector<double> elevation;
+  int row,col;
+  
+  string string_filename_all;
+	string filename_all = "chi_profile_all";
+	string dot = ".";
+	string extension = "txt";
+	string_filename_all = filename_all+jn_name+dot+extension;
+	ofstream chi_profile_all;
+	chi_profile_all.open(string_filename_all.c_str());
+	//cout << "The filename is " << string_filename_all << endl;
+  
+  for (int node=0; node < upslope_nodes.size(); node++)
+  {
+    FlowInfo.retrieve_current_row_and_col(upslope_nodes[node], row, col);
+    double elev = ElevationRaster.get_data_element(row,col);
+    elevation.push_back(elev);
+    chi_profile_all << upslope_chi[node] << " " << elev << endl;
+  }
+	
+	string string_filename;
+	string filename = "chi_profile";
+	string_filename = filename+jn_name+dot+extension;
+	//cout << "The filename is " << string_filename << endl;
 
+	ofstream chi_profile;
+	chi_profile.open(string_filename.c_str());
+  
+  double lower_limit = 0;
+  vector<double> mean_chi;
+  vector<double> mean_elev;
+  vector<double> midpoints;
+  vector<double> st_dev_chi;
+  vector<double> st_dev_elev;
+  vector<double> range_min;
+  vector<double> range_max;
+
+  int NoDataValue = FlowInfo.get_NoDataValue();
+  int NRows = FlowInfo.get_NRows();
+  int NCols = FlowInfo.get_NCols();
+  
+  //bin the data to find the range of the 95th percentile
+  bin_data(upslope_chi, elevation, bin_width, mean_chi, mean_elev, midpoints, 
+           st_dev_chi, st_dev_elev, range_min, range_max, lower_limit, NoDataValue);
+  
+  //find the most linear channel segment (highest r2 value)
+  int n_bins = mean_chi.size();
+  int min_seg_length = 3;
+  vector<double> channel_chi;
+  vector<double> channel_elev;
+  vector<double>::iterator vec_iter_start;
+	vector<double>::iterator vec_iter_end;
+	double max_r2 = 0;
+	double elev_limit = 0;
+  
+  for (int channel_segment = min_seg_length; channel_segment <= n_bins-min_seg_length; channel_segment++)
+  {
+    //assigning the chi values of the channel segment
+    channel_chi.resize(channel_segment);
+    vec_iter_start = mean_chi.begin();
+	  vec_iter_end = vec_iter_start+channel_segment;
+	  channel_chi.assign(vec_iter_start,vec_iter_end);
+
+	  // assigning the elevation values of the channel segment
+    channel_elev.resize(channel_segment);
+	  vec_iter_start = range_min.begin();
+	  vec_iter_end = vec_iter_start+channel_segment;
+	  channel_elev.assign(vec_iter_start,vec_iter_end);
+	  
+	  //performing linear regression on channel segment: getting highest r2
+	  vector<double> residuals_chan;
+    vector<double> results_chan = simple_linear_regression(channel_chi,channel_elev, residuals_chan);
+    double r2 = results_chan[2];
+    if (r2 > max_r2)
+    {
+      max_r2 = r2;
+      elev_limit = channel_elev.back();   
+    }       
+  } 
+ 
+  //extend the linear channel segment up through the plot
+  vector<double> mean_chi_regression;
+  vector<double> range_min_regression;
+  vector<double> elev_regression;
+  mean_chi_regression.resize(range_min.size());
+  range_min_regression.resize(range_min.size());
+  elev_regression.resize(range_min.size());
+  double regression_pointer = 0;
+ 
+  for (int i=0; i<range_min.size(); i++)
+  {
+    if (range_min[i] <= elev_limit)
+    {
+      if (range_min[i] !=0)
+      {
+        mean_chi_regression[i] = mean_chi[i];
+        range_min_regression[i] = range_min[i];
+        regression_pointer = i;
+      } 
+    } 
+  }
+   
+  double x1 = mean_chi_regression.front();
+  double y1 = range_min_regression.front();
+  double x2 = mean_chi_regression[regression_pointer];
+  double y2 = range_min_regression[regression_pointer];     
+  double gradient = (y2 - y1)/(x2 - x1);
+  double intercept = y2 - (gradient * x2);
+  
+  for (int i = 0; i < n_bins; i++)
+  {
+    if (range_min[i] <=elev_limit)
+    {
+      elev_regression[i] = range_min[i];
+    }
+    else
+    {
+      elev_regression[i] = mean_chi[i]*gradient + intercept;
+    }
+  }
+  
+  for(int i = 0 ; i< n_bins; i++)
+  {	
+    if (mean_chi[i] != 0)
+    {  
+      chi_profile << mean_chi[i] << " " << mean_elev[i] << " " << range_min[i] << " " << range_max[i] << " " << elev_regression[i] << endl;
+    }
+  }
+  chi_profile.close();
+  
+  //classify any nodes to the left of the channel segment as the channel; any nodes to the
+  // right are classified as hillslopes
+  for (int i=0; i < upslope_nodes.size(); i++)
+  {
+    int bin_id = int((upslope_chi[i]-lower_limit)/bin_width);
+    FlowInfo.retrieve_current_row_and_col(upslope_nodes[i], row, col);
+    if (upslope_chi[i] <= mean_chi[bin_id] && elevation[i] >= elev_regression[bin_id])
+    {
+      channel_pixels[row][col] = 1;
+    }
+    else
+    {
+      channel_pixels[row][col] = 0;
+    }
+  } 
+  return channel_pixels;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function extracts the ridge network by defining it as the co-boundaries

@@ -78,6 +78,7 @@ contains a number of analysis tools built around drainage networks.
 #include "LSDRaster.hpp"
 #include "LSDIndexChannel.hpp"
 #include "LSDChannel.hpp"
+#include "LSDStatsTools.hpp"
 using namespace std;
 using namespace TNT;
 
@@ -398,6 +399,26 @@ class LSDChannelNetwork
                                       int MinSegLength, double A_0, double m_over_n,
 									  LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
 									  LSDRaster& ElevationRaster);
+									  
+	
+  /// @brief This function returns a 2D array containing the locations of all pixels identified
+  /// as being part of the channel using chi profiles.  It calculates the chi and elevation value
+  /// of every pixel upstream of the given junction, then bins this data and calculates the pixels
+  /// in the 95th percentile of each bin.  Any pixels above the 95th percentile are considered part
+  /// of the channel, and any below are considered to be hillslopes.  This is the first part of the 
+  /// channel head prediction using chi profiles.
+  /// @param Junction Number
+  /// @param A_0
+  /// @param m/n
+  /// @param bin width
+  /// @param Flow Info object
+  /// @param Elevation Raster
+  /// @return Array2D<double> with channel pixels
+  /// @author FC
+  /// @date 01/10/2013
+  Array2D<int> GetChannelsHeadsChiMethodAllPixels(int JunctionNumber,
+                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo, 
+                                      LSDRaster& ElevationRaster);
 
 
 
