@@ -407,12 +407,12 @@ class LSDChannelNetwork
   /// in the 95th percentile of each bin.  Any pixels above the 95th percentile are considered part
   /// of the channel, and any below are considered to be hillslopes.  This is the first part of the 
   /// channel head prediction using chi profiles.
-  /// @param Junction Number
+  /// @param JunctionNumber
   /// @param A_0
-  /// @param m/n
-  /// @param bin width
-  /// @param Flow Info object
-  /// @param Elevation Raster
+  /// @param m_over_n
+  /// @param bin_width
+  /// @param FlowInfo Flow Info object
+  /// @param ElevationRaster
   /// @return Array2D<double> with channel pixels
   /// @author FC
   /// @date 01/10/2013
