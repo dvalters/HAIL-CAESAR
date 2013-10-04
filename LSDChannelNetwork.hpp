@@ -419,6 +419,26 @@ class LSDChannelNetwork
   Array2D<int> GetChannelsHeadsChiMethodAllPixels(int JunctionNumber,
                                       double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo, 
                                       LSDRaster& ElevationRaster);
+                                      
+  
+  /// @brief This function returns an integer vector with the node indexes of the furthest upstream
+  /// pixels identified as being part of the channel using chi profiles.  It calculates the chi and 
+  /// elevation value of every pixel upstream of the given junction, then bins this data and calculates
+  /// the pixels in the 95th percentile of each bin.  Any pixels above the 95th percentile are considered
+  /// part of the channel, and any below are considered to be hillslopes.  This is the first part of the 
+  /// channel head prediction using chi profiles.
+  /// @param JunctionNumber
+  /// @param A_0
+  /// @param m_over_n
+  /// @param bin_width
+  /// @param FlowInfo Flow Info object
+  /// @param ElevationRaster
+  /// @return vector<int> with source nodes
+  /// @author FC
+  /// @date 04/10/2013
+  vector<int> GetSourceNodesChiMethodAllPixels(int JunctionNumber,
+                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo, 
+                                      LSDRaster& ElevationRaster);
 
 
 
