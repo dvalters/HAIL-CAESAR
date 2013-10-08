@@ -1734,9 +1734,7 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
   //classify any nodes to the left of the channel segment as the channel; any nodes to the
   // right are classified as hillslopes
   vector<int> channel_nodes;
-  vector<int> upslope_nodes_temp;
   vector<int> source_nodes;
-  vector<int>::iterator iterator_find;
   
   for (unsigned int i=0; i < upslope_nodes.size(); i++)
   {
@@ -1750,21 +1748,32 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
   
   // find the furthest upslope nodes classified as being part of the channel network (use as sources for next
   // step of chi method)
+
+  int upstream_test = 0;
+  vector<int>::iterator find_it;
+
   for (unsigned int node =0; node < channel_nodes.size(); node++)
   {
+     vector<int> tests;
      int current_node = channel_nodes[node];
-     upslope_nodes_temp = FlowInfo.get_upslope_nodes(current_node);
-     for (unsigned int i=0; i < upslope_nodes_temp.size(); i++)
+     for (unsigned int i = 0; i < channel_nodes.size(); i++)
      {
-        iterator_find = find(channel_nodes.begin(), channel_nodes.end(), upslope_nodes_temp[i]);
-        if (iterator_find == channel_nodes.end())
-        {
-          source_nodes.push_back(current_node);  
-        }
+      if (channel_nodes[i] != current_node)
+      {
+        int test_node = channel_nodes[i];
+        upstream_test = FlowInfo.is_node_upstream(current_node, test_node);
+        tests.push_back(upstream_test);
+      }
+     }
+     find_it = find(tests.begin(), tests.end(), 1);
+     if (find_it == tests.end())
+     {
+      source_nodes.push_back(current_node);
      }
   }
+  cout << "No of channel nodes: " << channel_nodes.size() << endl;
+  cout << "No of source nodes: " << source_nodes.size() << endl;
   return source_nodes;
-
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
