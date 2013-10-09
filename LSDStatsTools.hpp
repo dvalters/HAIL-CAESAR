@@ -188,6 +188,9 @@ void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector
 void matlab_double_reorder(std::vector<double> & unordered, std::vector<size_t> const & index_map, std::vector<double> & ordered);
 void matlab_double_sort_descending(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map);
 
+// convert degree bearing from north to radians from east
+double BearingToRad(double Bearing);
+
 // conversion from degrees to radians
 double rad(double degree);
 
