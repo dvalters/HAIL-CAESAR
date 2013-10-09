@@ -819,7 +819,7 @@ class LSDRaster
   /// SWDG 27/8/13
   void CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect,
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
-                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope);
+                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope, string RasterFilename);
 
 
   /// @brief Generate data in two text files to create a boomerang plot as in Roering et al [2007].
