@@ -639,52 +639,7 @@ class LSDRaster
   /// @author Martin Hurst
   /// @date 12/3/13
   LSDRaster fill(double& MinSlope);
-
-  /// @brief Divergent flow routing algorithm to simulate hilltop flow routing, routing flow from
-  /// hilltops to valley bottoms.
-  ///
-  /// @details The original algorithm was written in C++ by Martin Hurst
-  /// based on Lea [1991] 'An aspect driven kinematic routing algorithm'.
-  /// Records mean slope, hillslope length relief, and aspect for each hilltop-channel flow
-  /// path.
-  /// Pre-requisites are a hilltop or ridge network raster, with the network broken down
-  /// into segments; a slope raster; a curvature raster; a stream network raster.
-  /// Output is a text file that contains the the x and y coordinates and HilltopSegment id
-  /// and HilltopCurvature, in addition to the mean slope, hillslope length and relief for
-  /// each flow path.
-  /// New efficiency saving -> use mean slope = relief/total flow length, rather than using
-  /// the slope raster.  This means that you only have to update flow length along each flow
-  /// path and not mean_slope.
-  ///
-  /// Error in Aspect calculation fixed so output file now prints the aspect in radians and
-  /// degrees - SWDG 02/04/13
-  ///
-  /// Now returns an updated hilltop LSDRaster with each hilltop pixel assigned the unique
-  /// value for the stream network that the hilltop flows into  - SWDG 04/04/13
-  ///
-  /// Now takes an Array2D of doubles as the Hilltop network, as all ridges are defined as
-  /// LSDRaster objects - SWDG 8/4/13
-  ///
-  /// Updated to write aspect, slope, cht and Lh to LSDRasters - SWDG 27/8/13.
-  ///
-  /// Needs refactored to make what is going on clearer and the input/output needs streamlined.
-  /// @param StreamNetwork Array 2D of the stream network.
-  /// @param Hilltops Array 2D of hilltops.
-  /// @param Aspect Array 2D of aspect
-  /// @param Curvature Array of curvature values.
-  /// @param HilltopAspect Empty Array2D of doubles used to output values.
-  /// @param HilltopSlope Empty Array2D of doubles used to output values.
-  /// @param HilltopRelief Empty Array2D of doubles used to output values.
-  /// @param HilltopLength Empty Array2D of doubles used to output values.
-  /// @param HilltopCurvature Empty Array2D of doubles used to output values.
-  /// @return Curvature Array 2D of curvature.
-  /// @author DTM
-  /// @date 17/12/2012
-  LSDRaster hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<double>& Hilltops, Array2D<double>& Aspect,
-                                          Array2D<double>& Curvature, Array2D<double>& HilltopRelief,
-                                          Array2D<double>& HilltopAspect, Array2D<double>& HilltopSlope,
-                                          Array2D<double>& HilltopLength, Array2D<double>& HilltopCurvature);
-
+    
 	// multidirection flow routing
 	/// @brief Generate a flow area raster using a multi direction algorithm.
   ///
@@ -832,22 +787,6 @@ class LSDRaster
   /// @author SWDG
   /// @date 04/2013
   LSDRaster BasinArea(LSDIndexRaster& Basins);
-
-  /// @brief Write hilltop metrics to text file.
-  ///
-  /// @details This can probably be absorbed by the main hilltop flow routing as all this does is write a text file
-  /// with the hilltop pixels coded by basin id.
-  /// @param Hilltops
-  /// @param Basins
-  /// @param HilltopRelief
-  /// @param HilltopAspect
-  /// @param HilltopSlope
-  /// @param HilltopLength
-  /// @param HilltopCurvature
-  /// @author SWDG
-  /// @date 27/8/13
-  void BasinHilltopWriter(LSDRaster& Hilltops, LSDIndexRaster& Basins, Array2D<double>& HilltopRelief, Array2D<double>& HilltopAspect,
-                                   Array2D<double>& HilltopSlope, Array2D<double>& HilltopLength, Array2D<double>& HilltopCurvature);
 
   /// @brief Punch basins out of an LSDRaster to create DEMs of a single catchment.
   ///
