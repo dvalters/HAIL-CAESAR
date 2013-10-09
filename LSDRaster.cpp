@@ -1,3 +1,55 @@
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+// LSDRasterSpectral
+// Land Surface Dynamics StatsTools
+//
+// An object within the University
+//  of Edinburgh Land Surface Dynamics group topographic toolbox
+//  for manipulating
+//  and analysing raster data, with a particular focus on topography
+//
+// Developed by:
+//  Simon M. Mudd
+//  Martin D. Hurst
+//  David T. Milodowski
+//  Stuart W.D. Grieve
+//  Declan A. Valters
+//  Fiona Clubb
+//
+// Copyright (C) 2013 Simon M. Mudd 2013
+//
+// Developer can be contacted by simon.m.mudd _at_ ed.ac.uk
+//
+//    Simon Mudd
+//    University of Edinburgh
+//    School of GeoSciences
+//    Drummond Street
+//    Edinburgh, EH8 9XP
+//    Scotland
+//    United Kingdom
+//
+// This program is free software;
+// you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation;
+// either version 2 of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY;
+// without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the
+// GNU General Public License along with this program;
+// if not, write to:
+// Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor,
+// Boston, MA 02110-1301
+// USA
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
 // LSDRaster.cpp
@@ -49,8 +101,10 @@ using namespace JAMA;
 #ifndef LSDRaster_CPP
 #define LSDRaster_CPP
 
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // operators
+// SMM, 2012
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster& LSDRaster::operator=(const LSDRaster& rhs)
  {
   if (&rhs != this)
@@ -61,20 +115,29 @@ LSDRaster& LSDRaster::operator=(const LSDRaster& rhs)
   return *this;
  }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // the create function. This is default and throws an error
+// SMM 2012
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::create()
 {
 	cout << "LSDRaster line 64 Warning you have an empty LSDRaster!" << endl;
 	//exit(EXIT_FAILURE);
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this creates a raster using an infile
+// SMM 2012
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::create(string filename, string extension)
 {
 	read_raster(filename,extension);
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this creates a raster filled with no data values
+// SMM 2012
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::create(int nrows, int ncols, double xmin, double ymin,
             double cellsize, double ndv, Array2D<double> data)
 {
@@ -101,7 +164,7 @@ void LSDRaster::create(int nrows, int ncols, double xmin, double ymin,
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// this function reads a DEM
+// This function reads a DEM
 // One has to provide both the filename and the extension
 // the '.' between the filename and extension is not included
 // for example, if the full filename is test.asc
@@ -109,9 +172,12 @@ void LSDRaster::create(int nrows, int ncols, double xmin, double ymin,
 // filename = "test"
 // and
 // ext = "asc"
-// The full filename coult also be "test.01.asc"
+// The full filename could also be "test.01.asc"
 // so filename would be "test.01"
 // and ext would again be "asc"
+//
+// SMM 2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::read_raster(string filename, string extension)
 {
@@ -230,6 +296,9 @@ void LSDRaster::read_raster(string filename, string extension)
 // write_raster
 // this function writes a raster. One has to give the filename and extension
 // currently the options are for .asc and .flt files
+//
+// SMM 2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::write_raster(string filename, string extension)
 {
@@ -257,6 +326,7 @@ void LSDRaster::write_raster(string filename, string extension)
 				<< "\ncellsize      " << DataResolution
 				<< "\nNODATA_value  " << NoDataValue << endl;
 
+
 		for (int i=0; i<NRows; ++i)
 		{
 			for (int j=0; j<NCols; ++j)
@@ -283,7 +353,8 @@ void LSDRaster::write_raster(string filename, string extension)
 			<< "\nxllcorner     " << setprecision(14) << XMinimum
 			<< "\nyllcorner     " << setprecision(14) << YMinimum
 			<< "\ncellsize      " << DataResolution
-			<< "\nNODATA_value  " << NoDataValue << endl;
+			<< "\nNODATA_value  " << NoDataValue
+			<< "\nbyteorder     LSBFIRST" << endl;
 		header_ofs.close();
 
 		// now do the main data
@@ -565,6 +636,8 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step){
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this looks for isolated instances of nodata and fills them
+//
+// Not sure about author, I think MDH (SMM comment) 2012
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::check_isolated_nodata()
 {
@@ -603,7 +676,10 @@ void LSDRaster::check_isolated_nodata()
 //
 // The coefficient matrices are overwritten during the running of this member function
 //
+// DTM
+//
 // Updated 15/07/2013 to use a circular mask for surface fitting. DTM
+// Updated 24/07/2013 to check window_radius size and correct values below data resolution. SWDG
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::calculate_polyfit_coefficient_matrices(double window_radius,
@@ -611,7 +687,17 @@ void LSDRaster::calculate_polyfit_coefficient_matrices(double window_radius,
 										Array2D<double>& c, Array2D<double>& d,
 										Array2D<double>& e, Array2D<double>& f)
 {
-	// this fits a polynomial surface over a kernel window. First, perpare the kernel
+
+
+	// catch if the supplied window radius is less than the data resolution and set
+	// it to equal the data resolution - SWDG
+  if (window_radius < DataResolution){
+    cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
+    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius = DataResolution;
+  }
+
+  // this fits a polynomial surface over a kernel window. First, perpare the kernel
 	int kr = int(ceil(window_radius/DataResolution));           // Set radius of kernel
 	int kw=2*kr+1;                    						// width of kernel
 
@@ -843,6 +929,7 @@ LSDRaster LSDRaster::calculate_polyfit_elevation(Array2D<double>& f)
 // the window is determined by the calculate_polyfit_coefficient_matrices
 // this function also calculates the a,b,c,d,e and f coefficient matrices
 //
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::calculate_polyfit_slope(Array2D<double>& d, Array2D<double>& e)
 {
@@ -872,7 +959,7 @@ LSDRaster LSDRaster::calculate_polyfit_slope(Array2D<double>& d, Array2D<double>
 // This function calculates the aspect based on a polynomial fit
 // the window is determined by the calculate_polyfit_coefficient_matrices
 // this function also calculates the a,b,c,d,e and f coefficient matrices
-//
+// SMM modified from DTM standalone code 2012
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::calculate_polyfit_aspect(Array2D<double>& d, Array2D<double>& e)
 {
@@ -918,6 +1005,7 @@ LSDRaster LSDRaster::calculate_polyfit_aspect(Array2D<double>& d, Array2D<double
 // the window is determined by the calculate_polyfit_coefficient_matrices
 // this function also calculates the a,b,c,d,e and f coefficient matrices
 //
+// SMM modified from DTM standalone code 2012
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::calculate_polyfit_curvature(Array2D<double>& a, Array2D<double>& b)
 {
@@ -1117,13 +1205,15 @@ LSDRaster LSDRaster::calculate_polyfit_tangential_curvature(Array2D<double>& a, 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// This function identifies approximate position of stationary points within               // Added by DTM 17/09/2012
+// This function identifies approximate position of stationary points within
 // discrete surface using a threshold slope. The nature of the stationary point
 // is then determined to discriminate peaks, depressions and saddles.
 // 0 = Non-stationary
 // 1 = Peak
 // 2 = Depression
 // 3 = Saddle
+//
+// Added by DTM 17/09/2012
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDRaster::calculate_polyfit_classification(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
@@ -1642,7 +1732,7 @@ LSDIndexRaster LSDRaster::calculate_REI(Array2D<double>& a_plane, Array2D<double
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// RRRRR    OOOO   UU   UU  GGGGG HH   HH NN    NN EEEEEE   SSSS    SSSS                  // Added by DTM 13/09/2012
+// RRRRR    OOOO   UU   UU  GGGGG HH   HH NN    NN EEEEEE   SSSS    SSSS
 // RR  RR  OO  OO  UU   UU GG     HH   HH NNN   NN EE     SS      SS
 // RRRR   OO    OO UU   UU GG GGG HHHHHHH NN NN NN EEEE    SSSS    SSSS
 // RR RR   OO  OO  UU   UU GG  GG HH   HH NN   NNN EE         SS      SS
@@ -1653,6 +1743,9 @@ LSDIndexRaster LSDRaster::calculate_REI(Array2D<double>& a_plane, Array2D<double
 // within that window.  Specifically the components of the normals are combined
 // into an orientation matrix, which is then solved to find the eigenvalues s1,
 // s2, s3 (Woodcock, 1977).
+//
+// Added by DTM 13/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Get directional cosines
 void LSDRaster::calculate_polyfit_directional_cosines(Array2D<double>& d, Array2D<double>& e,
@@ -1700,6 +1793,9 @@ void LSDRaster::calculate_polyfit_directional_cosines(Array2D<double>& d, Array2
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Find eigenvalues for orientation matrix
+//
+// Added by DTM 13/09/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::calculate_orientation_matrix_eigenvalues(double window_radius,
 										Array2D<double>& l, Array2D<double>& m,
@@ -1805,7 +1901,10 @@ void LSDRaster::calculate_orientation_matrix_eigenvalues(double window_radius,
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function is a wrapper to get the three roughness eigenvalues s1, s2 and
-// s3.  DTM 15/07/2013
+// s3.
+//
+//DTM 15/07/2013
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::calculate_roughness_rasters(double window_radius, double roughness_radius,
@@ -1988,6 +2087,10 @@ LSDRaster LSDRaster::fill()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this is a recursive algorithm that is called by the fill function
+//
+// MDH, 2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::fill_iterator(Array2D<double>& fill_data, int i, int j)
 {
 	int a=i;
@@ -2060,6 +2163,8 @@ void LSDRaster::fill_iterator(Array2D<double>& fill_data, int i, int j)
 //
 //	Declare the node structure
 ///@brief Used in pit filling to store elevation data and row and colum indexes.
+//	Method taken from Wang and Liu (2006), Int. J. of GIS. 20(2), 193-213
+//	Method taken from Wang and Liu (2006), Int. J. of GIS. 20(2), 193-213
 struct FillNode
 {
   /// @brief Elevation data.
@@ -2602,13 +2707,13 @@ LSDRaster LSDRaster::D_inf(){
 //
 // Updated to write aspect, slope, cht and Lh to LSDRasters - SWDG 27/8/13.
 //
-// Needs refactored to make what is going on clearer and the input/output needs streamlined. 
+// Needs refactored to make what is going on clearer and the input/output needs streamlined.
 //
 //---------------------------------------------------------------------------------------
 // David Milodowski, 17/12/2012
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<double>& Hilltops, Array2D<double>& Aspect,
-                                          Array2D<double>& Curvature, Array2D<double>& HilltopRelief, 
+                                          Array2D<double>& Curvature, Array2D<double>& HilltopRelief,
                                           Array2D<double>& HilltopAspect, Array2D<double>& HilltopSlope,
                                           Array2D<double>& HilltopLength, Array2D<double>& HilltopCurvature)
 {
@@ -3011,12 +3116,12 @@ LSDRaster LSDRaster::hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<d
           //mean_slope = slope_total/(length/DataResolution);
 
           Hilltops_linked[i][j] = StreamNetwork[a][b];
-          
+
           HilltopRelief[i][j] = relief;
           HilltopAspect[i][j] = asp;
-          HilltopSlope[i][j] = mean_slope; 
+          HilltopSlope[i][j] = mean_slope;
           HilltopLength[i][j] = length;
-          HilltopCurvature[i][j] = Curvature[i][j];          
+          HilltopCurvature[i][j] = Curvature[i][j];
 
 					ofs << X << " " << Y << " " << StreamNetwork[a][b] /*Hilltops[i][j]*/ << " " << Curvature[i][j]
             << " " << mean_slope << " " << relief << " " << length << " " << asp << " " << aspect_rads << " \n";
@@ -3052,377 +3157,12 @@ LSDRaster LSDRaster::hilltop_flow_routing(Array2D<int>& StreamNetwork, Array2D<d
   return IndexedHilltops;
 
 }
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Driver function for the recursive hilltop flow routing routine. 
-//
-// Flow is routed from hilltop pixels down to the valley floor, based on the
-// Lea (1991) "An aspect driven kinematic routing algorithm" paper, where the
-// flow is routed across each cell from an inlet point (xi,yi) to an outlet
-// (xo,yo) and the flow length is measured between these points. The benefit of 
-// this is that flow is not constrained by the gridded nature of the data.
-//
-// Hilltop flow routing can be performed by calling this driver function with an 
-// LSDRaster of hilltops, and Array2D of flowdirections, an Array2D of the stream
-// network, an indexraster of the study basins and an output filename prefix.
-//
-// The basin array does not need to be supplied, as it is just used to code hilltops 
-// to specific basins in the output. If this is not needed an LSDIndexRaster of NoDataValues 
-// of the correct dimensions can be passed in instead.  
-// 
-// Returns a vector of Array2D<double> objects which are the hilltop network 
-// coded with the hilltop metric values calculated for that pixel. This data is 
-// also provided in the output text file written into the current path with the 
-// filename <prefix>_HIlltopData.txt and the data within holds the format:
-// "hilltop_i hilltop_j hilltop_easting hilltop_northing stream_i stream_j stream_easting stream_northing stream_id basin_id relief lh aspect slope"
-//
-// The structure of the returned vector< Array2D<double> > is as follows:
-// [0] Hilltop Network coded with stream ID
-// [1] Hillslope Lengths
-// [2] Slope
-// [3] Apect
-// [4] Relief
-// 
-// SWDG 3/10/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-vector< Array2D<double> > LSDRaster::HFR_Driver(LSDRaster Hilltops, Array2D<double> FlowDir, LSDIndexRaster StreamNetwork, LSDIndexRaster Basins_Raster, string prefix){
-
-  //Initialize all the data arrays for stroring input and output
-  Array2D<double> HilltopArray = Hilltops.get_RasterData();
-  Array2D<int> StreamNet = StreamNetwork.get_RasterData();
-  Array2D<double> RoutedHilltops(NRows,NCols,NoDataValue);
-  Array2D<int> Basins = Basins_Raster.get_RasterData();
-  Array2D<double> HillslopeLength_Array(NRows,NCols,NoDataValue);
-  Array2D<double> Slope_Array(NRows,NCols,NoDataValue);
-  Array2D<double> Aspect_Array(NRows,NCols,NoDataValue);
-  Array2D<double> Relief_Array(NRows,NCols,NoDataValue);
-
-  //vector to store row of data for each hilltop pixel that is routed successfully to a stream 
-  vector<string> HilltopData;
-  
-  //vector to store the output data arrays in one vector that can be returned
-  vector< Array2D<double> > OutputArrays;
-
-  cout << "\n\nPerforming Hilltop Flow Routing" << endl;
-
-  //loop over every hilltop pixel and call the recursive hilltop cell function to start the trace
-  for (int i = 1; i < NRows - 1; ++i){   
-    cout << flush << "\t\tRow: " << i+1 << " of " << NRows-1 << "\r";
-    for (int j = 1; j < NCols - 1; ++j){
-      if (HilltopArray[i][j] == 1){ 
-        Array2D<int> visited(NRows,NCols); //must reset the visited flags after every hilltop pixel trace - DO NOT INITIALIZE THE ARRAY VALUES IT IS A MASSIVE PERFORMANCE DRAIN    
-        HilltopCell(i, j, visited, StreamNet, FlowDir, RasterData, i, j, RoutedHilltops, Basins, HillslopeLength_Array, Slope_Array, Aspect_Array, Relief_Array, HilltopData); 
-      }
-    }
-  }
-  
-  //add the data arrays to the output vector
-  OutputArrays.push_back(RoutedHilltops);
-  OutputArrays.push_back(HillslopeLength_Array);
-  OutputArrays.push_back(Slope_Array);
-  OutputArrays.push_back(Aspect_Array);
-  OutputArrays.push_back(Relief_Array);
-  
-  //create the output filename from the user supplied filename prefix
-  stringstream ss_filename;
-  ss_filename << prefix << "_HilltopData.txt";
-  
-  cout << "\nWriting Hilltop data to " << ss_filename.str()<< endl;
-  
-  ofstream HilltopDataWriter;  
-  HilltopDataWriter.open(ss_filename.str().c_str());
-  
-  //write file headers
-  HilltopDataWriter << "hilltop_i hilltop_j hilltop_easting hilltop_northing stream_i stream_j stream_easting stream_northing stream_id basin_id relief lh aspect slope" << endl;
-    
-  //write the hilltop pixel data to the opened file    
-  for (int a = 0; a < int(HilltopData.size()); ++a){
-    HilltopDataWriter << HilltopData[a] << endl;  
-  }
-    
-  HilltopDataWriter.close();
-  
-  return OutputArrays;
-   
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Fucnction to initialize hilltop flow routing, by starting in the centre
-// of the hilltop cell and finding it's outlet point based on the flowdirection.
-//
-// Should not be called directly: is called by the HFR_Driver, as several variables
-// must be correctly initalized for the trace to work.
-// 
-// SWDG 3/10/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::HilltopCell(int i, int j, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<double> FlowDir, Array2D<double> Elevation, int old_i, int old_j, Array2D<double>& RoutedHilltops, Array2D<int> Basins, Array2D<double>& HillslopeLength_Array, Array2D<double>& Slope_Array, Array2D<double>& Aspect_Array, Array2D<double>& Relief_Array, vector<string>& HilltopData){
-
-  //initialize the x and y inlet coordinates
-  double xi = 0.5;
-  double yi = 0.5;
-  
-  double theta = BearingToRad(FlowDir[i][j]);
-  Visited[i][j] = 1; //mark hilltop as visited
-  
-  if (FlowDir[i][j] >= 0 && FlowDir[i][j] < 361 && (i != 0 || i != NRows - 1) && (j != 0 || j != NCols - 1)) {
-  
-    //Test the flow direction and update the i,j indices to go to the correct next cell 
-    //and set the outlet points onto the correct face
-    if (FlowDir[i][j] >= 45 && FlowDir[i][j] < 135){ //east
-      xi = 0;
-      yi = (1 + tan(theta)) / 2;
-      ++j;
-    }
-    else if (FlowDir[i][j] >= 315 || FlowDir[i][j] < 45){ //north
-      xi = (1 + (1/tan(theta)))/2;
-      yi = 0;  
-      --i;
-    }
-    else if (FlowDir[i][j] >= 225 && FlowDir[i][j] < 315){ //west
-      xi = 1;
-      yi = (1 - tan(theta))/2;
-      --j;
-    }  
-    else if (FlowDir[i][j] >= 135 && FlowDir[i][j] < 225){ //south
-      xi = (1 - (1/tan(theta)))/2;
-      yi = 1; 
-      ++i;
-    }
-        
-    double TotalLength = sqrt(pow((xi - 0.5),2) + pow((yi - 0.5),2));
-    
-    //Call the HFR function to start the trace downslope  
-    HFR(i, j, xi, yi, Visited, StreamNet, FlowDir, TotalLength, Elevation, old_i, old_j, RoutedHilltops, Basins, HillslopeLength_Array, Slope_Array, Aspect_Array, Relief_Array, HilltopData);
-  
-  }
-
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Main Hilltop flow routing function, once called by the hilltop cell function
-// it will keep calling itself to find the nearest stream pixel.
-//
-// If no pixel can be found the trace will end gracefully and allow the next 
-// hilltop trace to begin. Writes data to a vector which is written into a file
-// by the HFR_Driver.  
-// 
-// SWDG 3/10/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::HFR(int i, int j, double xi, double yi, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<double> FlowDir, double& TotalLength, Array2D<double> Elevation, int old_i, int old_j, Array2D<double>& RoutedHilltops, Array2D<int> Basins, Array2D<double>& HillslopeLength_Array, Array2D<double>& Slope_Array, Array2D<double>& Aspect_Array, Array2D<double>& Relief_Array, vector<string>& HilltopData){
-
-  // x and y outlet coordinates
-  double xo = 0;
-  double yo = 0;
-  
-  if (FlowDir[i][j] >= 0 && FlowDir[i][j] < 361 && (i != 0 || i != NRows - 1) && (j != 0 || j != NCols - 1)) {
-
-    double theta = BearingToRad(FlowDir[i][j]);
-    
-    if (xi == 1){ // east face
-    
-      if (FlowDir[i][j] > 180 && FlowDir[i][j] < 360){ //Flow meets another edge 
-      
-        xo = xi + (1 - yi) * (1/tan(theta));  //north edge
-        yo = 1;  
-  
-        if (xo > 1 || xo < 0){  //west
-          xo = 0;
-          yo = yi - xi * tan(theta);      
-        }
-
-        if (yo > 1 || yo < 0){  //south
-          xo = xi - yi * (1/tan(theta));
-          yo = 0;      
-        }
-      }
-      else{ //Flow does not not meet another edge -> Must go either N/S
-   
-        if (FlowDir[i][j] >= 90){ //go south
-          xo = 0.99999;
-          yo = 0;
-        }
-        if (FlowDir[i][j] < 90){ //go north
-          xo = 0.99999;
-          yo = 1;
-        }   
-      }   
-    }
-    else if (yi == 1){ // north face
-    
-      if (FlowDir[i][j] < 270 && FlowDir[i][j] > 90){   //Flow meets another edge
-  
-        xo = 0;  //west edge
-        yo = yi - xi * tan(theta);  
-  
-        if (yo > 1 || yo < 0){  //south
-          xo = xi - yi * (1/tan(theta));
-          yo = 0;      
-        }
-
-        if (xo > 1 || xo < 0){ //east
-          xo = 1;
-          yo = yi + (1 - xi) * tan(theta);
-        }
-      }
-      else{ //Flow does not not meet another edge -> Must go either E/W
-   
-        if (FlowDir[i][j] >= 270){ //go west
-          xo = 0;
-          yo = 0.99999;
-        }
-        if (FlowDir[i][j] <= 90){ //go east
-          xo = 1;
-          yo = 0.99999;
-        }   
-      }   
-    }
-    else if (xi == 0){ // west face
-    
-      if (FlowDir[i][j] > 0 && FlowDir[i][j] < 180){ //Flow meets another edge
-  
-        xo = xi - yi * (1/tan(theta)); //south
-        yo = 0;    
-  
-        if (xo > 1 || xo < 0){  //east
-          xo = 1;
-          yo = yi + (1 - xi) * tan(theta);    
-        }
-
-        if (yo > 1 || yo < 0){ //north
-        xo = xi + (1 - yi) * (1/tan(theta));
-        yo = 1;  
-        }
-      }
-      else{ //Flow does not not meet another edge -> Must go either N/S
-   
-        if (FlowDir[i][j] >= 270){ //go north
-          xo = 0.00001;
-          yo = 1;
-        }
-        if (FlowDir[i][j] < 270){ //go south
-          xo = 0.00001;
-          yo = 0;
-        }   
-      }   
-    }    
-    else if (yi == 0){ // south face
-    
-      if (FlowDir[i][j] > 270 || FlowDir[i][j] < 90){    //Flow meets another edge 
-  
-        xo = 1; // east
-        yo = yi + (1 - xi) * tan(theta);    
-  
-        if (yo > 1 || yo < 0){ //north
-          xo = xi + (1 - yi) * (1/tan(theta));
-          yo = 1;  
-        }
-        
-        if (xo > 1 || xo < 0){  //west
-          xo = 0;
-          yo = yi - xi * tan(theta);      
-        }
-      }
-      else{ //Flow does not not meet another edge -> Must go either E/W
-        if (FlowDir[i][j] >= 180){ //go west
-          xo = 0;
-          yo = 0.00001;
-        }
-        if (FlowDir[i][j] < 180){ //go east
-          xo = 1;
-          yo = 0.00001;
-        }   
-      }   
-    } 
-    
-    //update trace length and flag the cell as visited    
-    TotalLength += sqrt(pow((xi - xo),2) + pow((yi - yo),2));
-    Visited[i][j] = 1;
-     
-    //get new i, j, and update xi, yi to reflect next cell to visit
-    if (xo == 1){ //east
-      ++j;
-      xi = 0;
-      yi = yo;
-    }  
-    else if (xo == 0){//west
-      --j;
-      xi = 1;
-      yi = yo;
-    }  
-    else if (yo == 1){//north   
-      --i;
-      xi = xo;
-      yi = 0;
-    }  
-    else if (yo == 0){//south
-      ++i;
-      xi = xo;
-      yi = 1;
-    }  
-    
-    if (StreamNet[i][j] > 0){ //will only find stream pixels, should ignore nodata values
-      //Stream reached
-      RoutedHilltops[old_i][old_j] = StreamNet[i][j]; //code hilltop px with stream order or unique segment ID depending on values in StreamNet
-      
-      //calculate metrics for this hilltop px
-    
-      double relief = Elevation[old_i][old_j] - Elevation[i][j];
-      TotalLength = TotalLength * DataResolution;
-      double slope = relief / TotalLength;
-      double basin_id = Basins[old_i][old_j];
-          
-      // Determine aspect of flow routing from hilltop->channel - from original code by Martin Hurst
-      double aspect = 0;
-      double delta_j = old_j - j;
-      double delta_i = old_i - i;
-              
-      if (old_i > i && old_j > j){ aspect = 180 - atan2(delta_i, delta_j);}               // SE
-      else if (old_i > i && old_j < j){ aspect = -1 * atan2(delta_i, delta_j);}           // NE
-      else if (old_i < i && old_j < j){ aspect = 360 - atan2(delta_i, delta_j);}          // NW
-      else if (old_i < i && old_j > j){ aspect = 180 - atan2(delta_i, delta_j);}          // SW
-      else if (old_i == i && old_j > j){ aspect = 90;}                                    // E
-      else if (old_i == i && old_j < j){ aspect = 270;}                                   // W
-      else if (old_i > i && old_j == j){ aspect = 180;}                                   // S
-      else if (old_i < i && old_j == j){ aspect = 0;}                                     // N
-      else{ aspect = NoDataValue;}
-      if (aspect > 360){aspect -= 360;}
-
-      //eastings
-      double hilltop_easting = (old_j * DataResolution) + XMinimum;
-      double stream_easting = (j * DataResolution) + XMinimum;
-      
-      //northings
-      double hilltop_northing = ((old_i - NRows) * DataResolution) + YMinimum;
-      double stream_northing = ((i - NRows) * DataResolution) + YMinimum;
-  
-      // update arrays with the current metrics 
-      HillslopeLength_Array[old_i][old_j] = TotalLength;
-      Slope_Array[old_i][old_j] = slope;
-      Aspect_Array[old_i][old_j] = aspect;
-      Relief_Array[old_i][old_j] = relief;  
-  
-      //concatenate string of this hilltop's data and concatenate string to the data vector 
-      stringstream output_data;
-      output_data <<  old_i << " " << old_j << " " << hilltop_easting << " " << hilltop_northing << " " << 
-      i << " " << j << " " << stream_easting << " " << stream_northing << " " << StreamNet[i][j] << " " <<
-      basin_id << " " << relief << " " << TotalLength << " " << aspect << " " << slope; 
-      
-      HilltopData.push_back(output_data.str());      
-      
-    }
-    else if (Visited[i][j] != 1){
-      //call recursive fn to continue downslope trace
-      HFR(i, j, xi, yi, Visited, StreamNet, FlowDir, TotalLength, Elevation, old_i, old_j, RoutedHilltops, Basins, HillslopeLength_Array, Slope_Array, Aspect_Array, Relief_Array, HilltopData);
-    }
-  }  
-}
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Write hilltop metrics to text file.
 //
 // This can probably be absorbed by the main hilltop flow routing as all this does is write a text file
 // with the hilltop pixels coded by basin id.
-// 
+//
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::BasinHilltopWriter(LSDRaster& Hilltops, LSDIndexRaster& Basins, Array2D<double>& HilltopRelief, Array2D<double>& HilltopAspect,
@@ -3431,52 +3171,52 @@ void LSDRaster::BasinHilltopWriter(LSDRaster& Hilltops, LSDIndexRaster& Basins, 
 
   // *******************
   // this can probably be absorbed by the main hilltop flow routing as all this does is write a text file
-  // with the hilltop pixels coded by basin id. This can be done in the main fn simply by getting the value 
-  // of the basin raster for the hilltop px. 
-  // ******************* 
+  // with the hilltop pixels coded by basin id. This can be done in the main fn simply by getting the value
+  // of the basin raster for the hilltop px.
+  // *******************
 
   Array2D<double> OutputData;
-                                          
+
   vector<double> basin_no;
   vector<double> relief;
   vector<double> aspect;
   vector<double> slope;
   vector<double> length;
-  vector<double> cht;     
+  vector<double> cht;
   vector<double> sorted_basins;
   vector<size_t> index_map;
-    
+
   for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){                                    
-    
+    for (int j = 0; j < NCols; ++j){
+
       if (Hilltops.get_data_element(i,j) != NoDataValue){
         if (Basins.get_data_element(i,j) != NoDataValue && HilltopRelief[i][j] != NoDataValue && HilltopAspect[i][j] != NoDataValue && HilltopSlope[i][j] != NoDataValue && HilltopLength[i][j] != NoDataValue && HilltopCurvature[i][j] != NoDataValue){
           basin_no.push_back(Basins.get_data_element(i,j));
           relief.push_back(HilltopRelief[i][j]);
           aspect.push_back(HilltopAspect[i][j]);
           slope.push_back(HilltopSlope[i][j]);
-          length.push_back(HilltopLength[i][j]); 
+          length.push_back(HilltopLength[i][j]);
           cht.push_back(HilltopCurvature[i][j]);
-        }    
+        }
       }
     }
-  }                                        
+  }
 
   ofstream ofs;
 	ofs.open("hilltop_data.txt");
-  
-  matlab_double_sort_descending(basin_no, sorted_basins, index_map);  
-  
-  ofs << "basin_no relief aspect mean_slope hillslope_length cht" << endl; 
-  
-  for(int a = 0 ;a < int(basin_no.size()); ++a){ 
-  
-    ofs << sorted_basins[a] << " " << relief[index_map[a]] << " " << aspect[index_map[a]] << " " << slope[index_map[a]] << " " << length[index_map[a]] << " " << " " << cht[index_map[a]] << endl;   
-  
+
+  matlab_double_sort_descending(basin_no, sorted_basins, index_map);
+
+  ofs << "basin_no relief aspect mean_slope hillslope_length cht" << endl;
+
+  for(int a = 0 ;a < int(basin_no.size()); ++a){
+
+    ofs << sorted_basins[a] << " " << relief[index_map[a]] << " " << aspect[index_map[a]] << " " << slope[index_map[a]] << " " << length[index_map[a]] << " " << " " << cht[index_map[a]] << endl;
+
   }
-                                       
-  ofs.close();                                        
-                                          
+
+  ofs.close();
+
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -3484,10 +3224,10 @@ void LSDRaster::BasinHilltopWriter(LSDRaster& Hilltops, LSDIndexRaster& Basins, 
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilename, double log_bin_width){
-  
+
   Array2D<double> slope = Slope.get_RasterData();
   Array2D<double> area = Dinf.get_RasterData();
-   
+
   //do some log binning
   vector<double> Mean_x_out;
   vector<double> Mean_y_out;
@@ -3495,99 +3235,99 @@ void LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilena
   vector<double> STDDev_x_out;
   vector<double> STDDev_y_out;
   vector<double> STDErr_x_out;
-  vector<double> STDErr_y_out;        
-  
+  vector<double> STDErr_y_out;
+
   log_bin_data(area, slope, log_bin_width, Mean_x_out, Mean_y_out, Midpoints_out, STDDev_x_out, STDDev_y_out,STDErr_x_out,STDErr_y_out,NoDataValue);
-    
+
   //set up a filestream object
   ofstream file;
- 
+
   stringstream ss_bin;
   ss_bin << RasterFilename << "_boom_binned.txt";
   file.open(ss_bin.str().c_str());   //needs a null terminated character array, not a string. See pg 181 of accelerated c++
-  
-       
+
+
   for(int q = 0; q < int(Mean_x_out.size()); q++){
     file << Mean_x_out[q] << " " << Mean_y_out[q] << " " << STDDev_x_out[q] << " " << STDDev_y_out[q] << " " << STDErr_x_out[q] << " " << STDErr_y_out[q] << endl;
   }
-  
-  file.close(); 
-  
+
+  file.close();
+
   //data cloud
   ofstream cloud;
-                                            
+
   stringstream ss_cloud;
-  ss_cloud << RasterFilename << "_boom_cloud.txt";  
+  ss_cloud << RasterFilename << "_boom_cloud.txt";
   cloud.open(ss_cloud.str().c_str());     //needs a null terminated character array, not a string. See pg 181 of accelerated c++
-  
-    
+
+
   for (int i = 1; i < NRows-1; ++i){
     for (int j = 1; j < NCols-1; ++j){
       if(area[i][j] != NoDataValue && slope[i][j] != NoDataValue){
-        cloud << area[i][j] << " " << slope[i][j] << endl;  
+        cloud << area[i][j] << " " << slope[i][j] << endl;
       }
     }
   }
-  
+
   cloud.close();
-    
+
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Punch basins out of an LSDRaster to create DEMs of a single catchment.
 //
-// Writes files in the user supplied format (flt or asc) and returns a vector 
+// Writes files in the user supplied format (flt or asc) and returns a vector
 // LSDRasters so they can be loaded into other functions.
-// Updated 24/9/13 to return a vector of LSDRasters SWDG 
+// Updated 24/9/13 to return a vector of LSDRasters SWDG
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray){
 
   Array2D<int> BasinRaster = BasinArray.get_RasterData();
-  
+
   vector<LSDRaster> BasinVector; //vector to contain individual basin LSDRasters
-  
+
   for(string::size_type a = 0; a < basin_ids.size(); ++a){
-  
+
     Array2D<double> BasinDEM(NRows, NCols, NoDataValue);
     bool Flag = false;
-    
+
     for (int i=0; i<NRows; ++i){
 		  for (int j=0; j<NCols; ++j){
 		    if(BasinRaster[i][j] == basin_ids[a]){
 		      Flag = true;
           BasinDEM[i][j] = RasterData[i][j];
-        }       
+        }
 		  }
 		}
-        
+
     if (Flag == true){ //only write the raster if there is data to write
       LSDRaster Basin(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,BasinDEM);
       LSDRaster TidyBasin = Basin.RasterTrimmer();
       BasinVector.push_back(TidyBasin);
     }
-  } 
-  return BasinVector;   
+  }
+  return BasinVector;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Collect all basin average metrics into a single file.
 //
-// File is written with the format: 
+// File is written with the format:
 // "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*"
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect, 
+void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect,
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
                               LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope)
 {
 
   vector<int> basin_index;
   Array2D<int> basin_ids = Basins.get_RasterData();
-  
-  
+
+
   //vectors to contain output data
-  vector<int> BasinIDVector; 
+  vector<int> BasinIDVector;
   vector<double> SlopeVector;
   vector<double> ElevationVector;
   vector<double> AspectVector;
@@ -3600,8 +3340,8 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
   vector<double> MeanAspectVector;
   vector<double> EStarVector;
   vector<double> RStarVector;
-  
-    
+
+
   //make list of unique basins in each raster
   for (int i = 0; i < NRows; ++i){
     for (int j = 0; j < NCols; ++j){
@@ -3637,7 +3377,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
     double ReliefSum = 0;
     int ReliefCounter = 0;
     double MeanAspectSum = 0;
-    int MeanAspectCounter = 0;    
+    int MeanAspectCounter = 0;
 
     for (int i = 0; i < NRows; ++i){
       for (int j = 0; j < NCols; ++j){
@@ -3682,10 +3422,10 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
          MeanAspectSum += MeanAspect.get_data_element(i,j);
          ++MeanAspectCounter;
         }
-                                                 
+
       }
     }
-    
+
     //calculate means
     double AVGSlope = SlopeSum/SlopeCounter;
     double AVGElevation = ElevationSum/ElevationCounter;
@@ -3699,7 +3439,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
     double AVGMeanAspect = MeanAspectSum/MeanAspectCounter;
     double EStar = (2 * (abs(AVGCht)) * AVGHillslopeLength) / CriticalSlope;
     double RStar = AVGRelief / (AVGHillslopeLength * CriticalSlope);
-    
+
     //write means to vectors
     BasinIDVector.push_back(*it);
     SlopeVector.push_back(AVGSlope);
@@ -3714,19 +3454,19 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
     MeanAspectVector.push_back(AVGMeanAspect);
     EStarVector.push_back(EStar);
     RStarVector.push_back(RStar);
-  
+
   }
-  
-   
+
+
   ofstream file;
-  file.open("Basin_metrics.txt");  
-  file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*" << endl;   
+  file.open("Basin_metrics.txt");
+  file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*" << endl;
 
   for(int q = 0; q < int(BasinIDVector.size()); q++){
     file << BasinIDVector[q] << " " << SlopeVector[q] << " " << ElevationVector[q] << " " << AspectVector[q] << " " << AreaVector[q] << " " << DrainageDensityVector[q] << " " << ChtVector[q] << " " << HillslopeLengthVector[q] << " " << MeanSlopeVector[q] <<  " " << ReliefVector[q] << " " << MeanAspectVector[q] << " " << EStarVector[q] << " " << RStarVector[q] << endl;
   }
-  
-  file.close(); 
+
+  file.close();
 
 
 
@@ -3910,11 +3650,11 @@ LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
   return Averaged_out;
 }
 
-                                                                                
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 // Write the area(in units of area) of each basin to the basin's pixels.
 // SWDG 04/2013
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-= 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::BasinArea(LSDIndexRaster& Basins){
 
   vector<int> basin_index;
@@ -3970,7 +3710,7 @@ LSDRaster LSDRaster::BasinArea(LSDIndexRaster& Basins){
 // SWDG 04/2013
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRaster& Basins, Array2D<int> FlowDir){
-  
+
   vector<int> basin_index;
   Array2D<int> basin_ids = Basins.get_RasterData();
   double two_times_root2 = 2.828427;
@@ -3992,7 +3732,7 @@ LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRast
 
   //loop through each basin
   for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
-    
+
     int stream_px = 0;
     int hillslope_px = 0;
     double stream_length = 0;
@@ -4001,7 +3741,7 @@ LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRast
       for (int j = 0; j < NCols; ++j){
         if (RasterData[i][j] != NoDataValue && basin_ids[i][j] != *it ){
           if (StreamNetwork.get_data_element(i,j) != NoDataValue){
-          
+
             if ((FlowDir[i][j] % 2) != 0 && (FlowDir[i][j] != -1 )){ //is odd but not -1
               stream_length += DataResolution * two_times_root2; //diagonal
               ++stream_px;
@@ -4020,12 +3760,12 @@ LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRast
     double density = (stream_length / ((hillslope_px+stream_px)*(DataResolution*DataResolution)));
     for (int i = 0; i < NRows; ++i){
       for (int j = 0; j < NCols; ++j){
-        if(basin_ids[i][j] == *it){          
+        if(basin_ids[i][j] == *it){
           Density[i][j] = density;
         }
       }
     }
-   
+
   }
 
   LSDRaster DrainageDensity(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Density);
@@ -4498,10 +4238,10 @@ LSDRaster LSDRaster::QuinnMDFlow(){
 //
 // Computes the proportion of all downslope flows for each cell in the input
 // DEM. Finds the cell of the steepest descent and then checks the two
-// neighbouring cells slopes. If either is also downslope proportion flow 
+// neighbouring cells slopes. If either is also downslope proportion flow
 // between the steepest cell and the steepest neighbour. If neither neighbour
-// is downslope 100% of flow follows the steepest path.  
-// 
+// is downslope 100% of flow follows the steepest path.
+//
 // Can *NOT* handle DEMs containing flats or pits -  must be filled using the new
 // LSDRaster fill.
 //
@@ -4545,7 +4285,7 @@ LSDRaster LSDRaster::M2DFlow(){
 
       //skip edge cells
       if (i != 0 && j != 0 && i != NRows-1 && j != NCols-1){
-      
+
         //reset variables on each loop
 			  double slope0 = 0;
         double slope1 = 0;
@@ -4556,11 +4296,11 @@ LSDRaster LSDRaster::M2DFlow(){
         double slope6 = 0;
         double slope7 = 0;
         vector<double> slopes;
-        
+
         double p1 = 0;
         double p2 = 0;
         int second_slope = -1; //initialized using value outside of range.
-        
+
         //Get magnitude of downslope flow slope0->7 *Avoids NDVs*
 			  if (RasterData[i][j] > RasterData[i-1][j-1] && RasterData[i-1][j-1] != NoDataValue){
           slope0 = ((RasterData[i][j] - RasterData[i-1][j-1]) * one_ov_root_2);
@@ -4569,7 +4309,7 @@ LSDRaster LSDRaster::M2DFlow(){
         else {
           slopes.push_back(0);
         }
-        
+
 			  if (RasterData[i][j] > RasterData[i-1][j] && RasterData[i-1][j] != NoDataValue){
           slope1 = (RasterData[i][j] - RasterData[i-1][j]);
           slopes.push_back(slope1);
@@ -4577,7 +4317,7 @@ LSDRaster LSDRaster::M2DFlow(){
         else {
           slopes.push_back(0);
         }
-        
+
 		  	if (RasterData[i][j] > RasterData[i-1][j+1] && RasterData[i-1][j+1] != NoDataValue){
           slope2 = ((RasterData[i][j] - RasterData[i-1][j+1]) * one_ov_root_2);
           slopes.push_back(slope2);
@@ -4585,7 +4325,7 @@ LSDRaster LSDRaster::M2DFlow(){
         else {
           slopes.push_back(0);
         }
-        
+
 			  if (RasterData[i][j] > RasterData[i][j+1] && RasterData[i][j+1] != NoDataValue){
           slope3 = (RasterData[i][j] - RasterData[i][j+1]);
           slopes.push_back(slope3);
@@ -4593,7 +4333,7 @@ LSDRaster LSDRaster::M2DFlow(){
         else {
           slopes.push_back(0);
         }
-        
+
 			  if (RasterData[i][j] > RasterData[i+1][j+1] && RasterData[i+1][j+1] != NoDataValue){
           slope4 = ((RasterData[i][j] - RasterData[i+1][j+1]) * one_ov_root_2);
           slopes.push_back(slope4);
@@ -4601,7 +4341,7 @@ LSDRaster LSDRaster::M2DFlow(){
         else {
           slopes.push_back(0);
         }
-        
+
 			  if (RasterData[i][j] > RasterData[i+1][j] && RasterData[i+1][j] != NoDataValue){
           slope5 = (RasterData[i][j] - RasterData[i+1][j]);
           slopes.push_back(slope5);
@@ -4609,7 +4349,7 @@ LSDRaster LSDRaster::M2DFlow(){
         else {
           slopes.push_back(0);
         }
-        
+
 			  if (RasterData[i][j] > RasterData[i+1][j-1] && RasterData[i+1][j-1] != NoDataValue){
           slope6 = ((RasterData[i][j] - RasterData[i+1][j-1]) * one_ov_root_2);
           slopes.push_back(slope6);
@@ -4617,7 +4357,7 @@ LSDRaster LSDRaster::M2DFlow(){
         else {
           slopes.push_back(0);
         }
-        
+
 			  if (RasterData[i][j] > RasterData[i][j-1] && RasterData[i][j-1] != NoDataValue){
           slope7 = (RasterData[i][j] - RasterData[i][j-1]);
           slopes.push_back(slope7);
@@ -4625,175 +4365,175 @@ LSDRaster LSDRaster::M2DFlow(){
         else {
           slopes.push_back(0);
         }
-                
+
         if (int(slopes.size()) > 0 ){   //catch outlets with no neighbours to drain to
-                
-          //find maximum slope & its index location in the slopes vector      
+
+          //find maximum slope & its index location in the slopes vector
           double S_max = *max_element(slopes.begin(), slopes.end());
           int S_max_index = find(slopes.begin(), slopes.end(), S_max) - slopes.begin();
-          
+
           //find steepest neighbour
           if (S_max_index == 0){
             if (slope7 > 0 && slope1 == 0){
-              second_slope = 7;            
+              second_slope = 7;
             }
             if (slope7 == 0 && slope1 > 0){
-              second_slope = 1;          
-            }          
+              second_slope = 1;
+            }
             if (slope7 > 0 && slope1 > 0){
               if (slope7 > slope1){
                 second_slope = 7;
               }
               else{
                 second_slope = 1;
-              }           
+              }
             }
             if (slope7 == slope1){
-              second_slope = 0;          
-            }            
+              second_slope = 0;
+            }
           }
-  
+
           if (S_max_index == 1){
             if (slope0 > 0 && slope2 == 0){
-              second_slope = 7;            
+              second_slope = 7;
             }
             if (slope0 == 0 && slope2 > 0){
-              second_slope = 1;          
-            }          
+              second_slope = 1;
+            }
             if (slope0 > 0 && slope2 > 0){
               if (slope0 > slope2){
                 second_slope = 7;
               }
               else{
                 second_slope = 1;
-              }           
+              }
             }
             if (slope0 == slope2){
-              second_slope = 0;          
-            }            
+              second_slope = 0;
+            }
           }
-                       
+
           if (S_max_index == 2){
             if (slope1 > 0 && slope3 == 0){
-              second_slope = 7;            
+              second_slope = 7;
             }
             if (slope1 == 0 && slope3 > 0){
-              second_slope = 1;          
-            }          
+              second_slope = 1;
+            }
             if (slope1 > 0 && slope3 > 0){
               if (slope1 > slope3){
                 second_slope = 7;
               }
               else{
                 second_slope = 1;
-              }           
+              }
             }
             if (slope1 == slope3){
-              second_slope = 0;          
-            }            
+              second_slope = 0;
+            }
           }
-          
+
           if (S_max_index == 3){
             if (slope2 > 0 && slope4 == 0){
-              second_slope = 7;            
+              second_slope = 7;
             }
             if (slope2 == 0 && slope4 > 0){
-              second_slope = 1;          
-            }          
+              second_slope = 1;
+            }
             if (slope2 > 0 && slope4 > 0){
               if (slope2 > slope4){
                 second_slope = 7;
               }
               else{
                 second_slope = 1;
-              }           
+              }
             }
             if (slope2 == slope4){
-              second_slope = 0;          
-            }            
-          }                
-  
+              second_slope = 0;
+            }
+          }
+
           if (S_max_index == 4){
             if (slope3 > 0 && slope5 == 0){
-              second_slope = 7;            
+              second_slope = 7;
             }
             if (slope3 == 0 && slope5 > 0){
-              second_slope = 1;          
-            }          
+              second_slope = 1;
+            }
             if (slope3 > 0 && slope5 > 0){
               if (slope3 > slope5){
                 second_slope = 7;
               }
               else{
                 second_slope = 1;
-              }           
+              }
             }
             if (slope3 == slope5){
-              second_slope = 0;          
-            }            
+              second_slope = 0;
+            }
           }
-  
+
           if (S_max_index == 5){
             if (slope4 > 0 && slope6 == 0){
-              second_slope = 7;            
+              second_slope = 7;
             }
             if (slope4 == 0 && slope6 > 0){
-              second_slope = 1;          
-            }          
+              second_slope = 1;
+            }
             if (slope4 > 0 && slope6 > 0){
               if (slope4 > slope6){
                 second_slope = 7;
               }
               else{
                 second_slope = 1;
-              }           
+              }
             }
             if (slope4 == slope6){
-              second_slope = 0;          
-            }            
+              second_slope = 0;
+            }
           }
-          
-          
+
+
           if (S_max_index == 6){
             if (slope5 > 0 && slope7 == 0){
-              second_slope = 7;            
+              second_slope = 7;
             }
             if (slope5 == 0 && slope7 > 0){
-              second_slope = 1;          
-            }          
+              second_slope = 1;
+            }
             if (slope5 > 0 && slope7 > 0){
               if (slope5 > slope7){
                 second_slope = 7;
               }
               else{
                 second_slope = 1;
-              }           
+              }
             }
             if (slope5 == slope7){
-              second_slope = 0;          
-            }            
+              second_slope = 0;
+            }
           }
-          
+
           if (S_max_index == 7){
             if (slope6 > 0 && slope0 == 0){
-              second_slope = 7;            
+              second_slope = 7;
             }
             if (slope6 == 0 && slope0 > 0){
-              second_slope = 1;          
-            }          
+              second_slope = 1;
+            }
             if (slope6 > 0 && slope0 > 0){
               if (slope6 > slope0){
                 second_slope = 7;
               }
               else{
                 second_slope = 1;
-              }           
+              }
             }
             if (slope6 == slope0){
-              second_slope = 0;          
-            }            
-          }   
-  
+              second_slope = 0;
+            }
+          }
+
           //get proportions p1 and p2
           if (second_slope != S_max_index){
             p1 = S_max/(S_max + slopes[second_slope]);
@@ -4803,9 +4543,9 @@ LSDRaster LSDRaster::M2DFlow(){
             p1 = 1;
             p2 = 0;
           }
-          
+
           //partition flow following the steepest slope and it's steepest neighbour
-          if (S_max_index == 0 && area[i-1][j-1] != NoDataValue){ 
+          if (S_max_index == 0 && area[i-1][j-1] != NoDataValue){
             area[i-1][j-1] += area[i][j] * p1;
             if (second_slope == 1){
               area[i-1][j] += area[i][j] * p2;
@@ -4814,8 +4554,8 @@ LSDRaster LSDRaster::M2DFlow(){
               area[i][j-1] += area[i][j] * p2;
             }
           }
-          
-          if (S_max_index == 1 && area[i-1][j] != NoDataValue){ 
+
+          if (S_max_index == 1 && area[i-1][j] != NoDataValue){
             area[i-1][j] += area[i][j] * p1;
             if (second_slope == 2){
               area[i-1][j+1] += area[i][j] * p2;
@@ -4823,9 +4563,9 @@ LSDRaster LSDRaster::M2DFlow(){
             if (second_slope == 0){
               area[i-1][j-1] += area[i][j] * p2;
             }
-          }        
-          
-          if (S_max_index == 2 && area[i-1][j+1] != NoDataValue){ 
+          }
+
+          if (S_max_index == 2 && area[i-1][j+1] != NoDataValue){
             area[i-1][j+1] += area[i][j] * p1;
             if (second_slope == 3){
               area[i][j+1] += area[i][j] * p2;
@@ -4833,9 +4573,9 @@ LSDRaster LSDRaster::M2DFlow(){
             if (second_slope == 1){
               area[i-1][j] += area[i][j] * p2;
             }
-          }        
-  
-          if (S_max_index == 3 && area[i][j+1] != NoDataValue){ 
+          }
+
+          if (S_max_index == 3 && area[i][j+1] != NoDataValue){
             area[i][j+1] += area[i][j] * p1;
             if (second_slope == 4){
               area[i+1][j+1] += area[i][j] * p2;
@@ -4844,8 +4584,8 @@ LSDRaster LSDRaster::M2DFlow(){
               area[i-1][j+1] += area[i][j] * p2;
             }
           }
-  
-          if (S_max_index == 4 && area[i+1][j+1] != NoDataValue){ 
+
+          if (S_max_index == 4 && area[i+1][j+1] != NoDataValue){
             area[i+1][j+1] += area[i][j] * p1;
             if (second_slope == 5){
               area[i+1][j] += area[i][j] * p2;
@@ -4854,8 +4594,8 @@ LSDRaster LSDRaster::M2DFlow(){
               area[i][j+1] += area[i][j] * p2;
             }
           }
-          
-          if (S_max_index == 5 && area[i+1][j] != NoDataValue){ 
+
+          if (S_max_index == 5 && area[i+1][j] != NoDataValue){
             area[i+1][j] += area[i][j] * p1;
             if (second_slope == 6){
               area[i+1][j-1] += area[i][j] * p2;
@@ -4863,9 +4603,9 @@ LSDRaster LSDRaster::M2DFlow(){
             if (second_slope == 4){
               area[i+1][j+1] += area[i][j] * p2;
             }
-          }        
-          
-          if (S_max_index == 6 && area[i+1][j-1] != NoDataValue){ 
+          }
+
+          if (S_max_index == 6 && area[i+1][j-1] != NoDataValue){
             area[i+1][j-1] += area[i][j] * p1;
             if (second_slope == 7){
               area[i][j-1] += area[i][j] * p2;
@@ -4873,9 +4613,9 @@ LSDRaster LSDRaster::M2DFlow(){
             if (second_slope == 5){
               area[i+1][j] += area[i][j] * p2;
             }
-          }        
-  
-          if (S_max_index == 7 && area[i][j-1] != NoDataValue){ 
+          }
+
+          if (S_max_index == 7 && area[i][j-1] != NoDataValue){
             area[i][j-1] += area[i][j] * p1;
             if (second_slope == 0){
               area[i-1][j] += area[i][j] * p2;
@@ -4888,7 +4628,7 @@ LSDRaster LSDRaster::M2DFlow(){
       }
     }
   }
-  
+
   //write output LSDRaster object
   LSDRaster Multi2Flow(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, area);
   return Multi2Flow;
@@ -4980,40 +4720,40 @@ LSDRaster LSDRaster::calculate_pelletier_channel_heads(int NRows,int NCols,int X
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
-// all the surrounding NoDataValues to reduce the size and load times of output 
+// all the surrounding NoDataValues to reduce the size and load times of output
 // rasters.
 //
 // Ideal for use with chi analysis tools which output basin and chi m value rasters
-// which can be predominantly no data. As an example, a 253 Mb file can be reduced to 
-// ~5 Mb with no loss or resampling of data.  
+// which can be predominantly no data. As an example, a 253 Mb file can be reduced to
+// ~5 Mb with no loss or resampling of data.
 //
 // Returns A trimmed LSDRaster object.
 //
 // SWDG 22/08/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::RasterTrimmer(){
- 
+
   //minimum index value in a column
   int a = 0;
   int min_col = 100000; //a big number
-    
+
   for (int row = 0; row < NRows; ++row){
     a = 0;
-    while (RasterData[row][a] == NoDataValue && a < NCols-1){ 
+    while (RasterData[row][a] == NoDataValue && a < NCols-1){
       ++a;
     }
     if (min_col > a){
       min_col = a;
     }
   }
-  
+
   //maximum index value in a column
   a = NCols - 1;
   int max_col = 0; //a small number
-    
+
   for (int row = 0; row < NRows; ++row){
     a = NCols - 1;
-    while (RasterData[row][a] == NoDataValue && a > 0){ 
+    while (RasterData[row][a] == NoDataValue && a > 0){
       --a;
     }
     if (max_col < a){
@@ -5025,37 +4765,37 @@ LSDRaster LSDRaster::RasterTrimmer(){
   //minimum index value in a row
   a = 0;
   int min_row = 100000; //a big number
-    
+
   for (int col = 0; col < NCols; ++col){
     a = 0;
-    while (RasterData[a][col] == NoDataValue && a < NRows - 1){ 
+    while (RasterData[a][col] == NoDataValue && a < NRows - 1){
       ++a;
     }
     if (min_row > a){
       min_row = a;
     }
   }
-  
+
   //maximum index value in a row
   a = NRows - 1;
   int max_row = 0; //a small number
-    
+
   for (int col = 0; col < NCols; ++col){
     a = NRows - 1;
-    while (RasterData[a][col] == NoDataValue && a > 0){ 
+    while (RasterData[a][col] == NoDataValue && a > 0){
       --a;
     }
     if (max_row < a){
       max_row = a;
     }
   }
- 
+
   // create new row and col sizes taking account of zero indexing
   int new_row_dimension = (max_row-min_row) + 1;
   int new_col_dimension = (max_col-min_col) + 1;
- 
-  Array2D<double>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);   
-  
+
+  Array2D<double>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
+
   //loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
   int TrimmedRow = 0;
   int TrimmedCol = 0;
@@ -5067,14 +4807,14 @@ LSDRaster LSDRaster::RasterTrimmer(){
     ++TrimmedRow;
     TrimmedCol = 0;
   }
-   
+
   //calculate lower left corner coordinates of new array
   double new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
   double new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
 
   LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
                           new_YLL, DataResolution, NoDataValue, TrimmedData);
-     
+
   return TrimmedRaster;
 }
 
@@ -5090,31 +4830,38 @@ LSDRaster LSDRaster::RasterTrimmer(){
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+//	Perform Non-local means filtering on a DEM following Baude et al. [2005]
+//	Smoothes non-gaussian noise.
+//
+//	Inputs required:
+//		the search window radius,
+//		the similarity window radius and
+//		the degree of filtering
+//
+//	Martin Hurst, February, 2012
+//	Modified by David Milodowski, May 2012- generates grid of recording filtered noise
+//
+//	WindowRadius has to be <= SimilarityRadius ?
+//
+//	Adapted from a matlab script by:
+//	Author: Jose Vicente Manjon Herrera & Antoni Buades
+//	Date: 09-03-2006
+//
+//	Implementation of the Non local filter proposed for A. Buades, B. Coll and J.M. Morel in
+//	"A non-local algorithm for image denoising"
+//
+//	Added soft threshold optimal correction - David Milodowski, 05/2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+//	Martin Hurst, February, 2012
+//	Modified by David Milodowski, May 2012- generates grid of recording filtered noise
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::NonLocalMeansFilter(int WindowRadius, int SimilarityRadius, int DegreeFiltering, double Sigma)
 {
-	/*
-	Perform Non-local means filtering on a DEM following Baude et al. [2005]
-	Smoothes non-gaussian noise.
 
-	Inputs required:
-		the search window radius,
-		the similarity window radius and
-		the degree of filtering
-
-	Martin Hurst, February, 2012
-	Modified by David Milodowski, May 2012- generates grid of recording filtered noise
-
-	WindowRadius has to be <= SimilarityRadius ?
-
-	Adapted from a matlab script by:
-	Author: Jose Vicente Manjon Herrera & Antoni Buades
-	Date: 09-03-2006
-
-	Implementation of the Non local filter proposed for A. Buades, B. Coll and J.M. Morel in
-	"A non-local algorithm for image denoising"
-
-	**Added soft threshold optimal correction - David Milodowski, 05/2012
-	*/
 
 
 	//Declare Arrays to hold Filtered Data and Noise
@@ -5211,19 +4958,20 @@ LSDRaster LSDRaster::NonLocalMeansFilter(int WindowRadius, int SimilarityRadius,
 	return NLFilteredDEM; //, NLFilteredNoise;
 }
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//	Creates a buffer around an array (of size SimilarityRadius) and gives the new border
+//	mirror symmetric values of the original array reflected across the boundary.
+//	SimilarityRadius should be the size of the window if filtering
+//
+//	New array has size nrows + 2*SimilarityRadius by ncols + 2*SimilarityRadius
+//
+//	Martin Hurst, Feb 2012
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::PadRasterSymmetric(Array2D<double>& PaddedRasterData, int& SimilarityRadius)
 {
-	/*
 
-	Creates a buffer around an array (of size SimilarityRadius) and gives the new border
-	mirror symmetric values of the original array reflected across the boundary.
-	SimilarityRadius should be the size of the window if filtering
-
-	New array has size nrows + 2*SimilarityRadius by ncols + 2*SimilarityRadius
-
-	Martin Hurst, Feb 2012
-
-	*/
 
 	int PaddedNRows = NRows + 2*SimilarityRadius;
 	int PaddedNCols = NCols + 2*SimilarityRadius;
@@ -5281,20 +5029,20 @@ void LSDRaster::PadRasterSymmetric(Array2D<double>& PaddedRasterData, int& Simil
 
 }
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//	Generate gaussian weighted kernel
+//	kernel array must be predeclared of size SimilarityRadius and consist of zeros:
+//	Array2D<double> Kernel(SimilarityRadius,SimilarityRadius,0.0);
+//
+//	Kernel generated using:
+//	G(x,y) = (1/2*pi*sigma^2) exp ((-x^2+y^2)/(2*sigma^2))
+//
+//	Martin Hurst, Feb 2012
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::MakeGaussianKernel(Array2D<double>& Kernel, double sigma, int SimilarityRadius)
 {
-	/*
 
-	Generate gaussian weighted kernel
-	kernel array must be predeclared of size SimilarityRadius and consist of zeros:
-	Array2D<double> Kernel(SimilarityRadius,SimilarityRadius,0.0);
-
-	Kernel generated using:
-	G(x,y) = (1/2*pi*sigma^2) exp ((-x^2+y^2)/(2*sigma^2))
-
-	Martin Hurst, Feb 2012
-
-	*/
 
 	double pi = 3.1415926536;
 	double left_side = 1/(2*pi*sigma*sigma);
@@ -5329,1109 +5077,5 @@ void LSDRaster::MakeGaussianKernel(Array2D<double>& Kernel, double sigma, int Si
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-
-/*
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-//		FFFFFF  oOOo  UU  UU RRRR   IIIIII EEEEEE RRRR
-//		FF     oO  Oo UU  UU RR RR    II   EE     RR RR
-//		FFFF   OO  OO UU  UU RRRR     II   EEEE   RRRR
-//		FF     oO  Oo UU  UU RR RR    II   EE     RR RR
-//		FF      oOOo   uUUu  RR  RR IIIIII EEEEEE RR  RR
-//
-//     AAAA  NN    NN  AAAA  LL   YY    YY  sSSSs IIIIII  sSSSs
-//    AA  AA NNNN  NN AA  AA LL    YY  YY  SS       II   SS
-//    AAAAAA NN NN NN AAAAAA LL     YYYY    sSSs    II    sSSs
-//    AA  AA NN  NNNN AA  AA LL      YY        SS   II       SS
-//    AA  AA NN   NNN AA  AA LLLLLL  YY    SSSSs  IIIIII SSSSs
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// FAST FOURIER TRANSFORM MODULE
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Computes both the forward and inverse fast fourier transforms of a 2D
-// discrete dataset.
-// FOR FORWARD TRANSFORM:
-//    - InputArray = zeta_padded (padded DEM)
-//    - transform_direction = -1
-//    - OutputArray = 2D spectrum
-
-void LSDRaster::dfftw2D_fwd(Array2D<double>& InputArray, Array2D<double>& OutputArrayReal, Array2D<double>& OutputArrayImaginary, int transform_direction, int Ly, int Lx)
-{
-  fftw_complex *input,*output;
-  fftw_plan plan;
-  // Declare one_dimensional contiguous arrays of dimension Ly*Lx
-  input = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*Ly*Lx);
-  output = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*Ly*Lx);
-  // SET UP PLAN
-  // -forwards, transform_direction==-1, -inverse, transform_direction==1
-  if (transform_direction==-1)
-  {
-    cout << "  Running 2D discrete FORWARD fast fourier transform..." << endl;
-    plan = fftw_plan_dft_2d(Ly,Lx,input,output,transform_direction,FFTW_MEASURE);
-  }
-  else
-  {
-    cout << "\nFATAL ERROR: for the tranform direction\n\t -1 = FORWARD \n\t" << endl;
-		exit(EXIT_FAILURE);
-  }
-  // LOAD DATA INTO COMPLEX ARRAY FOR FFT IN ROW MAJOR ORDER
-  for (int i=0;i<Ly;++i)
-  {
-    for (int j=0;j<Lx;++j)
-    {
-      input[Lx*i+j][0] = InputArray[i][j];
-    }
-  }
-  // EXECUTE PLAN
-  fftw_execute(plan);
-  // RETRIEVE OUTPUT - since data is real, we only need to extract real part of
-  // the output.
-  for (int i=0;i<Ly;++i)
-  {
-    for (int j=0;j<Lx;++j)
-    {
-      OutputArrayReal[i][j] = output[Lx*i+j][0];
-      OutputArrayImaginary[i][j] = output[Lx*i+j][1];
-    }
-  }
-  // DEALLOCATE PLAN AND ARRAYS
-  fftw_destroy_plan(plan);
-  fftw_free(input);
-  fftw_free(output);
-}
-
-//------------------------------------------------------------------------------
-// FOR INVERSE TRANSFORM:
-//    - InputArrays = Real and Imaginary components of 2D spectrum
-//    - transform_direction = 1
-//    - OutputArray = reconstructed DEM
-void LSDRaster::dfftw2D_inv(Array2D<double>& InputArrayReal, Array2D<double>& InputArrayImaginary, Array2D<double>& OutputArray, int transform_direction, int Ly, int Lx)
-{
-  fftw_complex *input,*output;
-  fftw_plan plan;
-  // Declare one_dimensional contiguous arrays of dimension Ly*Lx
-  input = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*Ly*Lx);
-  output = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*Ly*Lx);
-  // SET UP PLAN
-  // -forwards => transform_direction==-1, -inverse => transform_direction==1
-  if (transform_direction==1)
-  {
-  cout << "  Running 2D discrete INVERSE fast fourier transform..." << endl;
-  plan = fftw_plan_dft_2d(Ly,Lx,input,output,transform_direction,FFTW_MEASURE);
-  }
-  else {
-    cout << "\nFATAL ERROR: for the tranform direction\n\t 1 = INVERSE \n\t" << endl;
-		exit(EXIT_FAILURE);
-  }
-  // LOAD DATA INTO COMPLEX ARRAY FOR FFT IN ROW MAJOR ORDER
-  for (int i=0;i<Ly;++i)
-  {
-    for (int j=0;j<Lx;++j)
-    {
-      input[Lx*i+j][0] = InputArrayReal[i][j];
-      input[Lx*i+j][1] = InputArrayImaginary[i][j];
-    }
-  }
-  // EXECUTE PLAN
-  fftw_execute(plan);
-  // RETRIEVE OUTPUT ARRAY
-  for (int i=0;i<Ly;++i)
-  {
-    for (int j=0;j<Lx;++j)
-    {
-      OutputArray[i][j] = output[Lx*i+j][0];
-    }
-  }
-  // DEALLOCATE PLAN AND ARRAYS
-  fftw_destroy_plan(plan);
-  fftw_free(input);
-  fftw_free(output);
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// DETREND DATA MODULE
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// FIT PLANE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO DETERMINE
-// LOCAL SLOPE ax + by + c = z
-// Have N simultaneous linear equations, and N unknowns.
-// => b = Ax, where x is a 1xN array containing the coefficients we need for
-// surface fitting.
-// A is constructed using different combinations of x and y, thus we only need
-// to compute this once, since the window size does not change.
-// For 1st order surface fitting, there are 3 coefficients, therefore A is a
-// 3x3 matrix
-// Module kicks out detrended array, and an array with the trend plane
-void LSDRaster::detrend2D(Array2D<double>& zeta, Array2D<double>& zeta_detrend, Array2D<double>& trend_plane, int nrows, int ncols, double ndv)
-{
-  cout << "  Detrending the DEM by fitting a planar surface..." << endl;
-  Array2D<double> A(3,3,0.0);
-	Array1D<double> bb(3,0.0);
-	Array1D<double> coeffs(3);
-
-  for (int i=0; i<nrows; ++i)
-	{
-    for (int j=0; j<ncols; ++j)
-		{
-			if(zeta[i][j] != ndv)
-			{
-        double x = j;
-			  double y = i;
-        // Generate matrix A
-			  A[0][0] += pow(x,2);
-			  A[0][1] += x*y;
-			  A[0][2] += x;
-			  A[1][0] += y*x;
-			  A[1][1] += pow(y,2);
-			  A[1][2] += y;
-			  A[2][0] += x;
-			  A[2][1] += y;
-			  A[2][2] += 1;
-			  // Generate vector bb
-			  bb[0] += zeta[i][j]*x;
-			  bb[1] += zeta[i][j]*y;
-			  bb[2] += zeta[i][j];
-			}
-		}
-	}
-  // Solve matrix equations using LU decomposition using the TNT JAMA package:
-	// A.coefs = b, where coefs is the coefficients vector.
-	LU<double> sol_A(A);  // Create LU object
-	coeffs = sol_A.solve(bb);
-	double a_plane = coeffs[0];
-	double b_plane = coeffs[1];
-	double c_plane = coeffs[2];
-	// Create detrended surface
-  for (int i=0; i<nrows; ++i)
-	{
-    for (int j=0; j<ncols; ++j)
-		{
-      double x = j;
-			double y = i;
-      trend_plane[i][j] = a_plane*x + b_plane*y + c_plane;
-       if(zeta[i][j] != ndv)
-      {
-        zeta_detrend[i][j] = zeta[i][j] - trend_plane[i][j];
-      }
-      else // Set NoDataValues as 0 on detrended surface
-      {
-        zeta_detrend[i][j] = 0;
-      }
-    }
-  }
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// HANN WINDOW MODULE
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Use 2D elliptical Hann (raised cosine) window on data matrix, to reduce
-// spectral leakage and retain good frequency resolution.
-// Return windowed data, the Hann window and also the summed square of the
-// weighting coefficients, WSS.
-// Another option would be to use a 2D Welch window, but functionality is very
-// similar.
-void LSDRaster::window_data_Hann2D(Array2D<double>& zeta_detrend, Array2D<double>& zeta_Hann2D, Array2D<double>& Hann2D, double& WSS, int nrows, int ncols, int ndv)
-{
-  double PI = 3.14159265;
-  cout << "  Windowing DEM using an elliptical 2D Hann window..." << endl;
-  double ny = nrows;
-  double nx = ncols;
-  // Get matrix coordinates of centroid of matrix
-  double a = (nx-1)/2;
-  double b = (ny-1)/2;
-  // Set up data window
-
-  Array2D<double> r_prime_matrix(nrows,ncols,0.0);
-  Array2D<double> id(nrows,ncols,0.0);
-  Array2D<double> theta_matrix(nrows,ncols,0.0);
-  double r; // radial polar coordinate
-  double theta; // angular polar coordinate
-  double rprime;
-  double HannCoefficient = 0;
-  for(int i = 0; i < nrows; ++i)
-  {
-    for(int j = 0; j < ncols; ++j)
-    {
-      double x = j;
-      double y = i;
-      if(x == a)
-      {
-        theta = (PI/2);
-      }
-      else
-      {
-        theta = atan2((y - b),(x - a));
-      }
-      r = sqrt((y - b)*(y - b) + (x - a)*(x - a)); // distance from centre to this point
-      rprime = sqrt((a*a)*(b*b)/(b*b*(cos(theta)*cos(theta)) + a*a*(sin(theta)*sin(theta)))); // distance from centre to edge of ellipse for this particular theta
-      if(r < rprime)
-      {
-        HannCoefficient = 0.5 * (1 + cos(PI * r/rprime));
-        Hann2D[i][j] = HannCoefficient;
-        WSS += HannCoefficient*HannCoefficient;
-        zeta_Hann2D[i][j] = zeta_detrend[i][j] * HannCoefficient;
-        id[i][j]=1;
-      }
-    }
-  }
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// SHIFT ORIGIN OF SPECTRUM IN FOURIER DOMAIN
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// "The output of most algorithms that compute the DFT must be rearranged to
-// place the zero wavenumber element near the center of the array. Provided Nx
-// and Ny are even, dividing the output array into four equal quadrants and
-// exchanging the nonadjacent quadrants will place the zero wavenumber element
-// at the position (Nx/2, Ny/2) in the new array."  (Perron et al., 2008)
-
-void LSDRaster::shift_spectrum(Array2D<double>& spectrum_real,  Array2D<double>& spectrum_imaginary, Array2D<double>& spectrum_real_shift, Array2D<double>& spectrum_imaginary_shift, int Ly, int Lx)
-{
-  int QuadrantRows = Ly/2;
-  int QuadrantCols = Lx/2;
-  for(int i = 0; i < QuadrantRows; ++i)
-  {
-    for(int j = 0; j< QuadrantCols; ++j)
-    {
-      spectrum_real_shift[i][j] = spectrum_real[i+QuadrantRows][j+QuadrantCols]; // top left to bottom right
-      spectrum_real_shift[i+QuadrantRows][j] = spectrum_real[i][j+QuadrantCols]; // bottom right to top left
-      spectrum_real_shift[i][j+QuadrantCols] = spectrum_real[i+QuadrantRows][j]; // top right to bottom left
-      spectrum_real_shift[i+QuadrantRows][j+QuadrantCols] = spectrum_real[i][j]; // bottom right to top left
-
-      spectrum_imaginary_shift[i][j] = spectrum_imaginary[i+QuadrantRows][j+QuadrantCols];   // etc...
-      spectrum_imaginary_shift[i+QuadrantRows][j] = spectrum_imaginary[i][j+QuadrantCols];
-      spectrum_imaginary_shift[i][j+QuadrantCols] = spectrum_imaginary[i+QuadrantRows][j];
-      spectrum_imaginary_shift[i+QuadrantRows][j+QuadrantCols] = spectrum_imaginary[i][j];
-    }
-  }
-}
-//------------------------------------------------------------------------------
-// DE-SHIFT ORIGIN OF SPECTRUM
-// Inverse process of above to return filtered spectrum to original format
-// required for the inverse fourier transform algorithm.
-void LSDRaster::LSDRaster::shift_spectrum_inv(Array2D<double>& FilteredSpectrumReal, Array2D<double>& FilteredSpectrumImaginary, Array2D<double>& FilteredSpectrumReal_deshift, Array2D<double>& FilteredSpectrumImaginary_deshift, int Ly, int Lx)
-{
-  int QuadrantRows = Ly/2;
-  int QuadrantCols = Lx/2;
-
-  for(int i = 0; i < QuadrantRows; ++i)
-  {
-    for(int j = 0; j< QuadrantCols; ++j)
-    {
-      FilteredSpectrumReal_deshift[i+QuadrantRows][j+QuadrantCols] = FilteredSpectrumReal[i][j];
-      FilteredSpectrumReal_deshift[i][j+QuadrantCols] = FilteredSpectrumReal[i+QuadrantRows][j];
-      FilteredSpectrumReal_deshift[i+QuadrantRows][j] = FilteredSpectrumReal[i][j+QuadrantCols];
-      FilteredSpectrumReal_deshift[i][j] = FilteredSpectrumReal[i+QuadrantRows][j+QuadrantCols];
-
-      FilteredSpectrumImaginary_deshift[i+QuadrantRows][j+QuadrantCols] = FilteredSpectrumImaginary[i][j];
-      FilteredSpectrumImaginary_deshift[i][j+QuadrantCols] = FilteredSpectrumImaginary[i+QuadrantRows][j];
-      FilteredSpectrumImaginary_deshift[i+QuadrantRows][j] = FilteredSpectrumImaginary[i][j+QuadrantCols];
-      FilteredSpectrumImaginary_deshift[i][j] = FilteredSpectrumImaginary[i+QuadrantRows][j+QuadrantCols];
-    }
-  }
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// CALCULATE THE DFT PERIODOGRAM
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Multiply fourier analysis output by complex conjugate and normalise.
-// Note that for complex number z=x+iy, z*=x-iy, z.z* = x^2 + y^2
-// Returns 2D PSD as only output
-// Usage => Declare Array2D<double> P_DFT(Ly,Lx,0.0)
-//       => then P_DFT = calculate_2D_PSD(...)
-void LSDRaster::calculate_2D_PSD(Array2D<double>& spectrum_real_shift, Array2D<double>& spectrum_imaginary_shift, Array2D<float>& P_DFT_output, int Lx, int Ly, double WSS)
-{
-  Array2D<float> P_DFT(Ly,Lx,0.0);
-  for (int i=0; i<Ly; ++i)
-  {
-    for (int j=0; j<Lx; ++j)
-    {
-      P_DFT[i][j] = (pow(spectrum_real_shift[i][j],2) + pow(spectrum_imaginary_shift[i][j],2))/(Ly*Lx*WSS);
-    }
-  }
-  // Copy periodogram to output file
-  P_DFT_output = P_DFT;
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// GET RADIAL POWER SPECTRUM
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Collapse 2D PSD into a radial PSD
-void LSDRaster::calculate_radial_PSD(Array2D<double>& P_DFT, vector<double>& RadialPSD_output, vector<double>& RadialFrequency_output, int Lx, int Ly, double WSS, double dem_res)
-{
-  // CALCULATE FREQUENCY INCREMENTS - for generation of power spectrum
-  // Frequency goes from zero to 1/(2*resolution), the Nyquist frequency in
-  // nrows_padded/2 increments.
-  double dfx = 1/(dem_res*Lx);
-  double dfy = 1/(dem_res*Ly);
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  vector<double> RadialFrequency(Ly*(Lx/2+1),0.0); // This is the distance from the origin in Frequency space.  Note that half of spectrum is redundant, since the fourier transform of a real dataset is symmetric, with a degeneracy of two.
-  vector<double> RadialPSD(Ly*(Lx/2+1),0.0);
-  double NyquistFreq = 1/(2*dem_res);
-  double RadialFreq;
-  int count = 0;
-  for (int i=0; i < Ly; ++i)
-  {
-    for (int j=0; j < (Lx/2+1); ++j)
-    {
-
-      double x = j;
-      double y = i;
-      RadialFreq = sqrt((y - (Ly/2))*(y - (Ly/2))*dfy*dfy + (x - (Lx/2))*(x - (Lx/2))*dfx*dfx); // distance from centre to this point. Converting position in frequency into an absolute frequency
-      if (RadialFreq <= NyquistFreq)  // Ignore radial frequencies greater than the Nyquist frequency as these are aliased
-        {
-          RadialFrequency[count] = RadialFreq;
-          RadialPSD[count] = 2*P_DFT[i][j];   // Due to degeneracy
-          ++count;
-        }
-    }
-  }
-  // Sort radial frequency
-  vector<size_t> index_map;
-  matlab_double_sort(RadialFrequency,RadialFrequency,index_map);
-  // Reorder amplitudes to match sorted frequencies
-  matlab_double_reorder(RadialPSD,index_map,RadialPSD);
-
-  // Get number of discrete radial frequencies
-  int n_freqs = 0;
-  for (int i=0; i<(Ly*(Lx/2+1)); ++i)
-  {
-    if (RadialFrequency[i] != RadialFrequency[i+1])
-    {
-      ++n_freqs;
-    }
-  }
-
-  // Convert to spatially averaged spectrum
-  cout << "  Converting to radially averaged PSD..." << endl;
-  vector<double> RadialFrequency_grouped(n_freqs,0.0); // This is the distance from the origin in Frequency space
-  vector<double> RadialPSD_average(n_freqs,0.0);       // This will ultimately contain the radially averaged PSD
-  int n_occurences = 0;           // This will keep track of the number of occurences of each radial frequency
-  int pointer = 0;
-  for (int i=0; i<(Ly*(Lx/2+1)); ++i)
-  {
-    RadialFrequency_grouped[pointer] = RadialFrequency[i];
-    RadialPSD_average[pointer] += RadialPSD[i];
-    ++n_occurences;
-
-    if (RadialFrequency[i] != RadialFrequency[i+1])
-    {
-      RadialPSD_average[pointer] = RadialPSD_average[pointer]/n_occurences;
-      // increment pointer and reset n_occurences
-      ++pointer;
-      n_occurences = 0;
-    }
-  }
-
-  // Copy across to output vectors
-  RadialFrequency_output = RadialFrequency_grouped;
-  RadialPSD_output = RadialPSD_average;
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// MAIN FUNCTIONS USING SPECTRAL FILTERS
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// COMPUTE DISCRETE FAST FOURIER TRANSFORM OF A REAL, 2-DIMENSIONAL DATASET.
-// Computes the 2D and radial power spectra of a 2D array.
-// Input arguement is the width of the logarithmically spaced bins. For
-// topography, suggest this is 0.1
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::fftw2D_spectral_analysis(char* file_id, double LogBinWidth)
-{
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DETREND DATA
-	// FIT PLANE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO DETERMINE
-	// LOCAL SLOPE ax + by + c = z
-	Array2D<double> zeta_detrend(NRows,NCols);
-	Array2D<double> trend_plane(NRows,NCols);
-  detrend2D(RasterData, zeta_detrend, trend_plane, NRows, NCols, NoDataValue);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // USE ELLIPTICAL 2D HANN (raised cosine) WINDOW ON ZETA MATRIX.
-  // RETURN WINDOWED DATA AND ALSO THE SUMMED SQUARE OF THE WEIGHTING
-  // COEFFICIENTS.
-  Array2D<double> Hann2D(NRows,NCols,0.0);
-  Array2D<double> zeta_Hann2D(NRows,NCols,0.0);
-  double WSS = 0; // summed square of weighting coefficients
-  window_data_Hann2D(zeta_detrend, zeta_Hann2D, Hann2D, WSS, NRows, NCols, int(NoDataValue));
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // 2D DISCRETE FAST FOURIER TRANSFORM
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // PAD DATA WITH ZEROS TO A POWER OF TWO (facilitates FFT)
-  int Ly = int(pow(2,ceil(log(NRows)/log(2))));
-  int Lx = int(pow(2,ceil(log(NCols)/log(2))));
-
-  Array2D<double> zeta_padded(Ly,Lx);
-  for (int i=0;i<Ly;++i){
-    for (int j=0;j<Lx;++j){
-      if (i<NRows && j<NCols)
-      {
-        zeta_padded[i][j] = zeta_detrend[i][j];
-      }
-      else
-      {
-        zeta_padded[i][j]=0;
-      }
-    }
-  }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DO 2D FORWARD FAST FOURIER TRANSFORM
-  int transform_direction = -1;
-  Array2D<double> SpectrumReal(Ly,Lx);
-  Array2D<double> SpectrumImaginary(Ly,Lx);
-  dfftw2D_fwd(zeta_padded, SpectrumReal, SpectrumImaginary, transform_direction, Ly, Lx);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // REARRANGE SPECTRUM SO THAT ORIGIN IS AT THE CENTRE
-  Array2D<double> SpectrumReal_shift(Ly,Lx);
-  Array2D<double> SpectrumImaginary_shift(Ly,Lx);
-  shift_spectrum(SpectrumReal, SpectrumImaginary, SpectrumReal_shift, SpectrumImaginary_shift, Ly, Lx);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // GET RADIAL POWER SPECTRUM
-  // For forward transform, return the spectral power of the topography both
-  // in a 2D array, and also as a one dimensional array of radial frequency
-  vector<double> RadialPSD;
-  vector<double> RadialFrequency;
-  calculate_radial_PSD(SpectrumReal_shift, RadialPSD, RadialFrequency, Lx, Ly, WSS, DataResolution);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // BIN POWER SPECTRUM INTO LOGARITMICALLY SPACED BINS OF RADIAL FREQUENCY TO
-  // GET MODEL "SIGNAL" FOR WIENER FILTER
-  cout << "  Binning radial PSD into logarithmically spaced bins..." << endl;
-  // Initiate output vectors
-  vector<double> Bin_MeanRadialFreq;
-  vector<double> Bin_RadialPSD;
-  vector<double> BinMidpoints;
-  vector<double> StandardDeviationRadialFreq;
-  vector<double> StandardDeviationRadialPSD;
-  // Execute log binning
-  log_bin_data(RadialFrequency, RadialPSD, LogBinWidth, Bin_MeanRadialFreq, Bin_RadialPSD, BinMidpoints,
-  								StandardDeviationRadialFreq, StandardDeviationRadialPSD, int(NoDataValue));
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // WRITE OUTPUTS TO FILE
-  int len = strlen(file_id);
-  cout << "  Writing output files..." << endl;
-
-  // 2D PSD
-  char *PSD_file = new char[len+6];
-  strcpy(PSD_file,file_id);
-  strcat(PSD_file,"_P_DFT");
-
-  LSDRaster PowerSpectrum(Lx,Ly,-(Lx/2),(Lx/2-1),DataResolution,NoDataValue,SpectrumReal_shift);
-  PowerSpectrum.write_raster(PSD_file,"flt");
-  //----------------------------------------------------------------------------
-
-	ofstream ofs;
-  //----------------------------------------------------------------------------
-  // Radially averaged PSD
-
-  char *RadialPSD_file = new char[len+14];
-	strcpy(RadialPSD_file,file_id);
-  strcat(RadialPSD_file,"_RadialPSD.txt");
-
-	ofs.open(RadialPSD_file);
-	if( ofs.fail() )
-  {
-		cout << "\nFATAL ERROR: unable to write to " << RadialPSD_file << endl;
-		exit(EXIT_FAILURE);
-	}
-	ofs << "Freq Wavelength PSD Model_PSD Model_noise\n";
-  for(int i=0; i < int(RadialFrequency.size()); ++i)
-  {
-    ofs << RadialFrequency[i] << " " << 1/RadialFrequency[i] << " " << RadialPSD[i] << " \n";
-  }
-  ofs.close();
-  //----------------------------------------------------------------------------
-  // Binned averaged PSD
-  char *RadialPSD_binned_file = new char[len+21];
-	strcpy(RadialPSD_binned_file,file_id);
-  strcat(RadialPSD_binned_file,"_RadialPSD_binned.txt");
-
-	ofs.open(RadialPSD_binned_file);
-	if( ofs.fail() )
-  {
-		cout << "\nFATAL ERROR: unable to write to " << RadialPSD_binned_file << endl;
-		exit(EXIT_FAILURE);
-	}
-	ofs << "Freq Wavelength PSD Sigma Model Noise\n";
-  for(int i=0; i < int(Bin_MeanRadialFreq.size()); ++i)
-  {
-    ofs << Bin_MeanRadialFreq[i] << " " << 1/Bin_MeanRadialFreq[i] << " " << Bin_RadialPSD[i] << " " << StandardDeviationRadialPSD[i] << " \n";
-  }
-  ofs.close();
-
-  //----------------------------------------------------------------------------
-  cout << "  DONE!" << endl;
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-
-
-
-
-
-
-
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-//		 sSSSs PPPPP  EEEEEE   CCCC TTTTTT RRRR    AAAA  LL
-//		SS     PP  PP EE      CC      TT   RR RR  AA  AA LL
-//		 sSSs  PPPPP  EEEE   CC       TT   RRRR   AAAAAA LL
-//		    SS PP     EE      CC      TT   RR RR  AA  AA LL
-//		SSSSs  PP     EEEEEE   CCCC   TT   RR  RR AA  AA LLLLLL
-//
-//    FFFFFF IIIIII LL   TTTTTT EEEEEE RRRR    sSSSs
-//    FF       II   LL     TT   EE     RR RR  SS
-//    FFFF     II   LL     TT   EEEE   RRRR    sSSs
-//    FF       II   LL     TT   EE     RR RR      SS
-//    FF     IIIIII LLLLLL TT   EEEEEE RR  RR SSSSs
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// FILTER WEIGHTS
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// BANDPASS FILTER
-// Filter array to band between frequency bands f1 and f2.  The bandpass filter
-// is a gaussian filter centred at (f1+f2)/2 and with a SD of |f2-f1|/6.
-void LSDRaster::bandpass_filter(Array2D<double>& RawSpectrumReal, Array2D<double>& RawSpectrumImaginary, Array2D<double>& FilteredSpectrumReal, Array2D<double>& FilteredSpectrumImaginary, int Lx, int Ly, double dem_res, double f1, double f2)
-{
-  // CALCULATE FREQUENCY INCREMENTS - for generation of power spectrum
-  // Frequency goes from zero to 1/(2*resolution), the Nyquist frequency in
-  // nrows_padded/2 increments.
-  double dfx = 1/(dem_res*Lx);
-  double dfy = 1/(dem_res*Ly);
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  cout << "  Gaussian bandpass filter between f1 = " << f1 << " and f2 = " << f2 << endl;
-  double f; // radial frequency
-  double weight; // Filter weight
-  double sigma = sqrt((f2-f1)*(f2-f1))/6; // Standard Deviation of Gaussian filter
-  for (int i=0; i < Ly; ++i)
-  {
-    for (int j=0; j < Lx; ++j)
-    {
-      double x = j;
-      double y = i;
-      f = sqrt((y - (Ly/2))*(y - (Ly/2))*dfy*dfy + (x - (Lx/2))*(x - (Lx/2))*dfx*dfx); // distance from centre to this point. Converting position in frequency into an absolute frequency
-      weight = exp(-(f - 0.5*(f1 + f2))*(f - 0.5*(f1 + f2))/(2*sigma*sigma));
-      FilteredSpectrumReal[i][j] = weight*RawSpectrumReal[i][j];
-      FilteredSpectrumImaginary[i][j] = weight*RawSpectrumImaginary[i][j];
-    }
-  }
-}
-//------------------------------------------------------------------------------
-// LOWPASS FILTER
-// Filter array to retain frequencies below f1.  The filter edge is a radial
-// gaussian function with a SD of |f2-f1|/3.
-void LSDRaster::lowpass_filter(Array2D<double>& RawSpectrumReal, Array2D<double>& RawSpectrumImaginary, Array2D<double>& FilteredSpectrumReal, Array2D<double>& FilteredSpectrumImaginary, int Lx, int Ly, double dem_res, double f1, double f2)
-{
-  // CALCULATE FREQUENCY INCREMENTS - for generation of power spectrum
-  // Frequency goes from zero to 1/(2*resolution), the Nyquist frequency in
-  // nrows_padded/2 increments.
-  double dfx = 1/(dem_res*Lx);
-  double dfy = 1/(dem_res*Ly);
-  //----------------------------------------------------------------------------
-  cout << "  Lowpass filter with edges controlled by radial Gaussian function between f1 = " << f1 << " and f2 = " << f2 << endl;
-  double f; // radial frequency
-  double weight; // Filter weight
-  double sigma;   // Standard Deviation of Gaussian edge
-  for (int i=0; i < Ly; ++i)
-  {
-    for (int j=0; j < Lx; ++j)
-    {
-      double x = j;
-      double y = i;
-      f = sqrt((y - (Ly/2))*(y - (Ly/2))*dfy*dfy + (x - (Lx/2))*(x - (Lx/2))*dfx*dfx); // distance from centre to this point. Converting position in frequency into an absolute frequency
-      if (f < f1)
-      {
-        weight = 1;
-      }
-      else
-      {
-        if (f2 > f1)
-        {
-          sigma = sqrt((f2-f1)*(f2-f1))/3;
-          weight = exp(-(f - f1)*(f-f1)/(2*sigma*sigma));
-        }
-        else
-        {
-          weight = 0; // this is for the case that f1 = f2 and essentially the weighting function acts with a hard edge at f=f1=f2.
-        }
-      }
-      FilteredSpectrumReal[i][j] = weight*RawSpectrumReal[i][j];
-      FilteredSpectrumImaginary[i][j] = weight*RawSpectrumImaginary[i][j];
-    }
-  }
-}
-//------------------------------------------------------------------------------
-// HIGHPASS FILTER
-// Filter array to retain frequencies above f1.  The filter edge is a radial
-// gaussian function with a SD of |f2-f1|/3.
-void LSDRaster::highpass_filter(Array2D<double>& RawSpectrumReal, Array2D<double>& RawSpectrumImaginary, Array2D<double>& FilteredSpectrumReal, Array2D<double>& FilteredSpectrumImaginary, int Lx, int Ly, double dem_res, double f1, double f2)
-{
-  // CALCULATE FREQUENCY INCREMENTS - for generation of power spectrum
-  // Frequency goes from zero to 1/(2*resolution), the Nyquist frequency in
-  // nrows_padded/2 increments.
-  double dfx = 1/(dem_res*Lx);
-  double dfy = 1/(dem_res*Ly);
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  cout << "    Highpass filter with edges controlled by radial Gaussian function between f1 = " << f1 << " and f2 = " << f2 << endl;
-  double f; // radial frequency
-  double weight; // Filter weight
-  double sigma = sqrt((f2-f1)*(f2-f1))/3; // Standard Deviation of Gaussian filter
-  for (int i=0; i < Ly; ++i)
-  {
-    for (int j=0; j < Lx; ++j)
-    {
-      double x = j;
-      double y = i;
-      f = sqrt((y - (Ly/2))*(y - (Ly/2))*dfy*dfy + (x - (Lx/2))*(x - (Lx/2))*dfx*dfx); // distance from centre to this point. Converting position in frequency into an absolute frequency
-      if (f > f2)
-      {
-        weight = 1;
-      }
-      else
-      {
-        if (f2 > f1)
-        {
-          sigma = sqrt((f2-f1)*(f2-f1))/3;
-          weight = exp(-(f - f2)*(f-f2)/(2*sigma*sigma));
-        }
-        else
-        {
-          weight = 0; // this is for the case that f1 = f2 and essentially the weighting function acts with a hard edge at f=f1=f2.
-        }
-      }
-      FilteredSpectrumReal[i][j] = weight*RawSpectrumReal[i][j];
-      FilteredSpectrumImaginary[i][j] = weight*RawSpectrumImaginary[i][j];
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
-// WIENER FILTER
-// The Wiener filter is a spectral filter that removes noise from an image or
-// DEM.  Essentially, it works on the principle that the observed spectrum
-// contains the superposition of the real signal and an additional noise signal,
-// which we want to remove.  If we know, or can make a reasonable guess at the
-// noise, N(f), and signal, S(f), parts of the spectrum then we can remove the
-// noise using the filter:
-//
-//        phi(f) = |S(f)|^2/(|S(f)|^2 + |N(f)|^2)
-//
-// For topography; at long wavelengths the topographic signal obeys an
-// approximate power law relationship between amplitude and frequency,
-// decreasing as the frequency increases (and wavelength decreases).  Noise
-// typically dominates the high frequency part of the spectrum.  Thus at high
-// frequencies the spectrum is dominated by noise, and the filter weight goes to
-// zero.  In contrast, at low frequencies, the signal dominates and the filter
-// weight goes to 1.
-//
-void LSDRaster::wiener_filter(Array2D<double>& RawSpectrumReal, Array2D<double>& RawSpectrumImaginary, Array2D<double>& FilteredSpectrumReal, Array2D<double>& FilteredSpectrumImaginary, int Lx, int Ly, double dem_res, double WSS)
-{
-  vector<double> RadialPSD;
-  vector<double> RadialFrequency;
-  // CALCULATE FREQUENCY INCREMENTS - for generation of power spectrum
-  // Frequency goes from zero to 1/(2*resolution), the Nyquist frequency in
-  // nrows_padded/2 increments.
-  double dfx = 1/(dem_res*Lx);
-  double dfy = 1/(dem_res*Ly);
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // GET RADIAL POWER SPECTRUM
-  // For forward transform, return the spectral power of the topography both
-  // in a 2D array, and also as a one dimensional array of radial frequency
-  calculate_radial_PSD(RawSpectrumReal, RadialPSD, RadialFrequency, Lx, Ly, WSS, dem_res);
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // FIT POWER LAW TO SPECTRUM BETWEEN RANGE OF WAVELENGTHS 1000m - 100m (THE
-  // RANGE EXPECTED TO FALL WITHIN WAVELENGTHS CONTROLLED BY RIDGE-VALLEY
-  // TOPOGRAPHY)
-  cout << "  Fitting power law to data..." << endl;
-  vector<double> LogRadialFrequency;
-  vector<double> LogRadialPSD;
-  int n_freqs = RadialFrequency.size();
-  double f_low = 0.001; // frequency at wavelength of 1000m
-  double f_high = 0.01; // frequency at wavelength of 100m
-  double m_model,logc_model,c_model;      // Coefficients of power law fit => logPSD = logc + m*log(freq) => PSD = c*freq^m
-  for (int i = 0; i < n_freqs; ++i)
-  {
-    if(RadialFrequency[i] <= f_high && RadialFrequency[i] >= f_low)
-    {
-      LogRadialFrequency.push_back(log10(RadialFrequency[i]));
-      LogRadialPSD.push_back(log10(RadialPSD[i]));
-    }
-  }
-  // Least squares regression
-  vector<double> residuals;
-  vector<double> regression_results = simple_linear_regression(LogRadialFrequency, LogRadialPSD, residuals);
-  m_model = regression_results[0];
-  logc_model = regression_results[1];
-
-  //linear_fit(LogRadialFrequency, LogRadialPSD, m_model, logc_model);
-  c_model = pow(10,logc_model);
-
-  // Extend relationship across entire frequency range to produce model spectrum
-  vector<double> RadialPSD_model(n_freqs,0.0);
-  for (int i = 0; i < n_freqs; ++i)
-  {
-    RadialPSD_model[i] = c_model*pow(RadialFrequency[i],m_model);
-  }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // GET MEAN AMPLITUDE OF SPECTRUM CLOSE TO NYQUIST FREQUENCY AS ESTIMATE OF
-  // WHITE NOISE SPECTRUM
-
-  // MAKE INTO IF LOOP WITH CONDITION FOR WHITE NOISE VS MODEL NOISE
-
-  // Note that this assumes that high frequency "noise" is random.  We might
-  // expect that the high frequency content might actually be more structured
-  // than that, particularly if the high frequency signal is being produced by
-  // rock exposures, unfiltered vegetation, or even pesky gophers.
-  cout << "  Estimating noise distribution... ";
-
-  // i) Basically going to use a simple high-pass filter, and then average the
-  // amplitude to give noise.
-  //vector<double> WhiteNoise(n_freqs,0.0);
-  double f_highpass = pow(10,-0.7);
-  //double WhiteNoiseAmplitude = 0;
-  //for (int i = 0; i < RadialPSD_average.size(); ++i)
-  //{
-  //  if(RadialFrequency_grouped[i] >= f_highpass)
-  //  {
-  //    WhiteNoiseAmplitude += RadialPSD_average[i];
-  //  }
-  //}
-  //WhiteNoiseAmplitude = WhiteNoiseAmplitude/n_freqs_noise;
-  //for (int i = 0; i < n_freqs; ++i)
-  //{
-  //  WhiteNoise[i] = WhiteNoiseAmplitude;
-  //}
-  //----------------------------------------------------------------------------
-  // ii) Alternatively can model noise using a linear fit through the high
-  // frequency part of the spectrum - in particular it would be interesting to
-  // see if it approximates pink noise, which is ubiquitous to natural systems
-  // with self-organised criticality.
-  double m_noise,logc_noise,c_noise;
-  vector<double> LogRadialFrequency_highpass;
-  vector<double> LogRadialPSD_highpass;
-  for (int i = 0; i < n_freqs; ++i)
-  {
-    if(RadialFrequency[i] >= f_highpass)
-    {
-      LogRadialFrequency_highpass.push_back(log10(RadialFrequency[i]));
-      LogRadialPSD_highpass.push_back(log10(RadialPSD[i]));
-    }
-  }
-  // Least squares regression
-  regression_results = simple_linear_regression(LogRadialFrequency_highpass, LogRadialPSD_highpass,  residuals);
-  m_noise = regression_results[0];
-  logc_noise = regression_results[1];
-
-
-  //linear_fit(LogRadialFrequency_highpass, LogRadialPSD_highpass, m_noise, logc_noise);
-
-
-  c_noise = pow(10,logc_noise);
-  // Extend relationship across entire frequency range to produce model spectrum
-  vector<double> Noise_model(n_freqs,0.0);
-  for (int i = 0; i < n_freqs; ++i)
-  {
-    Noise_model[i] = c_noise*pow(RadialFrequency[i],m_noise);
-  }
-  //cout << "Modeled noise exponent = " << m_noise << endl;
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // WIENER FILTER
-  // Determine Wiener Coefficients and apply to spectrum
-  // WienerCoefficient = Signal/(Signal + Noise).  Basically acts as a lowpass
-  // filter to remove noise from image.
-  double model;
-  double noise;
-  double f; // radial frequency
-  double WienerCoefficient; // Filter weight
-  for (int i=0; i < Ly; ++i)
-  {
-    for (int j=0; j < Lx; ++j)
-    {
-      double x = j;
-      double y = i;
-      f = sqrt((y - (Ly/2))*(y - (Ly/2))*dfy*dfy + (x - (Lx/2))*(x - (Lx/2))*dfx*dfx); // Radial Frequency
-      model = c_model*pow(f,m_model);
-      noise = c_noise*pow(f,m_noise);
-      if (f == 0) WienerCoefficient = 1;
-      else WienerCoefficient = model/(model+noise);
-      FilteredSpectrumReal[i][j] = WienerCoefficient*RawSpectrumReal[i][j];
-      FilteredSpectrumImaginary[i][j] = WienerCoefficient*RawSpectrumImaginary[i][j];
-    }
-  }
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// MAIN FUNCTIONS USING SPECTRAL FILTERS
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// FAST FOURIER TRANSFORM FILTER FOR A REAL, 2-DIMENSIONAL DATASET.
-//
-// Note that FLow <= FHigh
-//
-// There are three types of filters depending on the intentions of the user
-//
-// BANDPASS FILTER (FilterType = 1)
-// Filter array to band between frequency bands f1 and f2.  The bandpass filter
-// is a gaussian filter centred at (f1+f2)/2 and with a SD of |f2-f1|/6.
-//
-// LOWPASS FILTER (FilterType = 2)
-// Filter array to retain frequencies below f1.  The filter edge is a radial
-// gaussian function with a SD of |f2-f1|/3.  f1 is the frequency below which
-// the filter starts to taper; f2 is the frequency at which the filter tapers to
-// zero. If f1 = f2, the edge is effectively a step function.
-// HIGHPASS FILTER (FilterType = 3)
-//
-// Filter array to retain frequencies above f2.  The filter edge is a radial
-// gaussian function with a SD of |f2-f1|/3.  f2 is the frequency below which
-// the filter starts to taper; f1 is the frequency at which the filter tapers to
-// zero. If f1 = f2, the edge is effectively a step function.
-//
-// A second type of bandpass filter is possible by combining the highpass and
-// lowpass filters.
-//------------------------------------------------------------------------------
-// David Milodowski, 10/12/2012
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster LSDRaster::fftw2D_filter(int FilterType, double FLow, double FHigh)
-{
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // for FORWARD TRANSFORM
-  cout << "\n***fftw_2Dfilt_v1.1: spectral filtering of array***" << endl;
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DETREND DATA => DO NOT WINDOW!
-	// FIT PLANE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO DETERMINE
-	// LOCAL SLOPE ax + by + c = z
-	Array2D<double> zeta_detrend(NRows,NCols);
-	Array2D<double> trend_plane(NRows,NCols);
-  detrend2D(RasterData, zeta_detrend, trend_plane, NRows, NCols, NoDataValue);
-  //double WSS = 1; // dataset is not windowed
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // 2D DISCRETE FAST FOURIER TRANSFORM
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // PAD DATA WITH ZEROS TO A POWER OF TWO (facilitates FFT)
-  int Ly = int(pow(2,ceil(log(NRows)/log(2))));
-  int Lx = int(pow(2,ceil(log(NCols)/log(2))));
-
-  Array2D<double> zeta_padded(Ly,Lx);
-  for (int i=0;i<Ly;++i)
-  {
-    for (int j=0;j<Lx;++j)
-    {
-      if (i<NRows && j<NCols)
-      {
-        zeta_padded[i][j] = zeta_detrend[i][j];
-      }
-      else
-      {
-        zeta_padded[i][j]=0;
-      }
-    }
-  }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DO 2D FORWARD FAST FOURIER TRANSFORM
-  int transform_direction = -1;
-  Array2D<double> spectrum_real(Ly,Lx);
-  Array2D<double> spectrum_imaginary(Ly,Lx);
-  dfftw2D_fwd(zeta_padded, spectrum_real, spectrum_imaginary, transform_direction, Ly, Lx);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // REARRANGE SPECTRUM SO THAT ORIGIN IS AT THE CENTRE
-  Array2D<double> spectrum_real_shift(Ly,Lx);
-  Array2D<double> spectrum_imaginary_shift(Ly,Lx);
-  shift_spectrum(spectrum_real, spectrum_imaginary, spectrum_real_shift, spectrum_imaginary_shift, Ly, Lx);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // INVERSE TRANSFORM
-  // For inverse tranform, take 2D power spectrum.  Filter for desired frequncy
-  // band and return spectrally filtered topography
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // APPLY FILTER
-  // First, remove the frequency ranges that are not wanted
-  Array2D<double> FilteredSpectrumReal(Ly,Lx,0.0);
-  Array2D<double> FilteredSpectrumImaginary(Ly,Lx,0.0);
-
-  // SET FILTER PARAMETERS
-  if (FilterType == 1)
-  {
-    bandpass_filter(spectrum_real_shift, spectrum_imaginary_shift, FilteredSpectrumReal, FilteredSpectrumImaginary, Lx, Ly, DataResolution, FLow, FHigh);
-  }
-  else if (FilterType == 2)
-  {
-    lowpass_filter(spectrum_real_shift, spectrum_imaginary_shift, FilteredSpectrumReal, FilteredSpectrumImaginary, Lx, Ly, DataResolution, FLow, FHigh);
-  }
-  else if (FilterType == 3)
-  {
-    highpass_filter(spectrum_real_shift, spectrum_imaginary_shift, FilteredSpectrumReal, FilteredSpectrumImaginary, Lx, Ly, DataResolution, FLow, FHigh);
-  }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DE-SHIFT ORIGIN OF SPECTRUM
-  // Return filtered spectrum to original format (de-shifted)
-  Array2D<double> FilteredSpectrumReal_deshift(Ly,Lx);
-  Array2D<double> FilteredSpectrumImaginary_deshift(Ly,Lx);
-  shift_spectrum_inv(FilteredSpectrumReal, FilteredSpectrumImaginary, FilteredSpectrumReal_deshift, FilteredSpectrumImaginary_deshift, Ly, Lx);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DO 2D INVERSE FAST FOURIER TRANSFORM
-  transform_direction = 1;
-  Array2D<double> FilteredTopographyPadded(Ly,Lx);
-  dfftw2D_inv(FilteredSpectrumReal_deshift, FilteredSpectrumImaginary_deshift, FilteredTopographyPadded, transform_direction, Ly, Lx);
-  // Need to scale output by the number of pixels, and by the Hann window to
-  // recover the topography, before adding the planar trend back to the dataset
-  cout << "  Scaling output filtered topography..." << endl;
-  Array2D<double> FilteredTopography(NRows,NCols,NoDataValue);
-  for (int i=0; i < NRows; ++i)
-  {
-    for (int j=0; j < NCols; ++j)
-    {
-      FilteredTopography[i][j] = FilteredTopographyPadded[i][j]/(Lx*Ly) + trend_plane[i][j];
-    }
-  }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  LSDRaster FilteredTopographyRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilteredTopography);
-  return FilteredTopographyRaster;
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// WIENER FILTER FOR A REAL, 2-DIMENSIONAL DATASET.
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//
-// The Wiener filter is a spectral filter that removes noise from an image or
-// DEM.  Essentially, it works on the principle that the observed spectrum
-// contains the superposition of the real signal and an additional noise signal,
-// which we want to remove.  If we know, or can make a reasonable guess at the
-// noise, N(f), and signal, S(f), parts of the spectrum then we can remove the
-// noise using the filter:
-//
-//        phi(f) = |S(f)|^2/(|S(f)|^2 + |N(f)|^2)
-//
-// For topography; at long wavelengths the topographic signal obeys an
-// approximate power law relationship between amplitude and frequency,
-// decreasing as the frequency increases (and wavelength decreases).  Noise
-// typically dominates the high frequency part of the spectrum.  Thus at high
-// frequencies the spectrum is dominated by noise, and the filter weight goes to
-// zero.  In contrast, at low frequencies, the signal dominates and the filter
-// weight goes to 1.
-//
-// The optimal wiener filter is described in more detail in Numerical Recipes,
-// 13.3, p149.
-//
-// The exact structure of the noise is worth thinking about.  White noise, which
-// is random, has equal power across all wavelengths.  In the instance of
-// topography, noise can be created by a whole range of sources, from rock
-// exposure, to pit and mound topography, to unfiltered vegetation etc.  It is
-// likely that these sources will not produce purely white noise, but rather
-// will show an element of structure.  This program makes two assumptions about
-// the noise: i) it dominates the signal at high frequencies (close to the
-// Nquist frequency) and ii) we can reasonably model this using a linear fit in
-// log-log space - i.e. it obeys some form of power law function between
-// frequency and amplitude.  Note that if the noise in the signal is really
-// white noise, then the power law function for the noise would simply have an
-// exponent of zero.  I prefer this formulation because it permits the
-// characterisation of the noise model without assuming that the noise has a
-// particular structure (white noise, pink noise etc.)
-//
-//------------------------------------------------------------------------------
-// David Milodowski, 10/12/2012
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster LSDRaster::fftw2D_wiener()
-{
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DETREND DATA => DO NOT WINDOW!
-	// FIT PLANE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO DETERMINE
-	// LOCAL SLOPE ax + by + c = z
-	Array2D<double> zeta_detrend(NRows,NCols);
-	Array2D<double> trend_plane(NRows,NCols);
-  detrend2D(RasterData, zeta_detrend, trend_plane, NRows, NCols, NoDataValue);
-  double WSS = 1; // dataset is not windowed
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // 2D DISCRETE FAST FOURIER TRANSFORM
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // PAD DATA WITH ZEROS TO A POWER OF TWO (facilitates FFT)
-  int Ly = int(pow(2,ceil(log(NRows)/log(2))));
-  int Lx = int(pow(2,ceil(log(NCols)/log(2))));
-
-  Array2D<double> zeta_padded(Ly,Lx);
-  for (int i=0;i<Ly;++i)
-  {
-    for (int j=0;j<Lx;++j)
-    {
-      if (i<NRows && j<NCols)
-      {
-        zeta_padded[i][j] = zeta_detrend[i][j];
-      }
-      else
-      {
-        zeta_padded[i][j]=0;
-      }
-    }
-  }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DO 2D FORWARD FAST FOURIER TRANSFORM
-  int transform_direction = -1;
-  Array2D<double> spectrum_real(Ly,Lx);
-  Array2D<double> spectrum_imaginary(Ly,Lx);
-  dfftw2D_fwd(zeta_padded, spectrum_real, spectrum_imaginary, transform_direction, Ly, Lx);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // REARRANGE SPECTRUM SO THAT ORIGIN IS AT THE CENTRE
-  Array2D<double> spectrum_real_shift(Ly,Lx);
-  Array2D<double> spectrum_imaginary_shift(Ly,Lx);
-  shift_spectrum(spectrum_real, spectrum_imaginary, spectrum_real_shift, spectrum_imaginary_shift, Ly, Lx);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // INVERSE TRANSFORM
-  // For inverse tranform, take 2D power spectrum.  Filter for desired frequncy
-  // band and return spectrally filtered topography
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // APPLY FILTER
-  // First, remove the frequency ranges that are not wanted
-  Array2D<double> FilteredSpectrumReal(Ly,Lx,0.0);
-  Array2D<double> FilteredSpectrumImaginary(Ly,Lx,0.0);
-  // SET FILTER PARAMETERS
-  wiener_filter(spectrum_real_shift, spectrum_imaginary_shift, FilteredSpectrumReal, FilteredSpectrumImaginary, Lx, Ly, DataResolution, WSS);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DE-SHIFT ORIGIN OF SPECTRUM
-  // Return filtered spectrum to original format (de-shifted)
-  Array2D<double> FilteredSpectrumReal_deshift(Ly,Lx);
-  Array2D<double> FilteredSpectrumImaginary_deshift(Ly,Lx);
-  shift_spectrum_inv(FilteredSpectrumReal, FilteredSpectrumImaginary, FilteredSpectrumReal_deshift, FilteredSpectrumImaginary_deshift, Ly, Lx);
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // DO 2D INVERSE FAST FOURIER TRANSFORM
-  transform_direction = 1;
-  Array2D<double> FilteredTopographyPadded(Ly,Lx);
-  dfftw2D_inv(FilteredSpectrumReal_deshift, FilteredSpectrumImaginary_deshift, FilteredTopographyPadded, transform_direction, Ly, Lx);
-  // Need to scale output by the number of pixels, and by the Hann window to
-  // recover the topography, before adding the planar trend back to the dataset
-  cout << "  Scaling output filtered topography..." << endl;
-  Array2D<double> FilteredTopography(NRows,NCols,NoDataValue);
-  for (int i=0; i < NRows; ++i)
-  {
-    for (int j=0; j < NCols; ++j)
-    {
-      FilteredTopography[i][j] = FilteredTopographyPadded[i][j]/(Lx*Ly) + trend_plane[i][j];
-    }
-  }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  LSDRaster FilteredTopographyRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilteredTopography);
-  return FilteredTopographyRaster;
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-*/
 
 #endif
