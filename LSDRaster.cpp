@@ -3140,7 +3140,7 @@ vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect,
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
-                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope)
+                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope, string RasterFilename)
 {
 
   vector<int> basin_index;
@@ -3279,8 +3279,10 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
   }
 
 
+  stringstream filename;
+  filename << RasterFilename << "_BasinMetrics.txt";
   ofstream file;
-  file.open("Basin_metrics.txt");
+  file.open(filename.str().c_str());
   file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*" << endl;
 
   for(int q = 0; q < int(BasinIDVector.size()); q++){
