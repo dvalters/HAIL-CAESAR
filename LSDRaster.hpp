@@ -815,7 +815,8 @@ class LSDRaster
   /// @param MeanSlope
   /// @param Relief
   /// @param MeanAspect
-  /// @param CriticalSlope Threshold value for E* and R* values
+  /// @param CriticalSlope Threshold value for E* and R* values.
+  /// @param RasterFilename Filename of the input raster data.
   /// SWDG 27/8/13
   void CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect,
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
@@ -913,7 +914,7 @@ class LSDRaster
   /// <p>Returns a vector of Array2D<double> objects which are the hilltop network 
   /// coded with the hilltop metric values calculated for that pixel. This data is 
   /// also provided in the output text file written into the current path with the 
-  /// filename <prefix>_HIlltopData.txt and the data within holds the format: \n\n
+  /// filename [prefix]_HilltopData.txt and the data within holds the format: \n\n
   /// "hilltop_i hilltop_j hilltop_easting hilltop_northing stream_i stream_j stream_easting stream_northing stream_id basin_id relief lh aspect slope"</p>
   ///
   /// The structure of the returned vector< Array2D<double> > is as follows: \n\n
@@ -925,7 +926,7 @@ class LSDRaster
   ///
   /// @param Hilltops LSDRaster of hilltops.
   /// @param FlowDir Array2D of flow directions (or pixel aspects) in degrees.
-  /// @param StreamNet LSDIndexRaster of the stream network.
+  /// @param StreamNetwork LSDIndexRaster of the stream network.
   /// @param Basins_Raster LSDIndexRaster of drainage basins.
   /// @param prefix String Prefix for output data filename. 
   /// @return Vector of Array2D<double> containing hillslope metrics.
