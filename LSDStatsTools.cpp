@@ -1693,9 +1693,6 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
   int NRows = InputArrayX.dim1();
   int NCols = InputArrayX.dim2();
 
-
-  cout << NRows << endl;
-
   // Finding max contributing area to use as upper limit for the bins
   double max_X = 0;
 	double min_X = 0;
