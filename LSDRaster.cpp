@@ -3108,7 +3108,7 @@ vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster 
 
   vector<LSDRaster> BasinVector; //vector to contain individual basin LSDRasters
 
-  for(string::size_type a = 0; a < basin_ids.size(); ++a){
+  for(int a = 0; a < int(basin_ids.size()); ++a){
 
     Array2D<double> BasinDEM(NRows, NCols, NoDataValue);
     bool Flag = false;
@@ -3124,8 +3124,7 @@ vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster 
 
     if (Flag == true){ //only write the raster if there is data to write
       LSDRaster Basin(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,BasinDEM);
-      LSDRaster TidyBasin = Basin.RasterTrimmer();
-      BasinVector.push_back(TidyBasin);
+      BasinVector.push_back(Basin);
     }
   }
   return BasinVector;
