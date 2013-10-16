@@ -2672,6 +2672,25 @@ LSDRaster LSDRaster::D_inf(){
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//Wrapper Function to create a D-infinity flow area raster, in spatial units, with one function call.
+//
+//SWDG - 16/10/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::D_inf_units(){
+
+  Array2D<double> Dinf_flow = D_inf_FlowDir();
+  LSDRaster Dinf_area = D_inf_FlowArea(Dinf_flow);
+
+  double cell_area = DataResolution*DataResolution;
+  Array2D<double> pixel_area(NRows, NCols, cell_area);
+
+  Array2D<double> Dinf_area_units = Dinf_area.get_RasterData() * pixel_area; 
+  LSDRaster Dinf_area_units_raster = Dinf_area.LSDRasterTemplate(Dinf_area_units);
+
+  return Dinf_area_units_raster;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //end of d-inf modules
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
