@@ -2680,4 +2680,40 @@ vector<int> LSDChannelNetwork::get_BaseLevel_DonorJunctions()
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// GET RECEIVER JUNCTION FOR SPECIFIED COORDINATES
+// For input coordinates (e.g. the location of a cosmogenic radionuclide sample), get the
+// closest downslope node of the catchment.  This enables easy extraction of catchment
+// for analysis.
+// DTM 17/10/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+int LSDChannelNetwork::get_receiver_junction_for_specified_coordinates(double X_coordinate, double Y_coordinate, LSDFlowInfo& FlowInfo)
+{
+  // Shift origin to that of dataset
+  double X_coordinate_shifted_origin = X_coordinate - XMinimum;
+  double Y_coordinate_shifted_origin = Y_coordinate - YMinimum;
+  
+  // Get row and column of point
+  int col_point = int(X_coordinate_shifted_origin/DataResolution);
+  int row_point = (NRows - 1) - int(round(Y_coordinate_shifted_origin/DataResolution));
+  
+  // Find first downstream junction by running through receiver nodes until you
+  // find a junction.
+  int at_junction = 0;
+  int CurrentNode = FlowInfo.NodeIndex[row_point][col_point];
+  int ReceiverRow, ReceiverCol, ReceiverNode, junction;
+  while(at_junction<1)
+  {
+    FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
+    CurrentNode = ReceiverNode;
+    junction = retrieve_junction_number_at_row_and_column(ReceiverRow,ReceiverCol);
+    //test to see if receiver node is in channel
+    if(junction != NoDataValue) ++at_junction;        
+  }
+  return junction;   
+}
+
 #endif
