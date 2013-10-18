@@ -539,11 +539,11 @@ class LSDChannelNetwork
 
   /// @brief Function to snap input coordinates to the nearest junction. This 
   /// enables easy extraction of a particular catchment for analysis.
-  /// @param double X_coordinate of point.
-  /// @param double Y_coordinate of point.
+  /// @param X_coordinate of point.
+  /// @param Y_coordinate of point.
   /// @param FlowInfo LSDFlowInfo object.
   /// @author DTM 
-  /// @data 17/10/2013
+  /// @date 17/10/2013
   int get_receiver_junction_for_specified_coordinates(double X_coordinate, double Y_coordinate, LSDFlowInfo& FlowInfo);
   
 	// Get functions
