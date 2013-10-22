@@ -552,25 +552,45 @@ class LSDChannelNetwork
   /// @param X_coordinate of point. In coordiantes of DEM (usually UTM).
   /// @param Y_coordinate of point. In coordiantes of DEM (usually UTM).
   /// @param threshold_stream_order The minimum stream order that will be considers a 'channel' by the algorithm
+  /// @param search_radius_nodes the radius of the kernal used to check if there is a nearby channel. A radius of 0 only
+  /// includes the centre point, a radius of 1 has a kernal diameter of 3,  radius of 2 has a kernal diameter of 5
+  /// and so on
   /// @param FlowInfo LSDFlowInfo object.
   /// @return Returns the NodeIndex of the nearest channel node.
   /// @author SMM
   /// @date 21/10/2013
   int get_nodeindex_of_nearest_channel_for_specified_coordinates(double X_coordinate,
-                            double Y_coordinate, int threshold_stream_order, LSDFlowInfo& FlowInfo);
+                            double Y_coordinate, int threshold_stream_order, int search_radius_nodes, LSDFlowInfo& FlowInfo);
+
+
+
+	/// @brief This function takes a node index, checks to see if it is on a channel,
+	/// and then works its way up the channel to find the upstream junction
+	/// @param ChannelNodeIndex is the node index of the channel node (if it isn't a channel
+	/// the function returns NoDataValue
+	/// @param FlowInfo LSDFlowInfo object.
+    /// @return Returns the Junction Number of the nearest upslope junction
+    /// @author SMM
+    /// @date 21/10/2013
+	int find_upstream_junction_from_channel_nodeindex(int ChannelNodeIndex, LSDFlowInfo& FlowInfo);
 
 	// Get functions
 
 	/// @return Number of rows as an integer.
 	int get_NRows() const				{ return NRows; }
+
 	/// @return Number of columns as an integer.
   int get_NCols() const				{ return NCols; }
+
   /// @return Minimum X coordinate as an integer.
 	double get_XMinimum() const			{ return XMinimum; }
+
 	/// @return Minimum Y coordinate as an integer.
 	double get_YMinimum() const			{ return YMinimum; }
+
 	/// @return Data resolution as an integer.
 	double get_DataResolution() const	{ return DataResolution; }
+
 	/// @return No Data Value as an integer.
 	int get_NoDataValue() const			{ return NoDataValue; }
 

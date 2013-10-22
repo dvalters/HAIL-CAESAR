@@ -1422,7 +1422,7 @@ vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodBasinOrder(int BasinOrde
 // as being part of the channel using chi profiles.  It calculates the chi and elevation value
 // of every pixel upstream of the given junction, then bins this data and calculates the pixels
 // in the 95th percentile of each bin.  Any pixels above the 95th percentile are considered part
-// of the channel, and any below are considered to be hillslopes.  This is the first part of the 
+// of the channel, and any below are considered to be hillslopes.  This is the first part of the
 // channel head prediction using chi profiles.
 //
 // Parameters: Junction number, A_0, m over n, bin width (suggested value of 10), FlowInfo object,
@@ -1433,7 +1433,7 @@ vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodBasinOrder(int BasinOrde
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionNumber,
-                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo, 
+                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster)
 {
   Array2D<int> channel_pixels(NRows,NCols,NoDataValue);
@@ -1442,13 +1442,13 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
 	string jn_name = itoa(JunctionNumber);
 	string uscore = "_";
 	jn_name = uscore+jn_name;
-  
+
   //get the chi and elevation values of each upslope node
   vector<int> upslope_nodes = FlowInfo.get_upslope_nodes(starting_node);
   vector<double> upslope_chi = FlowInfo.get_upslope_chi(starting_node, m_over_n, A_0);
   vector<double> elevation;
   int row,col;
-  
+
   string string_filename_all;
 	string filename_all = "chi_profile_all";
 	string dot = ".";
@@ -1457,7 +1457,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
 	ofstream chi_profile_all;
 	chi_profile_all.open(string_filename_all.c_str());
 	//cout << "The filename is " << string_filename_all << endl;
-  
+
   for (unsigned int node=0; node < upslope_nodes.size(); node++)
   {
     FlowInfo.retrieve_current_row_and_col(upslope_nodes[node], row, col);
@@ -1465,7 +1465,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
     elevation.push_back(elev);
     chi_profile_all << upslope_chi[node] << " " << elev << endl;
   }
-	
+
 	string string_filename;
 	string filename = "chi_profile";
 	string_filename = filename+jn_name+dot+extension;
@@ -1473,7 +1473,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
 
 	ofstream chi_profile;
 	chi_profile.open(string_filename.c_str());
-  
+
   double lower_limit = 0;
   vector<double> mean_chi;
   vector<double> mean_elev;
@@ -1484,11 +1484,11 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
   vector<double> range_max;
 
   int NoDataValue = FlowInfo.get_NoDataValue();
-  
+
   //bin the data to find the range of the 95th percentile
-  bin_data(upslope_chi, elevation, bin_width, mean_chi, mean_elev, midpoints, 
+  bin_data(upslope_chi, elevation, bin_width, mean_chi, mean_elev, midpoints,
            st_dev_chi, st_dev_elev, range_min, range_max, lower_limit, NoDataValue);
-  
+
   //find the most linear channel segment (highest r2 value)
   int n_bins = mean_chi.size();
   int min_seg_length = n_bins/10;
@@ -1498,7 +1498,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
 	vector<double>::iterator vec_iter_end;
 	double max_r2 = 0;
 	double elev_limit = 0;
-  
+
   for (int channel_segment = min_seg_length; channel_segment <= n_bins-min_seg_length; channel_segment++)
   {
     //assigning the chi values of the channel segment
@@ -1512,7 +1512,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
 	  vec_iter_start = range_min.begin();
 	  vec_iter_end = vec_iter_start+channel_segment;
 	  channel_elev.assign(vec_iter_start,vec_iter_end);
-	  
+
 	  //performing linear regression on channel segment: getting highest r2
 	  vector<double> residuals_chan;
     vector<double> results_chan = simple_linear_regression(channel_chi,channel_elev, residuals_chan);
@@ -1520,10 +1520,10 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
     if (r2 > max_r2)
     {
       max_r2 = r2;
-      elev_limit = channel_elev.back();   
-    }       
-  } 
- 
+      elev_limit = channel_elev.back();
+    }
+  }
+
   //extend the linear channel segment up through the plot
   vector<double> mean_chi_regression;
   vector<double> range_min_regression;
@@ -1532,7 +1532,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
   range_min_regression.resize(range_min.size());
   elev_regression.resize(range_min.size());
   double regression_pointer = 0;
- 
+
   for (unsigned int i=0; i<range_min.size(); i++)
   {
     if (range_min[i] <= elev_limit)
@@ -1542,17 +1542,17 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
         mean_chi_regression[i] = mean_chi[i];
         range_min_regression[i] = range_min[i];
         regression_pointer = i;
-      } 
-    } 
+      }
+    }
   }
-   
+
   double x1 = mean_chi_regression.front();
   double y1 = range_min_regression.front();
   double x2 = mean_chi_regression[regression_pointer];
-  double y2 = range_min_regression[regression_pointer];     
+  double y2 = range_min_regression[regression_pointer];
   double gradient = (y2 - y1)/(x2 - x1);
   double intercept = y2 - (gradient * x2);
-  
+
   for (int i = 0; i < n_bins; i++)
   {
     if (range_min[i] <=elev_limit)
@@ -1564,23 +1564,23 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
       elev_regression[i] = mean_chi[i]*gradient + intercept;
     }
   }
-  
+
   for(int i = 0 ; i< n_bins; i++)
-  {	
+  {
     if (mean_chi[i] != 0)
-    {  
+    {
       chi_profile << mean_chi[i] << " " << mean_elev[i] << " " << range_min[i] << " " << range_max[i] << " " << elev_regression[i] << endl;
     }
   }
   chi_profile.close();
-  
+
   //classify any nodes to the left of the channel segment as the channel; any nodes to the
   // right are classified as hillslopes
   vector<int> channel_nodes;
   vector<int> upslope_nodes_temp;
   vector<int> source_nodes;
   vector<int>::iterator iterator_find;
-  
+
   for (unsigned int i=0; i < upslope_nodes.size(); i++)
   {
     int bin_id = int((upslope_chi[i]-lower_limit)/bin_width);
@@ -1595,7 +1595,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
       channel_pixels[row][col] = 0;
     }
   }
-  
+
   return channel_pixels;
 
 }
@@ -1607,7 +1607,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
 // as being part of the channel using chi profiles.  It calculates the chi and elevation value
 // of every pixel upstream of the given junction, then bins this data and calculates the pixels
 // in the 95th percentile of each bin.  Any pixels above the 95th percentile are considered part
-// of the channel, and any below are considered to be hillslopes.  This is the first part of the 
+// of the channel, and any below are considered to be hillslopes.  This is the first part of the
 // channel head prediction using chi profiles.
 //
 // Parameters: Junction number, A_0, m over n, bin width (suggested value of 10), FlowInfo object,
@@ -1618,7 +1618,7 @@ Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionN
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumber,
-                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo, 
+                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster)
 {
   // get the node index of this junction
@@ -1626,20 +1626,20 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
 	string jn_name = itoa(JunctionNumber);
 	string uscore = "_";
 	jn_name = uscore+jn_name;
-  
+
   //get the chi and elevation values of each upslope node
   vector<int> upslope_nodes = FlowInfo.get_upslope_nodes(starting_node);
   vector<double> upslope_chi = FlowInfo.get_upslope_chi(starting_node, m_over_n, A_0);
   vector<double> elevation;
   int row,col;
-  
+
   for (unsigned int node=0; node < upslope_nodes.size(); node++)
   {
     FlowInfo.retrieve_current_row_and_col(upslope_nodes[node], row, col);
     double elev = ElevationRaster.get_data_element(row,col);
     elevation.push_back(elev);
   }
-  
+
   double lower_limit = 0;
   vector<double> mean_chi;
   vector<double> mean_elev;
@@ -1650,11 +1650,11 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
   vector<double> range_max;
 
   int NoDataValue = FlowInfo.get_NoDataValue();
-  
+
   //bin the data to find the range of the 95th percentile
-  bin_data(upslope_chi, elevation, bin_width, mean_chi, mean_elev, midpoints, 
+  bin_data(upslope_chi, elevation, bin_width, mean_chi, mean_elev, midpoints,
            st_dev_chi, st_dev_elev, range_min, range_max, lower_limit, NoDataValue);
-  
+
   //find the most linear channel segment (highest r2 value)
   int n_bins = mean_chi.size();
   int min_seg_length = n_bins/10;
@@ -1664,7 +1664,7 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
 	vector<double>::iterator vec_iter_end;
 	double max_r2 = 0;
 	double elev_limit = 0;
-  
+
   for (int channel_segment = min_seg_length; channel_segment <= n_bins-min_seg_length; channel_segment++)
   {
     //assigning the chi values of the channel segment
@@ -1678,7 +1678,7 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
 	  vec_iter_start = range_min.begin();
 	  vec_iter_end = vec_iter_start+channel_segment;
 	  channel_elev.assign(vec_iter_start,vec_iter_end);
-	  
+
 	  //performing linear regression on channel segment: getting highest r2
 	  vector<double> residuals_chan;
     vector<double> results_chan = simple_linear_regression(channel_chi,channel_elev, residuals_chan);
@@ -1686,10 +1686,10 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
     if (r2 > max_r2)
     {
       max_r2 = r2;
-      elev_limit = channel_elev.back();   
-    }       
-  } 
- 
+      elev_limit = channel_elev.back();
+    }
+  }
+
   //extend the linear channel segment up through the plot
   vector<double> mean_chi_regression;
   vector<double> range_min_regression;
@@ -1698,7 +1698,7 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
   range_min_regression.resize(range_min.size());
   elev_regression.resize(range_min.size());
   double regression_pointer = 0;
- 
+
   for (unsigned int i=0; i<range_min.size(); i++)
   {
     if (range_min[i] <= elev_limit)
@@ -1708,17 +1708,17 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
         mean_chi_regression[i] = mean_chi[i];
         range_min_regression[i] = range_min[i];
         regression_pointer = i;
-      } 
-    } 
+      }
+    }
   }
-   
+
   double x1 = mean_chi_regression.front();
   double y1 = range_min_regression.front();
   double x2 = mean_chi_regression[regression_pointer];
-  double y2 = range_min_regression[regression_pointer];     
+  double y2 = range_min_regression[regression_pointer];
   double gradient = (y2 - y1)/(x2 - x1);
   double intercept = y2 - (gradient * x2);
-  
+
   for (int i = 0; i < n_bins; i++)
   {
     if (range_min[i] <=elev_limit)
@@ -1730,12 +1730,12 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
       elev_regression[i] = mean_chi[i]*gradient + intercept;
     }
   }
-  
+
   //classify any nodes to the left of the channel segment as the channel; any nodes to the
   // right are classified as hillslopes
   vector<int> channel_nodes;
   vector<int> source_nodes;
-  
+
   for (unsigned int i=0; i < upslope_nodes.size(); i++)
   {
     int bin_id = int((upslope_chi[i]-lower_limit)/bin_width);
@@ -1745,7 +1745,7 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
       channel_nodes.push_back(upslope_nodes[i]);
     }
   }
-  
+
   // find the furthest upslope nodes classified as being part of the channel network (use as sources for next
   // step of chi method)
 
@@ -2695,11 +2695,11 @@ int LSDChannelNetwork::get_receiver_junction_for_specified_coordinates(double X_
   // Shift origin to that of dataset
   double X_coordinate_shifted_origin = X_coordinate - XMinimum;
   double Y_coordinate_shifted_origin = Y_coordinate - YMinimum;
-  
+
   // Get row and column of point
   int col_point = int(X_coordinate_shifted_origin/DataResolution);
   int row_point = (NRows - 1) - int(round(Y_coordinate_shifted_origin/DataResolution));
-  
+
   // Find first downstream junction by running through receiver nodes until you
   // find a junction.
   int at_junction = 0;
@@ -2711,9 +2711,206 @@ int LSDChannelNetwork::get_receiver_junction_for_specified_coordinates(double X_
     CurrentNode = ReceiverNode;
     junction = retrieve_junction_number_at_row_and_column(ReceiverRow,ReceiverCol);
     //test to see if receiver node is in channel
-    if(junction != NoDataValue) ++at_junction;        
+    if(junction != NoDataValue) ++at_junction;
   }
-  return junction;   
+  return junction;
 }
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// GET node index of nearest channel for specificed coordinates
+// For input coordinates (e.g. the location of a cosmogenic radionuclide sample), get the
+// node index of the nearest channel.  This enables easy extraction of catchment
+// for analysis.
+//
+// The X_coordinate and Y_coordinate should be in the
+// same spatial reference as the DEM, typically in UTM
+//
+// The threshold stream order is the stream order that qualifies as a 'channel'
+//
+// SMM 21/10/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+int LSDChannelNetwork::get_nodeindex_of_nearest_channel_for_specified_coordinates(double X_coordinate,
+                            double Y_coordinate, int search_radius_nodes, int threshold_stream_order, LSDFlowInfo& FlowInfo)
+{
+
+	// variables neighbor search
+	int kernal_size = search_radius_nodes*2+1;
+	int this_krow, this_kcol;
+	int largest_SO_in_kernal;
+	int this_SO;
+	int largest_SO_row, largest_SO_col;
+
+	// Shift origin to that of dataset
+  	double X_coordinate_shifted_origin = X_coordinate - XMinimum;
+  	double Y_coordinate_shifted_origin = Y_coordinate - YMinimum;
+
+  	// Get row and column of point
+  	int col_point = int(X_coordinate_shifted_origin/DataResolution);
+  	int row_point = (NRows - 1) - int(round(Y_coordinate_shifted_origin/DataResolution));
+
+  	// Find first downstream junction by running through receiver nodes until you
+  	// find a junction.
+  	int CurrentNode = FlowInfo.NodeIndex[row_point][col_point];
+  	int ReceiverRow, ReceiverCol, ReceiverNode, CurrentCol, CurrentRow;
+
+  	// get the current row and column
+  	FlowInfo.retrieve_current_row_and_col(CurrentNode,CurrentRow,CurrentCol);
+
+	// get the first receiver
+	FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
+
+
+  	// make sure you are not at base level
+  	int NearestChannel = NoDataValue;
+
+	// check to see if this node has a stream order >= 1
+	if(StreamOrderArray[CurrentRow][CurrentCol] >= threshold_stream_order)
+	{
+		NearestChannel = CurrentNode;
+	}
+
+	//cout << "Node: " << CurrentNode << " Row: " << CurrentRow << " Col: "
+	//	 << CurrentCol << " SO: " << StreamOrderArray[CurrentRow][CurrentCol] << endl;
+
+	// loop until you find a channel
+	while(NearestChannel == NoDataValue && CurrentNode != ReceiverNode)
+	{
+		// now move down one node
+		CurrentNode = ReceiverNode;
+
+		// get the current row and column
+		FlowInfo.retrieve_current_row_and_col(CurrentNode,CurrentRow,CurrentCol);
+
+		//cout << "Node: " << CurrentNode << " Row: " << CurrentRow << " Col: "
+		//     << CurrentCol << " SO: " << StreamOrderArray[CurrentRow][CurrentCol] << endl;
+
+		// now search the kernal
+		largest_SO_in_kernal = NoDataValue;
+		largest_SO_row = NoDataValue;
+		largest_SO_col = NoDataValue;
+		for (int krow = 0; krow<kernal_size; krow++)
+		{
+			for (int kcol = 0; kcol<kernal_size; kcol++)
+			{
+				// get the row and column
+				this_krow = CurrentRow-search_radius_nodes+krow;
+				this_kcol = CurrentCol-search_radius_nodes+kcol;
+
+				// only test if it within size of the Stream Order array
+				if(this_krow >= 0 && this_krow < NRows-1 && this_kcol >= 0 && this_kcol < NCols-1)
+				{
+					this_SO = StreamOrderArray[this_krow][this_kcol];
+					if (this_SO >= threshold_stream_order && this_SO > largest_SO_in_kernal)
+					{
+						largest_SO_in_kernal = this_SO;
+						largest_SO_row = this_krow;
+						largest_SO_col = this_kcol;
+					}
+				}
+			}
+		}
+
+		// check to if the kernal returned a channel node
+		if(largest_SO_in_kernal != NoDataValue)
+		{
+			NearestChannel = FlowInfo.NodeIndex[largest_SO_row][largest_SO_col];
+		}
+		else		// get the next node
+		{
+			FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
+			//cout << "CurrentNode: " << CurrentNode << " RN: " << ReceiverNode << endl;
+		}
+
+	}
+
+	//cout << "Nearest_channel is: " << NearestChannel << endl;
+	return NearestChannel;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Find upstream junction from channel nodeindex
+//
+// This function takes a nodeindex, checks to see if it is a channel, and if so
+// it marches upstream until it finds a junction
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+int LSDChannelNetwork::find_upstream_junction_from_channel_nodeindex(int ChannelNodeIndex, LSDFlowInfo& FlowInfo)
+{
+	int UpstreamJunction = NoDataValue;
+	int CurrentNode = ChannelNodeIndex;
+	int CurrentRow, CurrentCol;
+	//int DonorRow, DonorCol;
+	int junction;
+	int donor_channel_order;
+
+	// get the current row and column
+	FlowInfo.retrieve_current_row_and_col(CurrentNode,CurrentRow,CurrentCol);
+
+	// get the stream order
+	int this_channel_order = StreamOrderArray[CurrentRow][CurrentCol];
+
+	if (this_channel_order != NoDataValue)
+	{
+		// first test if this is a junction
+		junction = retrieve_junction_number_at_row_and_column(CurrentRow,CurrentCol);
+		if(junction != NoDataValue)
+		{
+			UpstreamJunction = junction;
+		}
+
+
+
+		while (UpstreamJunction == NoDataValue)
+		{
+			// get the donors
+			vector<int> donors = FlowInfo.get_donor_nodes(CurrentNode);
+
+			// now loop through the donors looking for a channel of the same order
+			int n_donors = donors.size();
+			int this_donor = 0;
+			do
+			{
+				//cout << "this donor: " << this_donor << " and the donor NI: " << donors[this_donor] << endl;
+
+				FlowInfo.retrieve_current_row_and_col(donors[this_donor],CurrentRow,CurrentCol);
+
+				donor_channel_order = StreamOrderArray[CurrentRow][CurrentCol];
+
+				//cout << "donor_channel_order: " << donor_channel_order << " and tcho: " << this_channel_order << endl;
+
+				this_donor++;
+
+			} while( donor_channel_order != this_channel_order && this_donor<n_donors);
+
+			// now check if the donor is a junction
+			junction = retrieve_junction_number_at_row_and_column(CurrentRow,CurrentCol);
+			//cout << "Junction is: " << junction << endl;
+
+			if(junction != NoDataValue)		// if it is, set the junction
+			{
+				UpstreamJunction = junction;
+			}
+			else			// if it isn't, go upslope
+			{
+				CurrentNode = donors[this_donor-1];
+			}
+
+			//cout << "Current node yo1: " << CurrentNode << endl;
+		}
+
+
+	}
+
+
+	return UpstreamJunction;
+}
+
+
 
 #endif
