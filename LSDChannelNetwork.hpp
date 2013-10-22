@@ -399,13 +399,13 @@ class LSDChannelNetwork
                                       int MinSegLength, double A_0, double m_over_n,
 									  LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
 									  LSDRaster& ElevationRaster);
-									  
-	
+
+
   /// @brief This function returns a 2D array containing the locations of all pixels identified
   /// as being part of the channel using chi profiles.  It calculates the chi and elevation value
   /// of every pixel upstream of the given junction, then bins this data and calculates the pixels
   /// in the 95th percentile of each bin.  Any pixels above the 95th percentile are considered part
-  /// of the channel, and any below are considered to be hillslopes.  This is the first part of the 
+  /// of the channel, and any below are considered to be hillslopes.  This is the first part of the
   /// channel head prediction using chi profiles.
   /// @param JunctionNumber
   /// @param A_0
@@ -417,15 +417,15 @@ class LSDChannelNetwork
   /// @author FC
   /// @date 01/10/2013
   Array2D<int> GetChannelsHeadsChiMethodAllPixels(int JunctionNumber,
-                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo, 
+                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster);
-                                      
-  
+
+
   /// @brief This function returns an integer vector with the node indexes of the furthest upstream
-  /// pixels identified as being part of the channel using chi profiles.  It calculates the chi and 
+  /// pixels identified as being part of the channel using chi profiles.  It calculates the chi and
   /// elevation value of every pixel upstream of the given junction, then bins this data and calculates
   /// the pixels in the 95th percentile of each bin.  Any pixels above the 95th percentile are considered
-  /// part of the channel, and any below are considered to be hillslopes.  This is the first part of the 
+  /// part of the channel, and any below are considered to be hillslopes.  This is the first part of the
   /// channel head prediction using chi profiles.
   /// @param JunctionNumber
   /// @param A_0
@@ -437,7 +437,7 @@ class LSDChannelNetwork
   /// @author FC
   /// @date 04/10/2013
   vector<int> GetSourceNodesChiMethodAllPixels(int JunctionNumber,
-                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo, 
+                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster);
 
 
@@ -535,17 +535,30 @@ class LSDChannelNetwork
   /// @author SWDG
   /// @date 27/06/2013
 	bool node_tester(LSDFlowInfo& FlowInfo, int input_junction);
-	
 
-  /// @brief Function to snap input coordinates to the nearest junction. This 
+
+  /// @brief Function to snap input coordinates to the nearest junction. This
   /// enables easy extraction of a particular catchment for analysis.
-  /// @param X_coordinate of point.
-  /// @param Y_coordinate of point.
+  /// @param X_coordinate of point. In coordiantes of DEM (usually UTM).
+  /// @param Y_coordinate of point. In coordiantes of DEM (usually UTM).
   /// @param FlowInfo LSDFlowInfo object.
-  /// @author DTM 
+  /// @author DTM
   /// @date 17/10/2013
   int get_receiver_junction_for_specified_coordinates(double X_coordinate, double Y_coordinate, LSDFlowInfo& FlowInfo);
-  
+
+
+  /// @brief Function to snap input coordinates to the nearest channel node. This
+  /// enables easy extraction of a particular catchment for analysis.
+  /// @param X_coordinate of point. In coordiantes of DEM (usually UTM).
+  /// @param Y_coordinate of point. In coordiantes of DEM (usually UTM).
+  /// @param threshold_stream_order The minimum stream order that will be considers a 'channel' by the algorithm
+  /// @param FlowInfo LSDFlowInfo object.
+  /// @return Returns the NodeIndex of the nearest channel node.
+  /// @author SMM
+  /// @date 21/10/2013
+  int get_nodeindex_of_nearest_channel_for_specified_coordinates(double X_coordinate,
+                            double Y_coordinate, int threshold_stream_order, LSDFlowInfo& FlowInfo);
+
 	// Get functions
 
 	/// @return Number of rows as an integer.
