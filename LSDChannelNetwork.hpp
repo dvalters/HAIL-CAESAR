@@ -504,6 +504,27 @@ class LSDChannelNetwork
   /// @date 04/04/13
   LSDIndexRaster ChannelIndexer(LSDFlowInfo& flowinfo);
 
+  /// SplitChannel
+  /// @brief This function splits the channel into a series of segments, providing a
+  /// convenient unit with which to analyse landscapes.  The user provides the
+  /// TargetSegmentLength, which specifies how many nodes should be in each 
+  /// segment, and a MinimumSegmentLength, which specifies the fewest permissable
+  /// number of nodes.  Segments smaller than this are amalgamated into the 
+  /// upstream segment.
+  /// The algorithm loops through the sources and traces downstream, stopping a 
+  /// segment after the target segment length, when the stream order increases (to
+  /// preserve structure of drainage network), or when a channel pixel has already
+  /// been visited.
+  ///
+  /// @param LSDFlowInfo object
+  /// @param Sources: a vector of sources
+  /// @param TargetSegmentLength (suggest 200 for 1m DEM)
+  /// @param MinimumSegmentLength (suggest 100 for 1m DEM)
+  /// @return LSDIndexRaster with channel segments labelled by unique ID
+  /// @author DTM
+  /// @date 23/10/2013
+  LSDIndexRaster SplitChannel(LSDFlowInfo& FlowInfo, vector<int> Sources, int TargetSegmentLength);
+
 	// simple functions for getting streams. These do not return channel data elements but
 	// instead return an LSDIndexRaster with the streams of a given order retained
 

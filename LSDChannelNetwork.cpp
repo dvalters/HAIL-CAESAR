@@ -2254,7 +2254,85 @@ LSDIndexRaster LSDChannelNetwork::ChannelIndexer(LSDFlowInfo& flowinfo)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// SplitChannel
+// This function splits the channel into a series of segments, providing a
+// convenient unit with which to analyse landscapes.  The user provides the
+// TargetSegmentLength, which specifies how many nodes should be in each 
+// segment, and a MinimumSegmentLength, which specifies the fewest permissable
+// number of nodes.  Segments smaller than this are amalgamated into the 
+// upstream segment.
+// The algorithm loops through the sources and traces downstream, stopping a 
+// segment after the target segment length, when the stream order increases (to
+// preserve structure of drainage network), or when a channel pixel has already
+// been visited.
+//
+// DTM 23/10/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDChannelNetwork::SplitChannel(LSDFlowInfo& FlowInfo, vector<int> Sources, int TargetSegmentLength)//, int MinimumSegmentLength)
+{
+  //LSDChannelNetwork ChanNetwork(sources, FlowInfo);
+  Array2D<int> ChannelSegments(NRows,NCols,int(NoDataValue));
+  Array2D<int> NodesVisitedBefore(NRows,NCols,0);
+  //----------------------------------------------------------------------------
+  // 
+  int SegmentID = 0;
+  int N_Sources = Sources.size();
+  // Loop through sources
+  for (int i_source = 0; i_source < N_Sources; ++i_source)
+  {
+    bool EndOfReach = false;
+    int NodeCount = 0;
+    vector<int> ChannelNodesInSegment;
+    int CurrentNode = Sources[i_source];
+    int CurrentRow,CurrentCol,ReceiverNode,ReceiverRow,ReceiverCol,CurrentStreamOrder,ReceiverStreamOrder; 
+    // Trace downstream until you rach the end of this channel reach
+    while(EndOfReach == false)
+    {
+      FlowInfo.retrieve_current_row_and_col(CurrentNode,CurrentRow,CurrentCol);
+      FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
 
+      ChannelSegments[CurrentRow][CurrentCol] = SegmentID;
+      NodesVisitedBefore[CurrentRow][CurrentCol] = 1;
+      ++NodeCount;
+      
+      // Now check whether we have enough channel nodes
+      if(NodeCount >= TargetSegmentLength)
+      {
+        ++SegmentID;
+        NodeCount = 0;
+      }
+      // Now check to see whether stream order increases (want to start a new
+      // segment if this is the case)
+      ReceiverStreamOrder = StreamOrderArray[ReceiverRow][ReceiverCol];
+      CurrentStreamOrder = StreamOrderArray[CurrentRow][CurrentCol];
+      if (ReceiverStreamOrder > CurrentStreamOrder)
+      {
+        NodeCount = 0;
+        ++SegmentID;
+      }
+          
+      bool ReceiverVisitedBefore = false;
+      // test to see whether we have visited this node before
+      if(NodesVisitedBefore[ReceiverRow][ReceiverCol]==1) ReceiverVisitedBefore = true;
+      
+      if(ReceiverVisitedBefore == true)
+      {
+        EndOfReach = true;
+        ++SegmentID;
+        ++i_source;
+      }
+      else
+      {
+        // Move downstream
+        CurrentNode = ReceiverNode;
+      }
+    }  
+  }
+  LSDIndexRaster ChannelSegmentsRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ChannelSegments);
+  return ChannelSegmentsRaster;    
+}      
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 // This function gets the node indices of outlets of basins of a certain order
