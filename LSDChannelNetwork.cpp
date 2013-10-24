@@ -85,6 +85,7 @@
 #include "TNT/tnt.h"
 #include "LSDFlowInfo.hpp"
 #include "LSDRaster.hpp"
+#include "LSDChannel.hpp"
 #include "LSDChannelNetwork.hpp"
 #include "LSDIndexChannel.hpp"
 #include "LSDStatsTools.hpp"
@@ -1340,7 +1341,7 @@ vector<int> LSDChannelNetwork::FindFarthestUpslopeHilltopsFromSources(int Juncti
 // hilltop node; now returns a vector of integers.
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
-vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodFromJunction(int JunctionNumber,
+vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromJunction(int JunctionNumber,
                                       int MinSegLength, double A_0, double m_over_n,
 											                LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance, LSDRaster& ElevationRaster)
 {
@@ -1366,7 +1367,7 @@ vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodFromJunction(int Junctio
 	  }
 
   return ChannelHeadNodes;
-}
+}      
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 
 
@@ -1382,38 +1383,62 @@ vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodFromJunction(int Junctio
 //
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
-vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodBasinOrder(int BasinOrder,
+vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodBasinOrder(int BasinOrder,
                                       int MinSegLength, double A_0, double m_over_n,
 									  LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
 									  LSDRaster& ElevationRaster)
 {
 	vector<int> ChannelHeadNodes;
+	vector<int> ChannelHeadNodes_temp;
 
   	vector<int> junction_list = extract_basins_order_outlet_junctions(BasinOrder, FlowInfo);
   	int max_junctions = junction_list.size();
+  	cout << "No of junctions: " << max_junctions << endl;
   	int junction_number;
 
 	// loop through junctions collecting channel heads
   	for (int i = 0; i < max_junctions; i++)
   	{
-		cout << "Junction " << i << " of " << max_junctions << endl;
+		  cout << "Junction " << i << " of " << max_junctions << endl;
 
-		// get the junction number
-		junction_number = junction_list[i];
+		  // get the junction number
+		  junction_number = junction_list[i];
 
-		// get a local list of channel heads
-		vector<int> these_channel_heads = GetChannelsHeadsChiMethodFromJunction(junction_number,
-                                     			MinSegLength, A_0, m_over_n, FlowInfo,
-                                     			FlowDistance, ElevationRaster);
+		  // get a local list of channel heads
+		  vector<int> these_channel_heads = GetChannelHeadsChiMethodFromJunction(junction_number,
+                                      			MinSegLength, A_0, m_over_n, FlowInfo,
+                                       			FlowDistance, ElevationRaster);
 
-        // now append these channel heads to the master list
-		ChannelHeadNodes.insert(ChannelHeadNodes.end(), these_channel_heads.begin(), these_channel_heads.end());
-	}
+      // now append these channel heads to the master list
+		  ChannelHeadNodes_temp.insert(ChannelHeadNodes_temp.end(), these_channel_heads.begin(), these_channel_heads.end());
+	  }
+	  
+	  // Removing any nodes that are not the furthest upstream
+    int upstream_test = 0;
+    vector<int>::iterator find_it;
 
-
-
-  return ChannelHeadNodes;
-}
+    for (unsigned int node =0; node < ChannelHeadNodes_temp.size(); node++)
+    {
+      vector<int> tests;
+      int current_node = ChannelHeadNodes_temp[node];
+      for (unsigned int i = 0; i < ChannelHeadNodes_temp.size(); i++)
+      {
+        if (ChannelHeadNodes_temp[i] != current_node)
+        {
+          int test_node = ChannelHeadNodes_temp[i];
+          upstream_test = FlowInfo.is_node_upstream(current_node, test_node);
+          tests.push_back(upstream_test);
+        }
+      }
+      find_it = find(tests.begin(), tests.end(), 1);
+      if (find_it == tests.end())
+      {
+        ChannelHeadNodes.push_back(current_node);
+      }
+    }
+    
+    return ChannelHeadNodes;
+}                              
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 
 
@@ -1432,7 +1457,7 @@ vector<int> LSDChannelNetwork::GetChannelsHeadsChiMethodBasinOrder(int BasinOrde
 // FC 01/10/13
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
-Array2D<int> LSDChannelNetwork::GetChannelsHeadsChiMethodAllPixels(int JunctionNumber,
+Array2D<int> LSDChannelNetwork::GetChannelHeadsChiMethodAllPixels(int JunctionNumber,
                                       double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster)
 {
@@ -1778,6 +1803,116 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// PREDICTING CHANNEL HEADS USING TANGENTIAL CURVATURE
+//
+// This function is used to predict channel head locations based on the method proposed by
+// Pelletier (2013).  It creates a contour curvature map and identifies channel heads as pixels greater
+// than a user defined contour curvature threshold value, set by default at 0.1.  The threshold curvature
+// can also be defined as a multiple of the standard deviation of the curvature.  Before this function is called
+// the DEM must be filtered using the wiener filter in the LSDRasterSpectral object in order to remove high frequency
+// noise.
+//
+// Reference: Pelletier (2013) A robust, two-parameter method for the extraction of drainage
+// networks from high-resolution digital elevation models (DEMs): Evaluation using synthetic and real-world
+// DEMs, Water Resources Research 49: 1-15
+//
+// added by FC 16/07/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+vector<int> LSDChannelNetwork::calculate_pelletier_channel_heads(double window_radius, double tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array)
+{
+	cout << "Getting Pelletier channel heads" << endl;
+  Array2D<double> chan_head_locations(NRows,NCols,NoDataValue);
+	double total_curv = 0;
+	int n_observations = 0;
+
+  //get the mean of the tangential curvature
+  for (int row = 0; row < NRows; row++)
+	{
+    for(int col = 0; col < NCols; col++)
+    {
+      if (tan_curv_array[row][col] != NoDataValue)
+      {
+        total_curv = total_curv + tan_curv_array[row][col];
+        ++n_observations;
+      }
+    }
+  }
+
+  double mean_curv = total_curv/n_observations;
+  double total_st_dev = 0;
+
+  // get the standard deviation of the curvature and use 3*st dev as the threshold value
+  for (int row = 0; row < NRows; row++)
+	{
+    for(int col = 0; col < NCols; col++)
+    {
+      if (tan_curv_array[row][col] != NoDataValue)
+      {
+        total_st_dev = ((tan_curv_array[row][col] - mean_curv)*(tan_curv_array[row][col] - mean_curv)) + total_st_dev;
+      }
+    }
+  }
+
+  double st_dev = sqrt(total_st_dev/n_observations);
+  tan_curv_threshold = 3*st_dev;
+  cout << "Got standard deviation" << endl;
+
+  // Get all the locations where the tan curvature is greater than the user defined threshold
+  vector<int> channel_nodes;
+  int CurrentNodeIndex = 0;
+  
+  for (int row = 0; row < NRows; row++)
+	{
+    for(int col = 0; col < NCols; col++)
+    {
+      if (tan_curv_array[row][col] > tan_curv_threshold)
+      {
+        chan_head_locations[row][col] = tan_curv_array[row][col];
+        CurrentNodeIndex = FlowInfo.NodeIndex[row][col];
+        channel_nodes.push_back(CurrentNodeIndex);
+      }
+      else
+      {
+        chan_head_locations[row][col] = 0;
+      }
+    }
+  }
+  cout << "Got channel nodes" << endl;  
+  // STEP 3: Finding the furthest upstream channel node
+  
+  int upstream_test = 0;
+  vector<int>::iterator find_it;
+  vector<int> source_nodes;
+
+  // identify whether there are any further upstream channel nodes, if not then
+  // the node is a channel head
+  for (unsigned int node =0; node < channel_nodes.size(); node++)
+  {
+     vector<int> tests;
+     int current_node = channel_nodes[node];
+     for (unsigned int i = 0; i < channel_nodes.size(); i++)
+     {
+      if (channel_nodes[i] != current_node)
+      {
+        int test_node = channel_nodes[i];
+        upstream_test = FlowInfo.is_node_upstream(current_node, test_node);
+        tests.push_back(upstream_test);
+      }
+     }
+     find_it = find(tests.begin(), tests.end(), 1);
+     if (find_it == tests.end())
+     {
+      source_nodes.push_back(current_node);
+     }
+  }
+  cout << "Got source nodes" << endl;
+  cout << "No of channel nodes: " << channel_nodes.size() << " No of source nodes: " << source_nodes.size() << endl;
+  return source_nodes;
+}
+                   
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function extracts the ridge network by defining it as the co-boundaries
 // of basins of equivalent order, for all basin orders within the landscape.

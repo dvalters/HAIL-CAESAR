@@ -381,7 +381,7 @@ class LSDChannelNetwork
   /// all the sources of the junction JunctionNumber
   /// @author SMM
   /// @date 26/09/2013
-  vector<int> GetChannelsHeadsChiMethodFromJunction(int JunctionNumber,
+  vector<int> GetChannelHeadsChiMethodFromJunction(int JunctionNumber,
                               int MinSegLength, double A_0, double m_over_n,
 											        LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance, LSDRaster& ElevationRaster);
 
@@ -395,7 +395,7 @@ class LSDChannelNetwork
 	/// @return vector<int> a vector of node_indices of potential channel heads
   	/// @author SMM
   	/// @date 26/09/2013
-	vector<int> GetChannelsHeadsChiMethodBasinOrder(int BasinOrder,
+	vector<int> GetChannelHeadsChiMethodBasinOrder(int BasinOrder,
                                       int MinSegLength, double A_0, double m_over_n,
 									  LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
 									  LSDRaster& ElevationRaster);
@@ -416,7 +416,7 @@ class LSDChannelNetwork
   /// @return Array2D<double> with channel pixels
   /// @author FC
   /// @date 01/10/2013
-  Array2D<int> GetChannelsHeadsChiMethodAllPixels(int JunctionNumber,
+  Array2D<int> GetChannelHeadsChiMethodAllPixels(int JunctionNumber,
                                       double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster);
 
@@ -439,7 +439,27 @@ class LSDChannelNetwork
   vector<int> GetSourceNodesChiMethodAllPixels(int JunctionNumber,
                                       double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster);
-
+                                      
+  // channel head identification
+	/// @brief This function is used to predict channel head locations based on the method proposed by Pelletier (2013).
+  ///
+  /// @details It creates a contour curvature map and identifies channel heads as pixels greater
+  /// than a user defined contour curvature threshold value, set by default at 0.1.  The threshold curvature
+  /// can also be defined as a multiple of the standard deviation of the curvature.  Before this function is called
+  /// the DEM must be filtered using the wiener filter in the LSDRasterSpectral object in order to remove high frequency
+  /// noise.
+  ///
+  /// Reference: Pelletier (2013) A robust, two-parameter method for the extraction of drainage
+  /// networks from high-resolution digital elevation models (DEMs): Evaluation using synthetic and real-world
+  /// DEMs, Water Resources Research 49: 1-15
+  ///
+  /// @param window_radius Integer window radius.
+  /// @param tan_curv_threshold Double curvature threshold value.
+  /// @param tan_curv_array 2D array of tangential curvature.
+  /// @return 2D array of predicted channel head locations.
+  /// @author FC
+  /// @date 16/07/13
+	vector<int> calculate_pelletier_channel_heads(double window_radius, double tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array);
 
 
   /// @brief Ridge network extraction - extracts ridge network, defined as boundaries
