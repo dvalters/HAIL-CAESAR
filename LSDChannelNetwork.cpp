@@ -1280,11 +1280,42 @@ LSDIndexRaster LSDChannelNetwork::ExtractBasinsOrder(int BasinOrder, LSDFlowInfo
 	return basin_raster;
 }
 
-
-
-
-
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// This function extracts the juctions of all non-beheaded drainage basins of a given order, n
+// SWDG 23/10/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+vector<int> LSDChannelNetwork::ExtractBasinJunctionOrder(int BasinOrder, LSDFlowInfo& FlowInfo)
+{
+  vector<int> Junctions;
+  // Loop through junction network until you reach nth order channel junction.
+  
+  int current_junc,receiver_junc,receiver_junc_SO;
+  for (int junctionID=0; junctionID<NJunctions; ++junctionID)
+  {
+    // Loop through all stream junctions of the required basin order.
+    // Note that the nth order basins are defined as capturing the full
+    // drainage area for the nth order stream.  An nth order stream terminates
+    // at a junction an order greater than order n.
+    if (StreamOrderVector[junctionID] == BasinOrder)
+    {
+      // Get info from ChanelNetwork object regarding position of junction
+      current_junc = junctionID;//JunctionVector[junctionID];
+      receiver_junc = ReceiverVector[current_junc];
+      receiver_junc_SO = StreamOrderVector[receiver_junc];
+      // Identify outlet of nth order basin using the condition that the
+      // receiver junction should be of higher order.
+      if (receiver_junc_SO > BasinOrder)
+      {
+        //use the node tester to get rid of any basins that are beheaded
+        if (node_tester(FlowInfo, current_junc) == false){ 
+          Junctions.push_back(current_junc);
+        } 
+      } 
+    }
+  }
+ 
+	return Junctions;
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2794,7 +2825,6 @@ LSDIndexRaster LSDChannelNetwork::GetStreams(int min_order, int max_order)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Function to test whether a junction's upstream nodes border areas of No Data
@@ -2806,6 +2836,9 @@ LSDIndexRaster LSDChannelNetwork::GetStreams(int min_order, int max_order)
 // false (0) = only good data values
 // true (1) = no data values present
 //
+// Updated 24/10/13 to handle junction numbers in the same way that the basin extraction code does,
+// by searching one junction downstream of the given junction and then going back up by one node. SWDG
+//
 // SWDG 27/06/2013
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2813,21 +2846,35 @@ bool LSDChannelNetwork::node_tester(LSDFlowInfo& FlowInfo, int input_junction)
 {
 
   Array2D<int> FlowDirection = FlowInfo.get_FlowDirection();  //used as a proxy of the elevation data
-
   bool flag = false;
+      
+  //get reciever junction of the input junction
+  int receiver_junc = ReceiverVector[input_junction];
+      
+  // Create channel segement from input junction down to receiver junction 
+  LSDIndexChannel StreamLinkVector = LSDIndexChannel(input_junction, JunctionVector[input_junction],
+                                                     receiver_junc, JunctionVector[receiver_junc], FlowInfo);
+                
+  // Get the number of nodes (DEM Cells) that make up the channel segment
+  int n_nodes_in_channel = StreamLinkVector.get_n_nodes_in_channel();
+       
+  // get the penultimate node in the channel. Eg one pixel upstream from the outlet node of a basin.
+  // -2 is used due to zero indexing.
+  int basin_outlet = StreamLinkVector.get_node_in_channel(n_nodes_in_channel-2);      
+  
+  //Get all cells upslope of a junction - eg every cell of the drainage basin of interest
+  vector<int> upslope_nodes = FlowInfo.get_upslope_nodes(basin_outlet);
 
-  int node_index = get_Node_of_Junction(input_junction);
-  vector<int> upslope_nodes = FlowInfo.get_upslope_nodes(node_index);
-
+  //loop over each cell in the basin and test for No Data values
   for(vector<int>::iterator it = upslope_nodes.begin(); it != upslope_nodes.end(); ++it){
 
     int i;
     int j;
     FlowInfo.retrieve_current_row_and_col(*it,i,j);
-
+    
     //check for edges of the file
     if (i == 0 || i == (NRows - 1) || j == 0 || j == (NCols - 1)){
-    flag = true;
+    flag = true;   
     return flag;}
 
     // check surrounding cells for NoDataValue
@@ -2848,7 +2895,6 @@ bool LSDChannelNetwork::node_tester(LSDFlowInfo& FlowInfo, int input_junction)
     else if (FlowDirection[i-1][j-1] == NoDataValue){flag = true;
     return flag;}
   }
-
   return flag;
 
 }

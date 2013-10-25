@@ -363,6 +363,14 @@ class LSDChannelNetwork
   /// @date 17/10/2012
   LSDIndexRaster ExtractBasinsOrder(int BasinOrder, LSDFlowInfo& FlowInfo);
 
+  /// @brief This function extracts the juctions of all non-beheaded drainage basins of a given order, n.
+  /// @param BasinOrder Integer basin order to extract.
+  /// @param FlowInfo LSDFlowInfo object.
+  /// @return Vector of junction indexes.
+  /// @author SWDG
+  /// @date 24/10/2013  
+  vector<int> ExtractBasinJunctionOrder(int BasinOrder, LSDFlowInfo& FlowInfo);
+
   /// @brief Get farthest upslope hilltops.
   ///
   /// @details This function looks at all the source junctions in a network
@@ -573,6 +581,8 @@ class LSDChannelNetwork
   /// @return Boolean indicating if no data values are present or not: \n
   /// false (0) = only good data values \n
   /// true (1) = no data values present \n
+  /// Updated 24/10/13 to handle junction numbers in the same way that the basin extraction code does,
+  /// by searching one junction downstream of the given junction and then going back up by one node - SWDG.
   /// @author SWDG
   /// @date 27/06/2013
 	bool node_tester(LSDFlowInfo& FlowInfo, int input_junction);
