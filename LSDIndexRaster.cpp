@@ -474,4 +474,367 @@ LSDIndexRaster LSDIndexRaster::LSDRasterTemplate(Array2D<int> InputData){
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This function implements the thinning algorithm described in Rosenfeld and
+// Kak (1982).  It takes a binary map and turns it into a continuous single 
+// thread skeleton.  At present, pixels at the limits of the raster are
+// automatically set to 0.  If it is necessary to extend the skeleton to the 
+// edge, this should be a straightforward operation afterwards.
+//
+// Added by DTM 28/10/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDIndexRaster::thin_to_single_thread_network()
+{
+  Array2D<int> Skeleton(NRows,NCols,NoDataValue);
+  Array2D<int> SkeletonUpdate(NRows,NCols,NoDataValue);
+  // Step 1:- outlne borders
+  // Corners of array
+  // SE
+  if(RasterData[0][0]!=NoDataValue)
+  { 
+    if(RasterData[0][0]==0) Skeleton[0][0]=0;
+    else if((RasterData[1][0]==0) && (RasterData[0][1]==0)) Skeleton[0][0]=1;
+    else if((RasterData[1][0]==0) || (RasterData[0][1]==0)) Skeleton[0][0]=2;
+    else Skeleton[0][0]=3;
+  }
+  // SW
+  if(RasterData[0][NCols-1]!=NoDataValue)
+  { 
+    if(RasterData[0][NCols-1]==0) Skeleton[0][NCols-1]=0;
+    else if((RasterData[1][NCols-1]==0) && (RasterData[0][NCols-2]==0)) Skeleton[0][NCols-1]=1;
+    else if((RasterData[1][NCols-1]==0) || (RasterData[0][NCols-2]==0)) Skeleton[0][NCols-1]=2;
+    else Skeleton[0][0]=3;
+  }
+  // NE
+  if(RasterData[NRows-1][0]!=NoDataValue)
+  { 
+    if(RasterData[NRows-1][0]==0) Skeleton[NRows-1][0]=0;
+    else if((RasterData[NRows-2][0]==0) && (RasterData[NRows-1][1]==0)) Skeleton[NRows-1][0]=1;
+    else if((RasterData[NRows-2][0]==0) || (RasterData[NRows-1][1]==0)) Skeleton[NRows-1][0]=2;
+    else Skeleton[NRows-1][0]=3;
+  }
+  // SE
+  if(RasterData[NRows-1][NCols-1]!=NoDataValue)
+  { 
+    if(RasterData[NRows-1][NCols-1]==0) Skeleton[NRows-1][NCols-1]=0;
+    else if((RasterData[NRows-2][NCols-1]==0) && (RasterData[NRows-1][NCols-2]==0)) Skeleton[NRows-1][NCols-1]=1;
+    else if((RasterData[NRows-2][NCols-1]==0) || (RasterData[NRows-1][NCols-2]==0)) Skeleton[NRows-1][NCols-1]=2;
+    else Skeleton[NRows-1][NCols-1]=3;
+  }
+  // Edges of Array
+  for (int i = 1; i < NRows-1; ++i)
+  {
+    //North
+    if(RasterData[i][0]!=NoDataValue)
+    {
+      if(RasterData[i][0]==0) Skeleton[i][0]=0;
+      else if((RasterData[i+1][0]==0) && (RasterData[i-1][0]==0)) Skeleton[i][0]=1;
+      else if((RasterData[i+1][0]==0) || (RasterData[i-1][0]==0) || (RasterData[i][1]==0)) Skeleton[i][0]=2;
+      else Skeleton[i][0]=3;
+    }
+    // South
+    if(RasterData[i][NCols-1]!=NoDataValue)
+    { 
+      if(RasterData[i][NCols-1]==0) Skeleton[i][NCols-1]=0;
+      else if((RasterData[i+1][NCols-1]==0) && (RasterData[i-1][NCols-1]==0)) Skeleton[i][NCols-1]=1;
+      else if((RasterData[i+1][NCols-1]==0) || (RasterData[i-1][NCols-1]==0) || (RasterData[i][NCols-2]==0)) Skeleton[i][NCols-1]=2;
+      else Skeleton[i][NCols-1]=3;
+    }
+  }
+  for (int j = 1; j < NRows-1; ++j)
+  {  
+    // East
+    if(RasterData[0][j]!=NoDataValue)
+    {
+      if(RasterData[0][j]==0) Skeleton[0][j]=0;
+      else if((RasterData[0][j+1]==0) && (RasterData[0][j-1]==0)) Skeleton[0][j]=1;
+      else if((RasterData[0][j+1]==0) || (RasterData[0][j-1]==0) || (RasterData[1][j]==0)) Skeleton[0][j]=2;
+      else Skeleton[0][j]=3;
+    }  
+    // West
+    if(RasterData[NRows-1][j]!=NoDataValue)
+    {
+      if(RasterData[NRows-1][j]==0) Skeleton[NRows-1][j]=0;
+      else if((RasterData[NRows-1][j+1]==0) && (RasterData[NRows-1][j-1]==0)) Skeleton[NRows-1][j]=1;
+      else if((RasterData[NRows-1][j+1]==0) || (RasterData[NRows-1][j-1]==0) || (RasterData[NRows-2][j]==0)) Skeleton[NRows-1][j]=2;
+      else Skeleton[NRows-1][j]=3;
+    }
+  }
+  // for rest of array
+  for (int i = 1; i < NRows-1; ++i)
+  {
+    for (int j = 1; j< NCols-1; ++j)
+    {
+      if(RasterData[i][j] == 1)
+      {
+        // Skeleton
+        if ( ((RasterData[i+1][j] == 0) && (RasterData[i-1][j] == 0)) || (RasterData[i][j+1] == 0 && (RasterData[i][j-1] == 0)) ) Skeleton[i][j] = 1;
+        // Non skeleton boundaries
+        else if(RasterData[i-1][j] == 0 || RasterData[i+1][j] == 0 || RasterData[i][j-1] == 0 || RasterData[i][j-1] == 0) Skeleton = 2;
+        // Non boundary
+        else Skeleton = 3;
+      }
+      else Skeleton = 0;
+    }
+  }
+  //----------------------------------------------------------------------------
+  // Step 2:- Now loop through the array again, progressively searching for 
+  // N,E,S,W boundaries
+  bool IsSkeleton = false;
+  SkeletonUpdate = Skeleton.copy();
+  while (IsSkeleton == false)
+  {
+    IsSkeleton = true;
+    // NORTH BOUNDARIES
+    // For the edges - E 
+    for (int i = 1; i < NRows-1; ++i) // Northern most row can't have a Northern boundary and it makes little sense to do the Southern most row as there is no row beneath!
+    { 
+      int j=0;
+      if((Skeleton[i][j] == 2 && Skeleton[i-1][j] == 0))
+      {
+        IsSkeleton = false;
+//         // Logic for case where you are at an end, but the feature is two 
+//         // pixels wide - do not want to truncate skeleton here!
+//         if((Skeleton[i][j+1]==0) && (Skeleton[i+1][j+1]==0) && (Skeleton[i+1][j]==2)) SkeletonUpdate[i][j] = 2;
+//         else
+//         {
+          SkeletonUpdate[i][j] = 0;
+          // Check to see whether pixel to South is a border - if yes, make it
+          // a skeleton pixel
+          if (Skeleton[i+1][j] == 2) SkeletonUpdate[i+1][j] = 1;
+          // Otherwise it will be the boundary pixel for the next round
+          else SkeletonUpdate[i+1][j] = 2;
+//         }
+      }
+      // W
+      j=NCols-1;
+      if((Skeleton[i][j] == 2 && Skeleton[i-1][j] == 0))
+      {
+        IsSkeleton = false;
+//         if((Skeleton[i][j-1]==0) && (Skeleton[i+1][j-1]==0) && (Skeleton[i+1][j]==2)) SkeletonUpdate[i][j] = 2; 
+//         else
+//         {
+          SkeletonUpdate[i][j] = 0;
+          if (Skeleton[i+1][j] == 2) SkeletonUpdate[i+1][j] = 1;
+          else SkeletonUpdate[i+1][j] = 2;
+//         }
+      }      
+    }
+
+    // for the rest of the array    
+    for (int i = 1; i < NRows-1; ++i)
+    {
+      for (int j = 1; j< NCols-1; ++j)
+      {            
+        if((Skeleton[i][j] == 2) && (Skeleton[i-1][j] == 0))
+        {
+          IsSkeleton = false;
+          // Logic for case where you are at an end, but the feature is two 
+          // pixels wide - do not want to truncate skeleton here!
+          if( ((Skeleton[i][j+1]==0) && (Skeleton[i+1][j+1]==0) && (Skeleton[i+1][j]==2))
+           || ((Skeleton[i][j-1]==0) && (Skeleton[i+1][j-1]==0) && (Skeleton[i+1][j]==2)) )
+          {
+            SkeletonUpdate[i][j] = 2;
+          }  
+          else
+          {
+            SkeletonUpdate[i][j] = 0;
+            // Check to see whether pixel to South is a border - if yes, make it
+            // a skeleton pixel
+            if (Skeleton[i+1][j] == 2) SkeletonUpdate[i+1][j] = 1;
+            // Otherwise it will be the boundary pixel for the next round
+            else SkeletonUpdate[i+1][j] = 2;
+          }
+        }
+      }
+    }
+    Skeleton = SkeletonUpdate.copy();
+    
+    // SOUTH BOUNDARIES
+    // For the edges - E and W
+    for (int i = 1; i < NRows - 1; ++i)
+    { 
+      int j=0;
+      if((Skeleton[i][j] == 2) && (Skeleton[i+1][j] == 0))
+      {
+        IsSkeleton = false;
+        SkeletonUpdate[i][j] = 0;
+        // Check to see whether pixel to South is a border - if yes, make it
+        // a skeleton pixel
+        if (Skeleton[i-1][j] == 2) SkeletonUpdate[i-1][j] = 1;
+        // Otherwise it will be the boundary pixel for the next round
+        else SkeletonUpdate[i-1][j] = 2;
+      }
+      j=NCols-1;
+      if((Skeleton[i][j] == 2 && Skeleton[i+1][j] == 0))
+      {
+        IsSkeleton = false;
+        SkeletonUpdate[i][j] = 0;
+        if (Skeleton[i-1][j] == 2) SkeletonUpdate[i-1][j] = 1;
+        else SkeletonUpdate[i-1][j] = 2;
+      }      
+    }
+
+    // for the rest of the array    
+    for (int i = 1; i < NRows-1; ++i)
+    {
+      for (int j = 1; j< NCols-1; ++j)
+      {            
+        if((Skeleton[i][j] == 2 && Skeleton[i+1][j] == 0))
+        {
+          IsSkeleton = false;
+          // Logic for case where you are at an end, but the feature is two 
+          // pixels wide - do not want to truncate skeleton here!
+          if( ((Skeleton[i][j+1]==0) && (Skeleton[i-1][j+1]==0) && (Skeleton[i-1][j]==2))
+           || ((Skeleton[i][j-1]==0) && (Skeleton[i-1][j-1]==0) && (Skeleton[i-1][j]==2)) )
+          {
+            SkeletonUpdate[i][j] = 2;
+          }  
+          else
+          {
+            SkeletonUpdate[i][j] = 0;
+            // Check to see whether pixel to North is a border - if yes, make it
+            // a skeleton pixel
+            if (Skeleton[i-1][j] == 2) SkeletonUpdate[i-1][j] = 1;
+            // Otherwise it will be the boundary pixel for the next round
+            else SkeletonUpdate[i-1][j] = 2;
+          }
+        }
+      }
+    }
+    Skeleton = SkeletonUpdate.copy();
+    // EAST-FACING BOUNDARIES
+    // For the edges - N and S
+    for (int j = 1; j < NCols; ++j)
+    { 
+      // South edge
+      int i=0;
+      if((Skeleton[i][j] == 2 && Skeleton[i][j-1] == 0))
+      {
+        IsSkeleton = false;
+        // Logic for case where you are at an end, but the feature is two 
+        // pixels wide - do not want to truncate skeleton here!
+        SkeletonUpdate[i][j] = 0;
+        // Check to see whether pixel to West is a border - if yes, make it
+        // a skeleton pixel
+        if (Skeleton[i][j+1] == 2) SkeletonUpdate[i][j+1] = 1;
+        // Otherwise it will be the boundary pixel for the next round
+        else SkeletonUpdate[i][j+1] = 2;
+      }
+      // North edge
+      i=NRows-1;
+      if((Skeleton[i][j] == 2 && Skeleton[i][j-1] == 0))
+      {
+        IsSkeleton = false;
+        SkeletonUpdate[i][j] = 0;
+        if (Skeleton[i][j+1] == 2) SkeletonUpdate[i][j+1] = 1;
+        else SkeletonUpdate[i][j+1] = 2;
+      }      
+    }
+    
+    // for the rest of the array    
+    for (int i = 1; i < NRows-1; ++i)
+    {
+      for (int j = 1; j< NCols-1; ++j)
+      {
+        // For rest of the array              
+        if((Skeleton[i][j] == 2 && Skeleton[i][j-1] == 0))
+        {
+          IsSkeleton = false;
+          // Logic for case where you are at an end, but the feature is two 
+          // pixels wide - do not want to truncate skeleton here!
+          if( ((Skeleton[i+1][j]==0) && (Skeleton[i+1][j+1]==0) && (Skeleton[i][j+1]==2))
+           || ((Skeleton[i-1][j]==0) && (Skeleton[i-1][j+1]==0) && (Skeleton[i][j+1]==2)) )
+          {
+            SkeletonUpdate[i][j] = 2;
+          }  
+          else
+          {
+            SkeletonUpdate[i][j] = 0;
+            // Check to see whether pixel to West is a border - if yes, make it
+            // a skeleton pixel
+            if (Skeleton[i][j+1] == 2) SkeletonUpdate[i][j+1] = 1;
+            // Otherwise it will be the boundary pixel for the next round
+            else SkeletonUpdate[i][j+1] = 2;
+          }
+        }
+      }
+    }
+    Skeleton = SkeletonUpdate.copy();
+    // WEST-FACING BOUNDARIES
+    // For the edges - N and S
+    for (int j = 1; j < NCols; ++j)
+    { 
+      // South edge
+      int i=0;
+      if((Skeleton[i][j] == 2 && Skeleton[i][j+1] == 0))
+      {
+        IsSkeleton = false;
+        // Logic for case where you are at an end, but the feature is two 
+        // pixels wide - do not want to truncate skeleton here!
+        SkeletonUpdate[i][j] = 0;
+        // Check to see whether pixel to West is a border - if yes, make it
+        // a skeleton pixel
+        if (Skeleton[i][j-1] == 2) SkeletonUpdate[i][j-1] = 1;
+        // Otherwise it will be the boundary pixel for the next round
+        else SkeletonUpdate[i][j-1] = 2;
+      }
+      // North edge
+      i=NRows-1;
+      if((Skeleton[i][j] == 2 && Skeleton[i][j+1] == 0))
+      {
+        IsSkeleton = false;
+        SkeletonUpdate[i][j] = 0;
+        if (Skeleton[i][j-1] == 2) SkeletonUpdate[i][j-1] = 1;
+        else SkeletonUpdate[i][j-1] = 2;
+      }      
+    }
+    // For rest of the array 
+    for (int i=1; i<NRows-1; ++i)
+    {
+      for (int j=1; j<NCols-1; ++j)
+      {                     
+        if((Skeleton[i][j] == 2 && Skeleton[i][j+1] == 0))
+        {
+          IsSkeleton = false;
+          // Logic for case where you are at an end, but the feature is two 
+          // pixels wide - do not want to truncate skeleton here!
+          if( ((Skeleton[i+1][j]==0) && (Skeleton[i+1][j-1]==0) && (Skeleton[i][j-1]==2))
+           || ((Skeleton[i-1][j]==0) && (Skeleton[i-1][j-1]==0) && (Skeleton[i][j-1]==2)) )
+          {
+            SkeletonUpdate[i][j] = 2;
+          }  
+          else
+          {
+            SkeletonUpdate[i][j] = 0;
+            // Check to see whether pixel to West is a border - if yes, make it
+            // a skeleton pixel
+            if (Skeleton[i][j-1]==2) SkeletonUpdate[i][j-1] = 1;
+            // Otherwise it will be the boundary pixel for the next round
+            else SkeletonUpdate[i][j-1] = 2;
+          }
+        }
+      }
+    }
+    Skeleton = SkeletonUpdate.copy();    
+  }
+  
+  // finally, loop through, and remove any remaining 3-pixels, which should only
+  // be skeleton pixels that are in this arrangement:
+  //                            0 1 0
+  //                            1 3 1
+  //                            0 1 0
+  for (int i = 0; i < NRows; ++i)
+  {
+    for (int j = 0; j< NCols; ++j)
+    {
+      if (Skeleton[i][j] == 3) Skeleton[i][j] = 1;
+    }
+  }
+  
+  LSDIndexRaster skeleton_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Skeleton);
+	return skeleton_raster;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 #endif
