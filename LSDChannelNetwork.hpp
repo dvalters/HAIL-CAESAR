@@ -553,6 +553,37 @@ class LSDChannelNetwork
   /// @date 23/10/2013
   LSDIndexRaster SplitChannel(LSDFlowInfo& FlowInfo, vector<int> Sources, int TargetSegmentLength);
 
+  /// SplitHillslopes
+  /// @brief This function is intended to follow the SplitChannel function.  It traces
+  /// through the receiver nodes from every hillslope pixel and then assigns them 
+  /// an integer value that matches the index of the section of channel that is
+  /// setting the base level of that hillslope.
+  ///
+  /// @param LSDFlowInfo object
+  /// @param LSDIndexRaster: a raster of channel segments, produced by the SplitChannel function
+  /// @return LSDIndexRaster: hillslope segments labelled by ID of channel segments
+  /// @author DTM 
+  /// @date 29/10/2013
+  LSDIndexRaster SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster);
+
+  /// SplitHillslopes
+  /// @brief This is an overloaded function doing the same as the previous version to
+  /// segment hillslopes according to the channel index of the channel setting its
+  /// base level.  However, this has been adapted to include an additional input
+  /// raster - MultiThreadChannelRaster - which recognises that real channels may
+  /// be multithreaded and/or have widths greater than or equal to one pixel.
+  /// To be rigourous, these should be removed from analyses of hillslope
+  /// properties.
+  /// 
+  /// @param LSDFlowInfo object
+  /// @param LSDIndexRaster: a raster of channel segments, produced by the SplitChannel function
+  /// @param LSDIndexRaster: a binary raster with the full channel extent
+  /// @return LSDIndexRaster: hillslope segments labelled by ID of channel segments
+  /// @author DTM 
+  /// @date 29/10/2013
+  LSDIndexRaster SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster, LSDIndexRaster& MultiThreadChannelRaster);
+
+
 	// simple functions for getting streams. These do not return channel data elements but
 	// instead return an LSDIndexRaster with the streams of a given order retained
 

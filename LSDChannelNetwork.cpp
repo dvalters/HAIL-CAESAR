@@ -2498,7 +2498,223 @@ LSDIndexRaster LSDChannelNetwork::SplitChannel(LSDFlowInfo& FlowInfo, vector<int
   LSDIndexRaster ChannelSegmentsRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ChannelSegments);
   return ChannelSegmentsRaster;    
 }      
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// SplitHillslopes
+// This function is intended to follow the SplitChannel function.  It traces
+// through the receiver nodes from every hillslope pixel and then assigns them 
+// an integer value that matches the index of the section of channel that is
+// setting the base level of that hillslope.
+//
+// DTM 29/10/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDChannelNetwork::SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster)
+{
+  Array2D<int> HillslopeSegmentArray(NRows,NCols,NoDataValue);
+  Array2D<int> ChannelSegmentArray = ChannelSegmentsRaster.get_RasterData();
+  vector<int> rows_visited,cols_visited;
+  Array2D<int> VisitedBefore(NRows,NCols,0);
+  int CurrentNode,ReceiverNode,ReceiverRow,ReceiverCol;
+  // loop through the raster finding hillslope pixels
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      // Has node been visited before?
+      bool VisitedBeforeTest;
+      if(VisitedBefore[i][j]==1)VisitedBeforeTest = true;  
+      // If not visted before, then we can carry on, but mark as now visited
+      else
+      {
+        VisitedBeforeTest = false;
+        VisitedBefore[i][j]=1;
+      }
+      // Test that the node is a data node but not a channel node, and that it 
+      // hasn't been visited yet!
+      if((FlowInfo.NodeIndex[i][j]!=NoDataValue) && (ChannelSegmentArray[i][j]==NoDataValue) && (VisitedBeforeTest == false))
+      {
+        bool finish_trace = false; 
+        CurrentNode = FlowInfo.NodeIndex[i][j];
+        rows_visited.push_back(i);
+        cols_visited.push_back(j);
+        while(finish_trace == false)
+        {
+          FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
+          // if the receiver is a stream pixel then read through the vector of 
+          // visited rows/columns and update hillslope segment array for each 
+          // using the index of the channel segment.
+          if(ChannelSegmentArray[ReceiverRow][ReceiverCol] != NoDataValue)
+          {
+            finish_trace = true;
+            int N_nodes = rows_visited.size();
+            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
+            {
+              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = ChannelSegmentArray[ReceiverRow][ReceiverCol];
+            }
+            rows_visited.clear();
+            cols_visited.clear();
+          }
+          // else if the receiver has been visited before, then read through the
+          // vector of visted rows/columns and update hillslope segment array 
+          // for each using the index of the receiver.
+          else if(VisitedBeforeTest==true)
+          {
+            finish_trace = true;
+            int N_nodes = rows_visited.size();
+            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
+            {
+              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = HillslopeSegmentArray[ReceiverRow][ReceiverCol];
+            }
+            rows_visited.clear();
+            cols_visited.clear();
+          }
+          // else if the receiver is a base level node, in which case it will 
+          // never reach a channel -> set hillslope segment array for vector of 
+          // visited rows and columns as nodata.
+          else if (ReceiverNode == CurrentNode)
+          {
+            finish_trace = true;
+            int N_nodes = rows_visited.size();
+            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
+            {
+              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = NoDataValue;
+            }
+            rows_visited.clear();
+            cols_visited.clear();
+          }
+          // otherwise the next pixel must be a hillslope pixel downslope that
+          // has not yet been visited.  Add it to the vectors of visited points
+          // and move downstream.
+          else
+          {
+            rows_visited.push_back(ReceiverRow);
+            cols_visited.push_back(ReceiverCol);
+            VisitedBefore[ReceiverRow][ReceiverCol]=1;
+            CurrentNode = ReceiverNode;
+          }
+        }
+      } 
+    }
+  }
+  LSDIndexRaster HillslopeSegmentsRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, HillslopeSegmentArray);
+  return HillslopeSegmentsRaster;          
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// SplitHillslopes
+// This is an overloaded function doing the same as the previous version to
+// segment hillslopes according to the channel index of the channel setting its
+// base level.  However, this has been adapted to include an additional input
+// raster - MultiThreadChannelRaster - which recognises that real channels may
+// be multithreaded and/or have widths greater than or equal to one pixel.
+// To be rigourous, these should be removed from analyses of hillslope
+// properties.
+//
+// DTM 29/10/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDChannelNetwork::SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster, LSDIndexRaster& MultiThreadChannelRaster)
+{
+  Array2D<int> HillslopeSegmentArray(NRows,NCols,NoDataValue);
+  Array2D<int> ChannelSegmentArray = ChannelSegmentsRaster.get_RasterData();
+  vector<int> rows_visited,cols_visited;
+  Array2D<int> VisitedBefore(NRows,NCols,0);
+  Array2D<int> MultiThreadChannelArray = MultiThreadChannelRaster.get_RasterData();
+  int CurrentNode,ReceiverNode,ReceiverRow,ReceiverCol;
+  
+  // loop through the raster finding hillslope pixels
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      // Has node been visited before?
+      bool VisitedBeforeTest;
+      if(VisitedBefore[i][j]==1)VisitedBeforeTest = true;  
+      // If not visted before, then we can carry on, but mark as now visited
+      else
+      {
+        VisitedBeforeTest = false;
+        VisitedBefore[i][j]=1;
+      }
+      // Test that the node is a data node but not a channel node, and that it 
+      // hasn't been visited yet!
+      if((FlowInfo.NodeIndex[i][j]!=NoDataValue) && (ChannelSegmentArray[i][j] == NoDataValue)
+          && (MultiThreadChannelArray[i][j] == 0) && (VisitedBeforeTest == false))
+      {
+        bool finish_trace = false; 
+        bool reached_channel_but_trace_to_single_thread_channel = false;
+        CurrentNode = FlowInfo.NodeIndex[i][j];
+        rows_visited.push_back(i);
+        cols_visited.push_back(j);
+        while(finish_trace == false)
+        {
+          FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
+          if(VisitedBefore[ReceiverRow][ReceiverCol]==1)VisitedBeforeTest = true;  
+          // if the receiver is a stream pixel then read through the vector of 
+          // visited rows/columns and update hillslope segment array for each 
+          // using the index of the channel segment.
+          if(ChannelSegmentArray[ReceiverRow][ReceiverCol] != NoDataValue)
+          {
+            finish_trace = true;
+            int N_nodes = rows_visited.size();
+            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
+            {
+              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = ChannelSegmentArray[ReceiverRow][ReceiverCol];
+            }
+            rows_visited.clear();
+            cols_visited.clear();
+          }
+          // else if the receiver has been visited before, then read through the
+          // vector of visted rows/columns and update hillslope segment array 
+          // for each using the index of the receiver.
+          else if(VisitedBeforeTest==true)
+          {
+            finish_trace = true;
+            int N_nodes = rows_visited.size();
+            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
+            {
+              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = HillslopeSegmentArray[ReceiverRow][ReceiverCol];
+            }
+            rows_visited.clear();
+            cols_visited.clear();
+          }
+          // else if the receiver is a base level node, in which case it will 
+          // never reach a channel -> set hillslope segment array for vector of 
+          // visited rows and columns as nodata.
+          else if (ReceiverNode == CurrentNode)
+          {
+            finish_trace = true;
+            int N_nodes = rows_visited.size();
+            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
+            {
+              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = NoDataValue;
+            }
+            rows_visited.clear();
+            cols_visited.clear();
+          }
+          // otherwise the next pixel must be a hillslope pixel downslope that
+          // has not yet been visited.  Add it to the vectors of visited points
+          // and move downstream.
+          else
+          {
+            if(MultiThreadChannelArray[ReceiverRow][ReceiverCol] == 1) reached_channel_but_trace_to_single_thread_channel = true;
+            else
+            {
+              rows_visited.push_back(ReceiverRow);
+              cols_visited.push_back(ReceiverCol);
+              VisitedBefore[ReceiverRow][ReceiverCol]=1;
+            }
+            // Update CurrentNode to trace downstream
+            CurrentNode = ReceiverNode;
+          }
+        }
+      } 
+    }
+  }
+  LSDIndexRaster HillslopeSegmentsRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, HillslopeSegmentArray);
+  return HillslopeSegmentsRaster;          
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 // This function gets the node indices of outlets of basins of a certain order
