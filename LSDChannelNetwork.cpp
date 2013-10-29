@@ -2554,20 +2554,6 @@ LSDIndexRaster LSDChannelNetwork::SplitHillslopes(LSDFlowInfo& FlowInfo, LSDInde
             rows_visited.clear();
             cols_visited.clear();
           }
-          // else if the receiver has been visited before, then read through the
-          // vector of visted rows/columns and update hillslope segment array 
-          // for each using the index of the receiver.
-          else if(VisitedBeforeTest==true)
-          {
-            finish_trace = true;
-            int N_nodes = rows_visited.size();
-            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
-            {
-              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = HillslopeSegmentArray[ReceiverRow][ReceiverCol];
-            }
-            rows_visited.clear();
-            cols_visited.clear();
-          }
           // else if the receiver is a base level node, in which case it will 
           // never reach a channel -> set hillslope segment array for vector of 
           // visited rows and columns as nodata.
@@ -2578,6 +2564,20 @@ LSDIndexRaster LSDChannelNetwork::SplitHillslopes(LSDFlowInfo& FlowInfo, LSDInde
             for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
             {
               HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = NoDataValue;
+            }
+            rows_visited.clear();
+            cols_visited.clear();
+          }
+          // else if the receiver has been visited before, then read through the
+          // vector of visited rows/columns and update hillslope segment array 
+          // for each using the index of the receiver.
+          else if(VisitedBeforeTest==true)
+          {
+            finish_trace = true;
+            int N_nodes = rows_visited.size();
+            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
+            {
+              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = HillslopeSegmentArray[ReceiverRow][ReceiverCol];
             }
             rows_visited.clear();
             cols_visited.clear();
@@ -2663,20 +2663,6 @@ LSDIndexRaster LSDChannelNetwork::SplitHillslopes(LSDFlowInfo& FlowInfo, LSDInde
             rows_visited.clear();
             cols_visited.clear();
           }
-          // else if the receiver has been visited before, then read through the
-          // vector of visted rows/columns and update hillslope segment array 
-          // for each using the index of the receiver.
-          else if(VisitedBeforeTest==true)
-          {
-            finish_trace = true;
-            int N_nodes = rows_visited.size();
-            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
-            {
-              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = HillslopeSegmentArray[ReceiverRow][ReceiverCol];
-            }
-            rows_visited.clear();
-            cols_visited.clear();
-          }
           // else if the receiver is a base level node, in which case it will 
           // never reach a channel -> set hillslope segment array for vector of 
           // visited rows and columns as nodata.
@@ -2691,6 +2677,21 @@ LSDIndexRaster LSDChannelNetwork::SplitHillslopes(LSDFlowInfo& FlowInfo, LSDInde
             rows_visited.clear();
             cols_visited.clear();
           }
+          // else if the receiver has been visited before, then read through the
+          // vector of visted rows/columns and update hillslope segment array 
+          // for each using the index of the receiver.
+          else if(VisitedBeforeTest==true)
+          {
+            finish_trace = true;
+            int N_nodes = rows_visited.size();
+            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
+            {
+              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = HillslopeSegmentArray[ReceiverRow][ReceiverCol];
+            }
+            rows_visited.clear();
+            cols_visited.clear();
+          }
+          
           // otherwise the next pixel must be a hillslope pixel downslope that
           // has not yet been visited.  Add it to the vectors of visited points
           // and move downstream.
