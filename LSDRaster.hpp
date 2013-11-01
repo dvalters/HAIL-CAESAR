@@ -803,7 +803,7 @@ class LSDRaster
   /// @brief Collect all basin average metrics into a single file.
   ///
   /// @details File is written with the format: \n\n
-  /// "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*"
+  /// "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines"
   /// @param Basins LSDIndexRaster of drainage basins to sample.
   /// @param Slope
   /// @param Elevation
@@ -815,12 +815,14 @@ class LSDRaster
   /// @param MeanSlope
   /// @param Relief
   /// @param MeanAspect
+  /// @param LH_Data Array of LH data generated from the Boomerang plotting function and compiled using the BasinMetrics Driver - Added 1/11/13 SWDG.
   /// @param CriticalSlope Threshold value for E* and R* values.
   /// @param RasterFilename Filename of the input raster data.
-  /// SWDG 27/8/13
+  /// @author SWDG
+  /// @date 27/8/13
   void CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect,
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
-                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope, string RasterFilename);
+                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, Array2D<double> LH_Data, double CriticalSlope, string RasterFilename);
 
 
   /// @brief Generate data in two text files to create a boomerang plot as in Roering et al [2007].
