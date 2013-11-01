@@ -188,6 +188,13 @@ void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector
 void matlab_double_reorder(std::vector<double> & unordered, std::vector<size_t> const & index_map, std::vector<double> & ordered);
 void matlab_double_sort_descending(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map);
 
+// Generate spline curves from X and Y vectors of doubles
+Array2D<double> CalculateCubicSplines(vector<double> X, vector<double> Y);
+void PlotCubicSplines(vector<double> X, vector<double> Y, int SplineResolution, vector<double>& Spline_X, vector<double>& Spline_Y);
+
+// Generate vector of evenly space numbers between two points
+vector<double> linspace(double min, double max, int n);
+
 // convert degree bearing from north to radians from east
 double BearingToRad(double Bearing);
 
