@@ -1684,6 +1684,8 @@ string dtoa(double num)
 // re-ported from the working LSDRaster original version and has now been tested and
 // produces the same results as the original with no memory errors. - SWDG 30/8/13
 //
+// Fixed bug in definition of NBins (Line 1727) - SWDG 31/10/13
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, double log_bin_width, vector<double>&  MeanX_output, vector<double>& MeanY_output,
                       vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output,
@@ -1722,7 +1724,7 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
   {
     lower_limit = 0;
   }
-  int NBins = int(((upper_limit - lower_limit)/log_bin_width)+1);     //changed
+  int NBins = int((upper_limit - lower_limit)/log_bin_width);     //Originally this value had 1 added to it, but this always gave a final bin of (0.0,0.0) so this increment has been removed - SWDG 
 
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
