@@ -3060,10 +3060,11 @@ void LSDRaster::HFR(int i, int j, double xi, double yi, Array2D<int>& Visited, A
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Generate data in two text files to create a boomerang plot as in Roering et al [2007].
+// Generate data in three text files to create a boomerang plot as in Roering et al [2007].
+// Added spline curves and return of a pair of LH values - 1/11/13 SWDG. 
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilename, double log_bin_width){
+pair<double,double> LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilename, double log_bin_width, int SplineResolution){
 
   Array2D<double> slope = Slope.get_RasterData();
   Array2D<double> area = Dinf.get_RasterData();
@@ -3077,29 +3078,55 @@ void LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilena
   vector<double> STDErr_x_out;
   vector<double> STDErr_y_out;
 
-  log_bin_data(area, slope, log_bin_width, Mean_x_out, Mean_y_out, Midpoints_out, STDDev_x_out, STDDev_y_out,STDErr_x_out,STDErr_y_out,NoDataValue);
+  log_bin_data(area, slope, log_bin_width, Mean_x_out, Mean_y_out, Midpoints_out, STDDev_x_out, STDDev_y_out, STDErr_x_out, STDErr_y_out, NoDataValue);
+  
+  //index value of max slope
+  int slope_max_index = distance(Mean_y_out.begin(), max_element(Mean_y_out.begin(), Mean_y_out.end()));
 
-  //set up a filestream object
+  //hillslope length from the maximum binned values
+  double LH = Mean_x_out[slope_max_index]/DataResolution;
+      
+  // Fit splines through the binned data to get the LH
+  vector<double> Spline_X;
+  vector<double> Spline_Y;
+  PlotCubicSplines(Mean_x_out, Mean_y_out, SplineResolution, Spline_X, Spline_Y);
+  
+  //index value of max spline slope
+  int slope_max_index_spline = distance(Spline_Y.begin(), max_element(Spline_Y.begin(), Spline_Y.end()));
+
+  //hillslope length from spline curve - maybe get a range of values about the maximum?
+  double LH_spline = Spline_X[slope_max_index_spline]/DataResolution;
+    
+  //set up a filestream object to write the binned data
   ofstream file;
 
   stringstream ss_bin;
   ss_bin << RasterFilename << "_boom_binned.txt";
   file.open(ss_bin.str().c_str());   //needs a null terminated character array, not a string. See pg 181 of accelerated c++
-
-
+    
   for(int q = 0; q < int(Mean_x_out.size()); q++){
     file << Mean_x_out[q] << " " << Mean_y_out[q] << " " << STDDev_x_out[q] << " " << STDDev_y_out[q] << " " << STDErr_x_out[q] << " " << STDErr_y_out[q] << endl;
   }
-
   file.close();
+   
+  //set up a filestream object to write the spline data
+  ofstream SplineFile;
 
-  //data cloud
+  stringstream ss_spline;
+  ss_spline << RasterFilename << "_boom_spline.txt";
+  SplineFile.open(ss_spline.str().c_str());   //needs a null terminated character array, not a string. See pg 181 of accelerated c++
+    
+  for(int q = 0; q < int(Mean_x_out.size()); q++){
+    SplineFile << Spline_X[q] << " " << Spline_Y[q] << endl;
+  }
+  SplineFile.close();
+  
+  //set up a filestream object to write the data cloud
   ofstream cloud;
 
   stringstream ss_cloud;
   ss_cloud << RasterFilename << "_boom_cloud.txt";
   cloud.open(ss_cloud.str().c_str());     //needs a null terminated character array, not a string. See pg 181 of accelerated c++
-
 
   for (int i = 1; i < NRows-1; ++i){
     for (int j = 1; j < NCols-1; ++j){
@@ -3108,8 +3135,13 @@ void LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilena
       }
     }
   }
-
   cloud.close();
+
+  // create a pair containing the two LH values, first is the binned value and second is the spline value
+  pair <double,double> LH_Pair;
+  LH_Pair = make_pair (LH, LH_spline);
+  
+  return LH_Pair;
 
 }
 

@@ -828,9 +828,11 @@ class LSDRaster
   /// @param D_inf D-infinity Flowarea LSDRaster.
   /// @param RasterFilename Filename used to give unique name to output data.
   /// @param log_bin_width Width (in log space) of the bins, with respect to D_inf.
+  /// @param SplineResolution Number of values between each point for the spline curve.
+  /// @return A pair of doubles containing the two LH values in the order LH(bins), LH(splines).
   /// @author SWDG
   /// @date 27/8/13
-  void Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, double log_bin_width = 0.1);
+  pair<double,double> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, double log_bin_width = 0.1, int SplineResolution = 200);
 
   /// @brief Calculate drainage density of a set of input basins.
   ///
