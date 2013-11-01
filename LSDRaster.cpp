@@ -3185,12 +3185,12 @@ vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster 
 // Collect all basin average metrics into a single file.
 //
 // File is written with the format:
-// "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*"
+// "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines"
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect,
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
-                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, double CriticalSlope, string RasterFilename)
+                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, Array2D<double> LH_Data, double CriticalSlope, string RasterFilename)
 {
 
   vector<int> basin_index;
@@ -3328,20 +3328,29 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
 
   }
 
-
   stringstream filename;
   filename << RasterFilename << "_BasinMetrics.txt";
   ofstream file;
   file.open(filename.str().c_str());
-  file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R*" << endl;
+  file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines" << endl;
+
 
   for(int q = 0; q < int(BasinIDVector.size()); q++){
-    file << BasinIDVector[q] << " " << SlopeVector[q] << " " << ElevationVector[q] << " " << AspectVector[q] << " " << AreaVector[q] << " " << DrainageDensityVector[q] << " " << ChtVector[q] << " " << HillslopeLengthVector[q] << " " << MeanSlopeVector[q] <<  " " << ReliefVector[q] << " " << MeanAspectVector[q] << " " << EStarVector[q] << " " << RStarVector[q] << endl;
+    
+    double LH_bins = 0.0;
+    double LH_splines = 0.0;
+    
+    for (int k = 0; k < int(LH_Data.dim1()); ++k){
+      if (LH_Data[k][0] == BasinIDVector[q]){ //if we have LH data for this basin id then write it to the variables
+        LH_bins = LH_Data[k][1];
+        LH_splines = LH_Data[k][2];
+      }
+    }   
+  
+    file << BasinIDVector[q] << " " << SlopeVector[q] << " " << ElevationVector[q] << " " << AspectVector[q] << " " << AreaVector[q] << " " << DrainageDensityVector[q] << " " << ChtVector[q] << " " << HillslopeLengthVector[q] << " " << MeanSlopeVector[q] <<  " " << ReliefVector[q] << " " << MeanAspectVector[q] << " " << EStarVector[q] << " " << RStarVector[q] << " " << LH_bins << " " << LH_splines << endl;
   }
 
   file.close();
-
-
 
 }
 
