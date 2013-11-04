@@ -432,24 +432,6 @@ class LSDChannelNetwork
                                       int MinSegLength, double A_0, double m_over_n,
 									                    LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
 									                    LSDRaster& ElevationRaster);
-									  	
-  /// @brief This function returns all potential channel heads in a DEM. It looks for
-  /// channel heads based on the outlet junctions of the valleys (which are identified by looking 
-  /// for portions of the landscape with 10 or more nodes with a high curvature that are linked)
-	/// @param ValleyJunctions
-	/// @param MinSegLength
-	/// @param A_0
-	/// @param m_over_n
-	/// @param FlowInfo
-	/// @param FlowDistance
-	/// @param ElevationRaster
-	/// @return vector<int> a vector of node_indices of potential channel heads
-  /// @author FC
-  /// @date 31/10/2013
-  vector<int> GetChannelHeadsChiMethodFromValleys(Array2D<int>& ValleyJunctions,
-                                      int MinSegLength, double A_0, double m_over_n,
-									                    LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
-									                    LSDRaster& ElevationRaster);
 
 
   /// @brief This function returns a 2D array containing the locations of all pixels identified
@@ -526,25 +508,7 @@ class LSDChannelNetwork
   /// @author FC
   /// @date 29/10/2013
   Array2D<int> find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources);
-
-	vector<int> calculate_pelletier_channel_heads(double tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array);
   
-  /// @brief This function is used to identify concave portions of the landscape using a tangential curvature threshold.
-  ///
-  /// @details It defines the threshold based on a multiple of the standard deviation
-  /// of the curvature.  It then identifies valleys in which there are a linked series of pixels
-  /// which have a curvature value greater than the threshold, and finds the outlet junction number
-  /// of this valley.  This can be passed to the channel head prediction algorithm using the chi
-  /// method.
-  ///
-  /// @param FlowInfo LSDFlowInfo object
-  /// @param tan_curv_array 2D array with curvature
-  /// @param sources vector with sources of channel network
-  /// @return Array2D<int> with nodes at the base of each of the valleys
-  /// @author FC
-  /// @date 29/10/2013
-  Array2D<int> find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources);
-
   /// @brief Ridge network extraction - extracts ridge network, defined as boundaries
   /// between two basins of the same stream order.
   ///
