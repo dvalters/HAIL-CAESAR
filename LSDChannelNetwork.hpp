@@ -415,7 +415,24 @@ class LSDChannelNetwork
 									  LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
 									  LSDRaster& ElevationRaster);
 									  
-	
+	/// @brief This function returns all potential channel heads in a DEM. It looks for
+  /// channel heads based on the outlet junctions of the valleys (which are identified by looking 
+  /// for portions of the landscape with 10 or more nodes with a high curvature that are linked)
+	/// @param ValleyJunctions
+	/// @param MinSegLength
+	/// @param A_0
+	/// @param m_over_n
+	/// @param FlowInfo
+	/// @param FlowDistance
+	/// @param ElevationRaster
+	/// @return vector<int> a vector of node_indices of potential channel heads
+  /// @author FC
+  /// @date 31/10/2013
+  vector<int> GetChannelHeadsChiMethodFromValleys(Array2D<int>& ValleyJunctions,
+                                      int MinSegLength, double A_0, double m_over_n,
+									                    LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
+									                    LSDRaster& ElevationRaster);
+									  	
   /// @brief This function returns all potential channel heads in a DEM. It looks for
   /// channel heads based on the outlet junctions of the valleys (which are identified by looking 
   /// for portions of the landscape with 10 or more nodes with a high curvature that are linked)
@@ -492,6 +509,24 @@ class LSDChannelNetwork
   /// @return 2D array of predicted channel head locations.
   /// @author FC
   /// @date 16/07/13
+	vector<int> calculate_pelletier_channel_heads(double tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array);
+	
+	/// @brief This function is used to identify concave portions of the landscape using a tangential curvature threshold.
+  ///
+  /// @details It defines the threshold based on a multiple of the standard deviation
+  /// of the curvature.  It then identifies valleys in which there are a linked series of pixels
+  /// which have a curvature value greater than the threshold, and finds the outlet junction number
+  /// of this valley.  This can be passed to the channel head prediction algorithm using the chi
+  /// method.
+  ///
+  /// @param FlowInfo LSDFlowInfo object
+  /// @param tan_curv_array 2D array with curvature
+  /// @param sources vector with sources of channel network
+  /// @return Array2D<int> with nodes at the base of each of the valleys
+  /// @author FC
+  /// @date 29/10/2013
+  Array2D<int> find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources);
+
 	vector<int> calculate_pelletier_channel_heads(double tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array);
   
   /// @brief This function is used to identify concave portions of the landscape using a tangential curvature threshold.
@@ -592,6 +627,37 @@ class LSDChannelNetwork
   /// @author DTM
   /// @date 23/10/2013
   LSDIndexRaster SplitChannel(LSDFlowInfo& FlowInfo, vector<int> Sources, int TargetSegmentLength);
+
+  /// SplitHillslopes
+  /// @brief This function is intended to follow the SplitChannel function.  It traces
+  /// through the receiver nodes from every hillslope pixel and then assigns them 
+  /// an integer value that matches the index of the section of channel that is
+  /// setting the base level of that hillslope.
+  ///
+  /// @param LSDFlowInfo object
+  /// @param LSDIndexRaster: a raster of channel segments, produced by the SplitChannel function
+  /// @return LSDIndexRaster: hillslope segments labelled by ID of channel segments
+  /// @author DTM 
+  /// @date 29/10/2013
+  LSDIndexRaster SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster);
+
+  /// SplitHillslopes
+  /// @brief This is an overloaded function doing the same as the previous version to
+  /// segment hillslopes according to the channel index of the channel setting its
+  /// base level.  However, this has been adapted to include an additional input
+  /// raster - MultiThreadChannelRaster - which recognises that real channels may
+  /// be multithreaded and/or have widths greater than or equal to one pixel.
+  /// To be rigourous, these should be removed from analyses of hillslope
+  /// properties.
+  /// 
+  /// @param LSDFlowInfo object
+  /// @param LSDIndexRaster: a raster of channel segments, produced by the SplitChannel function
+  /// @param LSDIndexRaster: a binary raster with the full channel extent
+  /// @return LSDIndexRaster: hillslope segments labelled by ID of channel segments
+  /// @author DTM 
+  /// @date 29/10/2013
+  LSDIndexRaster SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster, LSDIndexRaster& MultiThreadChannelRaster);
+
 
 	// simple functions for getting streams. These do not return channel data elements but
 	// instead return an LSDIndexRaster with the streams of a given order retained
