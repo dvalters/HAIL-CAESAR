@@ -753,7 +753,24 @@ int LSDChannelNetwork::get_maximum_stream_order()
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// this function gets the junction index of a node.  If there is not a junction at this node
+// then it will give NoDataValue
+//
+// FC 31/10/13
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+int LSDChannelNetwork::get_Junction_of_Node(int Node, LSDFlowInfo& FlowInfo)
+{
+	int JunctionNumber, Row, Col;
+	
+  FlowInfo.retrieve_current_row_and_col(Node, Row, Col);
+  JunctionNumber = JunctionIndexArray[Row][Col];
+  
+  return JunctionNumber;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1344,7 +1361,7 @@ vector<int> LSDChannelNetwork::FindFarthestUpslopeHilltopsFromSources(int Juncti
 		// test to see if the junction has donor, if not it is a source
 		if (NDonorsVector[ upslope_juncs[i] ] == 0)
 		{
-			cout << "source found, junction: " << upslope_juncs[i] << endl;
+			//cout << "source found, junction: " << upslope_juncs[i] << endl;
 
 			// get the node
 			this_source_node =  JunctionVector[ upslope_juncs[i] ];
@@ -1370,6 +1387,7 @@ vector<int> LSDChannelNetwork::FindFarthestUpslopeHilltopsFromSources(int Juncti
 //
 // Modified by FC 26/09/2013 to extract the node of the predicted channel heads for each
 // hilltop node; now returns a vector of integers.
+
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromJunction(int JunctionNumber,
@@ -1392,7 +1410,8 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromJunction(int Junction
 
     for(int i = 0; i<n_hilltops; i++)
     {
-		  LSDChannel new_channel(hilltop_nodes[i], downstream_node_index, downslope_chi, m_over_n, A_0, FlowInfo,  ElevationRaster);
+      //cout << "hilltop " << i << " of " << n_hilltops << endl;
+      LSDChannel new_channel(hilltop_nodes[i], downstream_node_index, downslope_chi, m_over_n, A_0, FlowInfo,  ElevationRaster);
 		  int channel_head_node = new_channel.calculate_channel_heads(MinSegLength, A_0, m_over_n, FlowInfo);
 		  ChannelHeadNodes[i] = channel_head_node;
 	  }
@@ -1400,7 +1419,6 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromJunction(int Junction
   return ChannelHeadNodes;
 }      
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
-
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
@@ -1425,10 +1443,10 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodBasinOrder(int BasinOrder
   	vector<int> junction_list = extract_basins_order_outlet_junctions(BasinOrder, FlowInfo);
   	int max_junctions = junction_list.size();
   	cout << "No of junctions: " << max_junctions << endl;
-  	int junction_number;
+  	int junction_number = 0;
 
-	// loop through junctions collecting channel heads
-  	for (int i = 0; i < max_junctions; i++)
+	 //loop through junctions collecting channel heads
+    for (int i = 0; i < max_junctions; i++)
   	{
 		  cout << "Junction " << i << " of " << max_junctions << endl;
 
@@ -1469,6 +1487,85 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodBasinOrder(int BasinOrder
     }
     
     return ChannelHeadNodes;
+}                              
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+// This function returns all potential channel heads in a DEM. It looks for
+// channel heads based on the outlet junctions of the valleys (which are identified by looking 
+// for portions of the landscape with 10 or more nodes with a high curvature that are linked)
+// It returns a vector<int> of nodeindices where the channel heads are
+//
+// FC 31/10/13
+//
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromValleys(Array2D<int>& ValleyJunctions,
+                                      int MinSegLength, double A_0, double m_over_n,
+									                    LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
+									                    LSDRaster& ElevationRaster)
+{
+	vector<int> ChannelHeadNodes;
+	vector<int> ChannelHeadNodes_temp;
+	vector<int> junction_list;
+	
+	for (int row = 0; row < NRows; row++)
+	{
+    for (int col =0; col < NCols; col++)
+    {
+        if (ValleyJunctions[row][col] != NoDataValue)
+        {
+          junction_list.push_back(ValleyJunctions[row][col]);
+        }
+    }
+  }
+  
+  int max_junctions = junction_list.size();
+  cout << "No of junctions: " << max_junctions << endl;
+  int junction_number = 0;
+  
+  //loop through junctions collecting channel heads
+  for (int i = 0; i < max_junctions; i++)
+  {
+	  cout << "Junction " << i+1 << " of " << max_junctions << endl;
+
+    // get the junction number
+	  junction_number = junction_list[i];
+  
+    // get a local list of channel heads
+	  vector<int> these_channel_heads = GetChannelHeadsChiMethodFromJunction(junction_number,
+                                      			MinSegLength, A_0, m_over_n, FlowInfo,
+                                       			FlowDistance, ElevationRaster);
+
+     // now append these channel heads to the master list
+	  ChannelHeadNodes_temp.insert(ChannelHeadNodes_temp.end(), these_channel_heads.begin(), these_channel_heads.end());
+	}
+	  
+	// Removing any nodes that are not the furthest upstream
+  int upstream_test = 0;
+  vector<int>::iterator find_it;
+
+  for (unsigned int node =0; node < ChannelHeadNodes_temp.size(); node++)
+  {
+    vector<int> tests;
+    int current_node = ChannelHeadNodes_temp[node];
+    for (unsigned int i = 0; i < ChannelHeadNodes_temp.size(); i++)
+    {
+      if (ChannelHeadNodes_temp[i] != current_node)
+      {
+        int test_node = ChannelHeadNodes_temp[i];
+        upstream_test = FlowInfo.is_node_upstream(current_node, test_node);
+        tests.push_back(upstream_test);
+      }
+    }
+    find_it = find(tests.begin(), tests.end(), 1);
+    if (find_it == tests.end())
+    {
+      ChannelHeadNodes.push_back(current_node);
+    }
+  }  
+    
+  return ChannelHeadNodes;
 }                              
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 
@@ -1852,7 +1949,7 @@ vector<int> LSDChannelNetwork::GetSourceNodesChiMethodAllPixels(int JunctionNumb
 // added by FC 16/07/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-vector<int> LSDChannelNetwork::calculate_pelletier_channel_heads(double window_radius, double tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array)
+vector<int> LSDChannelNetwork::calculate_pelletier_channel_heads(double tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array)
 {
 	cout << "Getting Pelletier channel heads" << endl;
   Array2D<double> chan_head_locations(NRows,NCols,NoDataValue);
@@ -1943,7 +2040,128 @@ vector<int> LSDChannelNetwork::calculate_pelletier_channel_heads(double window_r
   cout << "No of channel nodes: " << channel_nodes.size() << " No of source nodes: " << source_nodes.size() << endl;
   return source_nodes;
 }
-                   
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+                 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// IDENTIFYING VALLEYS USING TANGENTIAL CURVATURE
+//
+// This function is used to identify concave portions of the landscape using a tangential
+// curvature threshold. It defines the threshold based on a multiple of the standard deviation
+// of the curvature.  It then identifies valleys in which there are a linked series of pixels
+// which have a curvature value greater than the threshold, and finds the outlet junction number
+// of this valley.  This can be passed to the channel head prediction algorithm using the chi
+// method.
+// Reference: Peuker, T. K. and D. H. Douglas, (1975), "Detection of surface-specific points by local
+// parallel processing of discrete terrain elevation data," Comput. Graphics Image Process., 4: 375-387
+//
+// added by FC 28/10/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Array2D<int> LSDChannelNetwork::find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources)
+{
+  Array2D<int> NodesVisitedBefore(NRows,NCols,0);
+  Array2D<int> NodesVisitedBeforeTemp(NRows,NCols,0);
+  Array2D<int> valley_junctions(NRows,NCols,NoDataValue);   
+  vector<int> valley_nodes;
+  double tan_curv_threshold = 0.1;
+    
+  //Find valleys with linked pixels greater than the threshold
+  int n_sources = sources.size();
+  cout << "No of sources: " << n_sources << endl;
+  int min_segment_length = 10;
+  
+  // Loop through all the sources, moving downstream - keep a count of the number of connected
+  // nodes that are above the threshold curvature.  If there are more than 5 nodes that are 
+  // connected then it is a valley - get the outlet junction of the valley and store in a vector
+  
+  for (int source = 0; source < n_sources; source++)
+  {
+    bool EndofReach = false;
+    int max_no_connected_nodes =0;
+    int CurrentNode = sources[source];
+    int CurrentRow,CurrentCol,ReceiverNode,ReceiverRow,ReceiverCol; 
+    
+    while (EndofReach == false)
+    {
+      FlowInfo.retrieve_current_row_and_col(CurrentNode,CurrentRow,CurrentCol);
+      FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
+      if (tan_curv_array[CurrentRow][CurrentCol] != NoDataValue)
+      {
+        double node_curvature = tan_curv_array[CurrentRow][CurrentCol];
+        //cout << node_curvature << endl;
+        NodesVisitedBefore[CurrentRow][CurrentCol] = 1;
+    
+        if (node_curvature > tan_curv_threshold)
+        {
+          ++max_no_connected_nodes;
+          //cout << "Max no of connecting nodes: " << max_no_connected_nodes << endl;
+        }
+        else
+        {
+          max_no_connected_nodes = 0;
+        }
+        
+        //check whether the no of connected nodes has been reached; if it has then identify the 
+        // outlet junction of the valley
+        if (max_no_connected_nodes > min_segment_length)
+        {
+          EndofReach = true;
+          int this_node = CurrentNode;
+          int current_row,current_col,downslope_node,downslope_row,downslope_col,current_SO,downslope_SO;
+          bool reached_outlet = false;
+          while (reached_outlet == false)
+          {
+            FlowInfo.retrieve_current_row_and_col(this_node, current_row, current_col);
+            FlowInfo.retrieve_receiver_information(this_node, downslope_node, downslope_row, downslope_col);
+            current_SO = StreamOrderArray[current_row][current_col];
+            downslope_SO = StreamOrderArray[downslope_row][downslope_col];
+            NodesVisitedBeforeTemp[current_row][current_col] = 1;
+            bool BeentoReceiver = false;
+            if (downslope_SO > current_SO)
+            {
+              valley_nodes.push_back(this_node);
+              int valley_junction = find_upstream_junction_from_channel_nodeindex(this_node, FlowInfo);
+              valley_junctions[current_row][current_col] = valley_junction;
+              reached_outlet = true;
+             // cout << "valley junction: " << valley_junction << endl;
+            }
+            if (NodesVisitedBeforeTemp[downslope_row][downslope_col] ==1) BeentoReceiver = true;
+            if(BeentoReceiver == false) 
+            {
+              //Move downstream
+              this_node = downslope_node;        
+            }
+            else
+            {
+              //Push back the valley node
+              reached_outlet = true;
+            }
+          }   
+        }  
+        
+        bool ReceiverVisitedBefore = false;
+        // test to see whether we have visited this node before
+        if(NodesVisitedBefore[ReceiverRow][ReceiverCol]==1) ReceiverVisitedBefore = true;
+        if(ReceiverVisitedBefore == false) 
+        {
+          //Move downstream
+          CurrentNode = ReceiverNode;        
+        }
+        else
+        {
+          //Move to next source
+          EndofReach = true;
+        }
+      }
+      else
+      {
+        EndofReach = true;
+      }
+    }      
+  }
+
+  return valley_junctions;  
+}  
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function extracts the ridge network by defining it as the co-boundaries
 // of basins of equivalent order, for all basin orders within the landscape.
@@ -2498,224 +2716,7 @@ LSDIndexRaster LSDChannelNetwork::SplitChannel(LSDFlowInfo& FlowInfo, vector<int
   LSDIndexRaster ChannelSegmentsRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ChannelSegments);
   return ChannelSegmentsRaster;    
 }      
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
-// SplitHillslopes
-// This function is intended to follow the SplitChannel function.  It traces
-// through the receiver nodes from every hillslope pixel and then assigns them 
-// an integer value that matches the index of the section of channel that is
-// setting the base level of that hillslope.
-//
-// DTM 29/10/2013
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
-LSDIndexRaster LSDChannelNetwork::SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster)
-{
-  Array2D<int> HillslopeSegmentArray(NRows,NCols,NoDataValue);
-  Array2D<int> ChannelSegmentArray = ChannelSegmentsRaster.get_RasterData();
-  vector<int> rows_visited,cols_visited;
-  Array2D<int> VisitedBefore(NRows,NCols,0);
-  int CurrentNode,ReceiverNode,ReceiverRow,ReceiverCol;
-  // loop through the raster finding hillslope pixels
-  for(int i = 0; i < NRows; ++i)
-  {
-    for(int j = 0; j < NCols; ++j)
-    {
-      // Has node been visited before?
-      bool VisitedBeforeTest;
-      if(VisitedBefore[i][j]==1)VisitedBeforeTest = true;  
-      // If not visted before, then we can carry on, but mark as now visited
-      else
-      {
-        VisitedBeforeTest = false;
-        VisitedBefore[i][j]=1;
-      }
-      // Test that the node is a data node but not a channel node, and that it 
-      // hasn't been visited yet!
-      if((FlowInfo.NodeIndex[i][j]!=NoDataValue) && (ChannelSegmentArray[i][j]==NoDataValue) && (VisitedBeforeTest == false))
-      {
-        bool finish_trace = false; 
-        CurrentNode = FlowInfo.NodeIndex[i][j];
-        rows_visited.push_back(i);
-        cols_visited.push_back(j);
-        while(finish_trace == false)
-        {
-          FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
-          // if the receiver is a stream pixel then read through the vector of 
-          // visited rows/columns and update hillslope segment array for each 
-          // using the index of the channel segment.
-          if(ChannelSegmentArray[ReceiverRow][ReceiverCol] != NoDataValue)
-          {
-            finish_trace = true;
-            int N_nodes = rows_visited.size();
-            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
-            {
-              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = ChannelSegmentArray[ReceiverRow][ReceiverCol];
-            }
-            rows_visited.clear();
-            cols_visited.clear();
-          }
-          // else if the receiver is a base level node, in which case it will 
-          // never reach a channel -> set hillslope segment array for vector of 
-          // visited rows and columns as nodata.
-          else if (ReceiverNode == CurrentNode)
-          {
-            finish_trace = true;
-            int N_nodes = rows_visited.size();
-            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
-            {
-              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = NoDataValue;
-            }
-            rows_visited.clear();
-            cols_visited.clear();
-          }
-          // else if the receiver has been visited before, then read through the
-          // vector of visited rows/columns and update hillslope segment array 
-          // for each using the index of the receiver.
-          else if(VisitedBeforeTest==true)
-          {
-            finish_trace = true;
-            int N_nodes = rows_visited.size();
-            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
-            {
-              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = HillslopeSegmentArray[ReceiverRow][ReceiverCol];
-            }
-            rows_visited.clear();
-            cols_visited.clear();
-          }
-          // otherwise the next pixel must be a hillslope pixel downslope that
-          // has not yet been visited.  Add it to the vectors of visited points
-          // and move downstream.
-          else
-          {
-            rows_visited.push_back(ReceiverRow);
-            cols_visited.push_back(ReceiverCol);
-            VisitedBefore[ReceiverRow][ReceiverCol]=1;
-            CurrentNode = ReceiverNode;
-          }
-        }
-      } 
-    }
-  }
-  LSDIndexRaster HillslopeSegmentsRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, HillslopeSegmentArray);
-  return HillslopeSegmentsRaster;          
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
-// SplitHillslopes
-// This is an overloaded function doing the same as the previous version to
-// segment hillslopes according to the channel index of the channel setting its
-// base level.  However, this has been adapted to include an additional input
-// raster - MultiThreadChannelRaster - which recognises that real channels may
-// be multithreaded and/or have widths greater than or equal to one pixel.
-// To be rigourous, these should be removed from analyses of hillslope
-// properties.
-//
-// DTM 29/10/2013
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
-LSDIndexRaster LSDChannelNetwork::SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster, LSDIndexRaster& MultiThreadChannelRaster)
-{
-  Array2D<int> HillslopeSegmentArray(NRows,NCols,NoDataValue);
-  Array2D<int> ChannelSegmentArray = ChannelSegmentsRaster.get_RasterData();
-  vector<int> rows_visited,cols_visited;
-  Array2D<int> VisitedBefore(NRows,NCols,0);
-  Array2D<int> MultiThreadChannelArray = MultiThreadChannelRaster.get_RasterData();
-  int CurrentNode,ReceiverNode,ReceiverRow,ReceiverCol;
-  
-  // loop through the raster finding hillslope pixels
-  for(int i = 0; i < NRows; ++i)
-  {
-    for(int j = 0; j < NCols; ++j)
-    {
-      // Has node been visited before?
-      bool VisitedBeforeTest;
-      if(VisitedBefore[i][j]==1)VisitedBeforeTest = true;  
-      // If not visted before, then we can carry on, but mark as now visited
-      else
-      {
-        VisitedBeforeTest = false;
-        VisitedBefore[i][j]=1;
-      }
-      // Test that the node is a data node but not a channel node, and that it 
-      // hasn't been visited yet!
-      if((FlowInfo.NodeIndex[i][j]!=NoDataValue) && (ChannelSegmentArray[i][j] == NoDataValue)
-          && (MultiThreadChannelArray[i][j] == 0) && (VisitedBeforeTest == false))
-      {
-        bool finish_trace = false; 
-        bool reached_channel_but_trace_to_single_thread_channel = false;
-        CurrentNode = FlowInfo.NodeIndex[i][j];
-        rows_visited.push_back(i);
-        cols_visited.push_back(j);
-        while(finish_trace == false)
-        {
-          FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
-          if(VisitedBefore[ReceiverRow][ReceiverCol]==1)VisitedBeforeTest = true;  
-          // if the receiver is a stream pixel then read through the vector of 
-          // visited rows/columns and update hillslope segment array for each 
-          // using the index of the channel segment.
-          if(ChannelSegmentArray[ReceiverRow][ReceiverCol] != NoDataValue)
-          {
-            finish_trace = true;
-            int N_nodes = rows_visited.size();
-            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
-            {
-              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = ChannelSegmentArray[ReceiverRow][ReceiverCol];
-            }
-            rows_visited.clear();
-            cols_visited.clear();
-          }
-          // else if the receiver is a base level node, in which case it will 
-          // never reach a channel -> set hillslope segment array for vector of 
-          // visited rows and columns as nodata.
-          else if (ReceiverNode == CurrentNode)
-          {
-            finish_trace = true;
-            int N_nodes = rows_visited.size();
-            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
-            {
-              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = NoDataValue;
-            }
-            rows_visited.clear();
-            cols_visited.clear();
-          }
-          // else if the receiver has been visited before, then read through the
-          // vector of visted rows/columns and update hillslope segment array 
-          // for each using the index of the receiver.
-          else if(VisitedBeforeTest==true)
-          {
-            finish_trace = true;
-            int N_nodes = rows_visited.size();
-            for (int i_vec = 0; i_vec < N_nodes; ++i_vec)
-            {
-              HillslopeSegmentArray[rows_visited[i_vec]][cols_visited[i_vec]] = HillslopeSegmentArray[ReceiverRow][ReceiverCol];
-            }
-            rows_visited.clear();
-            cols_visited.clear();
-          }
-          
-          // otherwise the next pixel must be a hillslope pixel downslope that
-          // has not yet been visited.  Add it to the vectors of visited points
-          // and move downstream.
-          else
-          {
-            if(MultiThreadChannelArray[ReceiverRow][ReceiverCol] == 1) reached_channel_but_trace_to_single_thread_channel = true;
-            else
-            {
-              rows_visited.push_back(ReceiverRow);
-              cols_visited.push_back(ReceiverCol);
-              VisitedBefore[ReceiverRow][ReceiverCol]=1;
-            }
-            // Update CurrentNode to trace downstream
-            CurrentNode = ReceiverNode;
-          }
-        }
-      } 
-    }
-  }
-  LSDIndexRaster HillslopeSegmentsRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, HillslopeSegmentArray);
-  return HillslopeSegmentsRaster;          
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 // This function gets the node indices of outlets of basins of a certain order
