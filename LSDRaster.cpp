@@ -4548,10 +4548,15 @@ LSDRaster LSDRaster::M2DFlow(){
 // 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-LSDIndexRaster LSDRaster::calculate_pelletier_channel_heads(int NRows,int NCols,int XMinimum,int YMinimum,double DataResolution,
-                                                          int NoDataValue,double window_radius,
-                                                          double tan_curv_threshold,Array2D<double>& tan_curv_array)
+LSDIndexRaster LSDRaster::calculate_pelletier_channel_heads(double window_radius, double tan_curv_threshold)
 {
+	// First run surface fitting and calculate tangential curvature
+	Array2D<double> a,b,c,d,e,f;
+  calculate_polyfit_coefficient_matrices(window_radius,a,b,c,d,e,f)
+  LSDRaster TangentialCurvature = calculate_polyfit_tangential_curvature(a,b,c,d,e);
+  Array2D<double> tan_curv_array = TangentialCurvature.get_RasterData();
+  
+  // Now apply curvature threshold
 	double total_curv = 0;
 	int n_observations = 0;
   int intNoDataValue = int(NoDataValue);
