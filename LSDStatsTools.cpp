@@ -2263,6 +2263,20 @@ void matlab_double_sort_descending(vector<double>& unsorted, vector<double>& sor
   matlab_double_reorder(unsorted,index_map,sorted);
 }
 
+// This implementation is O(n), but also uses O(n) extra memory
+void matlab_int_reorder(std::vector<int> & unordered, std::vector<size_t> const & index_map, std::vector<int> & ordered)
+{
+  // copy for the reorder according to index_map, because unsorted may also be
+  // sorted
+  vector<int> copy = unordered;
+  ordered.resize(index_map.size());
+  for(int i = 0; i< int(index_map.size());i++)
+  {
+    ordered[i] = copy[index_map[i]];
+  }
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Spline fitting function called by PlotCubicSplines() to generate an array of
 // parameters used to fit splines to vectors of data. Should not be called directly.
