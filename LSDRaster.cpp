@@ -4523,29 +4523,40 @@ LSDRaster LSDRaster::M2DFlow(){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // PREDICTING CHANNEL HEADS USING TANGENTIAL CURVATURE
 //
-// This function is used to predict channel head locations based on the method proposed by
-// Pelletier (2013).  It creates a contour curvature map and identifies channel heads as pixels greater
-// than a user defined contour curvature threshold value, set by default at 0.1.  The threshold curvature
-// can also be defined as a multiple of the standard deviation of the curvature.  Before this function is called
-// the DEM must be filtered using the wiener filter in the LSDRasterSpectral object in order to remove high frequency
-// noise.
+// This function is used to predict channel head locations based on the method
+// proposed by Pelletier (2013).  It creates a contour curvature map and identifies
+// channel heads as pixels greater than a user defined contour curvature threshold
+// value, set by default at 0.1.  The threshold curvature can also be defined as a
+// multiple of the standard deviation of the curvature.  Before this function is
+// called the DEM must be filtered using the wiener filter in the LSDRasterSpectral
+// object in order to remove high frequency noise.
 //
-// Reference: Pelletier (2013) A robust, two-parameter method for the extraction of drainage
-// networks from high-resolution digital elevation models (DEMs): Evaluation using synthetic and real-world
-// DEMs, Water Resources Research 49: 1-15
+// Reference: Pelletier (2013) A robust, two-parameter method for the extraction of
+// drainage networks from high-resolution digital elevation models (DEMs): Evaluation
+// using synthetic and real-world DEMs, Water Resources Research 49: 1-15
 //
 // added by FC 16/07/13
+//
+// edited by DTM 06/11/13
+// Initial function gave a map of pixels with sufficient tangential curvature to be
+// designated as a channel.  This map needed to be reduced to give the source pixels
+// only.  This is done by i) sorting all the possible sources by elevation and ii)
+// routing flow from each potential source using the d-inf algortihm (thanks for 
+// coding that Stuart!).  Any potential sources that are located on ANY down-slope
+// pathway from previously visited source pixels are excluded from the final source
+// map. 
+// 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-LSDRaster LSDRaster::calculate_pelletier_channel_heads(int NRows,int NCols,int XMinimum,int YMinimum,double DataResolution,
+LSDIndexRaster LSDRaster::calculate_pelletier_channel_heads(int NRows,int NCols,int XMinimum,int YMinimum,double DataResolution,
                                                           int NoDataValue,double window_radius,
                                                           double tan_curv_threshold,Array2D<double>& tan_curv_array)
 {
-	Array2D<double> chan_head_locations(NRows,NCols,NoDataValue);
 	double total_curv = 0;
 	int n_observations = 0;
-
-  //get the mean of the tangential curvature
+  int intNoDataValue = int(NoDataValue);
+  Array2D<int> chan_head_locations(NRows,NCols,intNoDataValue);
+	//get the mean of the tangential curvature
   for (int row = 0; row < NRows; row++)
 	{
     for(int col = 0; col < NCols; col++)
@@ -4576,6 +4587,9 @@ LSDRaster LSDRaster::calculate_pelletier_channel_heads(int NRows,int NCols,int X
   //double st_dev = sqrt(total_st_dev/n_observations);
  // double tan_curv_threshold = 3*st_dev;
 
+  vector<int> possible_sources_row;
+  vector<int> possible_sources_col;
+  vector<double> possible_sources_elev;
   // Get all the locations where the tan curvature is greater than the user defined threshold
   for (int row = 0; row < NRows; row++)
 	{
@@ -4583,22 +4597,57 @@ LSDRaster LSDRaster::calculate_pelletier_channel_heads(int NRows,int NCols,int X
     {
       if (tan_curv_array[row][col] > tan_curv_threshold)
       {
-        chan_head_locations[row][col] = tan_curv_array[row][col];
+        possible_sources_row.push_back(row);
+        possible_sources_col.push_back(col);
+        possible_sources_elev.push_back(RasterData[row][col]);
+        //chan_head_locations[row][col] = tan_curv_array[row][col];
       }
-      else
+      //else
+      //{
+        //chan_head_locations[row][col] = 0;
+      //}
+    }
+  }
+
+  // Now sort possible sources by elevation, then route flow using d-inf,
+  // excluding potential sources that are on downslope pathway from other
+  // sources
+  int n_possible_sources = possible_sources_elev.size();
+  
+  if (n_possible_sources <= 0) cout << "NO SOURCES FOUND" << endl;
+  else
+  {
+    vector<size_t> index_map;
+    Array2D<double> FlowArea_array(NRows,NCols,NoDataValue);
+    Array2D<double> FlowDir_array = D_inf_FlowDir();
+    Array2D<double> CountGrid(NRows,NCols,NoDataValue); // Required for d-inf, but has no effect in this function.
+    // sort
+    matlab_double_sort_descending(possible_sources_elev, possible_sources_elev, index_map);
+    matlab_int_reorder(possible_sources_row, index_map, possible_sources_row);
+    matlab_int_reorder(possible_sources_col, index_map, possible_sources_col);
+    
+    for(int i = 0; i<n_possible_sources; ++i)
+    {
+      int row = possible_sources_row[i];
+      int col = possible_sources_col[i];
+      if(FlowArea_array[row][col] == 1) // Not been visited before
+      {
+        D_infAccum(row, col, CountGrid, FlowArea_array, FlowDir_array);
+        chan_head_locations[row][col] = 1;
+      }
+      else if(FlowArea_array[row][col]!=NoDataValue) // Not nodata so must have been visited before -> not a source!
       {
         chan_head_locations[row][col] = 0;
       }
     }
   }
-
+  
   // Write raster of predicted channel head locations
-  LSDRaster channel_heads(NRows,NCols,XMinimum,YMinimum,DataResolution,
-	                           NoDataValue,chan_head_locations);
+  LSDIndexRaster channel_heads(NRows,NCols,XMinimum,YMinimum,DataResolution,
+	                           intNoDataValue,chan_head_locations);
   return channel_heads;
 
 }
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Calculate the minimum bounding rectangle for an LSDRaster Object and crop out

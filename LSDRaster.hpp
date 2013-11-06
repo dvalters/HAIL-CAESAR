@@ -728,12 +728,13 @@ class LSDRaster
   /// @param window_radius Integer window radius.
   /// @param tan_curv_threshold Double curvature threshold value.
   /// @param tan_curv_array 2D array of tangential curvature.
-  /// @return LSDRaster of predicted channel head locations.
-  /// @author FC
-  /// @date 16/07/13
-	LSDRaster calculate_pelletier_channel_heads(int NRows,int NCols,int XMinimum,int YMinimum,double DataResolution,
+  /// @return LSDIndexRaster of predicted channel head locations.
+  /// @author FC, DTM
+  /// @date 06/11/13
+	LSDIndexRaster calculate_pelletier_channel_heads(int NRows,int NCols,int XMinimum,int YMinimum,double DataResolution,
 	                                                          int NoDataValue,double window_radius,
                                                           double tan_curv_threshold,Array2D<double>& tan_curv_array);
+
 
 	// some tools associated with ridgeline analyis
 
