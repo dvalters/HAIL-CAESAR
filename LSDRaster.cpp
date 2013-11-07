@@ -4109,7 +4109,7 @@ LSDIndexRaster LSDRaster::IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vecto
   //create output array, populated with nodata
   Array2D<double> area(NRows, NCols, NoDataValue);
   Array2D<int> sources_array(NRows, NCols, int(NoDataValue));
-
+  Array2D<int> times_visited(NRows, NCols, int(NoDataValue));
   //declare variables
   vector<double> flat;
   vector<double> sorted;
@@ -4127,6 +4127,7 @@ LSDIndexRaster LSDRaster::IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vecto
       if (RasterData[i][j] != NoDataValue)
       {
         area[i][j] = 0;
+        times_visited[i][j] = 0;
       }
     }
   }
@@ -4137,7 +4138,9 @@ LSDIndexRaster LSDRaster::IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vecto
     row = source_row_vec[i];
     col = source_col_vec[i];
     area[row][col] = 1.0;
+    times_visited[row][col] = 1;
   }
+  Array2D<int> temp = times_visited.copy() ;
   //sort the 1D elevation vector and produce an index
   matlab_double_sort_descending(flat, sorted, index_map);
  
@@ -4170,47 +4173,55 @@ LSDIndexRaster LSDRaster::IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vecto
 			  if (RasterData[i][j] > RasterData[i-1][j-1] && RasterData[i-1][j-1] != NoDataValue){
           slope1 = pow(((RasterData[i][j] - RasterData[i-1][j-1]) * one_ov_root_2),p);
           total += slope1;
+          if(times_visited[i][j] > 0) times_visited[i-1][j-1]+=1;
         }
 			  if (RasterData[i][j] > RasterData[i-1][j] && RasterData[i-1][j] != NoDataValue){
           slope2 = pow((RasterData[i][j] - RasterData[i-1][j]),p);
           total += slope2;
+          if(times_visited[i][j] > 0) times_visited[i-1][j]+=1;
 			  }
 		  	if (RasterData[i][j] > RasterData[i-1][j+1] && RasterData[i-1][j+1] != NoDataValue){
           slope3 = pow(((RasterData[i][j] - RasterData[i-1][j+1]) * one_ov_root_2),p);
           total += slope3;
+          if(times_visited[i][j] > 0) times_visited[i-1][j+1] += 1;
 		  	}
 			  if (RasterData[i][j] > RasterData[i][j+1] && RasterData[i][j+1] != NoDataValue){
           slope4 = pow((RasterData[i][j] - RasterData[i][j+1]),p);
           total += slope4;
+          if(times_visited[i][j] > 0) times_visited[i][j+1] += 1;
         }
 			  if (RasterData[i][j] > RasterData[i+1][j+1] && RasterData[i+1][j+1] != NoDataValue){
           slope5 = pow(((RasterData[i][j] - RasterData[i+1][j+1]) * one_ov_root_2),p);
           total += slope5;
+          if(times_visited[i][j] > 0) times_visited[i+1][j+1]+=1;
 		  	}
 			  if (RasterData[i][j] > RasterData[i+1][j] && RasterData[i+1][j] != NoDataValue){
           slope6 = pow((RasterData[i][j] - RasterData[i+1][j]),p);
           total += slope6;
+          if(times_visited[i][j] > 0) times_visited[i+1][j]+=1;
         }
 			  if (RasterData[i][j] > RasterData[i+1][j-1] && RasterData[i+1][j-1] != NoDataValue){
           slope7 = pow(((RasterData[i][j] - RasterData[i+1][j-1]) * one_ov_root_2),p);
           total += slope7;
+          if(times_visited[i][j] > 0) times_visited[i+1][j-1]+=1;
 			  }
 			  if (RasterData[i][j] > RasterData[i][j-1] && RasterData[i][j-1] != NoDataValue){
           slope8 = pow((RasterData[i][j] - RasterData[i][j-1]),p);
           total += slope8;
+          if(times_visited[i][j] > 0) times_visited[i][j-1]+=1;
         }
 
       //divide slope by total to get the proportion of flow directed to each cell
       //and increment the downslope cells. If no downslope flow to a node, 0 is
       //added, so no change is seen.
-			area[i-1][j-1] += area[i][j] * (slope1);///total);
-			area[i-1][j] += area[i][j] * (slope2);///total);
-			area[i-1][j+1] += area[i][j] * (slope3);///total);
-			area[i][j+1] += area[i][j] * (slope4);///total);
-			area[i+1][j+1] += area[i][j] * (slope5);///total);
-			area[i+1][j] += area[i][j] * (slope6);///total);
-			area[i+1][j-1] += area[i][j] * (slope7);///total);
-			area[i][j-1] += area[i][j] * (slope8);///total);
+			area[i-1][j-1] += (area[i][j] * (slope1)/total);
+			area[i-1][j] += (area[i][j] * (slope2)/total);
+			area[i-1][j+1] += (area[i][j] * (slope3)/total);
+			area[i][j+1] += (area[i][j] * (slope4)/total);
+			area[i+1][j+1] += (area[i][j] * (slope5)/total);
+			area[i+1][j] += (area[i][j] * (slope6)/total);
+			area[i+1][j-1] += (area[i][j] * (slope7)/total);
+			area[i][j-1] += (area[i][j] * (slope8)/total);
       } 
     }
   }                              
@@ -4218,15 +4229,15 @@ LSDIndexRaster LSDRaster::IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vecto
   {
     row = source_row_vec[i];
     col = source_col_vec[i];
-    if (area[row][col] == 1)
+    if (times_visited[row][col] == 1)
     {
       sources_array[row][col] = 1;
     }
   }
   //write output LSDRaster object
   LSDIndexRaster SourcesRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, int(NoDataValue), sources_array);
-  LSDRaster AreaRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, area);
-  AreaRaster.write_raster("area","flt");
+  //LSDRaster AreaRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, area);
+  //AreaRaster.write_raster("area","flt");
   return SourcesRaster;
 }
 
@@ -4811,8 +4822,8 @@ LSDIndexRaster LSDRaster::calculate_pelletier_channel_heads(double window_radius
       }
     }
   }
-  LSDRaster AboveThreshold(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,curv_array);
-  AboveThreshold.write_raster("thresh","flt");
+  //LSDRaster AboveThreshold(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,curv_array);
+  //AboveThreshold.write_raster("thresh","flt");
   // Now sort possible sources by elevation, then route flow using d-inf,
   // excluding potential sources that are on downslope pathway from other
   // sources
