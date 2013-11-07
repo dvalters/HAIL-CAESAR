@@ -672,6 +672,22 @@ class LSDRaster
   /// @author SWDG
   /// @date 18/4/13
   LSDRaster FreemanMDFlow();
+  // @brief Route flow from one source pixel using FreemanMDFlow.  Adapted from SWDG's
+  // code above.
+  // @param i_source -> the row index of the source pixel
+  // @param j_source -> the column index of the source pixel
+  // @author DTM
+  // @date 07/11/2013
+  LSDRaster FreemanMDFlow_SingleSource(int i_source,int j_source);
+  // @brief This is used to reduce a map of potential sources down to a simplified source
+  // network for channel extraction by removing potential sources that are on ANY
+  // downslope pathway from previous sources
+  // @param source_row_vec -> vector of row indeces for potential source pixels
+  // @param source_col_vec -> vector of column indeces for potential source pixels
+  // @author DTM
+  // @date 07/11/2013
+  LSDIndexRaster IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vector<int> source_row_vec,vector<int> source_col_vec);
+  
   /// @brief Generate a flow area raster using a multi direction algorithm.
   ///
   /// @details Computes the proportion of all downslope flows for each cell in the input
@@ -717,22 +733,13 @@ class LSDRaster
   /// networks from high-resolution digital elevation models (DEMs): Evaluation using synthetic and real-world
   /// DEMs, Water Resources Research 49: 1-15
   ///
-  /// Do these parameters need to be passed in? Are they not exposed as part of
-  /// the LSDRaster object?
-  /// @param NRows Integer of the number of rows in the DEM.
-  /// @param NCols Integer of the number of columns in the DEM.
-  /// @param XMinimum Integer minimum X value.
-  /// @param YMinimum Integer minimum Y value.
-  /// @param DataResolution Integer Cellsize.
-  /// @param NoDataValue Integer no data values.
-  /// @param window_radius Integer window radius.
+  /// @param window_radius Integer window radius - suggest 6m.
   /// @param tan_curv_threshold Double curvature threshold value.
   /// @param tan_curv_array 2D array of tangential curvature.
   /// @return LSDIndexRaster of predicted channel head locations.
   /// @author FC, DTM
-  /// @date 06/11/13
-	LSDIndexRaster calculate_pelletier_channel_heads(double window_radius,double tan_curv_threshold);
-
+  /// @date 07/11/13
+		LSDIndexRaster calculate_pelletier_channel_heads(double window_radius, double tan_curv_threshold, Array2D<double>& tan_curv_array);
 
 	// some tools associated with ridgeline analyis
 
