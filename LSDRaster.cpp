@@ -3185,12 +3185,12 @@ vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster 
 // Collect all basin average metrics into a single file.
 //
 // File is written with the format:
-// "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines"
+// "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines LH_density"
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect,
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
-                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, Array2D<double> LH_Data, double CriticalSlope, string RasterFilename)
+                              LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, LSDRaster& LH_drainage_density, Array2D<double> LH_Data, double CriticalSlope, string RasterFilename)
 {
 
   vector<int> basin_index;
@@ -3209,6 +3209,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
   vector<double> MeanSlopeVector;
   vector<double> ReliefVector;
   vector<double> MeanAspectVector;
+  vector<double> LHFromDDVector;
   vector<double> EStarVector;
   vector<double> RStarVector;
 
@@ -3249,6 +3250,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
     int ReliefCounter = 0;
     double MeanAspectSum = 0;
     int MeanAspectCounter = 0;
+    double LHFromDD = 0;
 
     for (int i = 0; i < NRows; ++i){
       for (int j = 0; j < NCols; ++j){
@@ -3293,7 +3295,9 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
          MeanAspectSum += MeanAspect.get_data_element(i,j);
          ++MeanAspectCounter;
         }
-
+       if (LH_drainage_density.get_data_element(i,j) != NoDataValue && basin_ids[i][j] == *it ){
+         LHFromDD = LH_drainage_density.get_data_element(i,j); //this is already a basin average value
+        }
       }
     }
 
@@ -3323,6 +3327,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
     MeanSlopeVector.push_back(AVGMeanSlope);
     ReliefVector.push_back(AVGRelief);
     MeanAspectVector.push_back(AVGMeanAspect);
+    LHFromDDVector.push_back(LHFromDD);
     EStarVector.push_back(EStar);
     RStarVector.push_back(RStar);
 
@@ -3332,7 +3337,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
   filename << RasterFilename << "_BasinMetrics.txt";
   ofstream file;
   file.open(filename.str().c_str());
-  file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines" << endl;
+  file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines LH_density" << endl;
 
 
   for(int q = 0; q < int(BasinIDVector.size()); q++){
@@ -3347,7 +3352,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
       }
     }   
   
-    file << BasinIDVector[q] << " " << SlopeVector[q] << " " << ElevationVector[q] << " " << AspectVector[q] << " " << AreaVector[q] << " " << DrainageDensityVector[q] << " " << ChtVector[q] << " " << HillslopeLengthVector[q] << " " << MeanSlopeVector[q] <<  " " << ReliefVector[q] << " " << MeanAspectVector[q] << " " << EStarVector[q] << " " << RStarVector[q] << " " << LH_bins << " " << LH_splines << endl;
+    file << BasinIDVector[q] << " " << SlopeVector[q] << " " << ElevationVector[q] << " " << AspectVector[q] << " " << AreaVector[q] << " " << DrainageDensityVector[q] << " " << ChtVector[q] << " " << HillslopeLengthVector[q] << " " << MeanSlopeVector[q] <<  " " << ReliefVector[q] << " " << MeanAspectVector[q] << " " << EStarVector[q] << " " << RStarVector[q] << " " << LH_bins << " " << LH_splines << " " << LHFromDDVector[q] << endl;
   }
 
   file.close();
