@@ -3064,8 +3064,8 @@ void LSDRaster::HFR(int i, int j, double xi, double yi, Array2D<int>& Visited, A
 // Added spline curves and return of a pair of LH values - 1/11/13 SWDG. 
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-pair<double,double> LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilename, double log_bin_width, int SplineResolution){
-
+pair<double,double> LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string RasterFilename, double log_bin_width, int SplineResolution, double bin_threshold){
+  
   Array2D<double> slope = Slope.get_RasterData();
   Array2D<double> area = Dinf.get_RasterData();
 
@@ -3077,8 +3077,12 @@ pair<double,double> LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, stri
   vector<double> STDDev_y_out;
   vector<double> STDErr_x_out;
   vector<double> STDErr_y_out;
-
-  log_bin_data(area, slope, log_bin_width, Mean_x_out, Mean_y_out, Midpoints_out, STDDev_x_out, STDDev_y_out, STDErr_x_out, STDErr_y_out, NoDataValue);
+  vector<int> number_observations;
+  
+  log_bin_data(area, slope, log_bin_width, Mean_x_out, Mean_y_out, Midpoints_out, STDDev_x_out, STDDev_y_out, STDErr_x_out, STDErr_y_out, number_observations, NoDataValue);  
+  
+  //remove empty bins 
+  RemoveSmallBins(Mean_x_out, Mean_y_out, Midpoints_out, STDDev_x_out, STDDev_y_out, STDErr_x_out, STDErr_y_out, number_observations, bin_threshold);
   
   //index value of max slope
   int slope_max_index = distance(Mean_y_out.begin(), max_element(Mean_y_out.begin(), Mean_y_out.end()));
@@ -3090,13 +3094,14 @@ pair<double,double> LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, stri
   vector<double> Spline_X;
   vector<double> Spline_Y;
   PlotCubicSplines(Mean_x_out, Mean_y_out, SplineResolution, Spline_X, Spline_Y);
-  
+
   //index value of max spline slope
   int slope_max_index_spline = distance(Spline_Y.begin(), max_element(Spline_Y.begin(), Spline_Y.end()));
 
   //hillslope length from spline curve - maybe get a range of values about the maximum?
+
   double LH_spline = Spline_X[slope_max_index_spline]/DataResolution;
-    
+  
   //set up a filestream object to write the binned data
   ofstream file;
 
@@ -3108,7 +3113,7 @@ pair<double,double> LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, stri
     file << Mean_x_out[q] << " " << Mean_y_out[q] << " " << STDDev_x_out[q] << " " << STDDev_y_out[q] << " " << STDErr_x_out[q] << " " << STDErr_y_out[q] << endl;
   }
   file.close();
-   
+      
   //set up a filestream object to write the spline data
   ofstream SplineFile;
 
@@ -3116,8 +3121,9 @@ pair<double,double> LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, stri
   ss_spline << RasterFilename << "_boom_spline.txt";
   SplineFile.open(ss_spline.str().c_str());   //needs a null terminated character array, not a string. See pg 181 of accelerated c++
     
-  for(int q = 0; q < int(Mean_x_out.size()); q++){
+  for(int q = 0; q < int(Spline_X.size()); q++){ //fixed bug here where I looped over the wrong vector - SWDG 7/11/13
     SplineFile << Spline_X[q] << " " << Spline_Y[q] << endl;
+
   }
   SplineFile.close();
   
