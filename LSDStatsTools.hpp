@@ -182,6 +182,12 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
                       vector<double>&  StandardDeviationY_output, vector<double>& RangeMin_output, 
                       vector<double>& RangeMax_output, double& bin_lower_limit, int NoDataValue);
 
+//look for empty bins output from the log binning function and removes them to avoid 
+//plotting several empty bins at 0,0 in some cases. SWDG 6/11/13
+void RemoveSmallBins(vector<double>&  MeanX_output, vector<double>& MeanY_output,
+                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output,
+                      vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, vector<int>& number_observations, double bin_threshold);
+
 // tools for sorting
 template<class T> struct index_cmp;
 void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map);

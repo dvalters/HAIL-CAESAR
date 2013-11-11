@@ -2203,6 +2203,69 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
   RangeMin_output = RangeMin;
   RangeMax_output = RangeMax;
 }
+
+
+//look for bins with very few (or no) data points output from the log binning function and removes them to avoid 
+//plotting several empty bins at 0,0 in some cases. 
+//pass in a threshold fraction *above* which all bins will be kept. Pass in 0 to remove only empty bins. 
+//SWDG 6/11/13
+void RemoveSmallBins(vector<double>& MeanX_output, vector<double>& MeanY_output, vector<double>& midpoints_output,
+                     vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output,
+                     vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, vector<int>& number_observations, double bin_threshold){
+                                                                                      
+  // temp vectors to store all the kept data
+  vector<double> MeanX_output_temp;
+  vector<double> MeanY_output_temp;
+  vector<double> midpoints_output_temp;
+  vector<double> StandardDeviationX_output_temp;
+  vector<double> StandardDeviationY_output_temp;
+  vector<double> StandardErrorX_output_temp;
+  vector<double> StandardErrorY_output_temp;
+  vector<int> number_observations_temp;
+
+  //Get total number of measurements across all bins
+  double TotalNoOfMesurements = 0;
+  for (int k = 0; k < int(number_observations.size()); ++k){
+    TotalNoOfMesurements += number_observations[k];
+  }
+
+  // loop over all the elements and make a copy of all kept values
+  for(int q = 0; q < int(MeanX_output.size()); ++q){
+    if (number_observations[q]/TotalNoOfMesurements > bin_threshold){
+      MeanX_output_temp.push_back(MeanX_output[q]);
+      MeanY_output_temp.push_back(MeanY_output[q]);
+      midpoints_output_temp.push_back(midpoints_output[q]);
+      StandardDeviationX_output_temp.push_back(StandardDeviationX_output[q]);
+      StandardDeviationY_output_temp.push_back(StandardDeviationY_output[q]);
+      StandardErrorX_output_temp.push_back(StandardErrorX_output[q]);
+      StandardErrorY_output_temp.push_back(StandardErrorY_output[q]);
+      number_observations_temp.push_back(number_observations[q]);     
+    }
+  }
+
+  //delete all the elements from the original vectors
+  MeanX_output.clear();
+  MeanY_output.clear();
+  midpoints_output.clear();
+  StandardDeviationX_output.clear();
+  StandardDeviationY_output.clear();
+  StandardErrorX_output.clear();
+  StandardErrorY_output.clear();
+  number_observations.clear();
+
+  // swap temp data which contains no zeros back into the original emptied 
+  // vectors, so they can be returned by reference.
+  MeanX_output.swap(MeanX_output_temp);
+  MeanY_output.swap(MeanY_output_temp);
+  midpoints_output.swap(midpoints_output_temp);
+  StandardDeviationX_output.swap(StandardDeviationX_output_temp);
+  StandardDeviationY_output.swap(StandardDeviationY_output_temp);
+  StandardErrorX_output.swap(StandardErrorX_output_temp);
+  StandardErrorY_output.swap(StandardErrorY_output_temp);
+  number_observations.swap(number_observations_temp);
+
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
