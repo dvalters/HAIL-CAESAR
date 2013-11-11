@@ -3666,6 +3666,30 @@ LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRast
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Simple method to convert a drainage density raster into a hillslope length raster. 
+// Returns a Raster of basin average hillslope lengths. The LH value is calculated using 
+// LH = 1/2*DD [Tucker et al 2001]. 
+// SWDG - 7/11/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::HillslopeLengthFromDrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRaster& Basins, Array2D<int> FlowDir){
+
+  LSDRaster DrainageDensity = LSDRaster::DrainageDensity(StreamNetwork, Basins, FlowDir);
+  Array2D<double> HillslopeLength(NRows,NCols,NoDataValue);
+  
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      if (DrainageDensity.get_data_element(i,j) != NoDataValue){
+        HillslopeLength[i][j] = 1 / (2 * DrainageDensity.get_data_element(i,j));
+      }
+    }
+  }
+  
+  LSDRaster HillslopeLengthRaster = DrainageDensity.LSDRasterTemplate(HillslopeLength);
+  return HillslopeLengthRaster;
+
+
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
