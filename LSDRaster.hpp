@@ -833,6 +833,10 @@ class LSDRaster
                               Array2D<double> LH_Data, double CriticalSlope, string RasterFilename);
 
   /// @brief Generate data in two text files to create a boomerang plot as in Roering et al [2007].
+  ///
+  /// @details Should now do all it needs to do: if it gets any more complex I'll look at
+  /// refactoring it into a few methods. The latest addition is to take a bin_threshold to allow different sizes of bins to be 
+  /// removed from the final analysis - SWDG 11/11/13.
   /// @param Slope LSDRaster of slope.
   /// @param D_inf D-infinity Flowarea LSDRaster.
   /// @param RasterFilename Filename used to give unique name to output data.
@@ -841,7 +845,7 @@ class LSDRaster
   /// @return A pair of doubles containing the two LH values in the order LH(bins), LH(splines).
   /// @author SWDG
   /// @date 27/8/13
-  pair<double,double> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, double log_bin_width = 0.1, int SplineResolution = 200);
+  pair<double,double> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, double log_bin_width = 0.1, int SplineResolution = 200, double bin_threshold = 0.05);
 
   /// @brief Calculate drainage density of a set of input basins.
   ///
