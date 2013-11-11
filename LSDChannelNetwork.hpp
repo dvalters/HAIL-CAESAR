@@ -134,6 +134,7 @@ class LSDChannelNetwork
   
   /// @brief This gets the junction number of a given node.
   /// @param Node
+  /// @param FlowInfo Flow Info object  
   /// @return JunctionNumber
   /// @author FC
   /// @date 31/10/13
@@ -487,6 +488,7 @@ class LSDChannelNetwork
   /// DEMs, Water Resources Research 49: 1-15
   ///
   /// @param tan_curv_threshold Double curvature threshold value.
+  /// @param FlowInfo Flow Info object
   /// @param tan_curv_array 2D array of tangential curvature.
   /// @return 2D array of predicted channel head locations.
   /// @author FC
@@ -583,10 +585,9 @@ class LSDChannelNetwork
   /// preserve structure of drainage network), or when a channel pixel has already
   /// been visited.
   ///
-  /// @param LSDFlowInfo object
-  /// @param Sources: a vector of sources
+  /// @param FlowInfo LSDFlowInfo object
+  /// @param Sources a vector of sources
   /// @param TargetSegmentLength (suggest 200 for 1m DEM)
-  /// @param MinimumSegmentLength (suggest 100 for 1m DEM)
   /// @return LSDIndexRaster with channel segments labelled by unique ID
   /// @author DTM
   /// @date 23/10/2013
@@ -598,9 +599,9 @@ class LSDChannelNetwork
   /// an integer value that matches the index of the section of channel that is
   /// setting the base level of that hillslope.
   ///
-  /// @param LSDFlowInfo object
-  /// @param LSDIndexRaster: a raster of channel segments, produced by the SplitChannel function
-  /// @return LSDIndexRaster: hillslope segments labelled by ID of channel segments
+  /// @param FlowInfo LSDFlowInfo object
+  /// @param ChannelSegmentsRaster a raster of channel segments, produced by the SplitChannel function
+  /// @return LSDIndexRaster hillslope segments labelled by ID of channel segments
   /// @author DTM 
   /// @date 29/10/2013
   LSDIndexRaster SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster);
@@ -614,10 +615,10 @@ class LSDChannelNetwork
   /// To be rigourous, these should be removed from analyses of hillslope
   /// properties.
   /// 
-  /// @param LSDFlowInfo object
-  /// @param LSDIndexRaster: a raster of channel segments, produced by the SplitChannel function
-  /// @param LSDIndexRaster: a binary raster with the full channel extent
-  /// @return LSDIndexRaster: hillslope segments labelled by ID of channel segments
+  /// @param FlowInfo LSDFlowInfo object
+  /// @param ChannelSegmentsRaster a raster of channel segments, produced by the SplitChannel function
+  /// @param MultiThreadChannelRaster a binary raster with the full channel extent
+  /// @return LSDIndexRaster hillslope segments labelled by ID of channel segments
   /// @author DTM 
   /// @date 29/10/2013
   LSDIndexRaster SplitHillslopes(LSDFlowInfo& FlowInfo, LSDIndexRaster& ChannelSegmentsRaster, LSDIndexRaster& MultiThreadChannelRaster);
