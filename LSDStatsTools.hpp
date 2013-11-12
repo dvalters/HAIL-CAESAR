@@ -200,7 +200,13 @@ void matlab_int_reorder(std::vector<int> & unordered, std::vector<size_t> const 
 Array2D<double> CalculateCubicSplines(vector<double> X, vector<double> Y);
 void PlotCubicSplines(vector<double> X, vector<double> Y, int SplineResolution, vector<double>& Spline_X, vector<double>& Spline_Y);
 
-// Generate vector of evenly space numbers between two points
+//Get vector of unique values in an input array of ints
+vector<int> Unique(Array2D<int> InputArray, int NoDataValue);
+
+//Get vector of unique values in an input array of doubles
+vector<double> Unique(Array2D<double> InputArray, int NoDataValue);
+
+// Generate vector of evenly spaced numbers between two points
 vector<double> linspace(double min, double max, int n);
 
 // convert degree bearing from north to radians from east
