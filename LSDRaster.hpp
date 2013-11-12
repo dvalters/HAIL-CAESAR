@@ -844,6 +844,7 @@ class LSDRaster
   /// @param RasterFilename Filename used to give unique name to output data.
   /// @param log_bin_width Width (in log space) of the bins, with respect to D_inf.
   /// @param SplineResolution Number of values between each point for the spline curve.
+  /// @param bin_threshold Threshold fraction of values needed to keep a bin.
   /// @return A pair of doubles containing the two LH values in the order LH(bins), LH(splines).
   /// @author SWDG
   /// @date 27/8/13
