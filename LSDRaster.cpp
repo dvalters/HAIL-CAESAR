@@ -3199,9 +3199,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
                               LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, LSDRaster& LH_drainage_density, Array2D<double> LH_Data, double CriticalSlope, string RasterFilename)
 {
 
-  vector<int> basin_index;
   Array2D<int> basin_ids = Basins.get_RasterData();
-
 
   //vectors to contain output data
   vector<int> BasinIDVector;
@@ -3219,19 +3217,8 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
   vector<double> EStarVector;
   vector<double> RStarVector;
 
-
-  //make list of unique basins in each raster
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-      int id = basin_ids[i][j];
-      if (id != NoDataValue){
-        //check if next basin_id is unique
-        if(find(basin_index.begin(), basin_index.end(), id) == basin_index.end()){
-          basin_index.push_back(id);
-        }
-      }
-    }
-  }
+  //Get vector of unique basin indexes
+  vector<int> basin_index = Unique(basin_ids, NoDataValue);
 
   //loop through each basin
   for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
@@ -3497,23 +3484,10 @@ LSDRaster LSDRaster::RidgeBuffer(int BufferRadius){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
 
-  vector<int> basin_index;
   Array2D<int> basin_ids = Basins.get_RasterData();
-
   Array2D<double> Averaged(NRows,NCols,NoDataValue);
-
-  //make list of unique basins in each raster
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-      int id = basin_ids[i][j];
-      if (id != NoDataValue){
-        //check if next basin_id is unique
-        if(find(basin_index.begin(), basin_index.end(), id) == basin_index.end()){
-          basin_index.push_back(id);
-        }
-      }
-    }
-  }
+  //Get vector of unique basin indexes
+  vector<int> basin_index = Unique(basin_ids, NoDataValue);
 
   //loop through each basin
   for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
@@ -3550,23 +3524,10 @@ LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::BasinArea(LSDIndexRaster& Basins){
 
-  vector<int> basin_index;
   Array2D<int> basin_ids = Basins.get_RasterData();
-
   Array2D<double> Areas(NRows,NCols,NoDataValue);
-
-  //make list of unique basins in each raster
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-      int id = basin_ids[i][j];
-      if (id != NoDataValue){
-        //check if next basin_id is unique
-        if(find(basin_index.begin(), basin_index.end(), id) == basin_index.end()){
-          basin_index.push_back(id);
-        }
-      }
-    }
-  }
+  //Get vector of unique basin indexes
+  vector<int> basin_index = Unique(basin_ids, NoDataValue);
 
   //loop through each basin
   for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
@@ -3604,24 +3565,12 @@ LSDRaster LSDRaster::BasinArea(LSDIndexRaster& Basins){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRaster& Basins, Array2D<int> FlowDir){
 
-  vector<int> basin_index;
-  Array2D<int> basin_ids = Basins.get_RasterData();
   double two_times_root2 = 2.828427;
-
+  
+  Array2D<int> basin_ids = Basins.get_RasterData();
   Array2D<double> Density(NRows,NCols,NoDataValue);
-
-  //make list of unique basins in each raster
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-      int id = basin_ids[i][j];
-      if (id != NoDataValue){
-        //check if next basin_id is unique
-        if(find(basin_index.begin(), basin_index.end(), id) == basin_index.end()){
-          basin_index.push_back(id);
-        }
-      }
-    }
-  }
+  //Get vector of unique basin indexes
+  vector<int> basin_index = Unique(basin_ids, NoDataValue);
 
   //loop through each basin
   for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
