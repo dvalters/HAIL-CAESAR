@@ -20,7 +20,7 @@
 //
 // Developer can be contacted by simon.m.mudd _at_ ed.ac.uk
 //
-//    Simon Mudd
+//    Simon Mudd                                                    
 //    University of Edinburgh
 //    School of GeoSciences
 //    Drummond Street
@@ -3186,6 +3186,34 @@ vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster 
   }
   return BasinVector;
 }
+
+void LSDRaster::unique(LSDIndexRaster Basins){
+ 
+  vector<int> basin_index;
+  
+  //make list of unique basins in each raster
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      int id = basin_ids[i][j];
+      if (id != NoDataValue){
+        //check if next basin_id is unique
+        if(find(basin_index.begin(), basin_index.end(), id) == basin_index.end()){
+          basin_index.push_back(id);
+        }
+      }
+    }
+  }
+
+  vector<int> basin_index_2;
+  
+  //flatten to a 1D array
+  //sort it (no need for indexing)
+  //get unique values
+
+
+
+}
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Collect all basin average metrics into a single file.
