@@ -2464,6 +2464,64 @@ void PlotCubicSplines(vector<double> X, vector<double> Y, int SplineResolution, 
   
 }
 
+//Overloaded function to take in an array of integers and return a vector of the
+//unique values found in the array, excluding the passed in NoDataValue.
+//SWDG 12/11/13 
+vector<int> Unique(Array2D<int> InputArray, int NoDataValue){
+
+  // set up output vector                                   
+  vector<int> UniqueValues;
+  
+  //get array dimensions for looping
+  int Rows = InputArray.dim1();
+	int Cols = InputArray.dim2();
+  
+  //make list of unique values in each array
+  for (int i = 0; i < Rows; ++i){
+    for (int j = 0; j < Cols; ++j){
+      int Value = InputArray[i][j];
+      if (Value != NoDataValue){
+        //check if next value is unique
+        if(find(UniqueValues.begin(), UniqueValues.end(), Value) == UniqueValues.end()){
+          UniqueValues.push_back(Value);
+        }
+      }
+    }
+  }
+
+  return UniqueValues;
+}
+
+//Overloaded function to take in an array of doubles and return a vector of the
+//unique values found in the array, excluding the passed in NoDataValue.
+//SWDG 12/11/13
+vector<double> Unique(Array2D<double> InputArray, int NoDataValue){
+
+  // set up output vector                                   
+  vector<double> UniqueValues;
+  
+  //get array dimensions for looping
+  int Rows = InputArray.dim1();
+	int Cols = InputArray.dim2();
+  
+  //make list of unique values in each array
+  for (int i = 0; i < Rows; ++i){
+    for (int j = 0; j < Cols; ++j){
+      int Value = InputArray[i][j];
+      if (Value != NoDataValue){
+        //check if next value is unique
+        if(find(UniqueValues.begin(), UniqueValues.end(), Value) == UniqueValues.end()){
+          UniqueValues.push_back(Value);
+        }
+      }
+    }
+  }
+
+  return UniqueValues;
+}
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Simple linear spacing algorithm to return a vector of evenly spaced doubles
 // between a min and max range (inclusive). Equivalent to np.linspace() in python 
