@@ -3333,7 +3333,9 @@ bool LSDChannelNetwork::node_tester(LSDFlowInfo& FlowInfo, int input_junction)
        
   // get the penultimate node in the channel. Eg one pixel upstream from the outlet node of a basin.
   // -2 is used due to zero indexing.
-  int basin_outlet = StreamLinkVector.get_node_in_channel(n_nodes_in_channel-2);      
+  int basin_outlet;
+  if(n_nodes_in_channel == 1) basin_outlet = StreamLinkVector.get_node_in_channel(0); // test for 1 pixel tributary
+  else basin_outlet = StreamLinkVector.get_node_in_channel(n_nodes_in_channel-2);     
   
   //Get all cells upslope of a junction - eg every cell of the drainage basin of interest
   vector<int> upslope_nodes = FlowInfo.get_upslope_nodes(basin_outlet);
