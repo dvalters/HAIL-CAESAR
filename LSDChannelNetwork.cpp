@@ -1563,6 +1563,7 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromValleys(Array2D<int>&
   Array2D<int> NodesVisitedBefore(NRows,NCols,0);
   for (unsigned int i = 0; i < ChannelHeadNodes_temp.size(); i++)
   {
+    cout << flush << "Node " << i+1 << " of " << ChannelHeadNodes_temp.size() << "\r";
     int CurrentNode = ChannelHeadNodes_temp[i];
     int CurrentRow,CurrentCol,ReceiverNode,ReceiverRow,ReceiverCol; 
     bool EndOfReach = false;
