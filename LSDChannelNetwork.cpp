@@ -1541,29 +1541,64 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromValleys(Array2D<int>&
 	  ChannelHeadNodes_temp.insert(ChannelHeadNodes_temp.end(), these_channel_heads.begin(), these_channel_heads.end());
 	}
 	  
-	// Removing any nodes that are not the furthest upstream
-  int upstream_test = 0;
-  vector<int>::iterator find_it;
-
+	cout << "Removing downstream channel heads" << endl;
+  // Removing any nodes that are not the furthest upstream
+  Array2D<int> binary_map(NRows,NCols,NoDataValue);
+  vector<double> possible_sources_elev;
   for (unsigned int node =0; node < ChannelHeadNodes_temp.size(); node++)
   {
-    vector<int> tests;
-    int current_node = ChannelHeadNodes_temp[node];
-    for (unsigned int i = 0; i < ChannelHeadNodes_temp.size(); i++)
+    int row, col;
+    FlowInfo.retrieve_current_row_and_col(ChannelHeadNodes_temp[node], row, col);
+    double elev = ElevationRaster.get_data_element(row,col);
+    possible_sources_elev.push_back(elev);
+    binary_map[row][col] = 1;
+  }
+
+  //sort potential source nodes by highest elevation
+  vector<size_t> index_map;
+
+  matlab_double_sort_descending(possible_sources_elev, possible_sources_elev, index_map);
+  matlab_int_reorder(ChannelHeadNodes_temp, index_map, ChannelHeadNodes_temp);
+  
+  Array2D<int> NodesVisitedBefore(NRows,NCols,0);
+  for (unsigned int i = 0; i < ChannelHeadNodes_temp.size(); i++)
+  {
+    int CurrentNode = ChannelHeadNodes_temp[i];
+    int CurrentRow,CurrentCol,ReceiverNode,ReceiverRow,ReceiverCol; 
+    bool EndOfReach = false;
+    while (EndOfReach == false)
     {
-      if (ChannelHeadNodes_temp[i] != current_node)
+      FlowInfo.retrieve_current_row_and_col(CurrentNode,CurrentRow,CurrentCol);
+      FlowInfo.retrieve_receiver_information(CurrentNode, ReceiverNode, ReceiverRow, ReceiverCol);
+      NodesVisitedBefore[CurrentRow][CurrentCol] = 1;
+      if (binary_map[ReceiverRow][ReceiverCol] == 1)
       {
-        int test_node = ChannelHeadNodes_temp[i];
-        upstream_test = FlowInfo.is_node_upstream(current_node, test_node);
-        tests.push_back(upstream_test);
+        binary_map[ReceiverRow][ReceiverCol] = 0;
+        CurrentNode = ReceiverNode;
+      }
+      else
+      {
+        CurrentNode = ReceiverNode;
+      }
+      bool ReceiverVisitedBefore = false;
+      if(NodesVisitedBefore[ReceiverRow][ReceiverCol]==1) ReceiverVisitedBefore = true;
+      if(ReceiverVisitedBefore ==true) EndOfReach = true;
+    }
+  }
+  
+  for (int row = 0; row < NRows; row++)
+  {
+    for (int col = 0; col < NCols; col++)
+    {
+      if (binary_map[row][col] == 1)
+      {
+        int SourceNode = FlowInfo.retrieve_node_from_row_and_column(row,col);
+        ChannelHeadNodes.push_back(SourceNode);
       }
     }
-    find_it = find(tests.begin(), tests.end(), 1);
-    if (find_it == tests.end())
-    {
-      ChannelHeadNodes.push_back(current_node);
-    }
-  }  
+  }
+  
+  cout << "No of source nodes: " << ChannelHeadNodes.size() << endl;   
     
   return ChannelHeadNodes;
 }                              
