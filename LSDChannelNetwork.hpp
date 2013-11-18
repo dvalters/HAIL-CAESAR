@@ -397,7 +397,7 @@ class LSDChannelNetwork
   /// all the sources of the junction JunctionNumber
   /// @author SMM
   /// @date 26/09/2013
-  vector<int> GetChannelHeadsChiMethodFromJunction(int JunctionNumber,
+  int GetChannelHeadsChiMethodFromJunction(int JunctionNumber,
                               int MinSegLength, double A_0, double m_over_n,
 											        LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance, LSDRaster& ElevationRaster);
 
@@ -506,10 +506,11 @@ class LSDChannelNetwork
   /// @param FlowInfo LSDFlowInfo object
   /// @param tan_curv_array 2D array with curvature
   /// @param sources vector with sources of channel network
+  /// @param no_connecting_nodes number of nodes that need to be above the threshold before the valley is identified
   /// @return Array2D<int> with nodes at the base of each of the valleys
   /// @author FC
   /// @date 29/10/2013
-  Array2D<int> find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources);
+  Array2D<int> find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources, int no_connecting_nodes);
   
   /// @brief Ridge network extraction - extracts ridge network, defined as boundaries
   /// between two basins of the same stream order.

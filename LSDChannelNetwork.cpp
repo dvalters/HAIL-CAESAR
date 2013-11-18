@@ -1387,36 +1387,45 @@ vector<int> LSDChannelNetwork::FindFarthestUpslopeHilltopsFromSources(int Juncti
 //
 // Modified by FC 26/09/2013 to extract the node of the predicted channel heads for each
 // hilltop node; now returns a vector of integers.
-
+// Modified by FC 18/11/13 to extract the channel head from the outlet junction rather than from
+// the sources.
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
-vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromJunction(int JunctionNumber,
+int LSDChannelNetwork::GetChannelHeadsChiMethodFromJunction(int JunctionNumber,
                                       int MinSegLength, double A_0, double m_over_n,
 											                LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance, LSDRaster& ElevationRaster)
 {
-	vector<int> ChannelHeadNodes;
+	//vector<int> ChannelHeadNodes;
 	double downslope_chi = 0;
 
 	// get the node index of this junction
 	int downstream_node_index = JunctionVector[JunctionNumber];
+	
+	// get the hilltop node from this junction
+	int hilltop_node = FlowInfo.find_farthest_upslope_node(downstream_node_index, FlowDistance);
+	
+	//perform chi segment fitting
+	LSDChannel new_channel(hilltop_node, downstream_node_index, downslope_chi, m_over_n, A_0, FlowInfo,  ElevationRaster);
+  int channel_head_node = new_channel.calculate_channel_heads(MinSegLength, A_0, m_over_n, FlowInfo);
 
 	// get the nodes of the hilltops.
-	vector<int> hilltop_nodes = FindFarthestUpslopeHilltopsFromSources(JunctionNumber,
-                                          FlowInfo, FlowDistance);
+	//vector<int> hilltop_nodes = FindFarthestUpslopeHilltopsFromSources(JunctionNumber,
+  //                                        FlowInfo, FlowDistance);
 
     // now loop through the hilltops, getting a channel for each one
-    int n_hilltops = hilltop_nodes.size();
-    ChannelHeadNodes.resize(n_hilltops);
+  //  int n_hilltops = hilltop_nodes.size();
+  //  ChannelHeadNodes.resize(n_hilltops);
 
-    for(int i = 0; i<n_hilltops; i++)
-    {
+  //  for(int i = 0; i<n_hilltops; i++)
+  //  {
       //cout << "hilltop " << i << " of " << n_hilltops << endl;
-      LSDChannel new_channel(hilltop_nodes[i], downstream_node_index, downslope_chi, m_over_n, A_0, FlowInfo,  ElevationRaster);
-		  int channel_head_node = new_channel.calculate_channel_heads(MinSegLength, A_0, m_over_n, FlowInfo);
-		  ChannelHeadNodes[i] = channel_head_node;
-	  }
+  //    LSDChannel new_channel(hilltop_nodes[i], downstream_node_index, downslope_chi, m_over_n, A_0, FlowInfo,  ElevationRaster);
+	//	  int channel_head_node = new_channel.calculate_channel_heads(MinSegLength, A_0, m_over_n, FlowInfo);
+	//	  ChannelHeadNodes[i] = channel_head_node;
+	//  }
 
-  return ChannelHeadNodes;
+  //return ChannelHeadNodes;
+  return channel_head_node;
 }      
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 
@@ -1454,12 +1463,13 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodBasinOrder(int BasinOrder
 		  junction_number = junction_list[i];
 
 		  // get a local list of channel heads
-		  vector<int> these_channel_heads = GetChannelHeadsChiMethodFromJunction(junction_number,
+		  int channel_head_node = GetChannelHeadsChiMethodFromJunction(junction_number,
                                       			MinSegLength, A_0, m_over_n, FlowInfo,
                                        			FlowDistance, ElevationRaster);
 
       // now append these channel heads to the master list
-		  ChannelHeadNodes_temp.insert(ChannelHeadNodes_temp.end(), these_channel_heads.begin(), these_channel_heads.end());
+		  //ChannelHeadNodes_temp.insert(ChannelHeadNodes_temp.end(), these_channel_heads.begin(), these_channel_heads.end());
+		  ChannelHeadNodes_temp.push_back(channel_head_node);
 	  }
 	  
 	  // Removing any nodes that are not the furthest upstream
@@ -1527,18 +1537,19 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromValleys(Array2D<int>&
   //loop through junctions collecting channel heads
   for (int i = 0; i < max_junctions; i++)
   {
-	  cout << "Junction " << i+1 << " of " << max_junctions << endl;
+	  cout << flush << "Junction = " << i+1 << " of " << max_junctions << "\r";
 
     // get the junction number
 	  junction_number = junction_list[i];
   
     // get a local list of channel heads
-	  vector<int> these_channel_heads = GetChannelHeadsChiMethodFromJunction(junction_number,
+	  int channel_head_node = GetChannelHeadsChiMethodFromJunction(junction_number,
                                       			MinSegLength, A_0, m_over_n, FlowInfo,
                                        			FlowDistance, ElevationRaster);
 
      // now append these channel heads to the master list
-	  ChannelHeadNodes_temp.insert(ChannelHeadNodes_temp.end(), these_channel_heads.begin(), these_channel_heads.end());
+	  //ChannelHeadNodes_temp.insert(ChannelHeadNodes_temp.end(), these_channel_heads.begin(), these_channel_heads.end());
+	  ChannelHeadNodes_temp.push_back(channel_head_node);
 	}
 	  
 	cout << "Removing downstream channel heads" << endl;
@@ -1600,10 +1611,11 @@ vector<int> LSDChannelNetwork::GetChannelHeadsChiMethodFromValleys(Array2D<int>&
   }
   
   cout << "No of source nodes: " << ChannelHeadNodes.size() << endl;   
-    
+
   return ChannelHeadNodes;
 }                              
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-
@@ -2093,8 +2105,10 @@ vector<int> LSDChannelNetwork::calculate_pelletier_channel_heads(double tan_curv
 // parallel processing of discrete terrain elevation data," Comput. Graphics Image Process., 4: 375-387
 //
 // added by FC 28/10/13
+// edited by FC 18/11/13; put the user-defined parameter of the no connecting nodes into the arguments
+// so it can be specified in the parameter file.
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-Array2D<int> LSDChannelNetwork::find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources)
+Array2D<int> LSDChannelNetwork::find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources, int no_connecting_nodes)
 {
   Array2D<int> NodesVisitedBefore(NRows,NCols,0);
   Array2D<int> NodesVisitedBeforeTemp(NRows,NCols,0);
@@ -2105,10 +2119,9 @@ Array2D<int> LSDChannelNetwork::find_valleys(LSDFlowInfo& FlowInfo, Array2D<doub
   //Find valleys with linked pixels greater than the threshold
   int n_sources = sources.size();
   cout << "No of sources: " << n_sources << endl;
-  int min_segment_length = 10;
   
   // Loop through all the sources, moving downstream - keep a count of the number of connected
-  // nodes that are above the threshold curvature.  If there are more than 5 nodes that are 
+  // nodes that are above the threshold curvature.  If there are more than 10 nodes that are 
   // connected then it is a valley - get the outlet junction of the valley and store in a vector
   
   for (int source = 0; source < n_sources; source++)
@@ -2140,7 +2153,7 @@ Array2D<int> LSDChannelNetwork::find_valleys(LSDFlowInfo& FlowInfo, Array2D<doub
         
         //check whether the no of connected nodes has been reached; if it has then identify the 
         // outlet junction of the valley
-        if (max_no_connected_nodes > min_segment_length)
+        if (max_no_connected_nodes > no_connecting_nodes)
         {
           EndofReach = true;
           int this_node = CurrentNode;
