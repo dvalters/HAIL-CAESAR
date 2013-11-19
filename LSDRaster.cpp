@@ -86,6 +86,7 @@
 #include <vector>
 #include <string>
 #include <queue>
+#include <map>
 #include <math.h>
 #include <string.h>
 #include "TNT/tnt.h"
@@ -3329,6 +3330,7 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
   stringstream filename;
   filename << RasterFilename << "_BasinMetrics.txt";
   ofstream file;
+  cout << filename.str() << endl;
   file.open(filename.str().c_str());
   file << "basin_id slope elevation aspect area drainage_density hilltop_curvature hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines LH_density" << endl;
 
@@ -3561,59 +3563,89 @@ LSDRaster LSDRaster::BasinArea(LSDIndexRaster& Basins){
 //
 // Calculated as flow length/basin area.
 //
+// Refactored to optimise performance. SWDG - 19/11/13 
+//
 // SWDG 04/2013
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRaster& Basins, Array2D<int> FlowDir){
 
+  //Declare all the variables needed in this method
   double two_times_root2 = 2.828427;
+  vector<double> Lengths;
+  vector<double> SortedLengths; 
+  vector<int> IDs;
+  vector<int> IDs_sorted;
+  vector<size_t> index_map;
+  int q = 0;
+  double length_sum = 0;
+  double area_sum = 0;
+  map <int,double> Basin_DD; //structure to hold pairs of DD values with a basin ID as a key  
+  Array2D<double> Density(NRows,NCols,NoDataValue);  //Output raster
+    
+  //convert Basin Raster to an Array
+  Array2D<int> basin_ids = Basins.get_RasterData();  
   
-  Array2D<int> basin_ids = Basins.get_RasterData();
-  Array2D<double> Density(NRows,NCols,NoDataValue);
-  //Get vector of unique basin indexes
-  vector<int> basin_index = Unique(basin_ids, NoDataValue);
-
-  //loop through each basin
-  for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
-
-    int stream_px = 0;
-    int hillslope_px = 0;
-    double stream_length = 0;
-
-    for (int i = 0; i < NRows; ++i){
-      for (int j = 0; j < NCols; ++j){
-        if (RasterData[i][j] != NoDataValue && basin_ids[i][j] != *it ){
-          if (StreamNetwork.get_data_element(i,j) != NoDataValue){
-
-            if ((FlowDir[i][j] % 2) != 0 && (FlowDir[i][j] != -1 )){ //is odd but not -1
-              stream_length += DataResolution * two_times_root2; //diagonal
-              ++stream_px;
-            }
-            else if (FlowDir[i][j] % 2 == 0){  //is even
-              stream_length += DataResolution;  //cardinal
-              ++stream_px;
-            }
+  //Loop over every pixel and record it's stream length and basin ID in two vectors  
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      if (basin_ids[i][j] != NoDataValue){         
+        if (StreamNetwork.get_data_element(i,j) != NoDataValue){
+          if ((FlowDir[i][j] % 2) != 0 && (FlowDir[i][j] != -1 )){ //is odd but not -1
+            Lengths.push_back(DataResolution * two_times_root2); //diagonal
+            IDs.push_back(basin_ids[i][j]);
           }
-          else{
-            ++hillslope_px;
+          else if (FlowDir[i][j] % 2 == 0){  //is even
+            Lengths.push_back(DataResolution); //cardinal
+            IDs.push_back(basin_ids[i][j]);       
           }
         }
-      }
-    }
-    double density = (stream_length / ((hillslope_px+stream_px)*(DataResolution*DataResolution)));
-    for (int i = 0; i < NRows; ++i){
-      for (int j = 0; j < NCols; ++j){
-        if(basin_ids[i][j] == *it){
-          Density[i][j] = density;
+        else{
+          Lengths.push_back(0.0);
+          IDs.push_back(basin_ids[i][j]);  
         }
+      }    
+    }
+  }
+  
+  //sort our two vectors based on the Basin IDs: has the effect of grouping each basin together in 1D space
+  matlab_int_sort(IDs, IDs_sorted, index_map);               
+  matlab_double_reorder(Lengths, index_map, SortedLengths);
+  
+  // get the first basin ID
+  int start_id = IDs_sorted[0];
+
+  while (q < int(IDs_sorted.size())){
+    if (start_id == IDs_sorted[q]){
+      length_sum += SortedLengths[q];
+      area_sum += (DataResolution * DataResolution);  
+      ++q;
+    }
+    else{
+      Basin_DD[start_id]=(length_sum/area_sum);   //record the DD density in the map using the Basin ID as a key
+      length_sum = 0;
+      area_sum = 0;
+      start_id = IDs_sorted[q];      
+    }
+  }
+  
+  // Process the final basin once the loop is completed
+  Basin_DD[start_id]=(length_sum/area_sum);
+  
+  //write data to the output raster
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      if (basin_ids[i][j] != NoDataValue){
+        Density[i][j] = Basin_DD[basin_ids[i][j]];        
       }
     }
-
   }
 
+  //write the array to an LSDRaster and return it
   LSDRaster DrainageDensity(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Density);
   return DrainageDensity;
 
 }
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Simple method to convert a drainage density raster into a hillslope length raster. 
