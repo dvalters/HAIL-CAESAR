@@ -2313,6 +2313,21 @@ void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector
   matlab_double_reorder(unsorted,index_map,sorted);
 }
 
+// Sort a vector of ints - SWDG 19/11/13
+void matlab_int_sort(vector<int>& unsorted, vector<int>& sorted, vector<size_t>& index_map)
+{
+  // Original unsorted index map
+  index_map.resize(unsorted.size());
+  for(size_t i=0;i<unsorted.size();i++)
+  {
+    index_map[i] = i;
+  }
+  // Sort the index map, using unsorted for comparison
+  sort(index_map.begin(), index_map.end(), index_cmp<std::vector<int>& >(unsorted));
+  sorted.resize(unsorted.size());
+  matlab_int_reorder(unsorted,index_map,sorted);
+}
+
 void matlab_double_sort_descending(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map)
 {
   // Original unsorted index map
