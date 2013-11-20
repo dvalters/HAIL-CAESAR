@@ -789,12 +789,17 @@ class LSDRaster
   /// @date 04/2013
 	LSDRaster BasinAverager(LSDIndexRaster& Basins);
 
-  /// @brief Write the area(in units of area) of each basin to the basin's pixels.
+  /// @brief Write the area(in spatial units) of each basin to the basin's pixels.
+  ///
+  /// @details Big optimisation following the Drainage density's design pattern.
+  /// Works by flattening the raster into a 1D vector, sorting it and summing 
+  /// each run of Basin IDs. Gives a fast count of the number of pixels per basin,
+  /// which is multiplied by the cellsize to get an area in spatial units.
   /// @param Basins LSDIndexRaster of drainage basins to measure.
   /// @return LSDRaster of basin areas.
   /// @author SWDG
-  /// @date 04/2013
-  LSDRaster BasinArea(LSDIndexRaster& Basins);
+  /// @date 20/11/2013  
+  LSDRaster BasinArea(LSDIndexRaster Basins);
 
   /// @brief Punch basins out of an LSDRaster to create DEMs of a single catchment.
   ///
