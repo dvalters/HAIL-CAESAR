@@ -3521,42 +3521,70 @@ LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
-// Write the area(in units of area) of each basin to the basin's pixels.
-// SWDG 04/2013
+// Write the area(in spatial units of area) of each basin to the basin's pixels.
+// Refactored to follow the drainage density calculations design pattern.
+// SWDG 20/11/2013
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::BasinArea(LSDIndexRaster& Basins){
-
-  Array2D<int> basin_ids = Basins.get_RasterData();
-  Array2D<double> Areas(NRows,NCols,NoDataValue);
-  //Get vector of unique basin indexes
-  vector<int> basin_index = Unique(basin_ids, NoDataValue);
-
-  //loop through each basin
-  for (vector<int>::iterator it = basin_index.begin(); it !=  basin_index.end(); ++it){
-    int counter = 0;
-
-    for (int i = 0; i < NRows; ++i){
-      for (int j = 0; j < NCols; ++j){
-
-       if (basin_ids[i][j] == *it){
-         ++counter;
-        }
-      }
+LSDRaster LSDRaster::BasinArea(LSDIndexRaster Basins){
+  //Declare all the variables needed in this method
+  vector<int> IDs;
+  vector<int> IDs_sorted;
+  vector<size_t> index_map;
+  int q = 0;
+  double area_sum = 0;
+  map <int,double> Basin_Areas; //structure to hold pairs of area values with a basin ID as a key  
+  Array2D<double> Areas(NRows,NCols,NoDataValue);  //Output raster
+    
+  //convert Basin Raster to an Array
+  Array2D<int> basin_ids = Basins.get_RasterData();  
+  
+  //Loop over every pixel and record it's basin ID in a vectors  
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      if (basin_ids[i][j] != NoDataValue){                 
+        IDs.push_back(basin_ids[i][j]);
+      }    
     }
+  }
+  
+  //sort our vectors based on the Basin IDs: has the effect of grouping each basin together in 1D space
+  // so if we count each pixel and multiply it by the pixel area we get basin area
+  matlab_int_sort(IDs, IDs_sorted, index_map);               
+  
+  // get the first basin ID
+  int start_id = IDs_sorted[0];
 
-    for (int i = 0; i < NRows; ++i){
-      for (int j = 0; j < NCols; ++j){
-        if(basin_ids[i][j] == *it){
-          Areas[i][j] = counter*(DataResolution*DataResolution);
-        }
+  while (q < int(IDs_sorted.size())){
+    if (start_id == IDs_sorted[q]){
+      ++area_sum;  
+      ++q;
+    }
+    else{
+      Basin_Areas[start_id] = area_sum * (DataResolution * DataResolution);   //record the area in the map using the Basin ID as a key
+      area_sum = 0;
+      start_id = IDs_sorted[q];      
+    }
+  }
+  
+  // Process the final basin once the loop is completed
+  Basin_Areas[start_id] = area_sum * (DataResolution * DataResolution);
+  
+  //write data to the output raster
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      if (basin_ids[i][j] != NoDataValue){
+        Areas[i][j] = Basin_Areas[basin_ids[i][j]];        
       }
     }
   }
 
-  LSDRaster Area_out(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Areas);
-  return Area_out;
+  //write the array to an LSDRaster and return it
+  LSDRaster Areas_out(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Areas);
+  return Areas_out;
 
 }
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 // Calulate drainage density of a set of input basins.
@@ -3645,7 +3673,6 @@ LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRast
   return DrainageDensity;
 
 }
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Simple method to convert a drainage density raster into a hillslope length raster. 
