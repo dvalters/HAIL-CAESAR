@@ -801,6 +801,19 @@ class LSDRaster
   /// @date 20/11/2013  
   LSDRaster BasinArea(LSDIndexRaster Basins);
 
+  /// @brief Convert a basin, given by a basin ID, into a chain of xy coordinates for
+  /// fast plotting of vector basin outlines.
+  ///
+  /// @details Produces a generalised polygon and will not cope well with complex geometries.
+  /// \n\n
+  /// Needs to be updated to write data into an esri ascii format so the files can 
+  /// be loaded into arc. Currently writes to a text file called chain.txt.
+  /// @param Basins IndexRaster of basins
+  /// @param BasinOfInterest integer of the basin ID to be converted.
+  /// @author SWDG
+  /// @date 21/11/2013
+  void GetBasinVector(LSDIndexRaster Basins, int BasinOfInterest);
+
   /// @brief Punch basins out of an LSDRaster to create DEMs of a single catchment.
   ///
   /// @details Writes files in the user supplied format (flt or asc) and returns a vector 

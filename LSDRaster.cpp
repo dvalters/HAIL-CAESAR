@@ -3584,6 +3584,111 @@ LSDRaster LSDRaster::BasinArea(LSDIndexRaster Basins){
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// Convert a basin, given by a basin ID, into a chain of xy coordinates for
+// fast plotting of vector basin outlines.
+//
+// Produces a generalised polygon and will not cope well with complex geometries.
+//
+// Needs to be updated to write data into an esri ascii format so the files can 
+// be loaded into arc.  
+// SWDG 21/11/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::GetBasinVector(LSDIndexRaster Basins, int BasinOfInterest){
+
+  //convert Basin Raster to an Array
+  Array2D<int> basin_ids = Basins.get_RasterData(); 
+  
+  vector<double> I;
+  vector<double> J;
+
+  int NDVCount = 0;
+
+  for (int i = 1; i < NRows-1; ++i){
+    for (int j = 1; j < NCols-1; ++j){
+    
+      NDVCount = 0;
+      
+      if (basin_ids[i][j] == BasinOfInterest){
+      
+        //count border cells that are NDV
+        if (basin_ids[i-1][j-1] != BasinOfInterest){ ++NDVCount; }
+        if (basin_ids[i][j-1] != BasinOfInterest){ ++NDVCount; }
+        if (basin_ids[i+1][j-1] != BasinOfInterest){ ++NDVCount; }
+        if (basin_ids[i-1][j] != BasinOfInterest){ ++NDVCount; }
+        if (basin_ids[i+1][j] != BasinOfInterest){ ++NDVCount; }
+        if (basin_ids[i-1][j+1] != BasinOfInterest){ ++NDVCount; }
+        if (basin_ids[i][j+1] != BasinOfInterest){ ++NDVCount; }
+        if (basin_ids[i+1][j+1] != BasinOfInterest){ ++NDVCount; }
+        
+        if (NDVCount >= 4 && NDVCount < 8){  //increase the first value to get a simpler polygon
+          //edge pixel
+          I.push_back(i);
+          J.push_back(j);
+        }
+      }
+    }
+  }
+
+  //now have 2 vectors of i and j indexes of every point
+  
+  int q = 0;
+  
+  vector<double> X; //could prealloc here based on I.size()
+  vector<double> Y;
+  
+  while (q < int(I.size())){
+    
+    //convert I,J into x,y          
+    X.push_back((J[q] * DataResolution) + XMinimum);
+    Y.push_back(((I[q] - NRows) * DataResolution) + YMinimum);
+    ++q;
+  } 
+   
+   //get centroid
+  double mean_x = get_mean(X);
+  double mean_y = get_mean(Y);
+ 
+  //vector to contain the angles between each point and the centroid
+  vector<double> A; //could prealloc here too
+
+  int k = 0;
+  
+  double an = 0;
+
+  while (k < int(Y.size())){
+    //calculate angle between each point and the centroid
+    an = atan2(Y[k] - mean_y, X[k] - mean_x);
+    A.push_back(an);
+    ++k;
+  }
+  
+  //sort the data by angle and reorder the coordinates based on the sort
+  vector<double> A_sorted;
+  vector<size_t> index_map;
+  vector<double> Reordered_X;
+  vector<double> Reordered_Y;
+
+  matlab_double_sort(A, A_sorted, index_map);
+  matlab_double_reorder(X, index_map, Reordered_X);
+  matlab_double_reorder(Y, index_map, Reordered_Y);
+
+  //write the data to a file
+  ofstream write_chain;
+
+  write_chain.open("chain.txt");
+
+  int w = 0;
+  while (w < int(X.size())){
+    write_chain << Reordered_X[w] << " " << Reordered_Y[w] << endl;
+    ++w;
+  }
+  
+  //close the chain
+  write_chain << Reordered_X[0] << " " << Reordered_Y[0] << endl;
+  write_chain.close(); 
+
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
