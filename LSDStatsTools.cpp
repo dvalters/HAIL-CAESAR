@@ -2266,6 +2266,97 @@ void RemoveSmallBins(vector<double>& MeanX_output, vector<double>& MeanY_output,
 
 }
 
+// 
+// //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// // calculate_histogram
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Takes a raster and condenses it into a histogram
+// DTM 20/11/2013
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void print_histogram(vector<double> input_values, double bin_width, string filename)
+{
+	// Finding max contributing area to use as upper limit for the bins
+  int n_data = input_values.size();
+  double max_X = input_values[0];
+	double min_X = input_values[0];
+
+  // Loop through to find the min and max of the dataset
+  for (int i = 0; i < n_data; ++i)
+	{
+    if (input_values[i] > max_X)
+    {
+      max_X = input_values[i];
+    }
+    if (input_values[i] < min_X)    
+    {
+      min_X = input_values[i];
+    }
+  }
+//  cout << min_X << " " << max_X << endl;
+  // Defining the upper limit, lower limit and the bin width.
+  // Extend range by one bin at each end so that the histogram is bounded by 
+  // zeros for plotting
+  double upper_limit = (ceil(max_X/bin_width)+1)*bin_width;
+  double lower_limit = (floor(min_X/bin_width)-1)*bin_width;
+  int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
+
+  // Looping through all the rows and columns and calculating which bin the
+  // contributing area is in, and putting the slope in this bin
+  vector<int> number_observations(NBins,0);
+  vector<double> bin_midpoints(NBins,0.0);
+  vector<double> bin_lower_lim(NBins,0.0);
+  vector<double> bin_upper_lim(NBins,0.0);
+  vector<double> probability_density(NBins,0);
+
+	// create the vector of vectors.  Nested vectors will store data within that
+  // bin.
+  vector<double> empty_vector;
+  double midpoint_value, lower_lim_value, upper_lim_value;
+
+  // Bin Data
+  for (int i = 0; i < n_data; ++i)
+  {
+    double X = input_values[i];
+    // Get bin_id for this particular value of X
+    int bin_id = int((X-lower_limit)/bin_width);
+    ++number_observations[bin_id];
+  }
+  
+  for(int i = 0; i<NBins; i++)
+  {
+    midpoint_value = lower_limit + (double(i)+0.5)*bin_width;
+    lower_lim_value = lower_limit + double(i)*bin_width;
+    upper_lim_value = double(i+1)*bin_width;  
+    
+    bin_midpoints[i]= midpoint_value;
+    bin_lower_lim[i]= lower_lim_value;
+    bin_upper_lim[i]= upper_lim_value;
+    
+    probability_density[i] = number_observations[i]/double(n_data);    
+  }
+
+  // Print histogram to file
+  cout << "\t printing histogram to " << filename << endl;
+  ofstream ofs;
+  ofs.open(filename.c_str());
+  
+  if(ofs.fail())
+  {
+    cout << "\nFATAL ERROR: unable to write output_file" << endl;
+		exit(EXIT_FAILURE);
+  }
+  
+  ofs << "Midpoint LowerLim UpperLim Count ProbabilityDensity\n";
+  for(int i = 0; i < NBins; ++i)
+  {
+    ofs << bin_midpoints[i] << " " << bin_lower_lim[i] << " " << bin_upper_lim[i] << " " << number_observations[i] << " " << probability_density[i] << "\n";
+  }
+  
+  ofs.close();
+
+}
+ 
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -2311,21 +2402,6 @@ void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector
   sort(index_map.begin(), index_map.end(), index_cmp<std::vector<double>& >(unsorted));
   sorted.resize(unsorted.size());
   matlab_double_reorder(unsorted,index_map,sorted);
-}
-
-// Sort a vector of ints - SWDG 19/11/13
-void matlab_int_sort(vector<int>& unsorted, vector<int>& sorted, vector<size_t>& index_map)
-{
-  // Original unsorted index map
-  index_map.resize(unsorted.size());
-  for(size_t i=0;i<unsorted.size();i++)
-  {
-    index_map[i] = i;
-  }
-  // Sort the index map, using unsorted for comparison
-  sort(index_map.begin(), index_map.end(), index_cmp<std::vector<int>& >(unsorted));
-  sorted.resize(unsorted.size());
-  matlab_int_reorder(unsorted,index_map,sorted);
 }
 
 void matlab_double_sort_descending(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map)
