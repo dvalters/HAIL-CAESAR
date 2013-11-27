@@ -198,7 +198,7 @@ template<class T> struct index_cmp;
 void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map);
 void matlab_double_reorder(std::vector<double> & unordered, std::vector<size_t> const & index_map, std::vector<double> & ordered);
 void matlab_double_sort_descending(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map);
-
+void matlab_int_sort(vector<int>& unsorted, vector<int>& sorted, vector<size_t>& index_map); // added 27/11/13 SWDG
 void matlab_int_reorder(std::vector<int> & unordered, std::vector<size_t> const & index_map, std::vector<int> & ordered);
 
 // Generate spline curves from X and Y vectors of doubles
