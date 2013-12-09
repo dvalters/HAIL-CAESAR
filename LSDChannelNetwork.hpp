@@ -358,6 +358,26 @@ class LSDChannelNetwork
   /// @date 05/12/13
   vector<int> Get_Channel_Head_Junctions(vector<int> Sources, LSDFlowInfo& FlowInfo);
 
+  /// @brief This function extracts a single hollow from a given channel head junction.
+  ///
+  /// @details The junction index of channel heads can be extracted using LSDChannelNetwork.Get_Channel_Head_Junctions.
+  /// @param CH_junction Junction index to extract.
+  /// @param FlowInfo LSDFlowInfo object.
+  /// @return LSDIndexRaster of the extracted hollow, coded with junction number.
+  /// @author SWDG 
+  /// @date 05/12/13
+  LSDIndexRaster extract_hollow(int CH_junction, LSDFlowInfo& FlowInfo);
+  
+  /// @brief This function extracts a series of hollows from a vector of channel head junctions.
+  ///
+  /// @details The junction index of channel heads can be extracted using LSDChannelNetwork.Get_Channel_Head_Junctions.
+  /// @param CH_junctions Vector of juntions to extract.
+  /// @param FlowInfo LSDFlowInfo object.
+  /// @return LSDIndexRaster of the extracted hollows, coded with junction numbers.
+  /// @author SWDG 
+  /// @date 05/12/13
+  LSDIndexRaster extract_hollow(vector<int> CH_junctions, LSDFlowInfo& FlowInfo);
+
   /// @brief This function gets the an LSDIndexRaster of basins draining from a vector of junctions.
   ///
   /// @details IMPORTANT: The junctions always point downstream since they can have one and only

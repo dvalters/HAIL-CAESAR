@@ -3057,6 +3057,116 @@ vector<int> LSDChannelNetwork::Get_Channel_Head_Junctions(vector<int> Sources, L
   return Channel_Head_Junctions;
 }
 
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// This function extracts a single hollow from a given channel head junction.
+//
+// SWDG 05/12/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDChannelNetwork::extract_hollow(int CH_junction, LSDFlowInfo& FlowInfo){
+
+	if (CH_junction >= int(JunctionVector.size())){
+		cout << "LSDChannelNetwork::extract_hollow junction not in list" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+  // declare variables used during the extraction of the hollows
+  int channel_head_row;
+  int channel_head_col;
+  int node_of_ch;
+  int receiver_junc; 
+  int hollow_outlet;
+  int node;
+  int row;
+  int col;
+  Array2D<int> Hollow(NRows,NCols,NoDataValue); //final output array
+
+  //get the coordinates of the channel head
+  node_of_ch = get_Node_of_Junction(CH_junction);
+  FlowInfo.retrieve_current_row_and_col(node_of_ch, channel_head_row, channel_head_col);
+  	
+  // get the reciever junction
+  receiver_junc = ReceiverVector[CH_junction];
+
+  LSDIndexChannel StreamLinkVector = LSDIndexChannel(CH_junction, JunctionVector[CH_junction],
+                                                           receiver_junc, JunctionVector[receiver_junc], FlowInfo);
+                                                           
+  hollow_outlet = StreamLinkVector.get_node_in_channel(0); //get the tip of the channel
+  vector<int> HollowNodeVector = FlowInfo.get_upslope_nodes(hollow_outlet);
+  
+  // Loop through basin to label basin pixels with basin ID
+  for (int HollowIndex = 0; HollowIndex < int(HollowNodeVector.size()); ++HollowIndex){
+	  node = HollowNodeVector[HollowIndex];
+    FlowInfo.retrieve_current_row_and_col(node,row,col);
+  
+    Hollow[row][col] = CH_junction;  
+  
+  }
+  
+  //remove channel head pixel from hollow
+  Hollow[channel_head_row][channel_head_col] = NoDataValue;
+    
+	LSDIndexRaster IR(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Hollow);
+	return IR;
+}  
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// This function extracts a series of hollows from a vector of channel head junctions.
+//
+// SWDG 05/12/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDChannelNetwork::extract_hollow(vector<int> CH_junctions, LSDFlowInfo& FlowInfo){
+
+  // declare variables used during the extraction of the hollows
+  int channel_head_row;
+  int channel_head_col;
+  int node_of_ch;
+  int receiver_junc; 
+  int hollow_outlet;
+  int node;
+  int row;
+  int col;
+  Array2D<int> Hollows(NRows,NCols,NoDataValue); //final output array
+   
+  for (int q = 0; q < int(CH_junctions.size()); ++q){
+
+		if (CH_junctions[q] >= int(JunctionVector.size())){
+			cout << "LSDChannelNetwork::extract_hollow junction not in list" << endl;
+			exit(EXIT_FAILURE);
+		}
+  
+    //get the coordinates of the channel head
+    node_of_ch = get_Node_of_Junction(CH_junctions[q]);
+    FlowInfo.retrieve_current_row_and_col(node_of_ch, channel_head_row, channel_head_col);
+    	
+    // get the reciever junction
+    receiver_junc = ReceiverVector[CH_junctions[q]];
+  
+    LSDIndexChannel StreamLinkVector = LSDIndexChannel(CH_junctions[q], JunctionVector[CH_junctions[q]],
+                                                             receiver_junc, JunctionVector[receiver_junc], FlowInfo);
+  
+    hollow_outlet = StreamLinkVector.get_node_in_channel(0); //get the tip of the channel
+    vector<int> HollowNodeVector = FlowInfo.get_upslope_nodes(hollow_outlet);
+    
+    // Loop through basin to label basin pixels with basin ID
+    for (int HollowIndex = 0; HollowIndex < int(HollowNodeVector.size()); ++HollowIndex){
+		  node = HollowNodeVector[HollowIndex];
+      FlowInfo.retrieve_current_row_and_col(node,row,col);   
+     
+      Hollows[row][col] = CH_junctions[q];  
+     
+    }
+    
+  }
+  
+  //remove channel head pixel from hollow
+  Hollows[channel_head_row][channel_head_col] = NoDataValue;
+    
+	LSDIndexRaster IR(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Hollows);
+	return IR;
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 //This function gets the an LSDIndexRaster of basins draining from a vector of junctions.
 //
