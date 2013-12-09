@@ -3038,6 +3038,26 @@ LSDIndexRaster LSDChannelNetwork::extract_basin_from_junction(int basin_junction
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+// This function converts a list of sources used to generate the initial channel network
+// into a list of junction indexes of channel heads which can be used to extract hollows.
+//
+// SWDG 05/12/13
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<int> LSDChannelNetwork::Get_Channel_Head_Junctions(vector<int> Sources, LSDFlowInfo& FlowInfo){
+
+  vector<int> Channel_Head_Junctions;
+  int i;
+  int j;
+  
+  for (int q = 0; q < int(Sources.size()); ++q){
+    FlowInfo.retrieve_current_row_and_col(Sources[q],i,j);
+    Channel_Head_Junctions.push_back(JunctionIndexArray[i][j]);
+  }
+ 
+  return Channel_Head_Junctions;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 //This function gets the an LSDIndexRaster of basins draining from a vector of junctions.
 //
 // IMPORTANT: the junctions always point downstream since they can have one and only
