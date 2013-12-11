@@ -96,6 +96,8 @@ class LSDChannelNetwork
   /// @date 01/09/12
 	LSDChannelNetwork(vector<int> Sources, LSDFlowInfo& FlowInfo)
 											{ create(Sources, FlowInfo); }
+											
+  friend class LSDBasin;											
 
   ///@brief Recursive add_to_stack routine to build the junction tree, from Braun and Willett (2012)
   ///equations 12 and 13.
