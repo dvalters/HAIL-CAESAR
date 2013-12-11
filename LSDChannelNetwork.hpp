@@ -757,7 +757,10 @@ class LSDChannelNetwork
   /// @return Integer reciever of junction.
 	int get_Receiver_of_Junction(int junction) const
 										{ return ReceiverVector[junction]; }
-
+										
+	/// @return The Vector of Junctions.									
+  vector<int> get_JunctionVector() const { return JunctionVector; }										
+  
 	protected:
 
 	///Number of rows.
