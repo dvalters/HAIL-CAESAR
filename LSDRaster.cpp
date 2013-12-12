@@ -86,6 +86,7 @@
 #include <vector>
 #include <string>
 #include <queue>
+#include <algorithm>
 #include <map>
 #include <math.h>
 #include <string.h>
