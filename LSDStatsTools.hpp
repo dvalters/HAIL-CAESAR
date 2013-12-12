@@ -220,6 +220,9 @@ double BearingToRad(double Bearing);
 // conversion from degrees to radians
 double rad(double degree);
 
+// conversion from radians to degrees
+double deg(double radians);
+
 #endif
 
 
