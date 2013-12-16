@@ -3157,11 +3157,11 @@ LSDIndexRaster LSDChannelNetwork::extract_hollow(vector<int> CH_junctions, LSDFl
       Hollows[row][col] = CH_junctions[q];  
      
     }
-    
-  }
-  
+
   //remove channel head pixel from hollow
   Hollows[channel_head_row][channel_head_col] = NoDataValue;
+    
+  }
     
 	LSDIndexRaster IR(NRows,NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Hollows);
 	return IR;
