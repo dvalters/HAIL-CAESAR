@@ -84,7 +84,7 @@ using namespace JAMA;
 #define MZ 0
 #define FAC (1.0/MBIG)
 
-double ran3(long *idum)
+float ran3(long *idum)
 {
    //cout << &idum << endl;
    static int inext,inextp;
@@ -136,17 +136,17 @@ double ran3(long *idum)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the mean from a population of y_data
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double get_mean(vector<double>& y_data)
+float get_mean(vector<float>& y_data)
 {
 	int n_data_points = y_data.size();
 
-	double total = 0;
-	double mean;
+	float total = 0;
+	float mean;
 	for (int i = 0; i< n_data_points; i++)
 	{
 		total+=y_data[i];
 	}
-	mean = total/double(n_data_points);
+	mean = total/float(n_data_points);
 	return mean;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -154,11 +154,11 @@ double get_mean(vector<double>& y_data)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the total sum of squares from a population of data
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double get_SST(vector<double>& y_data, double mean)
+float get_SST(vector<float>& y_data, float mean)
 {
 	int n_data_points = y_data.size();
 
-	double total = 0;
+	float total = 0;
 	for (int i = 0; i< n_data_points; i++)
 	{
 		total+=(y_data[i]-mean)*(y_data[i]-mean);
@@ -170,26 +170,26 @@ double get_SST(vector<double>& y_data, double mean)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the standard deviation from a population of data
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double get_standard_deviation(vector<double>& y_data, double mean)
+float get_standard_deviation(vector<float>& y_data, float mean)
 {
 	int n_data_points = y_data.size();
 
-	double total = 0;
+	float total = 0;
 	for (int i = 0; i< n_data_points; i++)
 	{
 		total+=(y_data[i]-mean)*(y_data[i]-mean);
 	}
-	return sqrt(total/double(n_data_points));
+	return sqrt(total/float(n_data_points));
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the standard error from a population of data
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double get_standard_error(vector<double>& y_data, double standard_deviation)
+float get_standard_error(vector<float>& y_data, float standard_deviation)
 {
 	int n_data_points = y_data.size();
-	return standard_deviation/(sqrt(double(n_data_points)));
+	return standard_deviation/(sqrt(float(n_data_points)));
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -201,15 +201,15 @@ double get_standard_error(vector<double>& y_data, double standard_deviation)
 // 2 standard deviation
 // 3 standard error
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-vector<double> get_common_statistics(vector<double>& y_data)
+vector<float> get_common_statistics(vector<float>& y_data)
 {
 	int n_data_points = y_data.size();
-	double mean = get_mean(y_data);
-	double SST = get_SST(y_data, mean);
-	double standard_deviation = sqrt(SST/double(n_data_points));
-	double standard_error = standard_deviation/(sqrt(double(n_data_points)));
+	float mean = get_mean(y_data);
+	float SST = get_SST(y_data, mean);
+	float standard_deviation = sqrt(SST/float(n_data_points));
+	float standard_error = standard_deviation/(sqrt(float(n_data_points)));
 
-	vector<double> common_statistics(4);
+	vector<float> common_statistics(4);
 	common_statistics[0] = mean;
 	common_statistics[1] = SST;
 	common_statistics[2] = standard_deviation;
@@ -224,12 +224,12 @@ vector<double> get_common_statistics(vector<double>& y_data)
 // if the number is less than 2 the residuals show autocorrelation
 // if the number is less than 1 there is clear evidence for autocorrelation
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double get_durbin_watson_statistic(vector<double> residuals)
+float get_durbin_watson_statistic(vector<float> residuals)
 {
 	int n_observations = residuals.size();
 
-	double top_term = 0;
-	double bottom_term = 0;
+	float top_term = 0;
+	float bottom_term = 0;
 	for (int i = 0; i<n_observations; i++)
 	{
 		if (i!=0)
@@ -258,15 +258,15 @@ double get_durbin_watson_statistic(vector<double> residuals)
 // it also replaces the residuals vector with the actual residuals from the
 // best fit
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-vector<double> simple_linear_regression(vector<double>& x_data, vector<double>& y_data, vector<double>& residuals)
+vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_data, vector<float>& residuals)
 {
-	double rounding_cutoff = 1e-12;
+	float rounding_cutoff = 1e-12;
 
 	int n_rows = x_data.size();
 	int n_cols = 2;
-	Array2D<double> A(n_rows,n_cols);
-	Array2D<double> b(n_rows,1);
-	Array2D<double> A_transpose(n_cols,n_rows);
+	Array2D<float> A(n_rows,n_cols);
+	Array2D<float> b(n_rows,1);
+	Array2D<float> A_transpose(n_cols,n_rows);
 
 	// construct solution matrices
 	for(int i = 0; i<n_rows; i++)
@@ -280,28 +280,28 @@ vector<double> simple_linear_regression(vector<double>& x_data, vector<double>& 
 
 
 	// solve the system
-	Array2D<double> LHS = matmult(A_transpose,A);
-	Array2D<double> RHS = matmult(A_transpose,b);
-	LU<double> LU_mat(LHS);
-	Array2D<double> solution= LU_mat.solve(RHS);
+	Array2D<float> LHS = matmult(A_transpose,A);
+	Array2D<float> RHS = matmult(A_transpose,b);
+	LU<float> LU_mat(LHS);
+	Array2D<float> solution= LU_mat.solve(RHS);
 
 
-	vector<double> soln;
+	vector<float> soln;
 	for(int i = 0; i<2; i++)
 	{
 		soln.push_back(solution[i][0]);
 	}
 
 	// get some statistics
-	double mean = get_mean(y_data);
-	double SST = get_SST(y_data, mean);
+	float mean = get_mean(y_data);
+	float SST = get_SST(y_data, mean);
 	// now get the predictions
-	vector<double> predicted;
-	vector<double> temp_residuals;
+	vector<float> predicted;
+	vector<float> temp_residuals;
 
 	// get predicted, residuals, etc
-	double SS_reg = 0;
-	double SS_err = 0;
+	float SS_reg = 0;
+	float SS_err = 0;
 	//cout << endl;
 	for(int i = 0; i<n_rows; i++)
 	{
@@ -594,10 +594,10 @@ void permute_partitioned_integer_vector(vector<int> permute_vector)
 // One potential future development is to implement this using a sparse matrix from the boost mtl
 // library to reduce the memory usage.
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void calculate_segment_matrices(vector<double>& all_x_data, vector<double>& all_y_data, int minimum_segment_length,
-								double sigma, Array2D<double>& like_array, Array2D<double>& m_array,
-								Array2D<double>& b_array, Array2D<double>& rsquared_array,
-								Array2D<double>& DW_array)
+void calculate_segment_matrices(vector<float>& all_x_data, vector<float>& all_y_data, int minimum_segment_length,
+								float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
+								Array2D<float>& b_array, Array2D<float>& rsquared_array,
+								Array2D<float>& DW_array)
 {
 	int n_data_points = all_x_data.size();
 	if (minimum_segment_length>n_data_points)
@@ -610,8 +610,8 @@ void calculate_segment_matrices(vector<double>& all_x_data, vector<double>& all_
 	// set up the arrays
 	// in the future I might consider using sparse arrays but for now we'll just populate
 	// the empty spots with placeholders
-	double no_data_value = -9999;
-	Array2D<double> temp_array(n_data_points,n_data_points,no_data_value);
+	float no_data_value = -9999;
+	Array2D<float> temp_array(n_data_points,n_data_points,no_data_value);
 	like_array = temp_array.copy();
 	m_array = temp_array.copy();
 	b_array = temp_array.copy();
@@ -639,24 +639,24 @@ void calculate_segment_matrices(vector<double>& all_x_data, vector<double>& all_
 // but drills down through all the possible starting nodes to coplete the
 // matrix
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void populate_segment_matrix(int start_node, int end_node, double no_data_value,
-								vector<double>& all_x_data, vector<double>& all_y_data, int minimum_segment_length,
-								double sigma, Array2D<double>& like_array, Array2D<double>& m_array,
-								Array2D<double>& b_array, Array2D<double>& rsquared_array, Array2D<double>& DW_array)
+void populate_segment_matrix(int start_node, int end_node, float no_data_value,
+								vector<float>& all_x_data, vector<float>& all_y_data, int minimum_segment_length,
+								float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
+								Array2D<float>& b_array, Array2D<float>& rsquared_array, Array2D<float>& DW_array)
 {
 
 	if (like_array[start_node][end_node] == no_data_value)
 	{
 		// create the two segments
-		vector<double> segment_x;
-		vector<double> segment_y;
-		vector<double> residuals;
-		vector<double> regression_results;
-		double this_MLE;
+		vector<float> segment_x;
+		vector<float> segment_y;
+		vector<float> residuals;
+		vector<float> regression_results;
+		float this_MLE;
 
 		// now create iterators to deal with these segments
-		vector<double>::iterator vec_iter_start;
-		vector<double>::iterator vec_iter_end;
+		vector<float>::iterator vec_iter_start;
+		vector<float>::iterator vec_iter_end;
 
 		// the first step is to get the segment starting on the
 		// first node and ending on the last node
@@ -746,26 +746,26 @@ void populate_segment_matrix(int start_node, int end_node, double no_data_value,
 // It then overwrites a raft of data elements
 // First, it returns
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void best_fit_driver_AIC_for_linear_segments(int minimum_segment_length, double sigma,
-											vector<double> all_x_data, vector<double> all_y_data,
-											vector<double>& max_MLE)
+void best_fit_driver_AIC_for_linear_segments(int minimum_segment_length, float sigma,
+											vector<float> all_x_data, vector<float> all_y_data,
+											vector<float>& max_MLE)
 {
 
-	double norm_sigma = 1.0;
-	Array2D<double> like_array;			// array holding the liklihood values
-	Array2D<double> m_array;			// array holding the m values
-	Array2D<double> b_array;			// array holding the b values
-	Array2D<double> rsquared_array;		// array holding R2 of individual segments
-	Array2D<double> DW_array;			// array holding the durbin-watson statistic of indiviudal segments
+	float norm_sigma = 1.0;
+	Array2D<float> like_array;			// array holding the liklihood values
+	Array2D<float> m_array;			// array holding the m values
+	Array2D<float> b_array;			// array holding the b values
+	Array2D<float> rsquared_array;		// array holding R2 of individual segments
+	Array2D<float> DW_array;			// array holding the durbin-watson statistic of indiviudal segments
 
 	cout << "best_fit_driver_AIC_for_linear_segments, getting like data" <<endl;
 	calculate_segment_matrices(all_x_data, all_y_data, minimum_segment_length,
 								norm_sigma, like_array, m_array, b_array, rsquared_array,DW_array);
 	cout << "best_fit_driver_AIC_for_linear_segments, got like data" <<endl;
 
-	vector<double> one_sig_max_MLE;
-	vector<double> AIC_of_segments;
-	vector<double> AICc_of_segments;
+	vector<float> one_sig_max_MLE;
+	vector<float> AIC_of_segments;
+	vector<float> AICc_of_segments;
 	vector< vector<int> > segments_for_each_n_segments;
 	find_max_like_of_segments(minimum_segment_length, like_array,
 								one_sig_max_MLE, segments_for_each_n_segments);
@@ -776,17 +776,17 @@ void best_fit_driver_AIC_for_linear_segments(int minimum_segment_length, double 
 	//									one_sig_max_MLE);
 
 	// now loop through a variety of sigma values to see what the minimum sigma is
-	double d_sigma = 0.01;
-	vector<double> sigma_values;
+	float d_sigma = 0.01;
+	vector<float> sigma_values;
 	for(int i = 1; i<=10; i++)
 	{
-		sigma_values.push_back(d_sigma*double(i));
+		sigma_values.push_back(d_sigma*float(i));
 	}
 
 	vector<int> best_fit_AIC;
 	vector<int> best_fit_AICc;
-	vector< vector<double> > AIC_for_each_n_segments;
-	vector< vector<double> > AICc_for_each_n_segments;
+	vector< vector<float> > AIC_for_each_n_segments;
+	vector< vector<float> > AICc_for_each_n_segments;
 	get_n_segments_for_various_sigma(sigma_values, one_sig_max_MLE, all_x_data,
 								      best_fit_AIC, best_fit_AICc, AIC_for_each_n_segments,
 								      AICc_for_each_n_segments);
@@ -797,10 +797,10 @@ void best_fit_driver_AIC_for_linear_segments(int minimum_segment_length, double 
 
 
 
-	vector<double> b_values;
-	vector<double> m_values;
-	vector<double> r2_values;
-	vector<double> DW_values;
+	vector<float> b_values;
+	vector<float> m_values;
+	vector<float> r2_values;
+	vector<float> DW_values;
 
 	// get the m, b, etc from the data
 	int n_sigma_for_printing = 2;
@@ -825,18 +825,18 @@ void best_fit_driver_AIC_for_linear_segments(int minimum_segment_length, double 
 // best fit number of segments from both the AIC and the AICc measures. It also returns
 // two vector of vectors which are the AIC values for the varius values of sigma
 // passed to the function in the sigma values vector
-void get_n_segments_for_various_sigma(vector<double> sigma_values, vector<double> one_sig_max_MLE,
-									  vector<double>& all_x_data,
+void get_n_segments_for_various_sigma(vector<float> sigma_values, vector<float> one_sig_max_MLE,
+									  vector<float>& all_x_data,
 								      vector<int>& best_fit_AIC, vector<int>& best_fit_AICc,
-								      vector< vector<double> >& AIC_for_each_n_segments,
-								      vector< vector<double> >& AICc_for_each_n_segments)
+								      vector< vector<float> >& AIC_for_each_n_segments,
+								      vector< vector<float> >& AICc_for_each_n_segments)
 {
 	int n_sigma = sigma_values.size();
-	vector<double> empty_vec;
-	vector<double> AIC_of_segments;
-	vector<double> AICc_of_segments;
-	vector< vector<double> > AIC_for_each(n_sigma);
-	vector< vector<double> > AICc_for_each(n_sigma);
+	vector<float> empty_vec;
+	vector<float> AIC_of_segments;
+	vector<float> AICc_of_segments;
+	vector< vector<float> > AIC_for_each(n_sigma);
+	vector< vector<float> > AICc_for_each(n_sigma);
 	vector<int> bf_AIC(n_sigma);
 	vector<int> bf_AICc(n_sigma);
 
@@ -850,9 +850,9 @@ void get_n_segments_for_various_sigma(vector<double> sigma_values, vector<double
 		AICc_for_each[i] = AICc_of_segments;
 
 		// now find the minimum AIC and AICc
-		double minimum_AIC = 10000;
+		float minimum_AIC = 10000;
 		int min_AIC_segments = 0;
-		double minimum_AICc = 10000;
+		float minimum_AICc = 10000;
 		int min_AICc_segments = 0;
 
 		int n_AIC = AIC_of_segments.size();
@@ -884,14 +884,14 @@ void get_n_segments_for_various_sigma(vector<double> sigma_values, vector<double
 }
 
 // this function prints out the segment data to screen
-void print_AIC_and_AICc_to_screen(vector<double> sigma_values, vector< vector<int> > segments_for_each_n_segments,
+void print_AIC_and_AICc_to_screen(vector<float> sigma_values, vector< vector<int> > segments_for_each_n_segments,
 								      vector<int> best_fit_AIC, vector<int> best_fit_AICc,
-								      vector< vector<double> > AIC_for_each_n_segments,
-								      vector< vector<double> > AICc_for_each_n_segments)
+								      vector< vector<float> > AIC_for_each_n_segments,
+								      vector< vector<float> > AICc_for_each_n_segments)
 {
 	// get the number of sigma values
 	int n_sigs = sigma_values.size();
-	vector<double> AI_values;
+	vector<float> AI_values;
 	vector<int> this_minimum;
 	int AI_sz;
 	int n_mins;
@@ -944,14 +944,14 @@ void print_AIC_and_AICc_to_screen(vector<double> sigma_values, vector< vector<in
 // this takes a likelihood array that has been calcualted with a given sigma value and
 // normalizes the sigma values as though sigma was equal to 1.
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-Array2D<double> normalize_like_matrix_to_sigma_one(double sigma, Array2D<double>& like_array)
+Array2D<float> normalize_like_matrix_to_sigma_one(float sigma, Array2D<float>& like_array)
 {
 	// get dimensions of the like array
 	int nRows = like_array.dim1();
 	int nCols = like_array.dim2();
-	double no_data_value = -9999;
-	double sigsquared = sigma*sigma;
-	Array2D<double> sig1_like_array = like_array.copy();
+	float no_data_value = -9999;
+	float sigsquared = sigma*sigma;
+	Array2D<float> sig1_like_array = like_array.copy();
 
 	for (int row = 0; row<nRows; row++)
 	{
@@ -968,12 +968,12 @@ Array2D<double> normalize_like_matrix_to_sigma_one(double sigma, Array2D<double>
 }
 
 // this normalizes but with vector data, for use with MLE vector for segments
-vector<double> normalize_like_vector_to_sigma_one(double sigma, vector<double> like_vector)
+vector<float> normalize_like_vector_to_sigma_one(float sigma, vector<float> like_vector)
 {
 	// get dimensions of the like vector
 	int ndata = like_vector.size();
-	double sigsquared = sigma*sigma;
-	vector<double> sig1_like_vector(ndata);
+	float sigsquared = sigma*sigma;
+	vector<float> sig1_like_vector(ndata);
 
 	for (int i = 0; i<ndata; i++)
 	{
@@ -988,14 +988,14 @@ vector<double> normalize_like_vector_to_sigma_one(double sigma, vector<double> l
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this takes a normalize likelihood array and updates the values to a new sigma value
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-Array2D<double> change_normalized_like_matrix_to_new_sigma(double sigma, Array2D<double>& sig1_like_array)
+Array2D<float> change_normalized_like_matrix_to_new_sigma(float sigma, Array2D<float>& sig1_like_array)
 {
 	// get dimensions of the like array
 	int nRows = sig1_like_array.dim1();
 	int nCols = sig1_like_array.dim2();
-	double no_data_value = -9999;
-	double one_over_sigsquared = 1/(sigma*sigma);
-	Array2D<double> like_array = sig1_like_array.copy();
+	float no_data_value = -9999;
+	float one_over_sigsquared = 1/(sigma*sigma);
+	Array2D<float> like_array = sig1_like_array.copy();
 
 	for (int row = 0; row<nRows; row++)
 	{
@@ -1012,12 +1012,12 @@ Array2D<double> change_normalized_like_matrix_to_new_sigma(double sigma, Array2D
 }
 
 // this does the same as above except for vector data
-vector<double> change_normalized_like_vector_to_new_sigma(double sigma, vector<double> sig1_like_vector)
+vector<float> change_normalized_like_vector_to_new_sigma(float sigma, vector<float> sig1_like_vector)
 {
 	// get dimensions of the like vector
 	int ndata = sig1_like_vector.size();
-	double one_over_sigsquared = 1/(sigma*sigma);
-	vector<double> like_vector(ndata);
+	float one_over_sigsquared = 1/(sigma*sigma);
+	vector<float> like_vector(ndata);
 
 	for (int i = 0; i<ndata; i++)
 	{
@@ -1032,8 +1032,8 @@ vector<double> change_normalized_like_vector_to_new_sigma(double sigma, vector<d
 // this function calcualtes the most likeley combination of segments given the liklihood
 // of individual segments calcualted by the calculate_segment_matrices function
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void find_max_like_of_segments(int minimum_segment_length, Array2D<double>& like_array,
-								vector<double>& max_MLE, vector< vector<int> >& segments_for_each_n_segments)
+void find_max_like_of_segments(int minimum_segment_length, Array2D<float>& like_array,
+								vector<float>& max_MLE, vector< vector<int> >& segments_for_each_n_segments)
 {
 	// first get the number of nodes
 	int n_data_points = like_array.dim1();
@@ -1048,7 +1048,7 @@ void find_max_like_of_segments(int minimum_segment_length, Array2D<double>& like
 	int max_n_segments = n_data_points/minimum_segment_length;
 
 	// initialize a vector for holding the MLE of each n_segments
-	vector<double> MLE_for_segments(max_n_segments,0.0);
+	vector<float> MLE_for_segments(max_n_segments,0.0);
 
 	// initialize a vecvec for holding the MLE segment partition
 	vector< vector <int> > most_likely_segments(max_n_segments);
@@ -1060,7 +1060,7 @@ void find_max_like_of_segments(int minimum_segment_length, Array2D<double>& like
 
 	// now loop through the number of segments, calucalting the maximum likelihood each time
 	vector< vector <int> > partition_vecvec;
-	double this_MLE;
+	float this_MLE;
 	int start_node,end_node;
 	for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
 	{
@@ -1112,10 +1112,10 @@ void find_max_like_of_segments(int minimum_segment_length, Array2D<double>& like
 // this function returns the m, b, r^2 and D-W values for the best fit segments
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void get_properties_of_best_fit_segments(int bestfit_segments_node, vector< vector<int> >& segments_for_each_n_segments,
-										 vector<double>& m_values, Array2D<double>& m_array,
-										 vector<double>& b_values, Array2D<double>& b_array,
-										 vector<double>& r2_values, Array2D<double>& rsquared_array,
-										 vector<double>& DW_values, Array2D<double>& DW_array)
+										 vector<float>& m_values, Array2D<float>& m_array,
+										 vector<float>& b_values, Array2D<float>& b_array,
+										 vector<float>& r2_values, Array2D<float>& rsquared_array,
+										 vector<float>& DW_values, Array2D<float>& DW_array)
 {
 
 
@@ -1123,10 +1123,10 @@ void get_properties_of_best_fit_segments(int bestfit_segments_node, vector< vect
 													// the actual number of segments
 
 	// initialize temp_vectors
-	vector<double> m(n_segments);
-	vector<double> b(n_segments);
-	vector<double> r2(n_segments);
-	vector<double> DW(n_segments);
+	vector<float> m(n_segments);
+	vector<float> b(n_segments);
+	vector<float> r2(n_segments);
+	vector<float> DW(n_segments);
 
 	// the start node and end node, used to index into the arrays
 	int start_node,end_node;
@@ -1161,22 +1161,22 @@ void get_properties_of_best_fit_segments(int bestfit_segments_node, vector< vect
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function calculates AIC and AICc of segments taking the maximum_MLE based on a sigma of one
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void calculate_AIC_of_segments_with_normalized_sigma(double sigma,
-								vector<double>& one_sigma_max_MLE, vector<double>& all_x_data,
-								vector<double>& AIC_of_segments,vector<double>& AICc_of_segments)
+void calculate_AIC_of_segments_with_normalized_sigma(float sigma,
+								vector<float>& one_sigma_max_MLE, vector<float>& all_x_data,
+								vector<float>& AIC_of_segments,vector<float>& AICc_of_segments)
 {
 
 	// recast the MLE_vector
-	vector<double> new_sig_MLE = change_normalized_like_vector_to_new_sigma(sigma, one_sigma_max_MLE);
+	vector<float> new_sig_MLE = change_normalized_like_vector_to_new_sigma(sigma, one_sigma_max_MLE);
 
 	// initialize the vector holding the Aikake Information Criterion
 	// and then calcualte the AIC and the AICc
-	vector<double> AIC(one_sigma_max_MLE.size(),0.0);
-	vector<double> AICc(one_sigma_max_MLE.size(),0.0);
+	vector<float> AIC(one_sigma_max_MLE.size(),0.0);
+	vector<float> AICc(one_sigma_max_MLE.size(),0.0);
 	for (int n_elem = 0; n_elem< int(one_sigma_max_MLE.size()); n_elem++)
 	{
-		double AICk = (double(n_elem)+1);
-		double AICn = double(all_x_data.size());
+		float AICk = (float(n_elem)+1);
+		float AICn = float(all_x_data.size());
 		// if the MLE is 0 or less, this will throw an error. This only happens if the fit
 		// is terrible so in this case set AIC and AICc to a large positive number
 		if(new_sig_MLE[n_elem]<= 0)
@@ -1205,7 +1205,7 @@ void calculate_AIC_of_segments_with_normalized_sigma(double sigma,
 // this function prints the most likeley segment lengths to screen
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void print_to_screen_most_likeley_segment_lengths( vector< vector<int> > segments_for_each_n_segments,
-										vector<double> MLE_for_segments)
+										vector<float> MLE_for_segments)
 {
 
 	// loop through the number of segments, printing the
@@ -1233,10 +1233,10 @@ void print_to_screen_most_likeley_segment_lengths( vector< vector<int> > segment
 // this function calcualtes the most likeley combination of segments given the liklihood
 // of individual segfments calcualted by the calculate_segment_matrices function
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void find_max_AIC_of_segments(int minimum_segment_length, vector<double>& all_x_data, vector<double>& all_y_data,
-								Array2D<double>& like_array,
-								vector<double>& max_MLE, vector<double>& AIC_of_segments,
-								vector<double>& AICc_of_segments, vector< vector<int> >& segments_for_each_n_segments)
+void find_max_AIC_of_segments(int minimum_segment_length, vector<float>& all_x_data, vector<float>& all_y_data,
+								Array2D<float>& like_array,
+								vector<float>& max_MLE, vector<float>& AIC_of_segments,
+								vector<float>& AICc_of_segments, vector< vector<int> >& segments_for_each_n_segments)
 {
 	// first get the number of nodes
 	int n_data_points = all_x_data.size();
@@ -1251,7 +1251,7 @@ void find_max_AIC_of_segments(int minimum_segment_length, vector<double>& all_x_
 	int max_n_segments = n_data_points/minimum_segment_length;
 
 	// initialize a vector for holding the MLE of each n_segments
-	vector<double> MLE_for_segments(max_n_segments,0.0);
+	vector<float> MLE_for_segments(max_n_segments,0.0);
 
 	// initialize a vecvec for holding the MLE segment partition
 	vector< vector <int> > most_likely_segments(max_n_segments);
@@ -1261,7 +1261,7 @@ void find_max_AIC_of_segments(int minimum_segment_length, vector<double>& all_x_
 
 	// now loop through the number of segments, calucalting the maximum likelihood each time
 	vector< vector <int> > partition_vecvec;
-	double this_MLE;
+	float this_MLE;
 	int start_node,end_node;
 	for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
 	{
@@ -1304,8 +1304,8 @@ void find_max_AIC_of_segments(int minimum_segment_length, vector<double>& all_x_
 
 	// initialize the vector holding the Aikake Information Criterion
 	// and then calcualte the AIC and the AICc
-	vector<double> AIC(partitions.size(),0.0);
-	vector<double> AICc(partitions.size(),0.0);
+	vector<float> AIC(partitions.size(),0.0);
+	vector<float> AICc(partitions.size(),0.0);
 	for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
 	{
 		cout << "n elements: " << n_elem << " and MLE: " << MLE_for_segments[n_elem] << endl;
@@ -1322,8 +1322,8 @@ void find_max_AIC_of_segments(int minimum_segment_length, vector<double>& all_x_
 		}
 		cout << endl;
 
-		double AICk = (double(n_elem)+1);
-		double AICn = double(all_x_data.size());
+		float AICk = (float(n_elem)+1);
+		float AICn = float(all_x_data.size());
 		// if the MLE is 0 or less, this will throw an error. This only happens if the fit
 		// is terrible so in this case set AIC and AICc to a large positive number
 		if(MLE_for_segments[n_elem]<= 0)
@@ -1354,10 +1354,10 @@ void find_max_AIC_of_segments(int minimum_segment_length, vector<double>& all_x_
 
 // this is a function that generates linear segments randomly. Each segment has a
 // slope and intercept.
-void generate_random_segments(double sigma, int minimum_n_nodes, int mean_segment_length, int segment_range,
-							  double dx, double offset_range, double m_range,
-							 vector<double>& x_data, vector<double>& y_data,
-							 vector<int>& segment_lengths, vector<double>& slope, vector<double>& intercept)
+void generate_random_segments(float sigma, int minimum_n_nodes, int mean_segment_length, int segment_range,
+							  float dx, float offset_range, float m_range,
+							 vector<float>& x_data, vector<float>& y_data,
+							 vector<int>& segment_lengths, vector<float>& slope, vector<float>& intercept)
 {
 
 	if (segment_range > 2*mean_segment_length)
@@ -1369,22 +1369,22 @@ void generate_random_segments(double sigma, int minimum_n_nodes, int mean_segmen
 	long seed = time(NULL);
 
 	// set up data vectors
-	vector<double> empty_vec;
-	vector<double> segment_x_data;
-	vector<double> segment_y_data;
-	vector<double> all_x_data;
-	vector<double> all_y_data;
+	vector<float> empty_vec;
+	vector<float> segment_x_data;
+	vector<float> segment_y_data;
+	vector<float> all_x_data;
+	vector<float> all_y_data;
 	vector<int>    nodes_in_segments;
-	vector<double> slope_of_segments;
-	vector<double> intercept_of_segments;
+	vector<float> slope_of_segments;
+	vector<float> intercept_of_segments;
 
 	// first get the segment lengths
 	int total_nodes = 0;
 	int this_segment_length;
 	while (total_nodes < minimum_n_nodes)
 	{
-		this_segment_length = int (double(segment_range)*ran3(&seed))
-		                      + mean_segment_length-int(0.5*double(segment_range));
+		this_segment_length = int (float(segment_range)*ran3(&seed))
+		                      + mean_segment_length-int(0.5*float(segment_range));
 
 		nodes_in_segments.push_back(this_segment_length);
 		total_nodes+=this_segment_length;
@@ -1393,9 +1393,9 @@ void generate_random_segments(double sigma, int minimum_n_nodes, int mean_segmen
 
 	// now loop through each segment adding x and y data
 	int n_segments = nodes_in_segments.size();
-	double old_x = 0;
-	double old_y = 0;
-	double this_m, this_offset;
+	float old_x = 0;
+	float old_y = 0;
+	float this_m, this_offset;
 	for (int i = 0; i<n_segments; i++)
 	{
 
@@ -1431,8 +1431,8 @@ void generate_random_segments(double sigma, int minimum_n_nodes, int mean_segmen
 			old_y = this_m*dx+old_y;
 		}
 
-		vector<double> residuals;
-		vector<double> lr = simple_linear_regression(segment_x_data, segment_y_data, residuals);
+		vector<float> residuals;
+		vector<float> lr = simple_linear_regression(segment_x_data, segment_y_data, residuals);
 		cout << "Imposed m: " << this_m << " and regressed m: " << lr[0] << " and b: " << lr[1] << endl;
 		intercept_of_segments.push_back(lr[1]);
 
@@ -1492,32 +1492,32 @@ void generate_random_segments(double sigma, int minimum_n_nodes, int mean_segmen
 // one strategy for finding the 'most linear' fit is to loop through decreasing thresholds. The greater the
 // threshold, the more segments there should be. So one can preform an Aikake test to see where the improment in
 // fit no longer outweighs the increased number of segments.
-void find_linear_segments(vector<double>& all_x_data, vector<double>& all_y_data, int segment_length)
+void find_linear_segments(vector<float>& all_x_data, vector<float>& all_y_data, int segment_length)
 {
 	int n_data_points = all_x_data.size();				// get the number of data points
 	if (segment_length>n_data_points)
 	{
 		cout << "LSDStatsTools find_linear_segments: your segment length is greater than half the number of data points" << endl;
 		cout << "This means that there can only be overlapping segments. Changing segment length to maximum segment length "<< endl;
-		segment_length = int(double(n_data_points)/2);
+		segment_length = int(float(n_data_points)/2);
 	}
 
-	vector<double> segment_slopes;
-	vector<double> segment_intercepts;
-	vector<double> segment_r2;
-	vector<double> segment_DW_stat;
-	vector<double> regression_data;
-	vector<double> residuals;
+	vector<float> segment_slopes;
+	vector<float> segment_intercepts;
+	vector<float> segment_r2;
+	vector<float> segment_DW_stat;
+	vector<float> regression_data;
+	vector<float> residuals;
 
 	vector<int> calibrated_segment_start;
 	vector<int> calibrated_segment_end;
 
-	double slope_threshold = 0.1;			// the threshold difference in slopes, beyond which
+	float slope_threshold = 0.1;			// the threshold difference in slopes, beyond which
 										// a breakpoint is identified
-	double intercept_threshold = 0.1;		// the threshold difference in intercept, beyond which
+	float intercept_threshold = 0.1;		// the threshold difference in intercept, beyond which
 										// a breakpoint is identified
-	double slope_difference;			// difference in slope across a span that is the length of the segment
-	double intercept_difference;		// difference in intercept across a span that is the length of the segment
+	float slope_difference;			// difference in slope across a span that is the length of the segment
+	float intercept_difference;		// difference in intercept across a span that is the length of the segment
 
 	// set up the scanning. The number of regressions will be n_data_points-segment_length+1
 	int n_segments = n_data_points - segment_length +1;
@@ -1526,8 +1526,8 @@ void find_linear_segments(vector<double>& all_x_data, vector<double>& all_y_data
 		// first get segment
 		// NOTE there must be a better way to do this using the STL
 		// THIS BIT NEEDS TO BE LOOKED AT LATER
-		vector<double> segment_x;
-		vector<double> segment_y;
+		vector<float> segment_x;
+		vector<float> segment_y;
 		for(int i = 0; i<segment_length; i++)
 		{
 			segment_x.push_back(all_x_data[segment+i]);
@@ -1567,10 +1567,10 @@ void find_linear_segments(vector<double>& all_x_data, vector<double>& all_y_data
 	calibrated_segment_start.push_back(start);
 	calibrated_segment_end.push_back(n_segments-1);
 
-	vector<double> calibrated_segment_slopes;
-	vector<double> calibrated_segment_intercepts;
-	vector<double> calibrated_segment_r2;
-	vector<double> calibrated_segment_DW_stat;
+	vector<float> calibrated_segment_slopes;
+	vector<float> calibrated_segment_intercepts;
+	vector<float> calibrated_segment_r2;
+	vector<float> calibrated_segment_DW_stat;
 
 	// get the number of calibrated segments
 	int n_calibrated_segments = calibrated_segment_start.size();
@@ -1578,8 +1578,8 @@ void find_linear_segments(vector<double>& all_x_data, vector<double>& all_y_data
 	// now get these segements and do regression on each one
 	for (int calib_segment = 0; calib_segment<n_calibrated_segments; calib_segment++)
 	{
-		vector<double> calib_x;
-		vector<double> calib_y;
+		vector<float> calib_x;
+		vector<float> calib_y;
 
 		int calib_start = calibrated_segment_start[calib_segment];
 		int calib_end =  calibrated_segment_end[calib_segment];
@@ -1607,11 +1607,11 @@ void find_linear_segments(vector<double>& all_x_data, vector<double>& all_y_data
 
 
 // get the least squared maximum likelihood estimator
-double calculate_MLE(vector<double>& measured, vector<double>& modelled, vector<double>& sigma)
+float calculate_MLE(vector<float>& measured, vector<float>& modelled, vector<float>& sigma)
 {
 	// get the number of samples
 	int n_samples = measured.size();
-	double MLE_tot = 1;
+	float MLE_tot = 1;
 	for (int i = 0; i<n_samples; i++)
 	{
 		//cout << "exp term: " << -0.5*(measured[i]-modelled[i])*(measured[i]-modelled[i])/
@@ -1623,11 +1623,11 @@ double calculate_MLE(vector<double>& measured, vector<double>& modelled, vector<
 }
 
 // get the least squared maximum likelihood estimator
-double calculate_MLE(vector<double>& measured, vector<double>& modelled, double sigma)
+float calculate_MLE(vector<float>& measured, vector<float>& modelled, float sigma)
 {
 	// get the number of samples
 	int n_samples = measured.size();
-	double MLE_tot = 1;
+	float MLE_tot = 1;
 	for (int i = 0; i<n_samples; i++)
 	{
 		MLE_tot = MLE_tot*exp(-0.5* (measured[i]-modelled[i])*(measured[i]-modelled[i])/
@@ -1637,13 +1637,13 @@ double calculate_MLE(vector<double>& measured, vector<double>& modelled, double 
 }
 
 // get the least squared maximum likelihood estimator based on residuals
-double calculate_MLE_from_residuals(vector<double>& residuals, double sigma)
+float calculate_MLE_from_residuals(vector<float>& residuals, float sigma)
 {
 	//cout << "sigma is: " << sigma << endl;
 
 	// get the number of samples
 	int n_samples = residuals.size();
-	double MLE_tot = 1;
+	float MLE_tot = 1;
 	for (int i = 0; i<n_samples; i++)
 	{
 		MLE_tot = MLE_tot*exp(-0.5* (residuals[i]*residuals[i])/
@@ -1659,7 +1659,7 @@ string itoa(int num)
     return converter.str();
 }
 
-string dtoa(double num)
+string dtoa(float num)
 {
     stringstream converter;
     converter << num;
@@ -1687,17 +1687,17 @@ string dtoa(double num)
 // Updated to return the number of values per bin in a vector by reference - SWDG 11/11/13
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, double log_bin_width, vector<double>&  MeanX_output, vector<double>& MeanY_output,
-                      vector<double>& midpoints_output, vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output,
-                      vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, vector<int>& num_observations, double NoDataValue)
+void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, float log_bin_width, vector<float>&  MeanX_output, vector<float>& MeanY_output,
+                      vector<float>& midpoints_output, vector<float>& StandardDeviationX_output, vector<float>& StandardDeviationY_output,
+                      vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, vector<int>& num_observations, float NoDataValue)
 {
 
   int NRows = InputArrayX.dim1();
   int NCols = InputArrayX.dim2();
 
   // Finding max contributing area to use as upper limit for the bins
-  double max_X = 0;
-	double min_X = 0;
+  float max_X = 0;
+	float min_X = 0;
 	for (int row = 0; row < NRows; row++)
 	{
     for(int col = 0; col < NCols; col++)
@@ -1714,8 +1714,8 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
   }
   
   // Defining the upper limit, lower limit and width of the bins
-  double upper_limit = ceil((log10(max_X)/log_bin_width))*log_bin_width;
-  double lower_limit;
+  float upper_limit = ceil((log10(max_X)/log_bin_width))*log_bin_width;
+  float lower_limit;
   if (min_X >= 1)
   {
     lower_limit = floor((log10(min_X)/log_bin_width))*log_bin_width;
@@ -1730,21 +1730,21 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
   // contributing area is in, and putting the slope in this bin
 
   vector<int> number_observations(NBins,0);
-  vector<double> Y_data(NBins,0.0);
-  vector<double> X_data(NBins,0.0);
+  vector<float> Y_data(NBins,0.0);
+  vector<float> X_data(NBins,0.0);
 
   // These will be copied into their respective function output vectors
-  vector<double> MeanX(NBins,0.0);
-	vector<double> MeanY(NBins,0.0);
-  vector<double> mid_points(NBins,NoDataValue);
+  vector<float> MeanX(NBins,0.0);
+	vector<float> MeanY(NBins,0.0);
+  vector<float> mid_points(NBins,NoDataValue);
 
   // vector<vector> objects house data in each bin.
-  vector< vector<double> > binned_data_X;
-  vector< vector<double> > binned_data_Y;
+  vector< vector<float> > binned_data_X;
+  vector< vector<float> > binned_data_Y;
 
   	// create the vector of vectors.  Nested vectors will store data within that
   // bin.
-  vector<double> empty_vector;
+  vector<float> empty_vector;
   for(int i = 0; i<NBins; i++)
   {
 	  binned_data_X.push_back(empty_vector);
@@ -1756,11 +1756,11 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
   {
     for (int col = 0; col < NCols; col++)
     {
-      double Y = InputArrayY[row][col];
+      float Y = InputArrayY[row][col];
 
       if (Y != NoDataValue)
       {
-        double X = InputArrayX[row][col];
+        float X = InputArrayX[row][col];
         // Get bin_id for this particular value of X
         int bin_id = int(((log10(X))-lower_limit)/log_bin_width);
         if (bin_id < 0)
@@ -1781,7 +1781,7 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
   // Calculating the midpoint in x direction of each bin and the mean of x and y
   // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
   // x vs Mean Y to be most robust.  At the moment the program returns both.
-  double midpoint_value = lower_limit + log_bin_width/2;
+  float midpoint_value = lower_limit + log_bin_width/2;
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
     mid_points[bin_id] = midpoint_value;
@@ -1794,14 +1794,14 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
   }
   
   // These will be copied into their respective function output vectors
-  vector<double> StandardDeviationX(NBins,0.0);
-  vector<double> StandardDeviationY(NBins,0.0);
-  vector<double> StandardErrorX(NBins,0.0);
-  vector<double> StandardErrorY(NBins,0.0);
+  vector<float> StandardDeviationX(NBins,0.0);
+  vector<float> StandardDeviationY(NBins,0.0);
+  vector<float> StandardErrorX(NBins,0.0);
+  vector<float> StandardErrorY(NBins,0.0);
 
   // iterators to move through vec<vec>
-	vector<double>::iterator vec_iterator_X;
-  vector<double>::iterator vec_iterator_Y;
+	vector<float>::iterator vec_iterator_X;
+  vector<float>::iterator vec_iterator_Y;
 
   // Getting the standard deviation of each bin.  First get sum of the squared
   // deviations from the mean
@@ -1813,7 +1813,7 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
       vec_iterator_X = binned_data_X[bin_id].begin();
 		  while (vec_iterator_X != binned_data_X[bin_id].end())
 		  {
-			  double Xi = (*vec_iterator_X);
+			  float Xi = (*vec_iterator_X);
         StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
         vec_iterator_X++;
       }
@@ -1822,7 +1822,7 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
       vec_iterator_Y = binned_data_Y[bin_id].begin();
 		  while (vec_iterator_Y != binned_data_Y[bin_id].end())
 		  {
-			  double Yi = (*vec_iterator_Y);
+			  float Yi = (*vec_iterator_Y);
         StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
         vec_iterator_Y++;
       }
@@ -1869,15 +1869,15 @@ void log_bin_data(Array2D<double>& InputArrayX, Array2D<double>& InputArrayY, do
 // THIS HAS NOT BEEN TESTED AND MAY NEED RE-PORTED FROM THE LSDRASTER ORIGINAL.
 // SEE THE OTHER LOG BINNING COMMENTS FOR DETAILS -- SWDG 30/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double log_bin_width,
-                  vector<double>&  MeanX_output, vector<double>& MeanY_output,
-                      vector<double>& midpoints_output, vector<double>&  StandardDeviationX_output,
-                      vector<double>&  StandardDeviationY_output,int NoDataValue)
+void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float log_bin_width,
+                  vector<float>&  MeanX_output, vector<float>& MeanY_output,
+                      vector<float>& midpoints_output, vector<float>&  StandardDeviationX_output,
+                      vector<float>&  StandardDeviationY_output,int NoDataValue)
 {
   
 	int n_data = InputVectorY.size();
-  double max_X = InputVectorX[n_data-1];
-	double min_X = InputVectorX[1];
+  float max_X = InputVectorX[n_data-1];
+	float min_X = InputVectorX[1];
 
 	//cout << "LSDStatsTools line 1757, n_data_X: " << n_data << " and Y: " << InputVectorX.size() << endl;
 
@@ -1894,28 +1894,28 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
   }
 
   // Defining the upper limit, lower limit and width of the bins
-  double upper_limit = ceil((log10(max_X)/log_bin_width))*log_bin_width;
-  double lower_limit = floor((log10(min_X)/log_bin_width))*log_bin_width;
+  float upper_limit = ceil((log10(max_X)/log_bin_width))*log_bin_width;
+  float lower_limit = floor((log10(min_X)/log_bin_width))*log_bin_width;
   int NBins = int( (upper_limit - lower_limit)/log_bin_width )+1;
 
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
   vector<int> number_observations(NBins,0);
-  vector<double> Y_data(NBins,0.0);
-  vector<double> X_data(NBins,0.0);
+  vector<float> Y_data(NBins,0.0);
+  vector<float> X_data(NBins,0.0);
 
   // These will be copied into their respective function output vectors
-  vector<double> MeanX(NBins,0.0);
-	vector<double> MeanY(NBins,0.0);
-  vector<double> mid_points(NBins,NoDataValue);
+  vector<float> MeanX(NBins,0.0);
+	vector<float> MeanY(NBins,0.0);
+  vector<float> mid_points(NBins,NoDataValue);
 
   // vector<vector> objects house data in each bin.
-  vector< vector<double> > binned_data_X;
-  vector< vector<double> > binned_data_Y;
+  vector< vector<float> > binned_data_X;
+  vector< vector<float> > binned_data_Y;
 
 	// create the vector of vectors.  Nested vectors will store data within that
   // bin.
-  vector<double> empty_vector;
+  vector<float> empty_vector;
   for(int i = 0; i<NBins; i++)
   {
 	  binned_data_X.push_back(empty_vector);
@@ -1925,10 +1925,10 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
   // Bin Data into logarithmically spaced bins
   for (int i = 0; i < n_data; ++i)
   {
-    double Y = InputVectorY[i];
+    float Y = InputVectorY[i];
     if (Y != NoDataValue)
     {
-      double X = InputVectorX[i];
+      float X = InputVectorX[i];
       if (X > 0)
       {
         // Get bin_id for this particular value of X
@@ -1951,7 +1951,7 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
   // Calculating the midpoint in x direction of each bin and the mean of x and y
   // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
   // x vs Mean Y to be most robust.  At the moment the program returns both.
-  double midpoint_value = lower_limit + log_bin_width/2;
+  float midpoint_value = lower_limit + log_bin_width/2;
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
     mid_points[bin_id] = midpoint_value;
@@ -1965,12 +1965,12 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
 
 
   // These will be copied into their respective function output vectors
-  vector<double> StandardDeviationX(NBins,0.0);
-  vector<double> StandardDeviationY(NBins,0.0);
+  vector<float> StandardDeviationX(NBins,0.0);
+  vector<float> StandardDeviationY(NBins,0.0);
   
   // iterators to move through vec<vec>
-	vector<double>::iterator vec_iterator_X;
-  vector<double>::iterator vec_iterator_Y;
+	vector<float>::iterator vec_iterator_X;
+  vector<float>::iterator vec_iterator_Y;
 
   // Getting the standard deviation of each bin.  First get sum of the squared
   // deviations from the mean
@@ -1983,7 +1983,7 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
 
       while (vec_iterator_X != binned_data_X[bin_id].end())
 		  {
-        double Xi = (*vec_iterator_X);
+        float Xi = (*vec_iterator_X);
         StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
         vec_iterator_X++;
       }
@@ -1993,7 +1993,7 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
       
 		  while (vec_iterator_Y != binned_data_Y[bin_id].end())
 		  {
-			  double Yi = (*vec_iterator_Y);
+			  float Yi = (*vec_iterator_Y);
         StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
         vec_iterator_Y++;
       }
@@ -2037,19 +2037,19 @@ void log_bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, do
 // regular binning.
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double bin_width,
-                  vector<double>&  MeanX_output, vector<double>& MeanY_output,
-                      vector<double>& midpoints_output, vector<double>&  StandardDeviationX_output,
-                      vector<double>&  StandardDeviationY_output, vector<double>& RangeMin_output, 
-                      vector<double>& RangeMax_output, double& bin_lower_limit, int NoDataValue)
+void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bin_width,
+                  vector<float>&  MeanX_output, vector<float>& MeanY_output,
+                      vector<float>& midpoints_output, vector<float>&  StandardDeviationX_output,
+                      vector<float>&  StandardDeviationY_output, vector<float>& RangeMin_output, 
+                      vector<float>& RangeMax_output, float& bin_lower_limit, int NoDataValue)
 {
 
 
 
 	// Finding max contributing area to use as upper limit for the bins
 	int n_data = InputVectorY.size();
-  double max_X = InputVectorX[n_data-1];
-	double min_X = InputVectorX[1];
+  float max_X = InputVectorX[n_data-1];
+	float min_X = InputVectorX[1];
 
 	//cout << "LSDStatsTools line 1757, n_data_X: " << n_data << " and Y: " << InputVectorX.size() << endl;
 
@@ -2066,28 +2066,28 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
   }
 
   // Defining the upper limit, lower limit and width of the bins
-  double upper_limit = ceil(max_X/bin_width)*bin_width;
-  double lower_limit = floor(min_X/bin_width)*bin_width;
+  float upper_limit = ceil(max_X/bin_width)*bin_width;
+  float lower_limit = floor(min_X/bin_width)*bin_width;
   int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
 
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
   vector<int> number_observations(NBins,0);
-  vector<double> Y_data(NBins,0.0);
-  vector<double> X_data(NBins,0.0);
+  vector<float> Y_data(NBins,0.0);
+  vector<float> X_data(NBins,0.0);
 
   // These will be copied into their respective function output vectors
-  vector<double> MeanX(NBins,0.0);
-	vector<double> MeanY(NBins,0.0);
-  vector<double> mid_points(NBins,NoDataValue);
+  vector<float> MeanX(NBins,0.0);
+	vector<float> MeanY(NBins,0.0);
+  vector<float> mid_points(NBins,NoDataValue);
 
   // vector<vector> objects house data in each bin.
-  vector< vector<double> > binned_data_X;
-  vector< vector<double> > binned_data_Y;
+  vector< vector<float> > binned_data_X;
+  vector< vector<float> > binned_data_Y;
 
 	// create the vector of vectors.  Nested vectors will store data within that
   // bin.
-  vector<double> empty_vector;
+  vector<float> empty_vector;
   for(int i = 0; i<NBins; i++)
   {
 	  binned_data_X.push_back(empty_vector);
@@ -2097,10 +2097,10 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
   // Bin Data into logarithmically spaced bins
   for (int i = 0; i < n_data; ++i)
   {
-    double Y = InputVectorY[i];
+    float Y = InputVectorY[i];
     if (Y != NoDataValue)
     {
-      double X = InputVectorX[i];
+      float X = InputVectorX[i];
       if (X > 0)
       {
         // Get bin_id for this particular value of X
@@ -2123,7 +2123,7 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
   // Calculating the midpoint in x direction of each bin and the mean of x and y
   // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
   // x vs Mean Y to be most robust.  At the moment the program returns both.
-  double midpoint_value = lower_limit + bin_width/2;
+  float midpoint_value = lower_limit + bin_width/2;
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
     mid_points[bin_id] = midpoint_value;
@@ -2137,16 +2137,16 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
 
 
   // These will be copied into their respective function output vectors
-  vector<double> StandardDeviationX(NBins,0.0);
-  vector<double> StandardDeviationY(NBins,0.0);
-  vector<double> YDataVector;
-  vector<double> RangeMin;
-  vector<double> RangeMax;
+  vector<float> StandardDeviationX(NBins,0.0);
+  vector<float> StandardDeviationY(NBins,0.0);
+  vector<float> YDataVector;
+  vector<float> RangeMin;
+  vector<float> RangeMax;
   RangeMax.resize(NBins);
   RangeMin.resize(NBins);
   // iterators to move through vec<vec>
-	vector<double>::iterator vec_iterator_X;
-  vector<double>::iterator vec_iterator_Y;
+	vector<float>::iterator vec_iterator_X;
+  vector<float>::iterator vec_iterator_Y;
 
   // Getting the standard deviation of each bin.  First get sum of the squared
   // deviations from the mean
@@ -2159,7 +2159,7 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
 
       while (vec_iterator_X != binned_data_X[bin_id].end())
 		  {
-        double Xi = (*vec_iterator_X);
+        float Xi = (*vec_iterator_X);
         StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
         vec_iterator_X++;
       }
@@ -2169,7 +2169,7 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
       
 		  while (vec_iterator_Y != binned_data_Y[bin_id].end())
 		  {
-			  double Yi = (*vec_iterator_Y);
+			  float Yi = (*vec_iterator_Y);
         StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
         vec_iterator_Y++;
         YDataVector.push_back(Yi);
@@ -2178,7 +2178,7 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
       //find the range of the 95th percentile of the independent variable for each bin
       sort(YDataVector.begin(), YDataVector.end());
       RangeMax[bin_id] = YDataVector.back();
-      double percentile_pointer = floor(YDataVector.size()/100 * 95);
+      float percentile_pointer = floor(YDataVector.size()/100 * 95);
       RangeMin[bin_id] = YDataVector[percentile_pointer];
     }
   }
@@ -2209,22 +2209,22 @@ void bin_data(vector<double>& InputVectorX, vector<double>& InputVectorY, double
 //plotting several empty bins at 0,0 in some cases. 
 //pass in a threshold fraction *above* which all bins will be kept. Pass in 0 to remove only empty bins. 
 //SWDG 6/11/13
-void RemoveSmallBins(vector<double>& MeanX_output, vector<double>& MeanY_output, vector<double>& midpoints_output,
-                     vector<double>& StandardDeviationX_output, vector<double>& StandardDeviationY_output,
-                     vector<double>& StandardErrorX_output, vector<double>& StandardErrorY_output, vector<int>& number_observations, double bin_threshold){
+void RemoveSmallBins(vector<float>& MeanX_output, vector<float>& MeanY_output, vector<float>& midpoints_output,
+                     vector<float>& StandardDeviationX_output, vector<float>& StandardDeviationY_output,
+                     vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, vector<int>& number_observations, float bin_threshold){
                                                                                       
   // temp vectors to store all the kept data
-  vector<double> MeanX_output_temp;
-  vector<double> MeanY_output_temp;
-  vector<double> midpoints_output_temp;
-  vector<double> StandardDeviationX_output_temp;
-  vector<double> StandardDeviationY_output_temp;
-  vector<double> StandardErrorX_output_temp;
-  vector<double> StandardErrorY_output_temp;
+  vector<float> MeanX_output_temp;
+  vector<float> MeanY_output_temp;
+  vector<float> midpoints_output_temp;
+  vector<float> StandardDeviationX_output_temp;
+  vector<float> StandardDeviationY_output_temp;
+  vector<float> StandardErrorX_output_temp;
+  vector<float> StandardErrorY_output_temp;
   vector<int> number_observations_temp;
 
   //Get total number of measurements across all bins
-  double TotalNoOfMesurements = 0;
+  float TotalNoOfMesurements = 0;
   for (int k = 0; k < int(number_observations.size()); ++k){
     TotalNoOfMesurements += number_observations[k];
   }
@@ -2273,12 +2273,12 @@ void RemoveSmallBins(vector<double>& MeanX_output, vector<double>& MeanY_output,
 // Takes a raster and condenses it into a histogram
 // DTM 20/11/2013
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void print_histogram(vector<double> input_values, double bin_width, string filename)
+void print_histogram(vector<float> input_values, float bin_width, string filename)
 {
 	// Finding max contributing area to use as upper limit for the bins
   int n_data = input_values.size();
-  double max_X = input_values[0];
-	double min_X = input_values[0];
+  float max_X = input_values[0];
+	float min_X = input_values[0];
 
   // Loop through to find the min and max of the dataset
   for (int i = 0; i < n_data; ++i)
@@ -2296,27 +2296,27 @@ void print_histogram(vector<double> input_values, double bin_width, string filen
   // Defining the upper limit, lower limit and the bin width.
   // Extend range by one bin at each end so that the histogram is bounded by 
   // zeros for plotting
-  double upper_limit = (ceil(max_X/bin_width)+1)*bin_width;
-  double lower_limit = (floor(min_X/bin_width)-1)*bin_width;
+  float upper_limit = (ceil(max_X/bin_width)+1)*bin_width;
+  float lower_limit = (floor(min_X/bin_width)-1)*bin_width;
   int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
 
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
   vector<int> number_observations(NBins,0);
-  vector<double> bin_midpoints(NBins,0.0);
-  vector<double> bin_lower_lim(NBins,0.0);
-  vector<double> bin_upper_lim(NBins,0.0);
-  vector<double> probability_density(NBins,0);
+  vector<float> bin_midpoints(NBins,0.0);
+  vector<float> bin_lower_lim(NBins,0.0);
+  vector<float> bin_upper_lim(NBins,0.0);
+  vector<float> probability_density(NBins,0);
 
 	// create the vector of vectors.  Nested vectors will store data within that
   // bin.
-  vector<double> empty_vector;
-  double midpoint_value, lower_lim_value, upper_lim_value;
+  vector<float> empty_vector;
+  float midpoint_value, lower_lim_value, upper_lim_value;
 
   // Bin Data
   for (int i = 0; i < n_data; ++i)
   {
-    double X = input_values[i];
+    float X = input_values[i];
     // Get bin_id for this particular value of X
     int bin_id = int((X-lower_limit)/bin_width);
     ++number_observations[bin_id];
@@ -2324,15 +2324,15 @@ void print_histogram(vector<double> input_values, double bin_width, string filen
   
   for(int i = 0; i<NBins; i++)
   {
-    midpoint_value = lower_limit + (double(i)+0.5)*bin_width;
-    lower_lim_value = lower_limit + double(i)*bin_width;
-    upper_lim_value = double(i+1)*bin_width;  
+    midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
+    lower_lim_value = lower_limit + float(i)*bin_width;
+    upper_lim_value = float(i+1)*bin_width;  
     
     bin_midpoints[i]= midpoint_value;
     bin_lower_lim[i]= lower_lim_value;
     bin_upper_lim[i]= upper_lim_value;
     
-    probability_density[i] = number_observations[i]/double(n_data);    
+    probability_density[i] = number_observations[i]/float(n_data);    
   }
 
   // Print histogram to file
@@ -2378,11 +2378,11 @@ template<class T> struct index_cmp
 };
 
 // This implementation is O(n), but also uses O(n) extra memory
-void matlab_double_reorder(std::vector<double> & unordered, std::vector<size_t> const & index_map, std::vector<double> & ordered)
+void matlab_float_reorder(std::vector<float> & unordered, std::vector<size_t> const & index_map, std::vector<float> & ordered)
 {
   // copy for the reorder according to index_map, because unsorted may also be
   // sorted
-  vector<double> copy = unordered;
+  vector<float> copy = unordered;
   ordered.resize(index_map.size());
   for(int i = 0; i< int(index_map.size());i++)
   {
@@ -2390,7 +2390,7 @@ void matlab_double_reorder(std::vector<double> & unordered, std::vector<size_t> 
   }
 }
 
-void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map)
+void matlab_float_sort(vector<float>& unsorted, vector<float>& sorted, vector<size_t>& index_map)
 {
   // Original unsorted index map
   index_map.resize(unsorted.size());
@@ -2399,9 +2399,9 @@ void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector
     index_map[i] = i;
   }
   // Sort the index map, using unsorted for comparison
-  sort(index_map.begin(), index_map.end(), index_cmp<std::vector<double>& >(unsorted));
+  sort(index_map.begin(), index_map.end(), index_cmp<std::vector<float>& >(unsorted));
   sorted.resize(unsorted.size());
-  matlab_double_reorder(unsorted,index_map,sorted);
+  matlab_float_reorder(unsorted,index_map,sorted);
 }
 
 void matlab_int_sort(vector<int>& unsorted, vector<int>& sorted, vector<size_t>& index_map)
@@ -2418,7 +2418,7 @@ void matlab_int_sort(vector<int>& unsorted, vector<int>& sorted, vector<size_t>&
   matlab_int_reorder(unsorted,index_map,sorted);
 }
 
-void matlab_double_sort_descending(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map)
+void matlab_float_sort_descending(vector<float>& unsorted, vector<float>& sorted, vector<size_t>& index_map)
 {
   // Original unsorted index map
   index_map.resize(unsorted.size());
@@ -2428,9 +2428,9 @@ void matlab_double_sort_descending(vector<double>& unsorted, vector<double>& sor
   }
   // Sort the index map, using unsorted for comparison
   // uses reverse iterators to sort descending - SWDG 16/4/13
-  sort(index_map.rbegin(), index_map.rend(), index_cmp<std::vector<double>& >(unsorted));
+  sort(index_map.rbegin(), index_map.rend(), index_cmp<std::vector<float>& >(unsorted));
   sorted.resize(unsorted.size());
-  matlab_double_reorder(unsorted,index_map,sorted);
+  matlab_float_reorder(unsorted,index_map,sorted);
 }
 
 // This implementation is O(n), but also uses O(n) extra memory
@@ -2458,25 +2458,25 @@ void matlab_int_reorder(std::vector<int> & unordered, std::vector<size_t> const 
 // SWDG - 31/10/13
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-Array2D<double> CalculateCubicSplines(vector<double> X, vector<double> Y){
+Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y){
 
   int np = X.size(); //number of points in the dataset
   
   //declare vectors used in calculations
-  vector<double> a(Y); //copy vector Y into a -> WHY? 
-  vector<double> b((np-1),0.0);
-  vector<double> d((np-1),0.0);
-  vector<double> alpha((np-1),0.0);
-  vector<double> c(np,0.0);
-  vector<double> u(np,0.0);
-  vector<double> z(np,0.0);
-  vector<double> L(np,0.0);
+  vector<float> a(Y); //copy vector Y into a -> WHY? 
+  vector<float> b((np-1),0.0);
+  vector<float> d((np-1),0.0);
+  vector<float> alpha((np-1),0.0);
+  vector<float> c(np,0.0);
+  vector<float> u(np,0.0);
+  vector<float> z(np,0.0);
+  vector<float> L(np,0.0);
   L[0] = 1.0;
   
   //Output array
-  Array2D<double> Splines((np-1),5);
+  Array2D<float> Splines((np-1),5);
 
-  vector<double> h;
+  vector<float> h;
   for (int i = 0; i < np-1; ++i){
     h.push_back(X[i+1] - X[i]);
   }
@@ -2527,15 +2527,15 @@ Array2D<double> CalculateCubicSplines(vector<double> X, vector<double> Y){
 // SWDG - 31/10/13
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void PlotCubicSplines(vector<double> X, vector<double> Y, int SplineResolution, vector<double>& Spline_X, vector<double>& Spline_Y){
+void PlotCubicSplines(vector<float> X, vector<float> Y, int SplineResolution, vector<float>& Spline_X, vector<float>& Spline_Y){
 
   //declare temporary variables used in the calculations
-  double x0;
-  double x1;
-  double h;
+  float x0;
+  float x1;
+  float h;
   
   //Call the cubic splines function to get the splines data as an array
-  Array2D<double> Splines = CalculateCubicSplines(X, Y);
+  Array2D<float> Splines = CalculateCubicSplines(X, Y);
 
   int n = Splines.dim1(); // This is one fewer than the number of points in the dataset
   
@@ -2546,7 +2546,7 @@ void PlotCubicSplines(vector<double> X, vector<double> Y, int SplineResolution, 
   for (int i = 0; i < n-1; ++i){
     x0 = Splines[i][4];
     x1 = Splines[i+1][4];
-    vector<double> x = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given    
+    vector<float> x = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given    
     
     //calculate x and y values for points along the spline curve between each set of points
     for (int q = 0; q != int(x.size()); ++q){ 
@@ -2559,7 +2559,7 @@ void PlotCubicSplines(vector<double> X, vector<double> Y, int SplineResolution, 
   //calculate x and y values for the curve between the final pair of points
   x0 = Splines[n-1][4]; 
   x1 = X[n];
-  vector<double> x2 = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given
+  vector<float> x2 = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given
     
   for (int q = 0; q != int(x2.size()); ++q){
     Spline_X.push_back(x2[q]);
@@ -2597,13 +2597,13 @@ vector<int> Unique(Array2D<int> InputArray, int NoDataValue){
   return UniqueValues;
 }
 
-//Overloaded function to take in an array of doubles and return a vector of the
+//Overloaded function to take in an array of floats and return a vector of the
 //unique values found in the array, excluding the passed in NoDataValue.
 //SWDG 12/11/13
-vector<double> Unique(Array2D<double> InputArray, int NoDataValue){
+vector<float> Unique(Array2D<float> InputArray, int NoDataValue){
 
   // set up output vector                                   
-  vector<double> UniqueValues;
+  vector<float> UniqueValues;
   
   //get array dimensions for looping
   int Rows = InputArray.dim1();
@@ -2628,7 +2628,7 @@ vector<double> Unique(Array2D<double> InputArray, int NoDataValue){
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Simple linear spacing algorithm to return a vector of evenly spaced doubles
+// Simple linear spacing algorithm to return a vector of evenly spaced floats
 // between a min and max range (inclusive). Equivalent to np.linspace() in python 
 // and linspace in Matlab.
 //
@@ -2636,11 +2636,11 @@ vector<double> Unique(Array2D<double> InputArray, int NoDataValue){
 //
 // SWDG - 31/10/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-vector<double> linspace(double min, double max, int n){
-  vector<double> result;
+vector<float> linspace(float min, float max, int n){
+  vector<float> result;
   int iterator = 0;
   for (int i = 0; i <= n-2; i++){
-    double temp = min + i*(max-min)/(floor((double)n) - 1);
+    float temp = min + i*(max-min)/(floor((float)n) - 1);
     result.insert(result.begin() + iterator, temp);
     iterator += 1;
   }
@@ -2657,7 +2657,7 @@ vector<double> linspace(double min, double max, int n){
 // SWDG 6/9/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double BearingToRad(double Bearing)
+float BearingToRad(float Bearing)
 {
   return rad((-1 * Bearing) + 90);
 }
@@ -2667,10 +2667,10 @@ double BearingToRad(double Bearing)
 //Convert degrees to radians - used in TopoShield - SWDG 11/4/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double rad(double degree)
+float rad(float degree)
 {
-	double pi = 3.14159265;
-	double deg = 180.0;
+	float pi = 3.14159265;
+	float deg = 180.0;
 	return degree*(pi/deg);
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2678,9 +2678,9 @@ double rad(double degree)
 // conversion from radians to degrees - SWDG 12/12/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double deg(double radians){
-  double pi = 3.14159265;
-  double deg = 180.0;
+float deg(float radians){
+  float pi = 3.14159265;
+  float deg = 180.0;
   return (radians/pi)*deg;
 }
 
