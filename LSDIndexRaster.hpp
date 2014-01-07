@@ -100,16 +100,16 @@ class LSDIndexRaster
   /// @return LSDIndexRaster
   /// @param nrows An integer of the number of rows.
   /// @param ncols An integer of the number of columns.
-  /// @param xmin A double of the minimum X coordinate.
-  /// @param ymin A double of the minimum Y coordinate.
-  /// @param cellsize A double of the cellsize.
+  /// @param xmin A float of the minimum X coordinate.
+  /// @param ymin A float of the minimum Y coordinate.
+  /// @param cellsize A float of the cellsize.
   /// @param ndv An integer of the no data value.
   /// @param data An Array2D of integers in the shape nrows*ncols,
   ///containing the data to be written.
  	/// @author SMM
   /// @date 01/01/12
-	LSDIndexRaster(int nrows, int ncols, double xmin, double ymin,
-	          double cellsize, int ndv, Array2D<int> data)
+	LSDIndexRaster(int nrows, int ncols, float xmin, float ymin,
+	          float cellsize, int ndv, Array2D<int> data)
 								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
 
 	// Get functions
@@ -119,11 +119,11 @@ class LSDIndexRaster
 	/// @return Number of columns as an integer.
   int get_NCols() const				{ return NCols; }
   /// @return Minimum X coordinate as an integer.
-	double get_XMinimum() const			{ return XMinimum; }
+	float get_XMinimum() const			{ return XMinimum; }
 	/// @return Minimum Y coordinate as an integer.
-	double get_YMinimum() const			{ return YMinimum; }
+	float get_YMinimum() const			{ return YMinimum; }
 	/// @return Data resolution as an integer.
-	double get_DataResolution() const	{ return DataResolution; }
+	float get_DataResolution() const	{ return DataResolution; }
 	/// @return No Data Value as an integer.
 	int get_NoDataValue() const			{ return NoDataValue; }
 	/// @return Raster values as a 2D Array.
@@ -212,12 +212,12 @@ class LSDIndexRaster
   ///Number of columns.
 	int NCols;
 	///Minimum X coordinate.
-  double XMinimum;
+  float XMinimum;
 	///Minimum Y coordinate.
-	double YMinimum;
+	float YMinimum;
 
 	///Data resolution.
-	double DataResolution;
+	float DataResolution;
 	///No data value.
 	int NoDataValue;
 
@@ -227,8 +227,8 @@ class LSDIndexRaster
 	private:
 	void create();
 	void create(string filename, string extension);
-	void create(int ncols, int nrows, double xmin, double ymin,
-	            double cellsize, int ndv, Array2D<int> data);
+	void create(int ncols, int nrows, float xmin, float ymin,
+	            float cellsize, int ndv, Array2D<int> data);
 
 };
 

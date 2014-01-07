@@ -1,6 +1,6 @@
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
-// LSDChannelNetwork
+// LSDJunctionNetwork
 // Land Surface Dynamics ChannelNetwork
 //
 // An object within the University
@@ -52,7 +52,7 @@
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-/** @file LSDChannelNetwork.hpp
+/** @file LSDJunctionNetwork.hpp
 @author Simon M. Mudd, University of Edinburgh
 @author David Milodowski, University of Edinburgh
 @author Martin D. Hurst, British Geological Survey
@@ -82,11 +82,11 @@ contains a number of analysis tools built around drainage networks.
 using namespace std;
 using namespace TNT;
 
-#ifndef LSDChannelNetwork_H
-#define LSDChannelNetwork_H
+#ifndef LSDJunctionNetwork_H
+#define LSDJunctionNetwork_H
 
 ///@brief Object to create a channel network from an LSDFlowInfo object.
-class LSDChannelNetwork
+class LSDJunctionNetwork
 {
 	public:
 	/// @brief This defines a channel network based on a FlowInfo object and a list of source nodes.
@@ -94,7 +94,7 @@ class LSDChannelNetwork
   /// @param Sources vector of source nodes.
   /// @author SMM
   /// @date 01/09/12
-	LSDChannelNetwork(vector<int> Sources, LSDFlowInfo& FlowInfo)
+	LSDJunctionNetwork(vector<int> Sources, LSDFlowInfo& FlowInfo)
 											{ create(Sources, FlowInfo); }
 											
   ///@brief Recursive add_to_stack routine to build the junction tree, from Braun and Willett (2012)
@@ -315,7 +315,7 @@ class LSDChannelNetwork
   /// pruning_switch == 2	channels are only added if the ratio between them and the area of the	mainstem _at the junction_ exceeds a certain value\n
 ///// pruning_switch == 3 channels are only added if the channel order is >= threshold.
   /// @param FlowInfo LSDFlowInfo object.
-  /// @param ChannelNetwork LSDChannelNetwork object.
+  /// @param ChannelNetwork LSDJunctionNetwork object.
   /// @param starting_junction
   /// @param DistanceFromOutlet LSDIndexRaster of outlet distances.
   /// @param pruning_switch
@@ -323,8 +323,8 @@ class LSDChannelNetwork
   /// @return Pruned tributary junctions.
   /// @author DTM
   /// @date 30/04/2013
-	vector<int> get_pruned_tributaries_from_main_stem(LSDFlowInfo& FlowInfo, LSDChannelNetwork& ChannelNetwork,
-			int starting_junction, LSDRaster& DistanceFromOutlet, int pruning_switch, double pruning_threshold);
+	vector<int> get_pruned_tributaries_from_main_stem(LSDFlowInfo& FlowInfo, LSDJunctionNetwork& ChannelNetwork,
+			int starting_junction, LSDRaster& DistanceFromOutlet, int pruning_switch, float pruning_threshold);
 
 	/// @brief This function extracts basin nodes according to their accumulated drainage area.
   /// @param DrainageAreaThreshold Threshold drainage area.
@@ -332,7 +332,7 @@ class LSDChannelNetwork
   /// @return Vector of basin nodes.
   /// @author DTM
   /// @date 07/05/2013
-	vector<int> extract_basin_nodes_by_drainage_area(double DrainageAreaThreshold, LSDFlowInfo& FlowInfo);
+	vector<int> extract_basin_nodes_by_drainage_area(float DrainageAreaThreshold, LSDFlowInfo& FlowInfo);
 
 	/// @brief This function gets the node indices of outlets of basins of a certain order
   ///
@@ -360,7 +360,7 @@ class LSDChannelNetwork
 
   /// @brief This function extracts a single hollow from a given channel head junction.
   ///
-  /// @details The junction index of channel heads can be extracted using LSDChannelNetwork.Get_Channel_Head_Junctions.
+  /// @details The junction index of channel heads can be extracted using LSDJunctionNetwork.Get_Channel_Head_Junctions.
   /// @param CH_junction Junction index to extract.
   /// @param FlowInfo LSDFlowInfo object.
   /// @return LSDIndexRaster of the extracted hollow, coded with junction number.
@@ -370,7 +370,7 @@ class LSDChannelNetwork
   
   /// @brief This function extracts a series of hollows from a vector of channel head junctions.
   ///
-  /// @details The junction index of channel heads can be extracted using LSDChannelNetwork.Get_Channel_Head_Junctions.
+  /// @details The junction index of channel heads can be extracted using LSDJunctionNetwork.Get_Channel_Head_Junctions.
   /// @param CH_junctions Vector of juntions to extract.
   /// @param FlowInfo LSDFlowInfo object.
   /// @return LSDIndexRaster of the extracted hollows, coded with junction numbers.
@@ -427,7 +427,7 @@ class LSDChannelNetwork
   /// @author SMM
   /// @date 26/09/2013
   int GetChannelHeadsChiMethodFromJunction(int JunctionNumber,
-                              int MinSegLength, double A_0, double m_over_n,
+                              int MinSegLength, float A_0, float m_over_n,
 											        LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance, LSDRaster& ElevationRaster);
 
 
@@ -441,7 +441,7 @@ class LSDChannelNetwork
   /// @author SMM
   /// @date 26/09/2013
 	vector<int> GetChannelHeadsChiMethodBasinOrder(int BasinOrder,
-                                      int MinSegLength, double A_0, double m_over_n,
+                                      int MinSegLength, float A_0, float m_over_n,
 									  LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
 									  LSDRaster& ElevationRaster);
 									  
@@ -459,7 +459,7 @@ class LSDChannelNetwork
   /// @author FC
   /// @date 31/10/2013
   vector<int> GetChannelHeadsChiMethodFromValleys(Array2D<int>& ValleyJunctions,
-                                      int MinSegLength, double A_0, double m_over_n,
+                                      int MinSegLength, float A_0, float m_over_n,
 									                    LSDFlowInfo& FlowInfo, LSDRaster& FlowDistance,
 									                    LSDRaster& ElevationRaster);
 
@@ -476,11 +476,11 @@ class LSDChannelNetwork
   /// @param bin_width
   /// @param FlowInfo Flow Info object
   /// @param ElevationRaster
-  /// @return Array2D<double> with channel pixels
+  /// @return Array2D<float> with channel pixels
   /// @author FC
   /// @date 01/10/2013
   Array2D<int> GetChannelHeadsChiMethodAllPixels(int JunctionNumber,
-                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
+                                      float A_0, float m_over_n, float bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster);
 
 
@@ -500,7 +500,7 @@ class LSDChannelNetwork
   /// @author FC
   /// @date 04/10/2013
   vector<int> GetSourceNodesChiMethodAllPixels(int JunctionNumber,
-                                      double A_0, double m_over_n, double bin_width, LSDFlowInfo& FlowInfo,
+                                      float A_0, float m_over_n, float bin_width, LSDFlowInfo& FlowInfo,
                                       LSDRaster& ElevationRaster);
                                       
   // channel head identification
@@ -522,7 +522,7 @@ class LSDChannelNetwork
   /// @return 2D array of predicted channel head locations.
   /// @author FC
   /// @date 16/07/13
-	vector<int> calculate_pelletier_channel_heads(double tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array);
+	vector<int> calculate_pelletier_channel_heads(float tan_curv_threshold, LSDFlowInfo& FlowInfo, Array2D<float>& tan_curv_array);
 	
 	/// @brief This function is used to identify concave portions of the landscape using a tangential curvature threshold.
   ///
@@ -539,7 +539,7 @@ class LSDChannelNetwork
   /// @return Array2D<int> with nodes at the base of each of the valleys
   /// @author FC
   /// @date 29/10/2013
-  Array2D<int> find_valleys(LSDFlowInfo& FlowInfo, Array2D<double>& tan_curv_array, vector<int> sources, int no_connecting_nodes);
+  Array2D<int> find_valleys(LSDFlowInfo& FlowInfo, Array2D<float>& tan_curv_array, vector<int> sources, int no_connecting_nodes);
   
   /// @brief Ridge network extraction - extracts ridge network, defined as boundaries
   /// between two basins of the same stream order.
@@ -589,7 +589,7 @@ class LSDChannelNetwork
   /// @return LSDIndexRaster of hilltops.
   /// @author DTM
   /// @date 01/04/2013
-  LSDRaster ExtractHilltops(LSDRaster& RidgeRaster, LSDRaster& SlopeRaster, double MaxSlope);
+  LSDRaster ExtractHilltops(LSDRaster& RidgeRaster, LSDRaster& SlopeRaster, float MaxSlope);
 
 	/// @brief This function iterates through the junction nodes and assigns the unique
 	/// junction ID to every stream pixel.
@@ -696,7 +696,7 @@ class LSDChannelNetwork
   /// @param FlowInfo LSDFlowInfo object.
   /// @author DTM
   /// @date 17/10/2013
-  int get_receiver_junction_for_specified_coordinates(double X_coordinate, double Y_coordinate, LSDFlowInfo& FlowInfo);
+  int get_receiver_junction_for_specified_coordinates(float X_coordinate, float Y_coordinate, LSDFlowInfo& FlowInfo);
 
 
   /// @brief Function to snap input coordinates to the nearest channel node. This
@@ -711,8 +711,8 @@ class LSDChannelNetwork
   /// @return Returns the NodeIndex of the nearest channel node.
   /// @author SMM
   /// @date 21/10/2013
-  int get_nodeindex_of_nearest_channel_for_specified_coordinates(double X_coordinate,
-                            double Y_coordinate, int threshold_stream_order, int search_radius_nodes, LSDFlowInfo& FlowInfo);
+  int get_nodeindex_of_nearest_channel_for_specified_coordinates(float X_coordinate,
+                            float Y_coordinate, int threshold_stream_order, int search_radius_nodes, LSDFlowInfo& FlowInfo);
 
 
 
@@ -735,13 +735,13 @@ class LSDChannelNetwork
   int get_NCols() const				{ return NCols; }
 
   /// @return Minimum X coordinate as an integer.
-	double get_XMinimum() const			{ return XMinimum; }
+	float get_XMinimum() const			{ return XMinimum; }
 
 	/// @return Minimum Y coordinate as an integer.
-	double get_YMinimum() const			{ return YMinimum; }
+	float get_YMinimum() const			{ return YMinimum; }
 
 	/// @return Data resolution as an integer.
-	double get_DataResolution() const	{ return DataResolution; }
+	float get_DataResolution() const	{ return DataResolution; }
 
 	/// @return No Data Value as an integer.
 	int get_NoDataValue() const			{ return NoDataValue; }
@@ -774,12 +774,12 @@ class LSDChannelNetwork
   ///Number of columns.
 	int NCols;
 	///Minimum X coordinate.
-  double XMinimum;
+  float XMinimum;
 	///Minimum Y coordinate.
-	double YMinimum;
+	float YMinimum;
 
 	///Data resolution.
-	double DataResolution;
+	float DataResolution;
 	///No data value.
 	int NoDataValue;
 

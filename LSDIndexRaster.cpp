@@ -118,8 +118,8 @@ void LSDIndexRaster::create(string filename, string extension)
 
 // this creates a raster filled with no data values
 // SMM 2012
-void LSDIndexRaster::create(int nrows, int ncols, double xmin, double ymin,
-            double cellsize, int ndv, Array2D<int> data)
+void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
+            float cellsize, int ndv, Array2D<int> data)
 {
 	NRows = nrows;
 	NCols = ncols;
@@ -444,8 +444,8 @@ LSDIndexRaster LSDIndexRaster::RasterTrimmer(){
   }
 
   //calculate lower left corner coordinates of new array
-  double new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
-  double new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
+  float new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
+  float new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
 
   LSDIndexRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
                           new_YLL, DataResolution, NoDataValue, TrimmedData);

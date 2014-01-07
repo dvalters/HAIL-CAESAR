@@ -129,14 +129,14 @@ class LSDRaster
   /// @return LSDRaster
   /// @param nrows An integer of the number of rows.
   /// @param ncols An integer of the number of columns.
-  /// @param xmin A double of the minimum X coordinate.
-  /// @param ymin A double of the minimum Y coordinate.
-  /// @param cellsize A double of the cellsize.
+  /// @param xmin A float of the minimum X coordinate.
+  /// @param ymin A float of the minimum Y coordinate.
+  /// @param cellsize A float of the cellsize.
   /// @param ndv An integer of the no data value.
-  /// @param data An Array2D of doubles in the shape nrows*ncols,
+  /// @param data An Array2D of floats in the shape nrows*ncols,
   ///containing the data to be written.
-  LSDRaster(int nrows, int ncols, double xmin, double ymin,
-	          double cellsize, double ndv, Array2D<double> data)
+  LSDRaster(int nrows, int ncols, float xmin, float ymin,
+	          float cellsize, float ndv, Array2D<float> data)
 								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
 
 	// Get functions
@@ -146,15 +146,15 @@ class LSDRaster
 	/// @return Number of columns as an integer.
   int get_NCols() const				{ return NCols; }
   /// @return Minimum X coordinate as an integer.
-	double get_XMinimum() const			{ return XMinimum; }
+	float get_XMinimum() const			{ return XMinimum; }
 	/// @return Minimum Y coordinate as an integer.
-	double get_YMinimum() const			{ return YMinimum; }
+	float get_YMinimum() const			{ return YMinimum; }
 	/// @return Data resolution as an integer.
-	double get_DataResolution() const	{ return DataResolution; }
+	float get_DataResolution() const	{ return DataResolution; }
 	/// @return No Data Value as an integer.
 	int get_NoDataValue() const			{ return NoDataValue; }
 	/// @return Raster values as a 2D Array.
-	Array2D<double> get_RasterData() const { return RasterData.copy(); }
+	Array2D<float> get_RasterData() const { return RasterData.copy(); }
 
 	/// Assignment operator.
 	LSDRaster& operator=(const LSDRaster& LSDR);
@@ -214,11 +214,11 @@ class LSDRaster
   LSDRaster RasterTrimmer();
 
   /// @brief Make LSDRaster object using a 'template' raster and an Array2D of data.
-  /// @param InputData 2DArray of doubles to be written to LSDRaster.
+  /// @param InputData 2DArray of floats to be written to LSDRaster.
   /// @return LSDRaster containing the data passed in.
   /// @author SWDG
   /// @date 29/8/13
-  LSDRaster LSDRasterTemplate(Array2D<double> InputData);
+  LSDRaster LSDRasterTemplate(Array2D<float> InputData);
 
 	// Functions relating to shading, shadowing and shielding
 
@@ -236,7 +236,7 @@ class LSDRaster
   /// @return Hillshaded LSDRaster object
   /// @author SWDG
   /// @date February 2013
-	LSDRaster hillshade(double altitude, double azimuth, double z_factor);
+	LSDRaster hillshade(float altitude, float azimuth, float z_factor);
 
   /// @brief This function generates a hillshade derivative raster using the
   /// algorithm outlined in Codilean (2006).
@@ -246,10 +246,10 @@ class LSDRaster
   /// to generate a hillshade use LSDRaster::hillshade instead.
   /// @param theta The zenith angle of the illumination source in degrees.
   /// @param phi The azimuth angle of the illumination source in degrees.
-  /// @return 2D Array of doubles.
+  /// @return 2D Array of floats.
   /// @author SWDG
   /// @date 11/4/13
-  Array2D<double> Shadow(int theta, int phi);
+  Array2D<float> Shadow(int theta, int phi);
 
 	/// @brief This function generates a topographic shielding raster using the algorithm outlined in Codilean (2006).
   ///
@@ -284,7 +284,7 @@ class LSDRaster
   /// @return The raster value at the position (row, column).
   /// @author SMM
   /// @date 01/01/12
-  double get_data_element(int row, int column)	{ return RasterData[row][column]; }
+  float get_data_element(int row, int column)	{ return RasterData[row][column]; }
 
   // this calculates coefficeint matrices for calculating a variety of
   // surface metrics such as slope, aspect, curvature, etc.
@@ -313,10 +313,10 @@ class LSDRaster
   /// @param f coefficeint f.
   /// @author DTM, SMM
   /// @date 01/01/12
-  void calculate_polyfit_coefficient_matrices(double window_radius,
-									Array2D<double>& a, Array2D<double>& b,
-									Array2D<double>& c, Array2D<double>& d,
-									Array2D<double>& e, Array2D<double>& f);
+  void calculate_polyfit_coefficient_matrices(float window_radius,
+									Array2D<float>& a, Array2D<float>& b,
+									Array2D<float>& c, Array2D<float>& d,
+									Array2D<float>& e, Array2D<float>& f);
 
 	// a series of functions for retrieving derived data from the polyfit calculations
 
@@ -328,7 +328,7 @@ class LSDRaster
   /// @return LSDRaster of elevations.
   /// @author FC
   /// @date 24/03/13
-  LSDRaster calculate_polyfit_elevation(Array2D<double>& f);
+  LSDRaster calculate_polyfit_elevation(Array2D<float>& f);
   /// @brief  This function calculates the slope based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -338,7 +338,7 @@ class LSDRaster
   /// @return LSDRaster of slope.
   /// @author DTM, SMM
   /// @date 01/01/12
-	LSDRaster calculate_polyfit_slope(Array2D<double>& d, Array2D<double>& e);
+	LSDRaster calculate_polyfit_slope(Array2D<float>& d, Array2D<float>& e);
   /// @brief  This function calculates the aspect based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -348,7 +348,7 @@ class LSDRaster
   /// @return LSDRaster of aspect.
   /// @author DTM, SMM
   /// @date 01/01/12
-	LSDRaster calculate_polyfit_aspect(Array2D<double>& d,Array2D<double>& e);
+	LSDRaster calculate_polyfit_aspect(Array2D<float>& d,Array2D<float>& e);
 	/// @brief  This function calculates the curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -358,7 +358,7 @@ class LSDRaster
   /// @return LSDRaster of curvature.
   /// @author DTM, SMM
   /// @date 01/01/12
-	LSDRaster calculate_polyfit_curvature(Array2D<double>& a,Array2D<double>& b);
+	LSDRaster calculate_polyfit_curvature(Array2D<float>& a,Array2D<float>& b);
 	/// @brief  This function calculates the planform curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -371,8 +371,8 @@ class LSDRaster
   /// @return LSDRaster of planform curvature.
   /// @author DTM, SMM
   /// @date 01/01/12
-  LSDRaster calculate_polyfit_planform_curvature(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
-  													Array2D<double>& d, Array2D<double>& e);
+  LSDRaster calculate_polyfit_planform_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
+  													Array2D<float>& d, Array2D<float>& e);
 	/// @brief  This function calculates the profile curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -385,8 +385,8 @@ class LSDRaster
   /// @return LSDRaster of profile curvature.
   /// @author DTM, SMM
   /// @date 01/01/12
-  LSDRaster calculate_polyfit_profile_curvature(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
-  													Array2D<double>& d, Array2D<double>& e);
+  LSDRaster calculate_polyfit_profile_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
+  													Array2D<float>& d, Array2D<float>& e);
 	/// @brief  This function calculates the tangential curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -399,8 +399,8 @@ class LSDRaster
   /// @return LSDRaster of tangential curvature.
   /// @author DTM, SMM
   /// @date 01/01/12
-	LSDRaster calculate_polyfit_tangential_curvature(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
-  													Array2D<double>& d, Array2D<double>& e);
+	LSDRaster calculate_polyfit_tangential_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
+  													Array2D<float>& d, Array2D<float>& e);
   /// @brief This function identifies approximate position of stationary points within
   /// discrete surface using a threshold slope.
   ///
@@ -418,8 +418,8 @@ class LSDRaster
   /// @return LSDRaster of classified elevation data.
   /// @author DTM
   /// @date	17/09/2012
-	LSDIndexRaster calculate_polyfit_classification(Array2D<double>& a, Array2D<double>& b, Array2D<double>& c,
-	                                                Array2D<double>& d, Array2D<double>& e);
+	LSDIndexRaster calculate_polyfit_classification(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
+	                                                Array2D<float>& d, Array2D<float>& e);
 
 
 	/// @brief Gets the hilltop curvature raster.
@@ -447,8 +447,8 @@ class LSDRaster
   /// @param n coefficeint n.
   /// @author DTM
   /// @date 13/09/2012
-	void calculate_polyfit_directional_cosines(Array2D<double>& d, Array2D<double>& e, Array2D<double>& l,
-	                                           Array2D<double>& m, Array2D<double>& n);
+	void calculate_polyfit_directional_cosines(Array2D<float>& d, Array2D<float>& e, Array2D<float>& l,
+	                                           Array2D<float>& m, Array2D<float>& n);
 	/// @brief Find eigenvalues for orientation matrix
 	/// @param window_radius
   /// @param l coefficeint l.
@@ -459,10 +459,10 @@ class LSDRaster
   /// @param s3 coefficeint s3.
   /// @author DTM
   /// @date 13/09/2012
-	void calculate_orientation_matrix_eigenvalues(double window_radius,
-													Array2D<double>& l, Array2D<double>& m,
-													Array2D<double>& n, Array2D<double>& s1,
-                    								Array2D<double>& s2, Array2D<double>& s3);
+	void calculate_orientation_matrix_eigenvalues(float window_radius,
+													Array2D<float>& l, Array2D<float>& m,
+													Array2D<float>& n, Array2D<float>& s1,
+                    								Array2D<float>& s2, Array2D<float>& s3);
 
   	// Rock exposure index
     /// @brief This function is a wrapper to get the three roughness eigenvalues
@@ -473,8 +473,8 @@ class LSDRaster
     /// @param c_plane
     /// @author DTM
     /// @date 15/7/2013
-  	void calculate_plane_coefficient_matrices(double window_radius, Array2D<double>& a_plane,
-										Array2D<double>& b_plane, Array2D<double>& c_plane);
+  	void calculate_plane_coefficient_matrices(float window_radius, Array2D<float>& a_plane,
+										Array2D<float>& b_plane, Array2D<float>& c_plane);
 		/// @brief Create the REI raster
     ///
     /// @details
@@ -483,7 +483,7 @@ class LSDRaster
     /// @param CriticalSlope
     /// @return LSDIndexRaster of rock exposure.
     /// @author DTM
-  	LSDIndexRaster calculate_REI(Array2D<double>& a_plane, Array2D<double>& b_plane, double CriticalSlope);
+  	LSDIndexRaster calculate_REI(Array2D<float>& a_plane, Array2D<float>& b_plane, float CriticalSlope);
 
 	/// @brief this function takes the polyfit functions and requires a window radius and a vector telling the
 	/// function which rasters to print to file.
@@ -503,7 +503,7 @@ class LSDRaster
   /// @param file_list Vector of files to be created.
   /// @author SMM
   /// @date 19-12-2012
-	void calculate_and_print_polyfit_rasters(double window_radius,
+	void calculate_and_print_polyfit_rasters(float window_radius,
 											string file_prefix, vector<int> file_list);
 
 	// this function combines the polyfit functions and the roughness function in one package that
@@ -543,7 +543,7 @@ class LSDRaster
   /// @param file_list Vector of files to be created.
   /// @author SMM
   /// @date 19-12-2012
-	void calculate_and_print_polyfit_and_roughness_rasters(double window_radius, double roughness_radius,
+	void calculate_and_print_polyfit_and_roughness_rasters(float window_radius, float roughness_radius,
 										string file_prefix, vector<int> file_list);
 
   	// this function combines the polyfit functions and the roughness function in one package that
@@ -569,7 +569,7 @@ class LSDRaster
   /// @param file_code Vector of files to be created.
   /// @author DTM
   /// @date 15-07-2013
-  void calculate_roughness_rasters(double window_radius, double roughness_radius, string file_prefix, vector<int> file_code);
+  void calculate_roughness_rasters(float window_radius, float roughness_radius, string file_prefix, vector<int> file_code);
 
 
 	// hydrology tools
@@ -619,7 +619,7 @@ class LSDRaster
   /// @param j
   /// @author MDH
   /// @date 01/06/10
-	void fill_iterator(Array2D<double>& fill_data, int i, int j);
+	void fill_iterator(Array2D<float>& fill_data, int i, int j);
 
 
   /// @brief This function fills pits/sinks in a DEM by checking for pits from
@@ -638,7 +638,7 @@ class LSDRaster
   /// @return Filled LSDRaster object.
   /// @author Martin Hurst
   /// @date 12/3/13
-  LSDRaster fill(double& MinSlope);
+  LSDRaster fill(float& MinSlope);
     
 	// multidirection flow routing
 	/// @brief Generate a flow area raster using a multi direction algorithm.
@@ -741,18 +741,18 @@ class LSDRaster
   /// @return LSDIndexRaster of predicted channel head locations.
   /// @author FC, DTM
   /// @date 07/11/13
-		LSDIndexRaster calculate_pelletier_channel_heads(double window_radius, double tan_curv_threshold, Array2D<double>& tan_curv_array);
+		LSDIndexRaster calculate_pelletier_channel_heads(float window_radius, float tan_curv_threshold, Array2D<float>& tan_curv_array);
 
 	// some tools associated with ridgeline analyis
 
 	/// @brief Module to sample LSDRaster values running along a ridgetop network.
   ///
-	/// @details Ridge network is generated from LSDChannelNetwork::ExtractRidges.
+	/// @details Ridge network is generated from LSDJunctionNetwork::ExtractRidges.
   /// @param Ridges 2D Array of ridge lines.
   /// @return Sampled LSDRaster object.
   /// @author SWDG
   /// @date 04/2013
-	LSDRaster RidgeSample(Array2D<double>& Ridges);
+	LSDRaster RidgeSample(Array2D<float>& Ridges);
 	/// @brief Pass a smoothing window over a ridge LSDRaster object to calculate
   /// an average value running along the ridgetop.
   /// @param WindowRadius optional integer smoothing radius between 1 and 6.
@@ -850,7 +850,7 @@ class LSDRaster
   void CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LSDRaster& Elevation, LSDRaster& Aspect,
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
                               LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, LSDRaster& LH_drainage_density,
-                              Array2D<double> LH_Data, double CriticalSlope, string RasterFilename);
+                              Array2D<float> LH_Data, float CriticalSlope, string RasterFilename);
 
   /// @brief Generate data in two text files to create a boomerang plot as in Roering et al [2007].
   ///
@@ -863,10 +863,10 @@ class LSDRaster
   /// @param log_bin_width Width (in log space) of the bins, with respect to D_inf.
   /// @param SplineResolution Number of values between each point for the spline curve.
   /// @param bin_threshold Threshold fraction of values needed to keep a bin.
-  /// @return A pair of doubles containing the two LH values in the order LH(bins), LH(splines).
+  /// @return A pair of floats containing the two LH values in the order LH(bins), LH(splines).
   /// @author SWDG
   /// @date 27/8/13
-  pair<double,double> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, double log_bin_width = 0.1, int SplineResolution = 200, double bin_threshold = 0.05);
+  pair<float,float> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, float log_bin_width = 0.1, int SplineResolution = 200, float bin_threshold = 0.05);
 
   /// @brief Calculate drainage density of a set of input basins.
   ///
@@ -920,7 +920,7 @@ class LSDRaster
   /// @return Filtered LSDRaster object.
   /// @author MDH, DTM
   /// @date February 2012
-	LSDRaster NonLocalMeansFilter(int WindowRadius=2, int SimilarityRadius=2, int DegreeFiltering=2, double Sigma=1.25);
+	LSDRaster NonLocalMeansFilter(int WindowRadius=2, int SimilarityRadius=2, int DegreeFiltering=2, float Sigma=1.25);
 	/// @brief Creates a buffer around an array (of size SimilarityRadius) and
   /// gives the new border mirror symmetric values of the original array reflected
   /// across the boundary.
@@ -931,11 +931,11 @@ class LSDRaster
   /// @param SimilarityRadius similarity window radius.
   /// @author Martin Hurst
   /// @date February 2012
-	void PadRasterSymmetric(Array2D<double>& PaddedRasterData, int& SimilarityRadius);
+	void PadRasterSymmetric(Array2D<float>& PaddedRasterData, int& SimilarityRadius);
 	/// @brief Generate gaussian weighted kernel.
   ///
   /// @details kernel array must be predeclared of size SimilarityRadius and consist of zeros:
-	/// Array2D<double> Kernel(SimilarityRadius,SimilarityRadius,0.0);
+	/// Array2D<float> Kernel(SimilarityRadius,SimilarityRadius,0.0);
 	///
 	/// Kernel generated using: G(x,y) = (1/2*pi*sigma^2) exp ((-x^2+y^2)/(2*sigma^2))
   /// @param Kernel
@@ -943,7 +943,7 @@ class LSDRaster
   /// @param SimilarityRadius similarity window radius.
   /// @author Martin Hurst
   /// @date February 2012
-	void MakeGaussianKernel(Array2D<double>& Kernel, double sigma, int SimilarityRadius);
+	void MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius);
 
   //new hilltop flow routing
 
@@ -963,13 +963,13 @@ class LSDRaster
   /// to specific basins in the output. If this is not needed an LSDIndexRaster of NoDataValues 
   /// of the correct dimensions can be passed in instead.</p>  
   /// 
-  /// <p>Returns a vector of Array2D<double> objects which are the hilltop network 
+  /// <p>Returns a vector of Array2D<float> objects which are the hilltop network 
   /// coded with the hilltop metric values calculated for that pixel. This data is 
   /// also provided in the output text file written into the current path with the 
   /// filename [prefix]_HilltopData.txt and the data within holds the format: \n\n
   /// "hilltop_i hilltop_j hilltop_easting hilltop_northing stream_i stream_j stream_easting stream_northing stream_id basin_id relief lh aspect slope"</p>
   ///
-  /// The structure of the returned vector< Array2D<double> > is as follows: \n\n
+  /// The structure of the returned vector< Array2D<float> > is as follows: \n\n
   /// [0] Hilltop Network coded with stream ID \n
   /// [1] Hillslope Lengths \n
   /// [2] Slope \n
@@ -981,10 +981,10 @@ class LSDRaster
   /// @param StreamNetwork LSDIndexRaster of the stream network.
   /// @param Basins_Raster LSDIndexRaster of drainage basins.
   /// @param prefix String Prefix for output data filename. 
-  /// @return Vector of Array2D<double> containing hillslope metrics.
+  /// @return Vector of Array2D<float> containing hillslope metrics.
   /// @author SWDG 
   /// @date 3/10/13
-  vector< Array2D<double> > HFR_Driver(LSDRaster Hilltops, Array2D<double> FlowDir, LSDIndexRaster StreamNetwork, LSDIndexRaster Basins_Raster, string prefix);
+  vector< Array2D<float> > HFR_Driver(LSDRaster Hilltops, Array2D<float> FlowDir, LSDIndexRaster StreamNetwork, LSDIndexRaster Basins_Raster, string prefix);
      
   /// @brief Fucnction to initialize hilltop flow routing, by starting in the centre
   /// of the hilltop cell and finding it's outlet point based on the flowdirection.
@@ -1010,7 +1010,7 @@ class LSDRaster
   ///
   /// @author SWDG 
   /// @date 3/10/13
-  void HilltopCell(int i, int j, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<double> FlowDir, Array2D<double> Elevation, int old_i, int old_j, Array2D<double>& RoutedHilltops, Array2D<int> Basins, Array2D<double>& HillslopeLength_Array, Array2D<double>& Slope_Array, Array2D<double>& Aspect_Array, Array2D<double>& Relief_Array, vector<string>& HilltopData);
+  void HilltopCell(int i, int j, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<float> FlowDir, Array2D<float> Elevation, int old_i, int old_j, Array2D<float>& RoutedHilltops, Array2D<int> Basins, Array2D<float>& HillslopeLength_Array, Array2D<float>& Slope_Array, Array2D<float>& Aspect_Array, Array2D<float>& Relief_Array, vector<string>& HilltopData);
   
   /// @brief Main Hilltop flow routing function, once called by the hilltop cell function
   /// it will keep calling itself to find the nearest stream pixel.
@@ -1040,7 +1040,7 @@ class LSDRaster
   ///
   /// @author SWDG 
   /// @date 3/10/13
-  void HFR(int i, int j, double xi, double yi, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<double> FlowDir, double& TotalLength, Array2D<double> Elevation, int old_i, int old_j, Array2D<double>& RoutedHilltops, Array2D<int> Basins, Array2D<double>& HillslopeLength_Array, Array2D<double>& Slope_Array, Array2D<double>& Aspect_Array, Array2D<double>& Relief_Array, vector<string>& HilltopData);
+  void HFR(int i, int j, float xi, float yi, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<float> FlowDir, float& TotalLength, Array2D<float> Elevation, int old_i, int old_j, Array2D<float>& RoutedHilltops, Array2D<int> Basins, Array2D<float>& HillslopeLength_Array, Array2D<float>& Slope_Array, Array2D<float>& Aspect_Array, Array2D<float>& Relief_Array, vector<string>& HilltopData);
 
 
   //D-infinity tools
@@ -1058,7 +1058,7 @@ class LSDRaster
   /// @return Array of Flow directions in degrees.
   /// @author SWDG
   /// @date 26/07/13
-  Array2D<double> D_inf_FlowDir();
+  Array2D<float> D_inf_FlowDir();
 
   /// @brief Main function for generating a D-infinity flow area raster after Tarboton (1997).
   ///
@@ -1073,7 +1073,7 @@ class LSDRaster
   /// @return LSDRaster of D-inf flow areas in pixels.
   /// @author SWDG
   /// @date 26/07/13
-  LSDRaster D_inf_FlowArea(Array2D<double> FlowDir_array);
+  LSDRaster D_inf_FlowArea(Array2D<float> FlowDir_array);
 
   /// @brief Recursive function to calculate accumulating area for a given pixel.
   ///
@@ -1095,7 +1095,7 @@ class LSDRaster
   /// @param FlowDir_array Array of Flowdirections generated by D_inf_FlowDir().
   /// @author SWDG
   /// @date 26/07/13
-  void D_infAccum(int i, int j, Array2D<double> CountGrid, Array2D<double> Flowarea_Raster, Array2D<double> FlowDir_array);
+  void D_infAccum(int i, int j, Array2D<float> CountGrid, Array2D<float> Flowarea_Raster, Array2D<float> FlowDir_array);
 
   /// @brief Wrapper Function to create a D-infinity flow area raster with one function call.
   /// @return LSDRaster of D-inf flow areas in pixels.
@@ -1114,7 +1114,7 @@ class LSDRaster
   ///@return LSDRaster of D-inf flow directions in degrees.
   /// @author SWDG
   /// @date 26/07/13
-  LSDRaster write_dinf_flowdir_to_LSDRaster(Array2D<double> dinflow);
+  LSDRaster write_dinf_flowdir_to_LSDRaster(Array2D<float> dinflow);
 
 	protected:
 
@@ -1123,23 +1123,23 @@ class LSDRaster
   ///Number of columns.
 	int NCols;
 	///Minimum X coordinate.
-  double XMinimum;
+  float XMinimum;
 	///Minimum Y coordinate.
-	double YMinimum;
+	float YMinimum;
 
 	///Data resolution.
-	double DataResolution;
+	float DataResolution;
 	///No data value.
 	int NoDataValue;
 
 	/// Raster data.
-	Array2D<double> RasterData;
+	Array2D<float> RasterData;
 
 	private:
 	void create();
 	void create(string filename, string extension);
-	void create(int ncols, int nrows, double xmin, double ymin,
-	            double cellsize, double ndv, Array2D<double> data);
+	void create(int ncols, int nrows, float xmin, float ymin,
+	            float cellsize, float ndv, Array2D<float> data);
 
 };
 
