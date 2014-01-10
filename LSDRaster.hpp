@@ -945,103 +945,26 @@ class LSDRaster
   /// @date February 2012
 	void MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius);
 
-  //new hilltop flow routing
 
-  /// @brief Driver function for the recursive hilltop flow routing routine. 
+  /// @brief New (old) Hilltop flow routing.
   ///
-  /// @details <p>Flow is routed from hilltop pixels down to the valley floor, based on the
-  /// Lea (1991) "An aspect driven kinematic routing algorithm" paper, where the
-  /// flow is routed across each cell from an inlet point (xi,yi) to an outlet
-  /// (xo,yo) and the flow length is measured between these points. The benefit of 
-  /// this is that flow is not constrained by the gridded nature of the data.</p>
-  ///
-  /// <p>Hilltop flow routing can be performed by calling this driver function with an 
-  /// LSDRaster of hilltops, and Array2D of flowdirections, an Array2D of the stream
-  /// network, an indexraster of the study basins and an output filename prefix.</p>
-  ///
-  /// <p>The basin array does not need to be supplied, as it is just used to code hilltops 
-  /// to specific basins in the output. If this is not needed an LSDIndexRaster of NoDataValues 
-  /// of the correct dimensions can be passed in instead.</p>  
-  /// 
-  /// <p>Returns a vector of Array2D<float> objects which are the hilltop network 
-  /// coded with the hilltop metric values calculated for that pixel. This data is 
-  /// also provided in the output text file written into the current path with the 
-  /// filename [prefix]_HilltopData.txt and the data within holds the format: \n\n
-  /// "hilltop_i hilltop_j hilltop_easting hilltop_northing stream_i stream_j stream_easting stream_northing stream_id basin_id relief lh aspect slope"</p>
+  /// @details Re-ported the original hilltop flow routing code from Martin Hurst as the newer
+  /// implementation does not work as expected. Hopefully this will be optimised in the 
+  /// future.
   ///
   /// The structure of the returned vector< Array2D<float> > is as follows: \n\n
   /// [0] Hilltop Network coded with stream ID \n
   /// [1] Hillslope Lengths \n
   /// [2] Slope \n
-  /// [3] Apect \n
-  /// [4] Relief \n
-  ///
+  /// [3] Relief \n
   /// @param Hilltops LSDRaster of hilltops.
-  /// @param FlowDir Array2D of flow directions (or pixel aspects) in degrees.
   /// @param StreamNetwork LSDIndexRaster of the stream network.
-  /// @param Basins_Raster LSDIndexRaster of drainage basins.
+  /// @param Aspect LSDRaster of aspects.
   /// @param prefix String Prefix for output data filename. 
   /// @return Vector of Array2D<float> containing hillslope metrics.
   /// @author SWDG 
-  /// @date 3/10/13
-  vector< Array2D<float> > HFR_Driver(LSDRaster Hilltops, Array2D<float> FlowDir, LSDIndexRaster StreamNetwork, LSDIndexRaster Basins_Raster, string prefix);
-     
-  /// @brief Fucnction to initialize hilltop flow routing, by starting in the centre
-  /// of the hilltop cell and finding it's outlet point based on the flowdirection.
-  ///
-  /// @details Should not be called directly: is called by the HFR_Driver, as several variables
-  /// must be correctly initalized for the trace to work.
-  /// 
-  /// @param i Row index of the current cell.
-  /// @param j Column index of the current cell.
-  /// @param Visited An array to flag if a pixel has been visited already, avoids infinite loops.
-  /// @param StreamNet Array2D of the stream network. 
-  /// @param FlowDir Array2D of flow directions (or pixel aspects) in degrees.
-  /// @param Elevation The input DEM, used for measuring relief.
-  /// @param old_i Row index of the hilltop cell.
-  /// @param old_j Column index of the hilltop cell.
-  /// @param RoutedHilltops Hilltop Network coded with stream ID.
-  /// @param Basins LSDIndexRaster of drainage basins.
-  /// @param HillslopeLength_Array Array with every hilltop pixel coded with its corresponding hillslope length.
-  /// @param Slope_Array Array with every hilltop pixel coded with its corresponding slope.
-  /// @param Aspect_Array Array with every hilltop pixel coded with its corresponding aspect.
-  /// @param Relief_Array Array with every hilltop pixel coded with its corresponding relief.
-  /// @param HilltopData Vector of each hilltop pixel's full metric data stored as strings.  
-  ///
-  /// @author SWDG 
-  /// @date 3/10/13
-  void HilltopCell(int i, int j, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<float> FlowDir, Array2D<float> Elevation, int old_i, int old_j, Array2D<float>& RoutedHilltops, Array2D<int> Basins, Array2D<float>& HillslopeLength_Array, Array2D<float>& Slope_Array, Array2D<float>& Aspect_Array, Array2D<float>& Relief_Array, vector<string>& HilltopData);
-  
-  /// @brief Main Hilltop flow routing function, once called by the hilltop cell function
-  /// it will keep calling itself to find the nearest stream pixel.
-  ///
-  /// @details If no pixel can be found the trace will end gracefully and allow the next 
-  /// hilltop trace to begin. Writes data to a vector which is written into a file
-  /// by the HFR_Driver.  
-  /// 
-  /// @param i Row index of the current cell.
-  /// @param j Column index of the current cell.
-  /// @param xi
-  /// @param yi
-  /// @param Visited An array to flag if a pixel has been visited already, avoids infinite loops.
-  /// @param StreamNet Array2D of the stream network. 
-  /// @param FlowDir Array2D of flow directions (or pixel aspects) in degrees.  
-  /// @param TotalLength
-  /// @param Elevation The input DEM, used for measuring relief.
-  /// @param old_i Row index of the hilltop cell.
-  /// @param old_j Column index of the hilltop cell.
-  /// @param RoutedHilltops Hilltop Network coded with stream ID.
-  /// @param Basins LSDIndexRaster of drainage basins.
-  /// @param HillslopeLength_Array Array with every hilltop pixel coded with its corresponding hillslope length.
-  /// @param Slope_Array Array with every hilltop pixel coded with its corresponding slope.
-  /// @param Aspect_Array Array with every hilltop pixel coded with its corresponding aspect.
-  /// @param Relief_Array Array with every hilltop pixel coded with its corresponding relief.
-  /// @param HilltopData Vector of each hilltop pixel's full metric data stored as strings. 
-  ///
-  /// @author SWDG 
-  /// @date 3/10/13
-  void HFR(int i, int j, float xi, float yi, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<float> FlowDir, float& TotalLength, Array2D<float> Elevation, int old_i, int old_j, Array2D<float>& RoutedHilltops, Array2D<int> Basins, Array2D<float>& HillslopeLength_Array, Array2D<float>& Slope_Array, Array2D<float>& Aspect_Array, Array2D<float>& Relief_Array, vector<string>& HilltopData);
-
+  /// @date 10/1/14
+  vector< Array2D<float> > HilltopFlowRouting(LSDRaster Hilltops, LSDIndexRaster StreamNetwork, LSDRaster Aspect, string Prefix);
 
   //D-infinity tools
 

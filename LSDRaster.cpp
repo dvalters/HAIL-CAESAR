@@ -2696,369 +2696,390 @@ LSDRaster LSDRaster::D_inf_units(){
 //end of d-inf modules
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Re-ported the original hilltop flow routing code from Martin Hurst as the newer
+// implementation does not work as expected. Hopefully this will be optimised in the 
+// future.
+//
+// SWDG 10/1/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+vector< Array2D<float> > LSDRaster::HilltopFlowRouting(LSDRaster Hilltops, LSDIndexRaster StreamNetwork, LSDRaster Aspect, string Prefix){
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Driver function for the recursive hilltop flow routing routine. 
-//
-// Flow is routed from hilltop pixels down to the valley floor, based on the
-// Lea (1991) "An aspect driven kinematic routing algorithm" paper, where the
-// flow is routed across each cell from an inlet point (xi,yi) to an outlet
-// (xo,yo) and the flow length is measured between these points. The benefit of 
-// this is that flow is not constrained by the gridded nature of the data.
-//
-// Hilltop flow routing can be performed by calling this driver function with an 
-// LSDRaster of hilltops, and Array2D of flowdirections, an Array2D of the stream
-// network, an indexraster of the study basins and an output filename prefix.
-//
-// The basin array does not need to be supplied, as it is just used to code hilltops 
-// to specific basins in the output. If this is not needed an LSDIndexRaster of NoDataValues 
-// of the correct dimensions can be passed in instead.  
-// 
-// Returns a vector of Array2D<float> objects which are the hilltop network 
-// coded with the hilltop metric values calculated for that pixel. This data is 
-// also provided in the output text file written into the current path with the 
-// filename <prefix>_HIlltopData.txt and the data within holds the format:
-// "hilltop_i hilltop_j hilltop_easting hilltop_northing stream_i stream_j stream_easting stream_northing stream_id basin_id relief lh aspect slope"
-//
-// The structure of the returned vector< Array2D<float> > is as follows:
-// [0] Hilltop Network coded with stream ID
-// [1] Hillslope Lengths
-// [2] Slope
-// [3] Apect
-// [4] Relief
-// 
-// SWDG 3/10/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-vector< Array2D<float> > LSDRaster::HFR_Driver(LSDRaster Hilltops, Array2D<float> FlowDir, LSDIndexRaster StreamNetwork, LSDIndexRaster Basins_Raster, string prefix){
+	//Declare parameters
+	int i,j,a,b;
+	double X,Y;
+	float mean_slope, relief;
+	double length, d;
+	int flag, count;
+	double PI = 3.14159265;
+	double degs, degs_old, degs_new, theta;
+	double s_local, s_edge;
+	double xo, yo, xi, yi, temp_yo1, temp_yo2, temp_xo1, temp_xo2;
 
-  //Initialize all the data arrays for stroring input and output
-  Array2D<float> HilltopArray = Hilltops.get_RasterData();
-  Array2D<int> StreamNet = StreamNetwork.get_RasterData();
-  Array2D<float> RoutedHilltops(NRows,NCols,NoDataValue);
-  Array2D<int> Basins = Basins_Raster.get_RasterData();
+	// a direction flag numbered 1,2,3,4 for E,S,W,N respectively
+	int dir;
+	
+	double ymax = YMinimum + NRows*DataResolution;
+
+  //READ IN DATA
+
+	//Declare Arrays
+	
+	Array2D<float> zeta = RasterData; //elevation
+	Array2D<int> stnet = StreamNetwork.get_RasterData(); // stream network
+	Array2D<float> aspect = Aspect.get_RasterData(); //aspect
+	Array2D<float> cht = Hilltops.get_RasterData(); //hilltops
+  
+  Array2D<int> good_tops(NRows,NCols,-9999);
+
+  //empty arrays for data to be stored in
+  Array2D<float> rads(NRows,NCols);
+	Array2D<float> path(NRows, NCols);
+	Array2D<float> blank(NRows, NCols);
+	Array2D<float> RoutedHilltops(NRows,NCols,NoDataValue);
   Array2D<float> HillslopeLength_Array(NRows,NCols,NoDataValue);
   Array2D<float> Slope_Array(NRows,NCols,NoDataValue);
-  Array2D<float> Aspect_Array(NRows,NCols,NoDataValue);
   Array2D<float> Relief_Array(NRows,NCols,NoDataValue);
 
-  //vector to store row of data for each hilltop pixel that is routed successfully to a stream 
-  vector<string> HilltopData;
-  
   //vector to store the output data arrays in one vector that can be returned
   vector< Array2D<float> > OutputArrays;
 
-  cout << "\n\nPerforming Hilltop Flow Routing" << endl;
+	int vec_size = 1000000;
 
-  //loop over every hilltop pixel and call the recursive hilltop cell function to start the trace
-  for (int i = 1; i < NRows - 1; ++i){   
-    cout << flush << "\t\tRow: " << i+1 << " of " << NRows-1 << "\r";
-    for (int j = 1; j < NCols - 1; ++j){
-      if (HilltopArray[i][j] == 1){ 
-        Array2D<int> visited(NRows,NCols); //must reset the visited flags after every hilltop pixel trace - DO NOT INITIALIZE THE ARRAY VALUES IT IS A MASSIVE PERFORMANCE DRAIN    
-        HilltopCell(i, j, visited, StreamNet, FlowDir, RasterData, i, j, RoutedHilltops, Basins, HillslopeLength_Array, Slope_Array, Aspect_Array, Relief_Array, HilltopData); 
-      }
-    }
-  }
-  
+	Array1D<double> easting(NCols);
+	Array1D<double> northing(NRows);
+	Array1D<double> east_vec(vec_size);
+	Array1D<double> north_vec(vec_size);
+
+	ofstream ofs;
+	
+  //create the output filename from the user supplied filename prefix
+  stringstream ss_filename;
+  ss_filename << Prefix << "_HilltopData.txt";
+     
+  ofs.open(ss_filename.str().c_str());
+
+	if( ofs.fail() ){
+		cout << "\nFATAL ERROR: unable to write to " << ss_filename.str() << endl;
+		exit(EXIT_FAILURE);
+	}
+	ofs << "X Y Cht S R Lh\n";
+
+	//calculate northing and easting
+	for (i=0;i<NRows;++i){
+			northing[i] = ymax - i*DataResolution - 0.5;
+	}
+	for (j=0;j<NCols;++j){
+			easting[j] = XMinimum + j*DataResolution + 0.5;
+	}
+
+	//convert aspects to radians with east as theta = 0/2*pi
+	for (i=0; i<NRows; ++i) {
+		for (j=0; j<NCols; ++j) {
+			//convert aspects to radians with east as theta = 0/2*pi
+			if (rads[i][j] != NoDataValue) rads[i][j] = (PI/180)*((-1*aspect[i][j]) + 90);
+			blank[i][j] = NoDataValue;
+		}
+	}
+
+	int ht_count = 0;
+
+	// cycle through study area, find hilltops and trace downstream
+	for (i=1; i<NRows-1; ++i) {
+		for (j=1; j<NCols-1; ++j) {
+			// ignore edge cells and non-hilltop cells
+			// route initial node by aspect and get outlet coordinates
+			if (cht[i][j] != NoDataValue) {
+
+				length = 0;
+				flag = true;
+				count = 0;
+				path = blank.copy();
+
+				++ht_count;
+				count = 1;
+				degs = aspect[i][j];
+				theta = rads[i][j];
+				a = i;
+				b = j;
+				path[a][b] = 1;
+				east_vec[0] = easting[b];
+				north_vec[0] = northing[a];
+
+				//test direction, calculate outlet coordinates and update indicies
+				// easterly
+				if (degs >= 45 && degs < 135) {
+					xo = 1, yo = (1+tan(theta))/2;
+					d = abs(1/(2*cos(theta)));
+					xi = 0, yi = yo;
+					dir = 1;
+					east_vec[count] = easting[b] + 0.5*DataResolution;
+					north_vec[count] = northing[a] + yo - 0.5*DataResolution;
+					++b;
+				}
+				//southerly
+				else if (degs >= 135 && degs < 225) {
+					xo = (1-(1/tan(theta)))/2, yo = 0;
+					d = abs(1/(2*cos((PI/2)-theta)));
+					xi = xo, yi = 1;
+					dir = 2;
+					east_vec[count] = easting[b] + xo - 0.5*DataResolution;
+					north_vec[count] = northing[a] - 0.5*DataResolution;
+					++a;
+				}
+				// westerly
+				else if (degs >= 225 && degs < 315) {
+					xo = 0, yo = (1-tan(theta))/2;
+					d = abs(1/(2*cos(theta)));
+					xi = 1,	yi = yo;
+					dir = 3;
+					east_vec[count] = easting[b] -0.5*DataResolution;
+					north_vec[count] = northing[a] + yo - 0.5*DataResolution;
+					--b;
+				}
+				//northerly
+				else if (degs >= 315 || degs < 45) {
+					xo = (1+(1/tan(theta)))/2, yo = 1;
+					d = abs(1/(2*cos((PI/2) - theta)));
+					xi = xo, yi = 0;
+					dir = 4;
+					east_vec[count] = easting[b] + xo - 0.5*DataResolution;
+					north_vec[count] = northing[a] + 0.5*DataResolution;
+					--a;
+				}
+				else {
+					cout << "FATAL ERROR, Kinematic routing algorithm enountered null aspect value" << endl;
+					exit(EXIT_FAILURE);
+				}
+
+				//collect slopes and totals weighted by path length
+
+				length += d;
+
+				//continue trace until a stream node is encountered
+				while (flag == true) {
+
+					path[a][b] = 1;
+
+					degs_old = degs;
+					degs_new = aspect[a][b];
+					theta = rads[a][b];
+
+					++ count;
+
+				//Test for perimeter flow paths
+					if ((dir == 1 && degs_new > 0 && degs_new < 180)
+						|| (dir == 2 && degs_new > 90 && degs_new < 270)
+						|| (dir == 3 && degs_new > 180 && degs_new < 360)
+						|| ((dir == 4 && degs_new > 270) || (dir == 4 && degs_new < 90))) {
+
+						//DO NORMAL FLOW PATH
+						//set xo, yo to 0 and 1 in turn and test for true outlet (xi || yi == 0 || 1)
+						temp_yo1 = yi + (1-xi)*tan(theta); 		// xo = 1
+						temp_xo1 = xi + (1-yi)*(1/tan(theta)); 	// yo = 1
+						temp_yo2 = yi - xi*tan(theta);			// xo = 0
+						temp_xo2 = xi - yi*tan(theta);			// yo = 0
+
+						// can't outlet at same point as inlet
+						if (dir == 1) temp_yo2 = -1;
+						else if (dir == 2) temp_xo1 = -1;
+						else if (dir == 3) temp_yo1 = -1;
+						else if (dir == 4) temp_xo2 = -1;
+
+						if (temp_yo1 <= 1 && temp_yo1 > 0) {
+							xo = 1, yo = temp_yo1;
+							d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+							xi = 0, yi = yo,
+							dir = 1;
+							east_vec[count] = easting[b] + 0.5*DataResolution;
+							north_vec[count] = northing[a] + yo - 0.5*DataResolution;
+							++b;
+							if (xi== 0 && yi == 0) yi = 0.00001;
+							else if (xi== 0 && yi == 1) yi = 1 - 0.00001;
+						}
+						else if (temp_xo2 <= 1 && temp_xo2 > 0) {
+							xo = temp_xo2, yo = 0;
+							d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+							xi = xo, yi = 1,
+							dir = 2;
+							east_vec[count] = easting[b] + xo - 0.5*DataResolution;
+							north_vec[count] = northing[a] - 0.5*DataResolution;
+							++a;
+							if (xi== 0 && yi == 1) xi = 0.00001;
+							else if (xi== 1 && yi == 1) xi = 1 - 0.00001;
+						}
+						else if (temp_yo2 <= 1 && temp_yo2 > 0) {
+							xo = 0, yo = temp_yo2;
+							d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+							xi = 1, yi = yo,
+							dir = 3;
+							east_vec[count] = easting[b] -0.5*DataResolution;
+							north_vec[count] = northing[a] + yo - 0.5*DataResolution;
+							--b;
+							if (xi== 1 && yi == 0) yi = 0.00001;
+							else if (xi== 1 && yi == 1) yi = 1 - 0.00001;
+						}
+
+						else if (temp_xo1 <= 1 && temp_xo1 > 0) {
+							xo = temp_xo1, yo = 1;
+							d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+							xi = xo, yi = 0,
+							dir = 4;
+							east_vec[count] = easting[b] + xo - 0.5*DataResolution;
+							north_vec[count] = northing[a] + 0.5*DataResolution;
+							--a;
+							if (xi == 0 && yi == 0) xi = 0.00001;
+							else if (xi== 1 && yi == 0) xi = 1 - 0.00001;
+						}
+
+					}
+
+					else {
+
+						// ROUTE ALONG EDGES
+						if (dir	== 1) {
+							if 	(degs_old <= 90 || degs_new >= 270) {
+								xo = 0.00001, yo = 1;
+								s_edge = abs(s_local*sin(theta));
+								d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+								xi = xo, yi = 1-yo;
+								dir = 4;
+								east_vec[count] = easting[b] + xo - 0.5*DataResolution;
+								north_vec[count] = northing[a] + 0.5*DataResolution;
+								--a;
+							}
+							else if (degs_old > 90 || degs_new < 270) {
+								xo = 0.00001, yo = 0;
+								s_edge = abs(s_local*sin((PI/2)-theta));
+								d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+								xi = xo, yi = 1-yo;
+								dir = 2;
+								east_vec[count] = easting[b] + xo - 0.5*DataResolution;
+								north_vec[count] = northing[a] - 0.5*DataResolution;
+								++a;
+							}
+							else {
+								cout << "Flow unable to route N or S" << endl;
+								exit(EXIT_FAILURE);
+							}
+						}
+						else if (dir == 2) {
+							if 	(degs_old <= 180 || degs_new >= 0) {
+								xo = 1, yo = 1-0.00001;
+								s_edge = abs(s_local*sin((2/PI)-theta));
+								d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+								xi = 1-xo, yi = yo;
+								dir = 1;
+								east_vec[count] = easting[b] + 0.5*DataResolution;
+								north_vec[count] = northing[a] + yo - 0.5*DataResolution;
+								++b;
+							}
+							else if (degs_old > 180 || degs_new < 360) {
+								xo = 0, yo = 1-0.00001;
+								s_edge = abs(s_local*sin(theta));
+								d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+								xi = 1-xo, yi = yo;
+								dir = 3;
+								east_vec[count] = easting[b] -0.5*DataResolution;
+								north_vec[count] = northing[a] + yo - 0.5*DataResolution;
+								--b;
+
+							}
+							else {
+								cout << "Flow unable to route E or W" << endl;
+								exit(EXIT_FAILURE);
+							}
+						}
+						else if (dir == 3) {
+							if 	(degs_old <= 270 || degs_new >= 90) {
+								xo = 1-0.00001, yo = 0;
+								s_edge = abs(s_local*sin(theta));
+								d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+								xi = xo, yi = 1-yo;
+								dir = 2;
+								east_vec[count] = easting[b] + xo - 0.5*DataResolution;
+								north_vec[count] = northing[a] - 0.5*DataResolution;
+								++a;
+							}
+							else if (degs_old > 270 || degs_new < 90) {
+								xo = 1-0.00001, yo = 1;
+								s_edge = abs(s_local*sin((2/PI) - theta));
+								d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+								xi = xo, yi = 1- yo;
+								dir = 4;
+								east_vec[count] = easting[b] + xo - 0.5*DataResolution;
+								north_vec[count] = northing[a] + 0.5*DataResolution;
+								--a;
+							}
+							else {
+								cout << "Flow unable to route N or S" << endl;
+								exit(EXIT_FAILURE);
+							}
+						}
+						else if (dir == 4) {
+							if 	(degs_old <= 360 || degs_new >= 180) {
+								xo = 0, yo = 0.00001;
+								s_edge = abs(s_local*sin((PI/2) - theta));
+								d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+								xi = 1-xo, yi = yo;
+								dir = 3;
+								east_vec[count] = easting[b] -0.5*DataResolution;
+								north_vec[count] = northing[a] + yo - 0.5*DataResolution;
+								--b;
+							}
+							else if (degs_old > 0 || degs_new < 180) {
+								xo = 1, yo = 0.00001;
+								s_edge = abs(s_local*sin(theta));
+								d = sqrt((pow((xo-xi),2) + pow((yo-yi),2)));
+								xi = 1-xo, yi = yo;
+								dir = 1;
+								east_vec[count] = easting[b] + 0.5*DataResolution;
+								north_vec[count] = northing[a] + yo - 0.5*DataResolution;
+								++b;
+							}
+							else {
+								cout << "Flow unable to route E or W" << endl;
+								exit(EXIT_FAILURE);
+							}
+						}
+
+					}
+					length += d;
+					degs = degs_new;
+
+					if (a == 0 || b == 0 ||	a == NRows-1 || b == NCols-1 || stnet[a][b] != NoDataValue || path[a][b] == 1) flag = false;
+				}
+
+				//if trace finished at a stream, print hillslope info.
+				if (stnet[a][b] != NoDataValue) {
+
+					// PRINT TO FILE Cht Sbar Relief Lh
+					X = XMinimum + j*DataResolution;
+					Y = YMinimum - (NRows-i)*DataResolution;
+					relief = zeta[i][j] - zeta[a][b];
+					mean_slope = relief/length;
+
+          // update arrays with the current metrics 
+          RoutedHilltops[i][j] = 1; 
+          HillslopeLength_Array[i][j] = length;
+          Slope_Array[i][j] = mean_slope;
+          Relief_Array[i][j] = relief;  
+
+					ofs << X << " " << Y << " " << " " << cht[i][j] << " " << mean_slope << " "	<< relief << " " << length << "\n";
+
+				}
+			}
+		}
+	}
+	ofs.close();
+
   //add the data arrays to the output vector
   OutputArrays.push_back(RoutedHilltops);
   OutputArrays.push_back(HillslopeLength_Array);
   OutputArrays.push_back(Slope_Array);
-  OutputArrays.push_back(Aspect_Array);
   OutputArrays.push_back(Relief_Array);
-  
-  //create the output filename from the user supplied filename prefix
-  stringstream ss_filename;
-  ss_filename << prefix << "_HilltopData.txt";
-  
-  cout << "\nWriting Hilltop data to " << ss_filename.str()<< endl;
-  
-  ofstream HilltopDataWriter;  
-  HilltopDataWriter.open(ss_filename.str().c_str());
-  
-  //write file headers
-  HilltopDataWriter << "hilltop_i hilltop_j hilltop_easting hilltop_northing stream_i stream_j stream_easting stream_northing stream_id basin_id relief lh aspect slope" << endl;
-    
-  //write the hilltop pixel data to the opened file    
-  for (int a = 0; a < int(HilltopData.size()); ++a){
-    HilltopDataWriter << HilltopData[a] << endl;  
-  }
-    
-  HilltopDataWriter.close();
-  
+
   return OutputArrays;
-   
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Fucnction to initialize hilltop flow routing, by starting in the centre
-// of the hilltop cell and finding it's outlet point based on the flowdirection.
-//
-// Should not be called directly: is called by the HFR_Driver, as several variables
-// must be correctly initalized for the trace to work.
-// 
-// SWDG 3/10/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::HilltopCell(int i, int j, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<float> FlowDir, Array2D<float> Elevation, int old_i, int old_j, Array2D<float>& RoutedHilltops, Array2D<int> Basins, Array2D<float>& HillslopeLength_Array, Array2D<float>& Slope_Array, Array2D<float>& Aspect_Array, Array2D<float>& Relief_Array, vector<string>& HilltopData){
-
-  //initialize the x and y inlet coordinates
-  float xi = 0.5;
-  float yi = 0.5;
-  
-  float theta = BearingToRad(FlowDir[i][j]);
-  Visited[i][j] = 1; //mark hilltop as visited
-  
-  if (FlowDir[i][j] >= 0 && FlowDir[i][j] < 361 && (i != 0 || i != NRows - 1) && (j != 0 || j != NCols - 1)) {
-  
-    //Test the flow direction and update the i,j indices to go to the correct next cell 
-    //and set the outlet points onto the correct face
-    if (FlowDir[i][j] >= 45 && FlowDir[i][j] < 135){ //east
-      xi = 0;
-      yi = (1 + tan(theta)) / 2;
-      ++j;
-    }
-    else if (FlowDir[i][j] >= 315 || FlowDir[i][j] < 45){ //north
-      xi = (1 + (1/tan(theta)))/2;
-      yi = 0;  
-      --i;
-    }
-    else if (FlowDir[i][j] >= 225 && FlowDir[i][j] < 315){ //west
-      xi = 1;
-      yi = (1 - tan(theta))/2;
-      --j;
-    }  
-    else if (FlowDir[i][j] >= 135 && FlowDir[i][j] < 225){ //south
-      xi = (1 - (1/tan(theta)))/2;
-      yi = 1; 
-      ++i;
-    }
-        
-    float TotalLength = sqrt(pow((xi - 0.5),2) + pow((yi - 0.5),2));
-    
-    //Call the HFR function to start the trace downslope  
-    HFR(i, j, xi, yi, Visited, StreamNet, FlowDir, TotalLength, Elevation, old_i, old_j, RoutedHilltops, Basins, HillslopeLength_Array, Slope_Array, Aspect_Array, Relief_Array, HilltopData);
-  
-  }
-
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Main Hilltop flow routing function, once called by the hilltop cell function
-// it will keep calling itself to find the nearest stream pixel.
-//
-// If no pixel can be found the trace will end gracefully and allow the next 
-// hilltop trace to begin. Writes data to a vector which is written into a file
-// by the HFR_Driver.  
-// 
-// SWDG 3/10/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::HFR(int i, int j, float xi, float yi, Array2D<int>& Visited, Array2D<int> StreamNet, Array2D<float> FlowDir, float& TotalLength, Array2D<float> Elevation, int old_i, int old_j, Array2D<float>& RoutedHilltops, Array2D<int> Basins, Array2D<float>& HillslopeLength_Array, Array2D<float>& Slope_Array, Array2D<float>& Aspect_Array, Array2D<float>& Relief_Array, vector<string>& HilltopData){
-
-  // x and y outlet coordinates
-  float xo = 0;
-  float yo = 0;
-  
-  if (FlowDir[i][j] >= 0 && FlowDir[i][j] < 361 && (i != 0 || i != NRows - 1) && (j != 0 || j != NCols - 1)) {
-
-    float theta = BearingToRad(FlowDir[i][j]);
-    
-    if (xi == 1){ // east face
-    
-      if (FlowDir[i][j] > 180 && FlowDir[i][j] < 360){ //Flow meets another edge 
-      
-        xo = xi + (1 - yi) * (1/tan(theta));  //north edge
-        yo = 1;  
-  
-        if (xo > 1 || xo < 0){  //west
-          xo = 0;
-          yo = yi - xi * tan(theta);      
-        }
-
-        if (yo > 1 || yo < 0){  //south
-          xo = xi - yi * (1/tan(theta));
-          yo = 0;      
-        }
-      }
-      else{ //Flow does not not meet another edge -> Must go either N/S
-   
-        if (FlowDir[i][j] >= 90){ //go south
-          xo = 0.99999;
-          yo = 0;
-        }
-        if (FlowDir[i][j] < 90){ //go north
-          xo = 0.99999;
-          yo = 1;
-        }   
-      }   
-    }
-    else if (yi == 1){ // north face
-    
-      if (FlowDir[i][j] < 270 && FlowDir[i][j] > 90){   //Flow meets another edge
-  
-        xo = 0;  //west edge
-        yo = yi - xi * tan(theta);  
-  
-        if (yo > 1 || yo < 0){  //south
-          xo = xi - yi * (1/tan(theta));
-          yo = 0;      
-        }
-
-        if (xo > 1 || xo < 0){ //east
-          xo = 1;
-          yo = yi + (1 - xi) * tan(theta);
-        }
-      }
-      else{ //Flow does not not meet another edge -> Must go either E/W
-   
-        if (FlowDir[i][j] >= 270){ //go west
-          xo = 0;
-          yo = 0.99999;
-        }
-        if (FlowDir[i][j] <= 90){ //go east
-          xo = 1;
-          yo = 0.99999;
-        }   
-      }   
-    }
-    else if (xi == 0){ // west face
-    
-      if (FlowDir[i][j] > 0 && FlowDir[i][j] < 180){ //Flow meets another edge
-  
-        xo = xi - yi * (1/tan(theta)); //south
-        yo = 0;    
-  
-        if (xo > 1 || xo < 0){  //east
-          xo = 1;
-          yo = yi + (1 - xi) * tan(theta);    
-        }
-
-        if (yo > 1 || yo < 0){ //north
-        xo = xi + (1 - yi) * (1/tan(theta));
-        yo = 1;  
-        }
-      }
-      else{ //Flow does not not meet another edge -> Must go either N/S
-   
-        if (FlowDir[i][j] >= 270){ //go north
-          xo = 0.00001;
-          yo = 1;
-        }
-        if (FlowDir[i][j] < 270){ //go south
-          xo = 0.00001;
-          yo = 0;
-        }   
-      }   
-    }    
-    else if (yi == 0){ // south face
-    
-      if (FlowDir[i][j] > 270 || FlowDir[i][j] < 90){    //Flow meets another edge 
-  
-        xo = 1; // east
-        yo = yi + (1 - xi) * tan(theta);    
-  
-        if (yo > 1 || yo < 0){ //north
-          xo = xi + (1 - yi) * (1/tan(theta));
-          yo = 1;  
-        }
-        
-        if (xo > 1 || xo < 0){  //west
-          xo = 0;
-          yo = yi - xi * tan(theta);      
-        }
-      }
-      else{ //Flow does not not meet another edge -> Must go either E/W
-        if (FlowDir[i][j] >= 180){ //go west
-          xo = 0;
-          yo = 0.00001;
-        }
-        if (FlowDir[i][j] < 180){ //go east
-          xo = 1;
-          yo = 0.00001;
-        }   
-      }   
-    } 
-    
-    //update trace length and flag the cell as visited    
-    TotalLength += sqrt(pow((xi - xo),2) + pow((yi - yo),2));
-    Visited[i][j] = 1;
-     
-    //get new i, j, and update xi, yi to reflect next cell to visit
-    if (xo == 1){ //east
-      ++j;
-      xi = 0;
-      yi = yo;
-    }  
-    else if (xo == 0){//west
-      --j;
-      xi = 1;
-      yi = yo;
-    }  
-    else if (yo == 1){//north   
-      --i;
-      xi = xo;
-      yi = 0;
-    }  
-    else if (yo == 0){//south
-      ++i;
-      xi = xo;
-      yi = 1;
-    }  
-    
-    if (StreamNet[i][j] > 0){ //will only find stream pixels, should ignore nodata values
-      //Stream reached
-      RoutedHilltops[old_i][old_j] = StreamNet[i][j]; //code hilltop px with stream order or unique segment ID depending on values in StreamNet
-      
-      //calculate metrics for this hilltop px
-    
-      float relief = Elevation[old_i][old_j] - Elevation[i][j];
-      TotalLength = TotalLength * DataResolution;
-      float slope = relief / TotalLength;
-      float basin_id = Basins[old_i][old_j];
-          
-      // Determine aspect of flow routing from hilltop->channel - from original code by Martin Hurst
-      float aspect = 0;
-      float delta_j = old_j - j;
-      float delta_i = old_i - i;
-              
-      if (old_i > i && old_j > j){ aspect = 180 - atan2(delta_i, delta_j);}               // SE
-      else if (old_i > i && old_j < j){ aspect = -1 * atan2(delta_i, delta_j);}           // NE
-      else if (old_i < i && old_j < j){ aspect = 360 - atan2(delta_i, delta_j);}          // NW
-      else if (old_i < i && old_j > j){ aspect = 180 - atan2(delta_i, delta_j);}          // SW
-      else if (old_i == i && old_j > j){ aspect = 90;}                                    // E
-      else if (old_i == i && old_j < j){ aspect = 270;}                                   // W
-      else if (old_i > i && old_j == j){ aspect = 180;}                                   // S
-      else if (old_i < i && old_j == j){ aspect = 0;}                                     // N
-      else{ aspect = NoDataValue;}
-      if (aspect > 360){aspect -= 360;}
-
-      //eastings
-      float hilltop_easting = (old_j * DataResolution) + XMinimum;
-      float stream_easting = (j * DataResolution) + XMinimum;
-      
-      //northings
-      float hilltop_northing = ((old_i - NRows) * DataResolution) + YMinimum;
-      float stream_northing = ((i - NRows) * DataResolution) + YMinimum;
-  
-      // update arrays with the current metrics 
-      HillslopeLength_Array[old_i][old_j] = TotalLength;
-      Slope_Array[old_i][old_j] = slope;
-      Aspect_Array[old_i][old_j] = aspect;
-      Relief_Array[old_i][old_j] = relief;  
-  
-      //concatenate string of this hilltop's data and concatenate string to the data vector 
-      stringstream output_data;
-      output_data <<  old_i << " " << old_j << " " << hilltop_easting << " " << hilltop_northing << " " << 
-      i << " " << j << " " << stream_easting << " " << stream_northing << " " << StreamNet[i][j] << " " <<
-      basin_id << " " << relief << " " << TotalLength << " " << aspect << " " << slope; 
-      
-      HilltopData.push_back(output_data.str());      
-      
-    }
-    else if (Visited[i][j] != 1){
-      //call recursive fn to continue downslope trace
-      HFR(i, j, xi, yi, Visited, StreamNet, FlowDir, TotalLength, Elevation, old_i, old_j, RoutedHilltops, Basins, HillslopeLength_Array, Slope_Array, Aspect_Array, Relief_Array, HilltopData);
-    }
-  }  
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
