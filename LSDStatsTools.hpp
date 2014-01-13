@@ -175,12 +175,13 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
                       vector<float>& midpoints_output, vector<float>&  StandardDeviationX_output,
                       vector<float>&  StandardDeviationY_output, int NoDataValue);
 
-// Regular binning algoritm for data stored in a 1D vector with added statistical output (for channel head prediction), added by FC 30/09/13
+// Regular binning algoritm for data stored in a 1D vector
 void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bin_width,
                   vector<float>&  MeanX_output, vector<float>& MeanY_output,
-                      vector<float>& midpoints_output, vector<float>&  StandardDeviationX_output,
-                      vector<float>&  StandardDeviationY_output, vector<float>& RangeMin_output, 
-                      vector<float>& RangeMax_output, float& bin_lower_limit, int NoDataValue);
+                      vector<float>& midpoints_output, vector<float>& MedianY_output,
+                      vector<float>&  StandardDeviationX_output, vector<float>&  StandardDeviationY_output,
+                      vector<float>& RangeMin_output, vector<float>& RangeMax_output, float& bin_lower_limit,
+                      float NoDataValue);
 
 //look for empty bins output from the log binning function and removes them to avoid 
 //plotting several empty bins at 0,0 in some cases. SWDG 6/11/13

@@ -2020,14 +2020,14 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// BINNING OF 1D VECTOR AND CALCULATION OF THE 95th PERCENTILE OF EACH BIN
+// BINNING OF 1D VECTOR 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Takes vectors for two corresponding variables (e.g. drainage area and slope)
 // and sorts into bins of a specified bin width.
 // The inputs are:
 //    - InputVectorX = the independent variable (usually plotted on the x axis)
 //    - InputVectorY = the dependent variable (usually plotted on the y axis)
-//    - log_bin_width = the width of the bins, with respect to
+//    - bin_width = the width of the bins, with respect to
 //          InputArrayX
 //  The outputs are:
 //FC 13/11/12; modified by DM 04/12/12
@@ -2035,13 +2035,15 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
 // Modified by FC 30/09/13 to calculate the range of the 95th percentile for each bin - 
 // used for channel head prediction through chi segment fitting.  Changed from log binning to
 // regular binning.
+// Modified by FC 13/01/13 to calculate the median of each bin and return the standard error.
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bin_width,
                   vector<float>&  MeanX_output, vector<float>& MeanY_output,
-                      vector<float>& midpoints_output, vector<float>&  StandardDeviationX_output,
-                      vector<float>&  StandardDeviationY_output, vector<float>& RangeMin_output, 
-                      vector<float>& RangeMax_output, float& bin_lower_limit, int NoDataValue)
+                  vector<float>& midpoints_output, vector<float>& MedianY_output, 
+                  vector<float>&  StandardDeviationX_output,vector<float>&  StandardDeviationY_output,
+                  vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, 
+                  float& bin_lower_limit, float NoDataValue)
 {
 
 
@@ -2069,6 +2071,7 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   float upper_limit = ceil(max_X/bin_width)*bin_width;
   float lower_limit = floor(min_X/bin_width)*bin_width;
   int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
+  //cout << "Upper limit: " << upper_limit << " Lower limit: " << lower_limit << " NBins: " << NBins << endl;
 
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
@@ -2101,20 +2104,23 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
     if (Y != NoDataValue)
     {
       float X = InputVectorX[i];
-      if (X > 0)
+      if (X != 0)
       {
         // Get bin_id for this particular value of X
         int bin_id = int((X-lower_limit)/bin_width);
-
-		//cout << "LINE 1818, bin id: " << bin_id << " i: " << i << " XDsz: " << X_data.size() << " YDsz: " << Y_data.size() << endl;
-		//cout << "LINE 1819, bdxsz: " << binned_data_X.size() << " bdysz: " << binned_data_Y.size() << endl << endl;
-        // Store X and corresponding Y into this bin, for their respective
-        // vector<vector> object
-        binned_data_X[bin_id].push_back(X);
-        binned_data_Y[bin_id].push_back(Y);
-        Y_data[bin_id] += Y;
-        X_data[bin_id] += X;
-        ++number_observations[bin_id];
+        //cout << "X: " << X << " Y: " << Y << " bin_id: " << bin_id << endl;
+        if (bin_id >= 0)
+        {
+		      //cout << "LINE 1818, bin id: " << bin_id << " i: " << i << " XDsz: " << X_data.size() << " YDsz: " << Y_data.size() << endl;
+		      //cout << "LINE 1819, bdxsz: " << binned_data_X.size() << " bdysz: " << binned_data_Y.size() << endl << endl;
+          // Store X and corresponding Y into this bin, for their respective
+          // vector<vector> object
+          binned_data_X[bin_id].push_back(X);
+          binned_data_Y[bin_id].push_back(Y);
+          Y_data[bin_id] += Y;
+          X_data[bin_id] += X;
+          ++number_observations[bin_id];
+        }
       }
     }
   }
@@ -2132,6 +2138,7 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
     {
       MeanY[bin_id] = Y_data[bin_id]/number_observations[bin_id];
       MeanX[bin_id] = X_data[bin_id]/number_observations[bin_id];
+      //cout << "No observations in bin: " << number_observations[bin_id] << endl;
     }
   }
 
@@ -2140,10 +2147,9 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   vector<float> StandardDeviationX(NBins,0.0);
   vector<float> StandardDeviationY(NBins,0.0);
   vector<float> YDataVector;
-  vector<float> RangeMin;
-  vector<float> RangeMax;
-  RangeMax.resize(NBins);
-  RangeMin.resize(NBins);
+  vector<float> StandardErrorX(NBins,0.0);
+  vector<float> StandardErrorY(NBins,0.0);
+  vector<float> MedianY(NBins,0.0);
   // iterators to move through vec<vec>
 	vector<float>::iterator vec_iterator_X;
   vector<float>::iterator vec_iterator_Y;
@@ -2175,11 +2181,10 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
         YDataVector.push_back(Yi);
       }
       
-      //find the range of the 95th percentile of the independent variable for each bin
+      //find the median of the dependent variable Y
       sort(YDataVector.begin(), YDataVector.end());
-      RangeMax[bin_id] = YDataVector.back();
-      float percentile_pointer = floor(YDataVector.size()/100 * 95);
-      RangeMin[bin_id] = YDataVector[percentile_pointer];
+      int YDataSize = YDataVector.size();
+      MedianY.push_back(YDataVector[floor(YDataSize/2)]);     
     }
   }
 
@@ -2191,6 +2196,8 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
     {
       StandardDeviationX[bin_id] = sqrt(StandardDeviationX[bin_id]/number_observations[bin_id]);
       StandardDeviationY[bin_id] = sqrt(StandardDeviationY[bin_id]/number_observations[bin_id]);
+      StandardErrorX[bin_id] = StandardDeviationX[bin_id]/sqrt(number_observations[bin_id]);
+      StandardErrorY[bin_id] = StandardDeviationY[bin_id]/sqrt(number_observations[bin_id]);
     }
   }
 
@@ -2198,10 +2205,11 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   MeanX_output = MeanX;
   MeanY_output = MeanY;
   midpoints_output = mid_points;
+  MedianY_output = MedianY;
   StandardDeviationX_output = StandardDeviationX;
   StandardDeviationY_output = StandardDeviationY;
-  RangeMin_output = RangeMin;
-  RangeMax_output = RangeMax;
+  StandardErrorX_output = StandardErrorX;
+  StandardErrorY_output = StandardErrorY;
 }
 
 
