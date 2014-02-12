@@ -896,6 +896,17 @@ class LSDRaster
   /// @date 7/11/13 
   LSDRaster HillslopeLengthFromDrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRaster& Basins, Array2D<int> FlowDir);
 
+  /// @brief Method to export thinned vector field data to a text file.
+  ///
+  /// @details The file is written with the format "i j Magnitude Direction".  
+  /// @param Magnitude LSDRaster of the vector's magnitude.
+  /// @param Direction LSDRaster of the vector's direction.
+  /// @param output_file Filename for the output text file.
+  /// @param step Integer value used to thin the data, 1 preserves all the data, 2 keeps every second point and so on.
+  /// @author SWDG
+  /// @date 20/1/14   
+  void GetVectors(LSDRaster Magnitude, LSDRaster Direction, string output_file, int step);
+
 	// Smoothing tools
 	//Nonlocal Means Filtering - Default values following Baudes et al [2005]
 	/// @brief Perform Non-local means filtering on a DEM following Baude et al [2005].
