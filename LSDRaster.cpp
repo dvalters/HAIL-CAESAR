@@ -5118,6 +5118,39 @@ LSDRaster LSDRaster::RasterTrimmer(){
   return TrimmedRaster;
 }
 
+// Export input LSDRasters as a vector field which can be plotted in python.
+// Data is written in the format "i j Magnitude Direction"
+// SWDG 20/1/14
+void LSDRaster::GetVectors(LSDRaster Magnitude, LSDRaster Direction, string output_file, int step){
+
+  vector<string> OutputData;
+
+  for (int i = 0; i < NRows; i+=step){
+    for (int j = 0; j < NCols; j+=step){
+    
+      if (Magnitude.get_data_element(i,j) != NoDataValue && Direction.get_data_element(i,j) != NoDataValue){
+        stringstream output_line;
+        output_line << i << " " << j << " " << Magnitude.get_data_element(i,j) << " " << Direction.get_data_element(i,j);
+        OutputData.push_back(output_line.str());         
+      } 
+    
+    }
+  }
+
+  ofstream WriteData;
+  WriteData.open(output_file.c_str());
+  
+  WriteData << "i j Magnitude Direction" << endl; 
+
+  for (int k = 0; k < int(OutputData.size()); ++k){
+  
+    WriteData << OutputData[k] << endl;
+  
+  }
+
+  WriteData.close();
+  
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
