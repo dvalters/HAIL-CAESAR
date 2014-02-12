@@ -956,27 +956,6 @@ class LSDRaster
   /// @date February 2012
 	void MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius);
 
-
-  /// @brief New (old) Hilltop flow routing.
-  ///
-  /// @details Re-ported the original hilltop flow routing code from Martin Hurst as the newer
-  /// implementation does not work as expected. Hopefully this will be optimised in the 
-  /// future.
-  ///
-  /// The structure of the returned vector< Array2D<float> > is as follows: \n\n
-  /// [0] Hilltop Network coded with stream ID \n
-  /// [1] Hillslope Lengths \n
-  /// [2] Slope \n
-  /// [3] Relief \n
-  /// @param Hilltops LSDRaster of hilltops.
-  /// @param StreamNetwork LSDIndexRaster of the stream network.
-  /// @param Aspect LSDRaster of aspects.
-  /// @param prefix String Prefix for output data filename. 
-  /// @return Vector of Array2D<float> containing hillslope metrics.
-  /// @author SWDG 
-  /// @date 10/1/14
-  vector< Array2D<float> > HilltopFlowRouting(LSDRaster Hilltops, LSDIndexRaster StreamNetwork, LSDRaster Aspect, string Prefix);
-
   //D-infinity tools
 
   /// @brief D-infinity flow direction algorithm after Tarboton (1997).
