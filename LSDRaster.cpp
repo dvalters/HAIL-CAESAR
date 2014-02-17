@@ -1730,7 +1730,14 @@ LSDIndexRaster LSDRaster::calculate_REI(Array2D<float>& a_plane, Array2D<float>&
 	LSDIndexRaster REI_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,intndv,REI_data);
 	return REI_raster;
 }
-
+// Overloaded function that incorporates the above in a nicer wrapper function
+LSDRaster LSDRaster::calculate_REI(float window_radius, float CriticalSlope)
+{
+  Array2D<float> a,b,c;
+  calculate_plane_coefficient_matrices(window_radius,a,b,c);
+  LSDRaster REI_raster =  calculate_REI(a, b, CriticalSlope);
+  return REI_raster;
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
