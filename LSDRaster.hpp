@@ -464,7 +464,7 @@ class LSDRaster
 													Array2D<float>& n, Array2D<float>& s1,
                     								Array2D<float>& s2, Array2D<float>& s3);
 
-  	// Rock exposure index
+  	// Rock exposure index  / roughness
     /// @brief This function is a wrapper to get the three roughness eigenvalues
     /// s1, s2 and s3.
     /// @param window_radius
@@ -483,7 +483,16 @@ class LSDRaster
     /// @param CriticalSlope
     /// @return LSDIndexRaster of rock exposure.
     /// @author DTM
-  	LSDIndexRaster calculate_REI(Array2D<float>& a_plane, Array2D<float>& b_plane, float CriticalSlope);
+  	LSDRaster calculate_REI(Array2D<float>& a_plane, Array2D<float>& b_plane, float CriticalSlope);
+    /// @brief Create the REI raster (imporoved wrapper)
+    /// Rock exposure index defined as areas with local slope exceeding some
+    /// critical slope as defined by DiBiase et al. (2012)
+    /// @details
+    /// @param window radius
+    /// @param CriticalSlope
+    /// @return LSDIndexRaster of rock exposure.
+    /// @author DTM
+    LSDRaster calculate_REI(float window_radius, float CriticalSlope);
 
 	/// @brief this function takes the polyfit functions and requires a window radius and a vector telling the
 	/// function which rasters to print to file.
@@ -851,6 +860,20 @@ class LSDRaster
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
                               LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, LSDRaster& LH_drainage_density,
                               Array2D<float> LH_Data, float CriticalSlope, string RasterFilename);
+  
+  /// @brief Takes a raster and a corresponding index raster, and calculates the mean, sd
+  /// and standard error by index.  Returns four vectors: mean, st.dev., st.err and 
+  /// Number of points for each category.
+  /// @param input index raster
+  /// @param output vector with mean values
+  /// @param output vector with standard deviation values
+  /// @param output vector with standard error values
+  /// @param output vector with number of points
+  /// @author DTM
+  /// @date 28/11/2013
+  void raster_statistics_by_index(LSDIndexRaster& IndexRaster, vector<float>& mean_vector, 
+          vector<float>& sd_vector, vector<float>& serr_vector, vector<int>& Npts_vector);
+  
 
   /// @brief Generate data in two text files to create a boomerang plot as in Roering et al [2007].
   ///
