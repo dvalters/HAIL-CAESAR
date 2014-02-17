@@ -2997,6 +2997,141 @@ void LSDRaster::CollectBasinMetrics(LSDIndexRaster& Basins, LSDRaster& Slope, LS
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Raster_statistics_by_index
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= 
+// A generic function for calculating commonly used statistics on a raster that
+// has been separated into discrete categories (marked by index raster) that are
+// to be considered separately.  An example is to calculate basin metrics
+// for a bunch of drainage basins labelled with a unique ID (although there is a 
+// specific function to carry out this particular analysis, this type of problem
+// is sufficiently common to warrant a standalone function).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 
+// Takes a raster and a corresponding index raster, and calculates the mean, sd
+// and standard error by index.  Returns four vectors: mean, st.dev., st.err and 
+// Number of points for each category.
+// DTM 28/11/2013 (adapting SDWG's DrainageDensity function)
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::raster_statistics_by_index(LSDIndexRaster& IndexRaster, vector<float>& mean_vector, vector<float>& SD_vector, vector<float>& SErr_vector, vector<int>& NPts_vector)
+{
+  int intNoDataValue = IndexRaster.get_NoDataValue();
+  //Declare all the variables needed in this method
+  vector<int> IDs;
+  vector<int> IDs_sorted;
+  vector<size_t> index_map;
+  int q = 0;
+  //convert Basin Raster to an Array
+  Array2D<int> ids = IndexRaster.get_RasterData(); 
+  //Loop over every pixel and record the value and basin ID into two vectors
+  for (int i = 0; i < NRows; ++i)
+  {
+    for (int j = 0; j < NCols; ++j)
+    {
+      if (ids[i][j] != intNoDataValue)
+      {         
+          IDs.push_back(ids[i][j]);        
+      }    
+    }
+  }
+  int N_IDs = IDs.size();
+  vector<float> Values(N_IDs, NoDataValue);
+  vector<float> SortedValues;
+  int vector_index = 0;
+  for (int i = 0; i < NRows; ++i)
+  {
+    for (int j = 0; j < NCols; ++j)
+    {
+      if (ids[i][j] != intNoDataValue)
+      {         
+        if(RasterData[i][j] != NoDataValue)
+        {
+          Values[vector_index]=RasterData[i][j];        
+        }
+        ++vector_index;
+      }    
+    }
+  }
+  //sort our two vectors based on the Basin IDs: has the effect of grouping each basin together in 1D space
+  matlab_int_sort(IDs, IDs_sorted, index_map);               
+  matlab_float_reorder(Values, index_map, SortedValues);
+  
+  // get the ID
+  cout << "Now getting stats for values by index" << endl;
+  int start_id = IDs_sorted[0];
+  vector<float> values_for_this_ID;
+  float mean, SD, SErr;
+  while (q < int(IDs_sorted.size()))
+  {
+    //cout << q << "/" << IDs_sorted.size() << endl;
+    if (start_id == IDs_sorted[q])
+    {
+      if (SortedValues[q]!=NoDataValue) values_for_this_ID.push_back(SortedValues[q]);
+      ++q;
+    }
+    else
+    {
+      // get mean, sd and serr.
+      if (values_for_this_ID.empty() == true)
+      {
+        mean = NoDataValue;
+        SD = NoDataValue;
+        SErr = NoDataValue;
+      }
+      else
+      {
+        mean = get_mean(values_for_this_ID);
+        SD = get_standard_deviation(values_for_this_ID, mean);
+        SErr = get_standard_error(values_for_this_ID, SD);
+      }  
+      //record the mean, sd and serr into the maps
+      mean_vector.push_back(mean);
+      SD_vector.push_back(SD);
+      SErr_vector.push_back(SErr);
+      NPts_vector.push_back(values_for_this_ID.size());
+      
+      values_for_this_ID.clear();
+      start_id = IDs_sorted[q];      
+    }
+  }
+  // Process the final basin once the loop is completed
+  if (values_for_this_ID.empty() == true)
+  {
+    mean = NoDataValue;
+    SD = NoDataValue;
+    SErr = NoDataValue;
+  }
+  else
+  { 
+    mean = get_mean(values_for_this_ID);
+    SD = get_standard_deviation(values_for_this_ID, mean);
+    SErr = get_standard_error(values_for_this_ID, SD);
+  }  
+  cout << "kicking out output vectors" << endl;
+  mean_vector.push_back(mean);
+  SD_vector.push_back(SD);
+  SErr_vector.push_back(SErr);
+  NPts_vector.push_back(values_for_this_ID.size());
+}
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Module to sample LSDRaster values running along a ridgetop network. Pass in
