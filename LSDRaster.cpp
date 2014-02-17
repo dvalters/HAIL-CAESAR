@@ -1701,11 +1701,10 @@ void LSDRaster::calculate_plane_coefficient_matrices(float window_radius,
 	}
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDIndexRaster LSDRaster::calculate_REI(Array2D<float>& a_plane, Array2D<float>& b_plane, float CriticalSlope)
+LSDRaster LSDRaster::calculate_REI(Array2D<float>& a_plane, Array2D<float>& b_plane, float CriticalSlope)
 {
 	// create the REI raster
-	int intndv = int(NoDataValue);
-	Array2D<int> REI_data(NRows,NCols,intndv);
+	Array2D<float> REI_data(NRows,NCols,NoDataValue);
   	float SlopeOfPlane;
 	for (int row = 0; row<NRows; row++)
 	{
@@ -1727,7 +1726,7 @@ LSDIndexRaster LSDRaster::calculate_REI(Array2D<float>& a_plane, Array2D<float>&
 		}
 	}
 
-	LSDIndexRaster REI_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,intndv,REI_data);
+	LSDRaster REI_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,REI_data);
 	return REI_raster;
 }
 // Overloaded function that incorporates the above in a nicer wrapper function
