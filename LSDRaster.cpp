@@ -383,6 +383,304 @@ void LSDRaster::write_raster(string filename, string extension)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// /\ |  |  DIAMOND SQUARE
+// \/ |__|
+// Routines for the Diamond Square algorithm
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This function allows one to sample across values in the raster while wrapping
+// around the sides of the raster
+// SMM 9/1/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float LSDRaster::WrapSample(int row, int col)
+{
+
+	int wraprow;
+	int wrapcol;
+
+
+	if(row >=0)
+	{
+		wraprow = row % NRows;
+	}
+	else
+	{
+		wraprow = NRows - (-row % NRows);
+	}
+	if(col >= 0)
+	{
+		wrapcol = col % NCols;
+	}
+	else
+	{
+		wrapcol = NCols - (-col % NCols);
+	}
+
+	//cout << "Nrows: " << NRows << " row: " << row << " wraprow: " << wraprow << endl;
+	//cout << "Ncols: " << NCols << " col: " << col << " wrapcol: " << wrapcol << endl;
+
+	return RasterData[wraprow][wrapcol];
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function allows one to set values in the raster while wrapping
+// around the sides of the raster
+// SMM 9/1/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::SetWrapSample(int row, int col, float value)
+{
+	int wraprow;
+	int wrapcol;
+
+	if(row >=0)
+	{
+		wraprow = row % NRows;
+	}
+	else
+	{
+		wraprow = NRows - (-row % NRows);
+	}
+	if(col >= 0)
+	{
+		wrapcol = col % NCols;
+	}
+	else
+	{
+		wrapcol = NCols - (-col % NCols);
+	}
+
+	RasterData[wraprow][wrapcol] = value;
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function start with the corners of the algorithm to make individual 'features'
+// note: the scale gives the range, so it should be a random value between -scale*0.5 and scale*0.5
+// SMM 9/1/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::DSSetFeatureCorners(int featuresize, float scale)
+{
+	long seed = time(NULL);
+	// the function starts from -featuresize since in the diamond square step
+	// of the algorithm it wraps from row and column 0
+	for (int row = 0; row < NRows; row+= featuresize)
+	{
+		for (int col = 0; col<NCols; col+= featuresize)
+		{
+			float randn = (ran3(&seed)-0.5)*scale;
+			//cout << "setting feature corners, row: " << row << " and col: " << col << endl;
+			SetWrapSample(row,col,randn);
+		}
+	}
+	//cout << "Set the feature corners" << endl;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function samples on the square: 
+// a     b
+//
+//    x
+//
+// c     d
+// The corners are known and the centre is calculated
+// SMM 9/1/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::DSSampleSquare(int row,int col, int size, float value)
+{
+    int hs = size / 2;
+
+    float a = WrapSample(col - hs, row - hs);
+    float b = WrapSample(col + hs, row - hs);
+    float c = WrapSample(col - hs, row + hs);
+    float d = WrapSample(col + hs, row + hs);
+
+    if (a == -9999 || b == -9999 || c == -9999 || d == -9999)
+    {
+		  cout << "got a nodata; row: " << row << " and col: " << col << endl;
+
+		  if (a == -9999)
+		  {
+			  cout << "col - hs: " << col - hs << " and row - hs: " << row - hs << endl;
+		  }
+		  if (b == -9999)
+		  {
+			  cout << "col + hs: " << col + hs << " and row - hs: " << row - hs << endl;
+		  }
+		  if (c == -9999)
+		  {
+			  cout << "col - hs: " << col - hs << " and row + hs: " << row + hs << endl;
+		  }
+		  if (d == -9999)
+		  {
+			  cout << "col + hs: " << col + hs << " and row + hs: " << row + hs << endl;
+		  }
+	  }
+
+    SetWrapSample(row, col, ((a + b + c + d) / 4.0) + value);
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This calculates the diamond step
+//   c
+//
+//a  x  b
+//
+//   d
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::DSSampleDiamond(int row, int col, int size, float value)
+{
+    int hs = size / 2;
+
+    double a = WrapSample(col - hs, row);
+    double b = WrapSample(col + hs, row);
+    double c = WrapSample(col, row - hs);
+    double d = WrapSample(col, row + hs);
+
+    if (a == -9999 || b == -9999 || c == -9999 || d == -9999)
+    {
+		  cout << "got a nodata DSSampleDiamond; row: " << row << " and col: " << col << endl;
+
+		  if (a == -9999)
+		  {
+			  cout << "col - hs: " << col - hs << " and row: " << row << endl;
+		  }
+		  if (b == -9999)
+		  {
+			  cout << "col + hs: " << col + hs << " and row: " << row << endl;
+		  }
+		  if (c == -9999)
+		  {
+			  cout << "col: " << col << " and row - hs: " << row - hs << endl;
+		  }
+		  if (d == -9999)
+		  {
+			  cout << "col: " << col << " and row + hs: " << row + hs << endl;
+		  }
+
+	  }
+
+    SetWrapSample(row, col, ((a + b + c + d) / 4.0) + value);
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// this function performs the core of the diamond square algorithm
+// the 'features' have got to be of size 2^n+1, so the
+// feature order is the 'n'. THis means that, say a feature order of 4
+// will make a feature with size of 17
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::DiamondSquare_SampleStep(int stepsize, float scale)
+{
+    int halfstep = stepsize / 2;
+    long seed = time(NULL);
+
+	// first do the square step. This gets the sqare for the node
+	// at the half distance between the starting points
+    for (int row = -halfstep; row < NRows+halfstep; row += stepsize)
+    {
+      for (int col = -halfstep; col < NCols + halfstep; col += stepsize)
+      {
+			  //cout << "SS row and col: " << row << " " << col << endl;
+	      DSSampleSquare(row, col, stepsize, ((ran3(&seed)-0.5) * scale));
+      }
+    }
+
+	// now the DiamondStep.
+	// The first diamond gets the point halfway below the first column
+	// Second diamond gets the column halfway past the first row.
+	// That means for col 0 and row 0 it will wrap to the other side
+	// This means these values will need to be wrapped in the inital
+	// set corners stage!
+    for (int row = -stepsize; row < NRows; row += stepsize)
+    {
+      for (int col = -stepsize; col < NCols; col += stepsize)
+      {
+			  //cout << "DS row and col: " << row << " " << col << endl;
+	      DSSampleDiamond(row + halfstep, col, stepsize, ((ran3(&seed)-0.5) * scale));
+	      DSSampleDiamond(row, col + halfstep, stepsize, ((ran3(&seed)-0.5) * scale));
+      }
+    }
+
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// this is the diamond square algorithm
+// it creates a resized diamond square pseudo-fractal raster
+// it has the same xllcorner and yllcorner as the original raster, 
+// but is resized so the NRows and NCols are to the closed power of 2
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::DiamondSquare(int feature_order, float scale)
+{
+
+    // determine the size of the padded array:
+    int PaddedRows = int(pow(2,ceil(log(NRows)/log(2))));
+    int PaddedCols = int(pow(2,ceil(log(NCols)/log(2))));
+
+    // now get the maximum feature size. This will be the  minimum
+    // power of 2 in the x or y direction
+    int max_feature_size;
+    if (PaddedRows >= PaddedCols)
+    {
+      max_feature_size = PaddedCols;
+    }
+    else
+    {
+      max_feature_size = PaddedRows;
+    }
+
+    cout << "NRows: " << NRows << " and PaddedRows: " << PaddedRows << endl;
+    cout << "NCols: " << NCols << " and PaddedCols: " << PaddedCols << endl;
+    cout << "max_feature_size: " << max_feature_size << endl;
+
+    //create an array
+    Array2D<float> DSRaster_array(PaddedRows,PaddedCols,NoDataValue);
+
+    //create LSDRaster diamond square object
+    LSDRaster DSRaster(PaddedRows, PaddedCols, XMinimum, YMinimum, DataResolution,
+                               NoDataValue, DSRaster_array);
+
+    // get the feature size: it must be a power of 2.
+    int featuresize = pow(2,feature_order);
+    if (featuresize > max_feature_size)
+    {
+      cout << "Your featuresize is too big for the DEM. Changing to max feature size" << endl;
+    }
+
+    cout << "feature size is: " << featuresize << endl;
+
+    // now initialize the raster over some feature scale
+    DSRaster.DSSetFeatureCorners(featuresize, scale);
+
+    // now loop through the features, running the diamond square algorithm.
+    int samplesize = featuresize;
+    scale = scale/2;
+
+	  cout << "Starting diamond square algorithm, samplesize is: " << samplesize << endl;
+
+    while (samplesize > 1)
+    {
+		  cout << "Running Diamond square, samplesize: " << samplesize << endl;
+
+      DSRaster.DiamondSquare_SampleStep(samplesize,scale);
+
+      // halve the sample size and scale
+      samplesize = samplesize/2;
+      scale = scale/2;
+    }
+
+    return DSRaster;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Make LSDRaster object using a 'template' raster and an Array2D of data.
 // SWDG 29/8/13

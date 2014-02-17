@@ -220,6 +220,27 @@ class LSDRaster
   /// @date 29/8/13
   LSDRaster LSDRasterTemplate(Array2D<float> InputData);
 
+	/// @brief this function creates a raster of the same dimensions as the current raster
+	/// Using the diamond square algorithm
+	/// @param
+	/// @return LSDRaster containing the data passed in.
+	/// @author SMM
+    /// @date 29/8/13
+	float WrapSample(int row, int col);
+
+	void SetWrapSample(int row, int col, float value);
+
+	void DSSetFeatureCorners(int featuresize, float scale);
+
+	void DSSampleSquare(int row,int col, int size, float value);
+	void DSSampleDiamond(int row, int col, int size, float value);
+
+    void DiamondSquare_SampleStep(int stepsize, float scale);
+  LSDRaster DiamondSquare(int feature_order, float scale);
+
+
+
+
 	// Functions relating to shading, shadowing and shielding
 
   /// @brief This function generates a hillshade raster.
