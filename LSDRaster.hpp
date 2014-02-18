@@ -184,20 +184,20 @@ class LSDRaster
   ///
   /// The supported formats are .asc and .flt which are
   /// both exported and imported by arcmap.
-	///
-	/// The filename is the string of characters before the '.' in the extension
-	/// and the extension is the characters after the '.'.
-	///
-	/// If the full filename is my_dem.01.asc then:
+  ///
+  /// The filename is the string of characters before the '.' in the extension
+  /// and the extension is the characters after the '.'.
+  ///
+  /// If the full filename is my_dem.01.asc then:
   /// filename = "my_dem.01" and extension = "asc".
-	///
-	/// For float files both a data file and a header are written
-	/// the header file must have the same filename, before extention, of
-	/// the raster data, and the extension must be .hdr.
-	///
-	/// @param filename a string of the filename _without_ the extension.
-	/// @param extension a string of the extension _without_ the leading dot
-	/// @author SMM
+  ///
+  /// For float files both a data file and a header are written
+  /// the header file must have the same filename, before extention, of
+  /// the raster data, and the extension must be .hdr.
+  ///
+  /// @param filename a string of the filename _without_ the extension.
+  /// @param extension a string of the extension _without_ the leading dot
+  /// @author SMM
   /// @date 01/01/12
   void write_raster(string filename, string extension);
 
@@ -220,28 +220,86 @@ class LSDRaster
   /// @date 29/8/13
   LSDRaster LSDRasterTemplate(Array2D<float> InputData);
 
-	/// @brief this function creates a raster of the same dimensions as the current raster
-	/// Using the diamond square algorithm
-	/// @param
-	/// @return LSDRaster containing the data passed in.
-	/// @author SMM
-    /// @date 29/8/13
-	float WrapSample(int row, int col);
+  // Functions for the Diamond Square algorithm
 
-	void SetWrapSample(int row, int col, float value);
+  /// @brief This returns a value from the array data element but wraps around
+  /// the array dimensions so that row > NRows (for example) returns a value.
+  /// @param The row of the data point you want.
+  /// @parame Column of desired data point.
+  /// @return The value of the data array at the desired row and column.
+  /// @author SMM
+  /// @date 16/02/2014
+  float WrapSample(int row, int col);
 
-	void DSSetFeatureCorners(int featuresize, float scale);
+  /// @brief This sets a value in the data array withthe added feature that it 
+  /// wraps beyond NRows and NCols.
+  /// @param The row of data to be reset.
+  /// @param The column of the data to be reset.
+  /// @param The value of the data to be reset.
+  /// @author SMM
+  /// @date 16/02/2014
+  void SetWrapSample(int row, int col, float value);
 
-	void DSSampleSquare(int row,int col, int size, float value);
-	void DSSampleDiamond(int row, int col, int size, float value);
+  /// @brief This sets the corners of features as the first step in the diamond
+  /// square algorithm. 
+  /// @param The first parameter is the feature size. This needs to be a power of 2, but
+  /// this is set by the parent DiamondSquare function (that is, this function should not
+  /// be called independantly. 
+  /// @param The scale is effectivly the maximum relief of the surface to be produced by the 
+  /// algorithm.
+  /// @author SMM
+  /// @date 16/02/2014
+  void DSSetFeatureCorners(int featuresize, float scale);
 
-    void DiamondSquare_SampleStep(int stepsize, float scale);
+  /// @brief This is the square sampling step of the diamond square algorithm: it takes 
+  /// the average of the four corners and adds a random number to set the centrepoint
+  /// of a square. 
+  /// @param The row of the centrepoint.
+  /// @param The column of the centrepoint.
+  /// @param The size of this square (in pixels, must be divisible by 2).
+  /// @param The random value added to the average of the four corners.
+  /// @author SMM
+  /// @date 16/02/2014 
+  void DSSampleSquare(int row,int col, int size, float value);
+  
+  /// @brief This is the diamond sampling step of the diamond square algorithm: it takes 
+  /// the average of the four corners and adds a random number to set the centrepoint
+  /// of a diamond. 
+  /// @param The row of the centrepoint.
+  /// @param The column of the centrepoint.
+  /// @param The size of this diamond (in pixels, must be divisible by 2).
+  /// @param The random value added to the average of teh four corners.
+  /// @author SMM
+  /// @date 16/02/2014 
+  void DSSampleDiamond(int row, int col, int size, float value);
+
+  /// @brief This is the sampling function for the diamond square algorithm: it
+  /// runs both a diamond and a square sampling for each step.
+  ///
+  /// @param The stepsize, which is the size of the diamonds and the squares. 
+  /// @param The scale which sets the maxmum relief within a particular square or
+  /// diamond and is scaled by the stepsize (that is smaller squares have smaller scales).
+  ///
+  /// @author SMM
+  /// @date 16/02/2014 
+  void DiamondSquare_SampleStep(int stepsize, float scale);
+ 
+  /// @brief This is the driving function for the diamond square algorithm.
+  /// @details The driving function takes the current raster and then pads it
+  /// in each direction to have rows and columns that are the nearest powers
+  /// of 2. The xllocation and yllocation data values are preserved. The function
+  /// returns a pseudo fractal landscape generated with the diamond square algorithm
+  /// 
+  /// @param feature order is an interger n where the feature size consists of 2^n nodes.
+  /// If the feature order is set bigger than the dimensions of the parent raster then
+  /// this will default to the order of the parent raster.
+  /// @param Scale is a floating point number that sets the maximum relief of the resultant raster.
+  /// @return Returns a diamond square pseudo-fractal surface in and LSDRaster object.
+  /// @author SMM
+  /// @date 16/02/2014 
   LSDRaster DiamondSquare(int feature_order, float scale);
 
-
-
-
-	// Functions relating to shading, shadowing and shielding
+  // Functions relating to shading, shadowing and shielding
 
   /// @brief This function generates a hillshade raster.
   ///
@@ -257,7 +315,7 @@ class LSDRaster
   /// @return Hillshaded LSDRaster object
   /// @author SWDG
   /// @date February 2013
-	LSDRaster hillshade(float altitude, float azimuth, float z_factor);
+  LSDRaster hillshade(float altitude, float azimuth, float z_factor);
 
   /// @brief This function generates a hillshade derivative raster using the
   /// algorithm outlined in Codilean (2006).
@@ -272,7 +330,7 @@ class LSDRaster
   /// @date 11/4/13
   Array2D<float> Shadow(int theta, int phi);
 
-	/// @brief This function generates a topographic shielding raster using the algorithm outlined in Codilean (2006).
+  /// @brief This function generates a topographic shielding raster using the algorithm outlined in Codilean (2006).
   ///
   /// @details Creating a raster of values between 0 and 1 which can be used as a
   /// scaling factor in Cosmo analysis.
@@ -290,7 +348,7 @@ class LSDRaster
   /// @pre phi_step must be a factor of 360.
   /// @author SWDG
   /// @date 11/4/13
-	LSDRaster TopoShield(int theta_step, int phi_step);
+  LSDRaster TopoShield(int theta_step, int phi_step);
 
   /// @brief This looks for isolated instances of no data.
   ///
@@ -316,13 +374,13 @@ class LSDRaster
   ///
   /// @details The coefficient matrices are overwritten during the running of this member function.
   ///
-	/// Have N simultaneous linear equations, and N unknowns.
-	/// => b = Ax, where x is a 1xN array containing the coefficients we need for
-	/// surface fitting.
-	/// A is constructed using different combinations of x and y, thus we only need
-	/// to compute this once, since the window size does not change.
-	/// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
-	/// 6x6 matrix.
+  /// Have N simultaneous linear equations, and N unknowns.	
+  /// => b = Ax, where x is a 1xN array containing the coefficients we need for
+  /// surface fitting.
+  /// A is constructed using different combinations of x and y, thus we only need
+  /// to compute this once, since the window size does not change.
+  /// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
+  /// 6x6 matrix.
   /// Updated 15/07/2013 to use a circular mask for surface fitting - DTM.
   /// Updated 24/07/2013 to check window_radius size and correct values below data resolution - SWDG.
   /// @param window_radius Radius of the mask in <b>spatial units</b>.
@@ -339,7 +397,7 @@ class LSDRaster
 									Array2D<float>& c, Array2D<float>& d,
 									Array2D<float>& e, Array2D<float>& f);
 
-	// a series of functions for retrieving derived data from the polyfit calculations
+  // a series of functions for retrieving derived data from the polyfit calculations
 
   /// @brief  This function calculates the elevation based on a polynomial fit.
   ///
@@ -350,6 +408,7 @@ class LSDRaster
   /// @author FC
   /// @date 24/03/13
   LSDRaster calculate_polyfit_elevation(Array2D<float>& f);
+  
   /// @brief  This function calculates the slope based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -359,7 +418,8 @@ class LSDRaster
   /// @return LSDRaster of slope.
   /// @author DTM, SMM
   /// @date 01/01/12
-	LSDRaster calculate_polyfit_slope(Array2D<float>& d, Array2D<float>& e);
+  LSDRaster calculate_polyfit_slope(Array2D<float>& d, Array2D<float>& e);
+  
   /// @brief  This function calculates the aspect based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -369,8 +429,9 @@ class LSDRaster
   /// @return LSDRaster of aspect.
   /// @author DTM, SMM
   /// @date 01/01/12
-	LSDRaster calculate_polyfit_aspect(Array2D<float>& d,Array2D<float>& e);
-	/// @brief  This function calculates the curvature based on a polynomial fit.
+  LSDRaster calculate_polyfit_aspect(Array2D<float>& d,Array2D<float>& e);
+
+  /// @brief  This function calculates the curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
   /// this function also calculates the a,b,c,d,e and f coefficient matrices.
@@ -379,8 +440,9 @@ class LSDRaster
   /// @return LSDRaster of curvature.
   /// @author DTM, SMM
   /// @date 01/01/12
-	LSDRaster calculate_polyfit_curvature(Array2D<float>& a,Array2D<float>& b);
-	/// @brief  This function calculates the planform curvature based on a polynomial fit.
+  LSDRaster calculate_polyfit_curvature(Array2D<float>& a,Array2D<float>& b);
+
+  /// @brief  This function calculates the planform curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
   /// this function also calculates the a,b,c,d,e and f coefficient matrices.
@@ -394,7 +456,8 @@ class LSDRaster
   /// @date 01/01/12
   LSDRaster calculate_polyfit_planform_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
   													Array2D<float>& d, Array2D<float>& e);
-	/// @brief  This function calculates the profile curvature based on a polynomial fit.
+  
+  /// @brief  This function calculates the profile curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
   /// this function also calculates the a,b,c,d,e and f coefficient matrices.
@@ -408,7 +471,7 @@ class LSDRaster
   /// @date 01/01/12
   LSDRaster calculate_polyfit_profile_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
   													Array2D<float>& d, Array2D<float>& e);
-	/// @brief  This function calculates the tangential curvature based on a polynomial fit.
+  /// @brief  This function calculates the tangential curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
   /// this function also calculates the a,b,c,d,e and f coefficient matrices.
@@ -420,8 +483,9 @@ class LSDRaster
   /// @return LSDRaster of tangential curvature.
   /// @author DTM, SMM
   /// @date 01/01/12
-	LSDRaster calculate_polyfit_tangential_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
+  LSDRaster calculate_polyfit_tangential_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
   													Array2D<float>& d, Array2D<float>& e);
+  
   /// @brief This function identifies approximate position of stationary points within
   /// discrete surface using a threshold slope.
   ///
@@ -439,23 +503,23 @@ class LSDRaster
   /// @return LSDRaster of classified elevation data.
   /// @author DTM
   /// @date	17/09/2012
-	LSDIndexRaster calculate_polyfit_classification(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
+  LSDIndexRaster calculate_polyfit_classification(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
 	                                                Array2D<float>& d, Array2D<float>& e);
 
 
-	/// @brief Gets the hilltop curvature raster.
-	///
-	/// @details Modified to take an LSDRaster of hilltops - SWDG 29/8/13
+  /// @brief Gets the hilltop curvature raster.
+  ///
+  /// @details Modified to take an LSDRaster of hilltops - SWDG 29/8/13
   ///
   /// @param curvature LSDRaster of curvatures.
   /// @param Hilltops LSDRaster of hilltops.
   /// @return LSDRaster of hilltop curvatures.
   /// @author DTM
   /// @date 30/04/13
-	LSDRaster get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hilltops);
+  LSDRaster get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hilltops);
 
-	// surface roughness
-	/// @brief Algorithm that assesses surface roughness based on a polynomial fit.
+  // surface roughness
+  /// @brief Algorithm that assesses surface roughness based on a polynomial fit.
   ///
   /// @details Runs a moving window across the DEM and assesses the variability of
   /// surface normals within that window.  Specifically the components of the
@@ -468,10 +532,11 @@ class LSDRaster
   /// @param n coefficeint n.
   /// @author DTM
   /// @date 13/09/2012
-	void calculate_polyfit_directional_cosines(Array2D<float>& d, Array2D<float>& e, Array2D<float>& l,
+  void calculate_polyfit_directional_cosines(Array2D<float>& d, Array2D<float>& e, Array2D<float>& l,
 	                                           Array2D<float>& m, Array2D<float>& n);
-	/// @brief Find eigenvalues for orientation matrix
-	/// @param window_radius
+  
+  /// @brief Find eigenvalues for orientation matrix
+  /// @param window_radius
   /// @param l coefficeint l.
   /// @param m coefficeint m.
   /// @param n coefficeint n.
@@ -480,26 +545,26 @@ class LSDRaster
   /// @param s3 coefficeint s3.
   /// @author DTM
   /// @date 13/09/2012
-	void calculate_orientation_matrix_eigenvalues(float window_radius,
+  void calculate_orientation_matrix_eigenvalues(float window_radius,
 													Array2D<float>& l, Array2D<float>& m,
 													Array2D<float>& n, Array2D<float>& s1,
                     								Array2D<float>& s2, Array2D<float>& s3);
 
-  	// Rock exposure index  / roughness
-    /// @brief This function is a wrapper to get the three roughness eigenvalues
-    /// s1, s2 and s3.
-    /// @param window_radius
-    /// @param a_plane
-    /// @param b_plane
-    /// @param c_plane
-    /// @author DTM
-    /// @date 15/7/2013
-  	void calculate_plane_coefficient_matrices(float window_radius, Array2D<float>& a_plane,
+  // Rock exposure index  / roughness
+  /// @brief This function is a wrapper to get the three roughness eigenvalues
+  /// s1, s2 and s3.
+  /// @param window_radius
+  /// @param a_plane
+  /// @param b_plane
+  /// @param c_plane
+  /// @author DTM
+  /// @date 15/7/2013
+  void calculate_plane_coefficient_matrices(float window_radius, Array2D<float>& a_plane,
 										Array2D<float>& b_plane, Array2D<float>& c_plane);
-		/// @brief Create the REI raster
-    ///
-    /// @details
-    /// @param a_plane
+  /// @brief Create the REI raster
+  ///
+  /// @details
+  /// @param a_plane
     /// @param b_plane
     /// @param CriticalSlope
     /// @return LSDIndexRaster of rock exposure.
