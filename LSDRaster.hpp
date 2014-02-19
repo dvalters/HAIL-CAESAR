@@ -110,22 +110,24 @@ using namespace TNT;
 ///@brief Main analysis object to interface with other LSD objects.
 class LSDRaster
 {
-	public:
-	// declare the LSDFlowInfo object to be a friend class
-	// this gives the LSDFlowInfo object access to the data elements
-	// in the LSDRaster
-	/// @brief Object to perform flow routing.
-	friend class LSDFlowInfo;
+  public:
+  // declare the LSDFlowInfo object to be a friend class
+  // this gives the LSDFlowInfo object access to the data elements
+  // in the LSDRaster
+  /// @brief Object to perform flow routing.
+  friend class LSDFlowInfo;
 
   /// @brief The create function. This is default and throws an error.
-	LSDRaster()										{ create(); }
-	/// @brief Create an LSDRaster from a file.
+  LSDRaster()										{ create(); }
+  
+  /// @brief Create an LSDRaster from a file.
   /// Uses a filename and file extension
   /// @return LSDRaster
   /// @param filename A String, the file to be loaded.
   /// @param extension A String, the file extension to be loaded.
-	LSDRaster(string filename, string extension)	{ create(filename, extension); }
-	/// @brief Create an LSDRaster from memory.
+  LSDRaster(string filename, string extension)	{ create(filename, extension); }
+
+  /// @brief Create an LSDRaster from memory.
   /// @return LSDRaster
   /// @param nrows An integer of the number of rows.
   /// @param ncols An integer of the number of columns.
@@ -137,46 +139,45 @@ class LSDRaster
   ///containing the data to be written.
   LSDRaster(int nrows, int ncols, float xmin, float ymin,
 	          float cellsize, float ndv, Array2D<float> data)
-								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
+		{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
 
 	// Get functions
 
-	/// @return Number of rows as an integer.
-	int get_NRows() const				{ return NRows; }
-	/// @return Number of columns as an integer.
+  /// @return Number of rows as an integer.
+  int get_NRows() const				{ return NRows; }
+  /// @return Number of columns as an integer.
   int get_NCols() const				{ return NCols; }
   /// @return Minimum X coordinate as an integer.
-	float get_XMinimum() const			{ return XMinimum; }
-	/// @return Minimum Y coordinate as an integer.
-	float get_YMinimum() const			{ return YMinimum; }
-	/// @return Data resolution as an integer.
-	float get_DataResolution() const	{ return DataResolution; }
-	/// @return No Data Value as an integer.
-	int get_NoDataValue() const			{ return NoDataValue; }
-	/// @return Raster values as a 2D Array.
-	Array2D<float> get_RasterData() const { return RasterData.copy(); }
+  float get_XMinimum() const			{ return XMinimum; }
+  /// @return Minimum Y coordinate as an integer.
+  float get_YMinimum() const			{ return YMinimum; }
+  /// @return Data resolution as an integer.
+  float get_DataResolution() const	{ return DataResolution; }
+  /// @return No Data Value as an integer.
+  int get_NoDataValue() const			{ return NoDataValue; }
+  /// @return Raster values as a 2D Array.
+  Array2D<float> get_RasterData() const { return RasterData.copy(); }
 
-	/// Assignment operator.
-	LSDRaster& operator=(const LSDRaster& LSDR);
+  /// Assignment operator.
+  LSDRaster& operator=(const LSDRaster& LSDR);
 
-
-	/// @brief Read a raster into memory from a file.
+  /// @brief Read a raster into memory from a file.
   ///
   /// The supported formats are .asc and .flt which are
   /// both exported and imported by arcmap.
-	///
-	/// The filename is the string of characters before the '.' in the extension
-	/// and the extension is the characters after the '.'.
-	///
-	/// If the full filename is my_dem.01.asc then:
+  ///
+  /// The filename is the string of characters before the '.' in the extension
+  /// and the extension is the characters after the '.'.
+  ///
+  /// If the full filename is my_dem.01.asc then:
   /// filename = "my_dem.01" and extension = "asc".
   ///
-	///
-	/// For float files both a data file and a header are read
-	/// the header file must have the same filename, before extention, of
-	/// the raster data, and the extension must be .hdr.
-	///
-	/// @author SMM
+  ///
+  /// For float files both a data file and a header are read
+  /// the header file must have the same filename, before extention, of
+  /// the raster data, and the extension must be .hdr.
+  ///
+  /// @author SMM
   /// @date 01/01/12
   void read_raster(string filename, string extension);
 
@@ -200,6 +201,13 @@ class LSDRaster
   /// @author SMM
   /// @date 01/01/12
   void write_raster(string filename, string extension);
+
+  /// @brief rewrite all the data array values with random numbers (with a 
+  /// uniform distribution). 
+  /// @param range is the range of values.
+  /// @author SMM
+  /// @date 18/02/14
+  void rewrite_with_random_values(float range);
 
   /// @brief Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
   /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
