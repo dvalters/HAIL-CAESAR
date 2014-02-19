@@ -2694,6 +2694,65 @@ float deg(float radians){
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to generate Statistical distribution. - DTM
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void get_distribution_stats(vector<float>& y_data, float& mean, float& median, float& UpperQuartile, float& LowerQuartile, float& MaxValue) 
+{
+    // Mean
+  int n_data_points = y_data.size();
+  MaxValue = 0;
+    float total = 0;
+    
+  for (int i = 0; i< n_data_points; i++)
+    {
+        total+=y_data[i];
+     
+    }
+    
+    mean = total/float(n_data_points);
+    
+    // Get other statistics
+    // Sort vector
+  vector<long unsigned int> index_map;
+  matlab_float_sort(y_data,y_data,index_map);
+  // Median
+  int point50 = n_data_points/2;
+  if (n_data_points % 2 == 0)
+  {
+    median = (y_data[point50]+y_data[point50+1])/2;
+  }
+  else
+  {
+    median = y_data[point50];
+  }
+  // Quartiles
+  int point75 = n_data_points*0.75;
+  int point25 = n_data_points*0.25;
+  if (n_data_points % 4 == 0)
+  {
+    UpperQuartile = y_data[point75];
+    LowerQuartile = y_data[point25];
+  }
+  if (n_data_points % 4 == 1);
+  {
+    UpperQuartile = 0.25*y_data[point75]+0.75*y_data[point75+1];
+    LowerQuartile = 0.75*y_data[point25]+0.25*y_data[point25+1];
+  }
+  if (n_data_points % 4 == 2);
+  {
+    UpperQuartile = (y_data[point75]+y_data[point75+1])/2;
+    LowerQuartile = (y_data[point25]+y_data[point25+1])/2;
+  }
+  if (n_data_points % 4 == 3);
+  {
+    UpperQuartile = 0.75*y_data[point75]+0.25*y_data[point75+1];
+    LowerQuartile = 0.25*y_data[point25]+0.75*y_data[point25+1];
+  }
+  // Max
+  MaxValue = y_data[n_data_points-1];
+} 
+
+
 
 #endif
 

@@ -224,6 +224,9 @@ float rad(float degree);
 // conversion from radians to degrees
 float deg(float radians);
 
+//Method to generate Statistical distribution. - DTM
+void get_distribution_stats(vector<float>& y_data, float& mean, float& median, float& UpperQuartile, float& LowerQuartile, float& MaxValue);
+
 #endif
 
 
