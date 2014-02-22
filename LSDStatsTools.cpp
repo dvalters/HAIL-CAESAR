@@ -152,6 +152,35 @@ float get_mean(vector<float>& y_data)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// gets the mean from a population of y_data
+// This takes and array and ignores no data values
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float get_mean_ignore_ndv(Array2D<float>& data, float ndv)
+{
+  int NRows = data.dim1();
+  int NCols = data.dim2();
+
+  int count = 0;
+  float total = 0;
+  float mean;
+
+  for (int row = 0; row<NRows; row++)
+  {
+    for (int col = 0; col<NCols; col++)
+    {
+      if (data[row][col] != ndv)
+      {
+        total+= data[row][col];
+        count++;
+      }
+    }
+  }
+
+  mean = total/float(count);
+  return mean;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the total sum of squares from a population of data
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_SST(vector<float>& y_data, float mean)
@@ -166,6 +195,36 @@ float get_SST(vector<float>& y_data, float mean)
 	return total;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// gets the total sum of squares from a population of data
+// this uses and array and ignores no data values
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float get_variance_ignore_ndv(Array2D<float>& data, float ndv, float mean)
+{
+  int NRows = data.dim1();
+  int NCols = data.dim2();
+
+  int count = 0;
+  float total = 0;
+  float variance;
+
+  for (int row = 0; row<NRows; row++)
+  {
+    for (int col = 0; col<NCols; col++)
+    {
+      if (data[row][col] != ndv)
+      {
+        total+=(data[row][col]-mean)*(data[row][col]-mean);
+        count++;
+      }
+    }
+  }
+
+  variance = total/float(count);
+  return variance;
+}  
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the standard deviation from a population of data
