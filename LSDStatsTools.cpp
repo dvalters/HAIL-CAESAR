@@ -2811,6 +2811,78 @@ void get_distribution_stats(vector<float>& y_data, float& mean, float& median, f
   MaxValue = y_data[n_data_points-1];
 } 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to calculate the quadratic mean. - DTM
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+double get_QuadraticMean(vector<double> input_values, double bin_width)
+{
+	// Finding max contributing area to use as upper limit for the bins
+  int n_data = input_values.size();
+  double max_X = input_values[0];
+	double min_X = input_values[0];
+
+  // Loop through to find the min and max of the dataset
+  for (int i = 0; i < n_data; ++i)
+	{
+    if (input_values[i] > max_X)
+    {
+      max_X = input_values[i];
+    }
+    if (input_values[i] < min_X)    
+    {
+      min_X = input_values[i];
+    }
+  }
+  // Defining the upper limit, lower limit and the bin width.
+  // Extend range by one bin at each end so that the histogram is bounded by 
+  // zeros for plotting
+  double upper_limit = (ceil(max_X/bin_width)+1)*bin_width;
+  double lower_limit = (floor(min_X/bin_width)-1)*bin_width;
+  int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
+
+  // Looping through all the rows and columns and calculating which bin the
+  // contributing area is in, and putting the slope in this bin
+  vector<int> number_observations(NBins,0);
+  vector<double> bin_midpoints(NBins,0.0);
+  vector<double> bin_lower_lim(NBins,0.0);
+  vector<double> bin_upper_lim(NBins,0.0);
+  vector<double> probability_density(NBins,0);
+
+	// create the vector of vectors.  Nested vectors will store data within that
+  // bin.
+  vector<double> empty_vector;
+  double midpoint_value, lower_lim_value, upper_lim_value;
+
+  // Bin Data
+  for (int i = 0; i < n_data; ++i)
+  {
+    double X = input_values[i];
+    // Get bin_id for this particular value of X
+    int bin_id = int((X-lower_limit)/bin_width);
+    ++number_observations[bin_id];
+  }
+  
+  for(int i = 0; i<NBins; i++)
+  {
+    midpoint_value = lower_limit + (double(i)+0.5)*bin_width;
+    lower_lim_value = lower_limit + double(i)*bin_width;
+    upper_lim_value = double(i+1)*bin_width;  
+    
+    bin_midpoints[i]= midpoint_value;
+    bin_lower_lim[i]= lower_lim_value;
+    bin_upper_lim[i]= upper_lim_value;
+    
+    probability_density[i] = number_observations[i]/double(n_data);    
+  }
+  
+  double QuadraticMean;
+  for(int i = 0; i<NBins; i++)
+  {
+    QuadraticMean += probability_density[i]*bin_midpoints[i]*bin_midpoints[i];
+  }
+  QuadraticMean = sqrt(QuadraticMean);
+  return QuadraticMean;
+}
 
 
 #endif
