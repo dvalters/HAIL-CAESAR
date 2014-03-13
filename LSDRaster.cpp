@@ -96,6 +96,7 @@
 #include "LSDRaster.hpp"
 #include "LSDStatsTools.hpp"
 #include "LSDIndexRaster.hpp"
+#include "LSDShapeTools.hpp"
 using namespace std;
 using namespace TNT;
 using namespace JAMA;
@@ -5479,6 +5480,42 @@ void LSDRaster::MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int Simi
 		}
 	}
 }
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to turn a point shapefile into an LSDIndexRaster.
+//
+// Can be used to turn a shapefile of channel heads into a sources raster. Does not do 
+// any bounds checking or shapefile type checking.
+//
+// SWDG 13/3/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDRaster::PointShapefileToRaster(string FileName){
+
+  PointData Points = LoadShapefile(FileName);
+  
+  Array2D<int> Output(NRows, NCols, NoDataValue);
+  
+  int i;
+  int j;
+  float YMax = YMinimum + (DataResolution * (NRows));
+              
+  for (int q = 0; q < int(Points.X.size()); ++q){
+  
+    j = (Points.X[q] - XMinimum)/DataResolution;
+    i = (YMax - Points.Y[q])/DataResolution;
+    
+    Output[i][j] = 1;
+  
+  }
+  
+  LSDIndexRaster OutputRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Output);
+  return OutputRaster;
+  
+}
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
