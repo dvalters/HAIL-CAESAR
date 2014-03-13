@@ -229,6 +229,9 @@ float deg(float radians);
 //Method to generate Statistical distribution. - DTM
 void get_distribution_stats(vector<float>& y_data, float& mean, float& median, float& UpperQuartile, float& LowerQuartile, float& MaxValue);
 
+// Method to calculate the quadratic mean. - DTM
+double get_QuadraticMean(vector<double> input_values, double bin_width);
+
 #endif
 
 
