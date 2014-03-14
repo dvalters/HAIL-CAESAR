@@ -194,7 +194,7 @@ PointData LoadShapefile(string Filename){
   double Mmin;
   double Mmax;
   int RecordLength;
-  int NoOfRecords
+  int NoOfRecords;
   PointData Points;
   double TempX;
   double TempY;
