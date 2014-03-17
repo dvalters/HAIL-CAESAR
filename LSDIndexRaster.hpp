@@ -205,6 +205,13 @@ class LSDIndexRaster
   /// @author DTM 
   /// @date 28/10/2013
   LSDIndexRaster thin_to_single_thread_network();
+  
+  /// @brief Method to resample an LSDIndexRaster to a lower resolution. 
+  /// @param OutputResolution the resolution in spatial units to be resampled to.
+  /// @return An LSDIndexRaster resampled to the OutputResolution.
+  /// @author SWDG
+  /// @date 17/3/14   
+  LSDIndexRaster Resample(float OutputResolution);
 
 	protected:
 	///Number of rows.
