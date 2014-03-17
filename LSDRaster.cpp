@@ -5515,6 +5515,46 @@ LSDIndexRaster LSDRaster::PointShapefileToRaster(string FileName){
   
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to resample an LSDRaster to a lower resolution. 
+// OutputResolution is the resolution in spatial units to be resampled to.
+// Returns an LSDRaster resampled to the OutputResolution.
+// SWDG 17/3/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=   
+LSDRaster LSDRaster::Resample(float OutputResolution){
+
+  if (OutputResolution < DataResolution){
+    cout << "Your resample resolution of " << OutputResolution << " is lower that the current data resolution " << DataResolution << endl;
+	  exit(EXIT_FAILURE);
+  } 
+
+  int NewNRows = (NRows*DataResolution/OutputResolution); 
+  int NewNCols = (NCols*DataResolution/OutputResolution);
+
+  Array2D<float> Resampled(NewNRows, NewNCols, NoDataValue);
+  
+  int centre_i;
+  int centre_j;   
+  
+  float ResolutionRatio = OutputResolution/DataResolution;
+  
+  for (int i = 0; i < NewNRows; ++i){
+    for (int j = 0; j < NewNCols; ++j){
+    
+      //find the centre of the new grid in the old grid units
+      centre_i = (i*ResolutionRatio) + (ResolutionRatio/2);
+      centre_j = (j*ResolutionRatio) + (ResolutionRatio/2);
+     
+      Resampled[i][j] = RasterData[centre_i][centre_j];           
+      
+    }
+  }                              
+
+  LSDRaster OutputRaster(NewNRows,NewNCols,XMinimum,YMinimum,OutputResolution,NoDataValue,Resampled);
+  return OutputRaster;
+
+}
+
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
