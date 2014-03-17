@@ -1146,7 +1146,6 @@ class LSDRaster
   /// @date 26/07/13
   LSDRaster write_dinf_flowdir_to_LSDRaster(Array2D<float> dinflow);
 
-
   /// @brief Method to turn a point shapefile into an LSDIndexRaster.
   ///
   /// @details Can be used to turn a shapefile of channel heads into a sources raster. Does not do 
@@ -1156,6 +1155,13 @@ class LSDRaster
   /// @author SWDG
   /// @date 13/3/14                     
   LSDIndexRaster PointShapefileToRaster(string FileName);
+  
+  /// @brief Method to resample an LSDRaster to a lower resolution. 
+  /// @param OutputResolution the resolution in spatial units to be resampled to.
+  /// @return An LSDRaster resampled to the OutputResolution.
+  /// @author SWDG
+  /// @date 17/3/14   
+  LSDRaster Resample(float OutputResolution);
 
 	protected:
 
