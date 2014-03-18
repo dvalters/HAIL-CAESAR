@@ -147,7 +147,7 @@ long getFileSize(FILE *file){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to load an ESRI ShapeFile.
 // 
-// Only works for X,Y point shapefiles at present and it's behavious is totally undefined 
+// Only works for X,Y point shapefiles at present and it's behaviour is totally undefined 
 // if you pass in any other type of file.
 //  
 // In future this will be rebuilt into a full class that can support shapefiles of 
@@ -296,5 +296,236 @@ PointData LoadShapefile(string Filename){
   return Points;
   
 }
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to load an ESRI polyline Shapefile.
+// 
+// Only works for polyline shapefiles at present and it's behaviour is totally undefined 
+// if you pass in any other type of file.
+//  
+// In future this will be rebuilt into a full class that can support shapefiles of 
+// different types.
+//
+// Returns a vector of points. So that each item in the vector represents a single polyline.
+//
+// Built in part from:
+// http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/ 
+//
+// SWDG 17/3/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+vector<PointData> LoadPolyline(string Filename){
+  	
+	BYTE *ByteData;			// Pointer to our buffered data
+	FILE *file = NULL;		// File pointer
+
+	// Open the file in binary mode using the "rb" format string
+	// This also checks if the file exists and/or can be opened for reading correctly
+	if ((file = fopen(Filename.c_str(), "rb")) == NULL){
+		cout << "Could not open specified file" << endl;
+		exit(EXIT_FAILURE);
+  }		
+	else{
+		cout << "File opened successfully" << endl;	
+  }
+  
+	// Get the size of the file in bytes
+	long fileSize = getFileSize(file);
+
+	// Allocate space in the buffer for the whole file
+	ByteData = new BYTE[fileSize];
+
+	// Read the file in to the buffer
+	fread(ByteData, fileSize, 1, file);
+
+  //Declare variables used in the method
+  int FileLength;
+  int ShapeType;
+  double Xmin;
+  double Ymin;
+  double Xmax;
+  double Ymax;
+  double Zmin;
+  double Zmax;
+  double Mmin;
+  double Mmax;
+  int RecordLength;
+  PointData Points;
+  double TempX;
+  double TempY;
+  vector<PointData> Polylines;
+  int Skip;
+  int shapetype;                         
+  int numparts; 
+  int numpoints;
+
+  bool LittleEndian = SystemEndiannessTest(); // Get byteorder of the system
+  
+  // If system byte order is Little Endian
+  if (LittleEndian == true){
+  
+    // Get the length of the file
+    ByteSwap(4, ByteData+24);
+    memcpy(&FileLength, ByteData+24, 4);
+
+    // Get type of shape in file (not currently used) see         
+    memcpy(&ShapeType, ByteData+32, 4);
+  
+    // Get Georeferencing data (not currently used)
+    memcpy(&Xmin, ByteData+36, 8);
+    memcpy(&Ymin, ByteData+44, 8);
+    memcpy(&Xmax, ByteData+52, 8);
+    memcpy(&Ymax, ByteData+60, 8);
+    memcpy(&Zmin, ByteData+68, 8);
+    memcpy(&Zmax, ByteData+76, 8);
+    memcpy(&Mmin, ByteData+84, 8);
+    memcpy(&Mmax, ByteData+92, 8);
+        
+    // Get the length of the first record 
+    ByteSwap(4, ByteData+104);
+    memcpy(&RecordLength, ByteData+104, 4);                                                       
+    Skip = RecordLength*2 + 8 + 100;   
+    
+    memcpy(&shapetype, ByteData+108, 4);
+    memcpy(&numparts, ByteData+144, 4);
+    memcpy(&numpoints, ByteData+148, 4);  // number of XY pairs in the first polyline
+        
+    for (int q = 0; q < numpoints; ++q){
+    
+      memcpy(&TempX, ByteData+156+(q*16), 8);
+      memcpy(&TempY, ByteData+164+(q*16), 8);
+      
+      Points.X.push_back(TempX);
+      Points.Y.push_back(TempY);
+        
+    }
+    
+    Polylines.push_back(Points);
+                   
+    while (Skip < (FileLength*2)){
+    
+      ByteSwap(4, ByteData+Skip+4);
+      memcpy(&RecordLength, ByteData+Skip+4, 4);         
+      memcpy(&shapetype, ByteData+Skip+8, 4);                         
+      memcpy(&numparts, ByteData+Skip+44, 4);
+      memcpy(&numpoints, ByteData+Skip+48, 4);  // number of XY pairs in the polyline
+    
+      PointData Points;
+      for (int w = 0; w < numpoints; ++w){
+    
+        memcpy(&TempX, ByteData+Skip+56+(w*16), 8);
+        memcpy(&TempY, ByteData+Skip+64+(w*16), 8);
+      
+        Points.X.push_back(TempX);
+        Points.Y.push_back(TempY);
+        
+      }
+    
+      Polylines.push_back(Points);
+      Skip += (RecordLength*2) +8;
+      
+    }
+      
+  }
+  // If system byte order is Big Endian
+  else{
+  
+    // Get the length of the file
+    memcpy(&FileLength, ByteData+24, 4);
+
+    // Get type of shape in file (not currently used) see
+    ByteSwap(4, ByteData+32);         
+    memcpy(&ShapeType, ByteData+32, 4);
+  
+    // Get Georeferencing data (not currently used)
+    
+    ByteSwap(8, ByteData+36);
+    memcpy(&Xmin, ByteData+36, 8);
+    ByteSwap(8, ByteData+44);
+    memcpy(&Ymin, ByteData+44, 8);
+    ByteSwap(8, ByteData+52);
+    memcpy(&Xmax, ByteData+52, 8);
+    ByteSwap(8, ByteData+60);
+    memcpy(&Ymax, ByteData+60, 8);
+    ByteSwap(8, ByteData+68);
+    memcpy(&Zmin, ByteData+68, 8);
+    ByteSwap(8, ByteData+76);
+    memcpy(&Zmax, ByteData+76, 8);
+    ByteSwap(8, ByteData+84);
+    memcpy(&Mmin, ByteData+84, 8);
+    ByteSwap(8, ByteData+92);
+    memcpy(&Mmax, ByteData+92, 8);
+        
+    // Get the length of the first record     
+    
+    memcpy(&RecordLength, ByteData+104, 4);                                                           
+    Skip = RecordLength*2 + 8 + 100;   
+    
+    ByteSwap(8, ByteData+108);
+    memcpy(&shapetype, ByteData+108, 4);
+    ByteSwap(8, ByteData+144); 
+    memcpy(&numparts, ByteData+144, 4);
+    ByteSwap(8, ByteData+148);
+    memcpy(&numpoints, ByteData+148, 4);  // number of XY pairs in the first polyline
+        
+    for (int q = 0; q < numpoints; ++q){
+    
+      ByteSwap(8, ByteData+156+(q*16));
+      memcpy(&TempX, ByteData+156+(q*16), 8);
+      ByteSwap(8, ByteData+164+(q*16));
+      memcpy(&TempY, ByteData+164+(q*16), 8);
+      
+      cout << TempX << " " << TempY << endl; 
+      Points.X.push_back(TempX);
+      Points.Y.push_back(TempY);
+        
+    }
+    
+    Polylines.push_back(Points);
+         
+    cout << "---------" << endl;
+          
+    while (Skip < (FileLength*2)){
+    
+      ByteSwap(8, ByteData+Skip+4);
+      memcpy(&RecordLength, ByteData+Skip+4, 4);   
+      ByteSwap(8, ByteData+Skip+8);      
+      memcpy(&shapetype, ByteData+Skip+8, 4);
+      ByteSwap(8, ByteData+Skip+44);                    
+      memcpy(&numparts, ByteData+Skip+44, 4);
+      ByteSwap(8, ByteData+Skip+48);
+      memcpy(&numpoints, ByteData+Skip+48, 4);  // number of XY pairs in the polyline
+    
+      PointData Points;
+      for (int w = 0; w < numpoints; ++w){
+    
+        ByteSwap(8, ByteData+Skip+56+(w*16));
+        memcpy(&TempX, ByteData+Skip+56+(w*16), 8);
+        ByteSwap(8, ByteData+Skip+64+(w*16));
+        memcpy(&TempY, ByteData+Skip+64+(w*16), 8);
+      
+        cout << TempX << " " << TempY << endl; 
+        Points.X.push_back(TempX);
+        Points.Y.push_back(TempY);
+        
+      }
+    
+      Polylines.push_back(Points);
+      Skip += (RecordLength*2) +8;  
+     
+      cout << "------" << endl;      
+      
+    }  
+  
+  }
+
+  // Close the file and return the point data
+  fclose(file);      
+  return Polylines;
+  
+}
+
+
+
+
 
 #endif

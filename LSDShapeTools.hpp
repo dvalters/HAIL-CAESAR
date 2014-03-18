@@ -107,6 +107,24 @@ void ByteSwap(int length, void * ByteData);
 PointData LoadShapefile(string Filename);
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to load an ESRI polyline Shapefile.
+// 
+// Only works for polyline shapefiles at present and it's behaviour is totally undefined 
+// if you pass in any other type of file.
+//  
+// In future this will be rebuilt into a full class that can support shapefiles of 
+// different types.
+//
+// Returns a vector of points. So that each item in the vector represents a single polyline.
+//
+// Built in part from:
+// http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/ 
+//
+// SWDG 17/3/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+vector<PointData> LoadPolyline(string Filename);
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to get the size of the binary file being loaded.
 //
 // Taken from http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/ 
