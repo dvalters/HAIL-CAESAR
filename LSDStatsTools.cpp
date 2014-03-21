@@ -2090,6 +2090,8 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
 //          InputArrayX
 //  The outputs are:
 //FC 13/11/12; modified by DM 04/12/12
+// WARNING - will not work on vectors with negative values (e.g. hilltop curvature). If using
+// vector of negative values take the absolute values before passing to function.
 //
 // Modified by FC 30/09/13 to calculate the range of the 95th percentile for each bin - 
 // used for channel head prediction through chi segment fitting.  Changed from log binning to
@@ -2129,6 +2131,10 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   // Defining the upper limit, lower limit and width of the bins
   float upper_limit = ceil(max_X/bin_width)*bin_width;
   float lower_limit = floor(min_X/bin_width)*bin_width;
+  if (lower_limit < 0)                                               //added this to account for presence of -nans in input data
+  { 
+    lower_limit = 0;
+  }
   int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
   //cout << "Upper limit: " << upper_limit << " Lower limit: " << lower_limit << " NBins: " << NBins << endl;
 
