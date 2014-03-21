@@ -5481,8 +5481,6 @@ void LSDRaster::MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int Simi
 	}
 }
 
-
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to turn a point shapefile into an LSDIndexRaster.
 //
@@ -5508,6 +5506,64 @@ LSDIndexRaster LSDRaster::PointShapefileToRaster(string FileName){
     
     Output[i][j] = 1;
   
+  }
+  
+  LSDIndexRaster OutputRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Output);
+  return OutputRaster;
+  
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to turn a polyline shapefile into an LSDIndexRaster.
+//
+// Can be used to turn a shapefile of a river network into a raster. Does not do 
+// any bounds checking or shapefile type checking.
+//
+// Works by calculating points along each line spaced by less than the data resolution. 
+// This has the effect of flagging every raster cell along a polyline. 
+//
+// SWDG 21/3/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDRaster::PolylineShapefileToRaster(string FileName){
+
+  vector<PointData> Polylines = LoadPolyline(FileName);   //load the coordinates of the shapefile
+  Array2D<int> Output(NRows, NCols, NoDataValue);   //output array
+  
+  float i;
+  float j;
+  float k;
+  float Xm;
+  float Ym;
+  float length;
+  float fraction;
+  int i_new;
+  int j_new;
+  
+  float YMax = YMinimum + (DataResolution * (NRows));
+  
+  for (int w = 0; w < int(Polylines.size()); ++w){
+    for (int q = 0; q < int(Polylines[w].X.size())-1; ++q){
+    
+      length = sqrt( ((Polylines[w].X[q+1] - Polylines[w].X[q]) * (Polylines[w].X[q+1] - Polylines[w].X[q])) + ((Polylines[w].Y[q+1] - Polylines[w].Y[q]) * (Polylines[w].Y[q+1] - Polylines[w].Y[q])) );
+      fraction = length/DataResolution;
+      
+      for (int n = 0; n <= fraction; ++n){
+      
+        k = n/fraction;  //calculate the next step along the line to get the coordinates of
+                
+        Xm = Polylines[w].X[q] + (k*(Polylines[w].X[q+1] - Polylines[w].X[q]));      //get the next point along the line
+        Ym = Polylines[w].Y[q] + (k*(Polylines[w].Y[q+1] - Polylines[w].Y[q]));
+      
+        j = (Xm - XMinimum)/DataResolution;     //convert the x,y coordinates into raster coords
+        i = (YMax - Ym)/DataResolution;
+        
+        i_new = trunc(i);           //convert the floating point raster coordinates into integers
+        j_new = ceil(j)-1;
+        
+        Output[i_new][j_new] = 1; 
+      
+      }        
+    }
   }
   
   LSDIndexRaster OutputRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Output);

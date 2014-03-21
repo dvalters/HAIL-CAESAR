@@ -1156,6 +1156,19 @@ class LSDRaster
   /// @date 13/3/14                     
   LSDIndexRaster PointShapefileToRaster(string FileName);
   
+  /// @brief Method to turn a polyline shapefile into an LSDIndexRaster.
+  ///
+  /// @details Can be used to turn a shapefile of a river network into a raster. Does not do 
+  /// any bounds checking or shapefile type checking.
+  ///
+  /// Works by calculating points along each line spaced by less than the data resolution. 
+  /// This has the effect of flaggin every raster cell along a polyline. 
+  /// @param FileName The path and filename of the shapefile to be loaded, must include the file extension.
+  /// @return An LSDIndexRaster converted from a polyline shapefile.
+  /// @author SWDG
+  /// @date 21/3/14     
+  LSDIndexRaster PolylineShapefileToRaster(string FileName);
+  
   /// @brief Method to resample an LSDRaster to a lower resolution. 
   /// @param OutputResolution the resolution in spatial units to be resampled to.
   /// @return An LSDRaster resampled to the OutputResolution.
