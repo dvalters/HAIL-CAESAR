@@ -182,8 +182,8 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
                   vector<float>&  MeanX_output, vector<float>& MeanY_output,
                       vector<float>& midpoints_output, vector<float>& MedianY_output,
                       vector<float>&  StandardDeviationX_output, vector<float>&  StandardDeviationY_output,
-                      vector<float>& RangeMin_output, vector<float>& RangeMax_output, float& bin_lower_limit,
-                      float NoDataValue);
+                      vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, 
+                      vector<int>& number_observations_output, float& bin_lower_limit, float NoDataValue);
 
 //look for empty bins output from the log binning function and removes them to avoid 
 //plotting several empty bins at 0,0 in some cases. SWDG 6/11/13
