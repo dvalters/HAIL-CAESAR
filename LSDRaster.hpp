@@ -525,6 +525,16 @@ class LSDRaster
   /// @author DTM
   /// @date 30/04/13
   LSDRaster get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hilltops);
+  
+  /// @brief Removes positive hilltop curvature values
+  ///
+  /// @details Modifies the hilltop curvature raster to remove pixels with
+  /// positive curvature caused by noise
+  /// @param hilltop_curvature hilltop curvature input raster
+  /// @return LSDRaster of hilltop curvature with positive values removed
+  /// @author FJC
+  /// @date 24/03/14 
+  LSDRaster remove_positive_hilltop_curvature(LSDRaster& hilltop_curvature);
 
   // surface roughness
   /// @brief Algorithm that assesses surface roughness based on a polynomial fit.

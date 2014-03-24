@@ -1877,6 +1877,36 @@ LSDRaster LSDRaster::get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hill
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+// REMOVE POSITIVE HILLTOP CURVATURE
+// This function removes positive hilltop curvature values from the hilltop curvature raster
+// (to remove noise)
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::remove_positive_hilltop_curvature(LSDRaster& hilltop_curvature)
+{
+  
+  Array2D<float> CHT_array(NRows,NCols,NoDataValue);
+  for (int row = 0; row < NRows; row++)
+  {
+    for (int col = 0; col < NCols; col++)
+    {
+      float curvature = hilltop_curvature.get_data_element(row,col);
+      if (curvature < 0)
+      {
+         CHT_array[row][col] = curvature; 
+      }
+    }
+  }
+  LSDRaster CHT(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, CHT_array);
+  
+  return CHT;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // RRRRR  EEEEEE IIIIII
 // RR  RR EE       II
 // RRRR   EEEE     II
