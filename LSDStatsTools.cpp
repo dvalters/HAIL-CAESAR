@@ -2103,18 +2103,16 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
                   vector<float>&  MeanX_output, vector<float>& MeanY_output,
                   vector<float>& midpoints_output, vector<float>& MedianY_output, 
                   vector<float>&  StandardDeviationX_output,vector<float>&  StandardDeviationY_output,
-                  vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, 
+                  vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, vector<int>& number_observations_output, 
                   float& bin_lower_limit, float NoDataValue)
 {
-
-
 
 	// Finding max contributing area to use as upper limit for the bins
 	int n_data = InputVectorY.size();
   float max_X = InputVectorX[n_data-1];
 	float min_X = InputVectorX[1];
 
-	//cout << "LSDStatsTools line 1757, n_data_X: " << n_data << " and Y: " << InputVectorX.size() << endl;
+	cout << "LSDStatsTools line 1757, n_data_X: " << InputVectorX.size() << " and Y: " << InputVectorY.size() << endl;
 
   for (int i = 0; i < n_data; ++i)
 	{
@@ -2131,12 +2129,12 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   // Defining the upper limit, lower limit and width of the bins
   float upper_limit = ceil(max_X/bin_width)*bin_width;
   float lower_limit = floor(min_X/bin_width)*bin_width;
-  if (lower_limit < 0 || isnan(lower_limit) == 1)                      //added this to account for presence of -nans in input data
+  if (lower_limit < 0 || isnan(lower_limit) == 1)
   { 
     lower_limit = 0;
   }
   int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
-  //cout << "Upper limit: " << upper_limit << " Lower limit: " << lower_limit << " NBins: " << NBins << endl;
+  cout << "Upper limit: " << upper_limit << " Lower limit: " << lower_limit << " NBins: " << NBins << endl;
 
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
@@ -2275,6 +2273,7 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   StandardDeviationY_output = StandardDeviationY;
   StandardErrorX_output = StandardErrorX;
   StandardErrorY_output = StandardErrorY;
+  number_observations_output = number_observations;
 }
 
 
