@@ -2131,7 +2131,7 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   // Defining the upper limit, lower limit and width of the bins
   float upper_limit = ceil(max_X/bin_width)*bin_width;
   float lower_limit = floor(min_X/bin_width)*bin_width;
-  if (lower_limit < 0)                                               //added this to account for presence of -nans in input data
+  if (lower_limit < 0 || isnan(lower_limit) == 1)                      //added this to account for presence of -nans in input data
   { 
     lower_limit = 0;
   }
