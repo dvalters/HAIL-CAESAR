@@ -373,6 +373,38 @@ class LSDRaster
   /// @date 01/01/12
   float get_data_element(int row, int column)	{ return RasterData[row][column]; }
 
+  /// @brief Surface polynomial fitting and extraction of topographic metrics
+  /// 
+  /// @detail A six term polynomial surface is fitted to all the points that lie
+  /// within circular neighbourhood that is defined by the designated window
+  /// radius.  The user also inputs a boolean raster, which tells the program
+  /// which rasters it wants to create (label as "true" to produce them, "false"
+  /// to ignore them. This has 8 elements, as listed below:
+  ///        0 -> Elevation (smoothed by surface fitting)
+  ///        1 -> Slope
+  ///        2 -> Aspect
+  ///        3 -> Curvature
+  ///        4 -> Planform Curvature
+  ///        5 -> Profile Curvature
+  ///        6 -> Tangential Curvature
+  ///        8 -> Stationary point classification (1=peak, 2=depression, 3=saddle)
+  /// The program returns a vector of LSDRasters.  For options marked "false" in
+  /// boolean input raster, the returned LSDRaster houses a blank raster, as this
+  /// metric has not been calculated.  The desired LSDRaster can be retrieved from
+  /// the output vector by using the cell reference shown in the list above i.e. it
+  /// is the same as the reference in the input boolean vector.
+  /// @param window_radius -> the radius of the circular window over which to
+  /// fit the surface
+  /// @param raster_selection -> a boolean raster, with 8 elements, which
+  /// identifies which metrics you want to calculate.
+  /// @return A vector of LSDRaster objects.  Those that you have not asked to
+  /// be calculated are returned as a 1x1 Raster housing a NoDataValue
+  ///
+  /// @author DTM
+  /// @date 28/03/2014
+  vector<LSDRaster> calculate_polyfit_surface_metrics(float window_radius, vector<int> raster_selection);
+
+
   // this calculates coefficeint matrices for calculating a variety of
   // surface metrics such as slope, aspect, curvature, etc.
 
