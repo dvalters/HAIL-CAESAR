@@ -1617,7 +1617,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
           {
             for(int j_kernel=0;j_kernel<kw;++j_kernel)
             {
-              if (mask2[i][j]==1)
+              if (mask2[i_kernel][j_kernel]==1)
               {
                 double li,mi,ni;
                 li=0;
@@ -1645,7 +1645,6 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
           // Find eigenvalues of the orientation matrix
           Eigenvalue<double> eigenvalue_matrix(T);
           eigenvalue_matrix.getD(D);
-          //surface_roughness(kw,kw,T,lnS1_S2, S3);
           if(raster_selection[0]==1)  s1_raster[i][j] = D[2][2]/N;
           if(raster_selection[1]==1)  s2_raster[i][j] = D[1][1]/N;
           if(raster_selection[2]==1)  s3_raster[i][j] = D[0][0]/N; 
