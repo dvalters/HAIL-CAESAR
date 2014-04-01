@@ -3738,6 +3738,30 @@ LSDRaster LSDRaster::D_inf_units(){
   return Dinf_area_units_raster;
 }
 
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Topographic_Index
+// Calculates the topographic index, defined as ln(A/S) (Kirkby, 1975), where A
+// is the accumulation area and S is the slope.  This is an indicator of the
+// distribution of moisture within the topography.
+// DTM 01/04/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::calculate_topographic_index(LSDRaster& AccumulationArea, LSDRaster& Slope)
+{
+  Array2D<float> TopographicIndexArray(NRows,NCols,NoDataValue);
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if(RasterData[i][j]!=NoDataValue) TopographicIndexArray[i][j] = log(AccumulationArea.get_data_element(i,j)/Slope.get_data_element(i,j));
+    }
+  }
+  LSDRaster TopographicIndex(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,TopographicIndexArray);
+  return TopographicIndex;
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //end of d-inf modules
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
