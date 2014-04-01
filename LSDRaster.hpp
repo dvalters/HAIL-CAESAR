@@ -403,7 +403,38 @@ class LSDRaster
   /// @author DTM
   /// @date 28/03/2014
   vector<LSDRaster> calculate_polyfit_surface_metrics(float window_radius, vector<int> raster_selection);
-
+    
+  /// @brief Surface polynomial fitting and extraction of roughness metrics
+  /// 
+  /// @detail 
+  /// A six term polynomial surface is fitted to all the points that lie within
+  /// circular neighbourhood that is defined by the designated window radius. 
+  /// This surface is used to determine the orientation of the surface normal
+  /// vector at each cell.  The algorithm then searches through the grid again,
+  /// using a second search window to look for the local variability in normal
+  /// vector orientation. The user also inputs a binary raster, which tells the
+  /// program which rasters it wants to create (label as "1" to produce them,
+  /// "0" to ignore them. This has 3 elements, as listed below:
+  ///        0 -> s1 -> describes clustering of normals around the major axis
+  ///        1 -> s2 -> describes clustering of normals around semi major axis
+  ///        2 -> s3 -> describes clustering around minor axis
+  /// The program returns a vector of LSDRasters.  For options marked "0" in
+  /// binary input raster, the returned LSDRaster houses a blank raster, as this
+  /// metric has not been calculated.  The desired LSDRaster can be retrieved from
+  /// the output vector by using the same cell reference shown in the list above
+  /// i.e. it is the same as the reference in the input binary vector.
+  /// @param window_radius1 -> the radius of the circular window over which to
+  /// fit the surface
+  /// @param window_radius2 -> the radius of the circular window over which to
+  /// look for local variability of surface normal orientation
+  /// @param raster_selection -> a binary raster, with 3 elements, which
+  /// identifies which metrics you want to calculate.
+  /// @return A vector of LSDRaster objects.  Those that you have not asked to
+  /// be calculated are returned as a 1x1 Raster housing a NoDataValue
+  ///
+  /// @author DTM
+  /// @date 01/04/2014
+  vector<LSDRaster> calculate_polyfit_roughness_metrics(float window_radius1, float window_radius2, vector<int> raster_selection);
 
   // this calculates coefficeint matrices for calculating a variety of
   // surface metrics such as slope, aspect, curvature, etc.
