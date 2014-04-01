@@ -1546,7 +1546,9 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
 			  	// COMPUTING SURFACE NORMAL in spherical polar coordinate (ignore
           // radial component)
           pheta[i][j] = atan(sqrt(pow(d,2) + pow(e,2)));
-          if (e == 0 || d == 0) phi[i][j] = NoDataValue;
+          if(d==0 && e==0) phi[i][j] = NoDataValue;
+    			else if(d==0 && e>0) phi[i][j] = acos(-1)/2;
+          else if(d==0 && e<0) phi[i][j] = 3*acos(-1)/2;
           else phi[i][j]=atan(e/d);
 				}					// end if statement for no data value
 				ndv_present = 0;
