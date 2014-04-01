@@ -1613,8 +1613,8 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
           }
         }        
         int N=0;
-        if(ndv_present == 0)  // test for nodata values within the selection
-				{
+        //         if(ndv_present == 0)  // test for nodata values within the selection
+// 				{
           for(int i_kernel=0;i_kernel<kw;++i_kernel)
           {
             for(int j_kernel=0;j_kernel<kw;++j_kernel)
@@ -1625,7 +1625,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
                 li=0;
                 mi=0;
                 ni=0;
-                if(phi[i_kernel][j_kernel]!=0)
+                if(phi_kernel[i_kernel][j_kernel]!=0 && phi_kernel[i_kernel][j_kernel]!=NoDataValue  && pheta_kernel[i_kernel][j_kernel]!=NoDataValue)
                 { 
                   li=sin(pheta_kernel[i_kernel][j_kernel])*cos(phi_kernel[i_kernel][j_kernel]);
                   mi=sin(pheta_kernel[i_kernel][j_kernel])*sin(phi_kernel[i_kernel][j_kernel]);
@@ -1647,11 +1647,12 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
           // Find eigenvalues of the orientation matrix
           Eigenvalue<double> eigenvalue_matrix(T);
           eigenvalue_matrix.getD(D);
+          //surface_roughness(kw,kw,T,lnS1_S2, S3);
           if(raster_selection[0]==1)  s1_raster[i][j] = D[2][2]/N;
           if(raster_selection[1]==1)  s2_raster[i][j] = D[1][1]/N;
           if(raster_selection[2]==1)  s3_raster[i][j] = D[0][0]/N; 
-        }
-      ndv_present = 0; 
+//         }
+//       ndv_present = 0; 
       } 
     }
   }
