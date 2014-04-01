@@ -1219,6 +1219,19 @@ class LSDRaster
   /// @date 26/07/13
   LSDRaster write_dinf_flowdir_to_LSDRaster(Array2D<float> dinflow);
 
+  /// @brief Function to calculate the topographic index, a moisture
+  /// distribution indicator
+  ///
+  /// @details Calculates the topographic index, defined as ln(A/S) (Kirkby,
+  /// 1975), where A is the accumulation area and S is the slope.  This is an 
+  /// indicator of the distribution of moisture within the topography.
+  /// @param LSDRaster of Accumulations Area, calculated ideally with D-inf
+  /// @param LSDRaster of Slope
+  /// @return LSDRaster of Topographic Index
+  /// @author DTM
+  /// @date 01/04/2014
+  LSDRaster calculate_topographic_index(LSDRaster& AccumulationArea, LSDRaster& Slope);
+
   /// @brief Method to turn a point shapefile into an LSDIndexRaster.
   ///
   /// @details Can be used to turn a shapefile of channel heads into a sources raster. Does not do 
