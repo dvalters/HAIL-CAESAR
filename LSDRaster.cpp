@@ -1326,6 +1326,358 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
   return raster_output;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// calculate_polyfit_roughness_metrics
+//
+// This routine houses the code to fit a 6 term polynomial (z =ax^2 + by^2 + cxy
+// + dx + ey + f) to a surface, and then use the derivatives of this to
+// calculate roughness parameters, that quantify the variability of topographic
+// surface normal vectors.
+// 
+// The surface is fitted to all the points that lie within circular
+// neighbourhood that is defined by the designated window radius.  This surface
+// is used to determine the orientation of the surface normal vector at each
+// cell.  The algorithm then searches through the grid again, using a second
+// search window to look for the local variability in normal vector orientation.
+// The user also inputs a binary raster, which tells the program which rasters
+// it wants to create (label as "true" to produce them, "false" to ignore them.
+// This has 3 elements, as listed below:
+//        0 -> s1 -> describes clustering of normals around the major axis
+//        1 -> s2 -> describes clustering of normals around semi major axis
+//        2 -> s3 -> describes clustering around minor axis
+// The program returns a vector of LSDRasters.  For options marked "0" in
+// binary input raster, the returned LSDRaster houses a blank raster, as this
+// metric has not been calculated.  The desired LSDRaster can be retrieved from
+// the output vector by using the same cell reference shown in the list above
+// i.e. it is the same as the reference in the input binary vector.
+//
+// DTM 01/04/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
+vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_radius1, float window_radius2, vector<int> raster_selection)
+{
+	Array2D<float> void_array(1,1,NoDataValue);
+  LSDRaster VOID(1,1,NoDataValue,NoDataValue,NoDataValue,NoDataValue,void_array);  
+  
+  // catch if the supplied window radius is less than the data resolution and
+	// set it to equal the data resolution - SWDG
+  if (window_radius1 < DataResolution)
+  {
+    cout << "Supplied window radius: " << window_radius1 << " is less than the data resolution: " <<
+    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius1 = DataResolution;
+  }
+  if (window_radius2 < DataResolution)
+  {
+    cout << "Supplied window radius: " << window_radius2 << " is less than the data resolution: " <<
+    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius2 = DataResolution;
+  }
+  // this fits a polynomial surface over a kernel window. First, perpare the
+  // kernel
+	int kr = int(ceil(window_radius1/DataResolution));  // Set radius of kernel
+	int kw=2*kr+1;                    						     // width of kernel
+
+	Array2D<float> data_kernel(kw,kw,NoDataValue);
+	Array2D<float> x_kernel(kw,kw,NoDataValue);
+	Array2D<float> y_kernel(kw,kw,NoDataValue);
+	Array2D<int> mask(kw,kw,0);
+
+	// reset the a,b,c,d,e and f matrices (the coefficient matrices)
+	Array2D<float> temp_coef(NRows,NCols,NoDataValue);
+	Array2D<float> pheta, phi, s1_raster, s2_raster, s3_raster;
+  // Copy across raster template into the desired array containers
+  if(raster_selection[0]==1)  s1_raster = temp_coef.copy();
+  if(raster_selection[1]==1)  s2_raster = temp_coef.copy();
+	if(raster_selection[2]==1)  s3_raster = temp_coef.copy();
+  pheta = temp_coef.copy();
+  phi = temp_coef.copy();
+  float a,b,c,d,e,f;
+  
+	// scale kernel window to resolution of DEM, and translate coordinates to be
+	// centred on cell of interest (the centre cell)
+	float x,y,zeta,radial_dist;
+	for(int i=0;i<kw;++i)
+	{
+	  for(int j=0;j<kw;++j)
+	  {
+	    x_kernel[i][j]=(i-kr)*DataResolution;
+	    y_kernel[i][j]=(j-kr)*DataResolution;
+			// Build circular mask
+			// distance from centre to this point.
+			radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
+
+      if (floor(radial_dist) <= window_radius1)
+      {
+				mask[i][j] = 1;
+			}
+    }
+	}
+	// FIT POLYNOMIAL SURFACE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO
+	// DETERMINE TOPOGRAPHIC METRICS
+	// Have N simultaneous linear equations, and N unknowns.
+	// => b = Ax, where x is a 1xN array containing the coefficients we need for
+	// surface fitting.
+	// A is constructed using different combinations of x and y, thus we only need
+	// to compute this once, since the window size does not change.
+	// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
+	// 6x6 matrix
+	Array2D<float> A(6,6);
+	for (int i=0; i<kw; ++i)
+	{
+		for (int j=0; j<kw; ++j)
+		{
+			if (mask[i][j] == 1)
+      {
+       	x = x_kernel[i][j];
+				y = y_kernel[i][j];
+
+				// Generate matrix A
+				A[0][0] += pow(x,4);
+				A[0][1] += pow(x,2)*pow(y,2);
+				A[0][2] += pow(x,3)*y;
+				A[0][3] += pow(x,3);
+				A[0][4] += pow(x,2)*y;
+				A[0][5] += pow(x,2);
+				A[1][0] += pow(x,2)*pow(y,2);
+				A[1][1] += pow(y,4);
+				A[1][2] += x*pow(y,3);
+				A[1][3] += x*pow(y,2);
+				A[1][4] += pow(y,3);
+				A[1][5] += pow(y,2);
+				A[2][0] += pow(x,3)*y;
+				A[2][1] += x*pow(y,3);
+				A[2][2] += pow(x,2)*pow(y,2);
+				A[2][3] += pow(x,2)*y;
+				A[2][4] += x*pow(y,2);
+				A[2][5] += x*y;
+				A[3][0] += pow(x,3);
+				A[3][1] += x*pow(y,2);
+				A[3][2] += pow(x,2)*y;
+				A[3][3] += pow(x,2);
+				A[3][4] += x*y;
+				A[3][5] += x;
+				A[4][0] += pow(x,2)*y;
+				A[4][1] += pow(y,3);
+				A[4][2] += x*pow(y,2);
+				A[4][3] += x*y;
+				A[4][4] += pow(y,2);
+				A[4][5] += y;
+				A[5][0] += pow(x,2);
+				A[5][1] += pow(y,2);
+				A[5][2] += x*y;
+				A[5][3] += x;
+				A[5][4] += y;
+				A[5][5] += 1;
+		  }
+		}
+	}
+
+	// Move window over DEM, fitting 2nd order polynomial surface to the
+	// elevations within the window.
+	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
+	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+	int ndv_present = 0;
+
+	for(int i=0;i<NRows;++i)
+	{
+		cout << flush << "\tRow = " << i+1 << " / " << NRows << "    \r";
+		for(int j=0;j<NCols;++j)
+		{
+			// Avoid edges
+			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+			{
+        pheta[i][j]=NoDataValue;
+        phi[i][j]=NoDataValue;
+			}
+			else
+			{
+				// clip DEM
+				//zeta_sampler=zeta.copy();
+				for(int i_kernel=0;i_kernel<kw;++i_kernel)
+				{
+			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
+			  	{
+						data_kernel[i_kernel][j_kernel] =
+									RasterData[i-kr+i_kernel][j-kr+j_kernel];
+						// check for nodata values nearby
+						if(data_kernel[i_kernel][j_kernel]==NoDataValue)
+						{
+							ndv_present=1;
+						}
+			  	}
+				}
+				// Fit polynomial surface, avoiding nodata values          ==================> Could change this, as can fit polynomial surface as long as there are 6 data points.
+				if(ndv_present == 0)  // test for nodata values within the selection
+				{
+					Array1D<float> bb(6,0.0);
+					Array1D<float> coeffs(6);
+					for (int krow=0; krow<kw; ++krow)
+					{
+						for (int kcol=0; kcol<kw; ++kcol)
+						{
+							if (mask[krow][kcol] == 1)
+              {
+                x = x_kernel[krow][kcol];
+					      y = y_kernel[krow][kcol];
+					      zeta = data_kernel[krow][kcol];
+					      // Generate vector bb
+					      bb[0] += zeta*x*x;
+					      bb[1] += zeta*y*y;
+					      bb[2] += zeta*x*y;
+					      bb[3] += zeta*x;
+					      bb[4] += zeta*y;
+					      bb[5] += zeta;
+					    }		// end mask
+            }			// end kernal column
+					}				// end kernal row
+					// Solve matrix equations using LU decomposition using the TNT JAMA
+					// package:
+          // A.coefs = b, where coefs is the coefficients vector.
+					LU<float> sol_A(A);  // Create LU object
+					coeffs = sol_A.solve(bb);
+
+			  	a=coeffs[0];
+			  	b=coeffs[1];
+			  	c=coeffs[2];
+			  	d=coeffs[3];
+			  	e=coeffs[4];
+			  	f=coeffs[5];
+			  	
+			  	// COMPUTING SURFACE NORMAL in spherical polar coordinate (ignore
+          // radial component)
+          pheta[i][j] = atan(sqrt(pow(d,2) + pow(e,2)));
+          if (e == 0 || d == 0) phi[i][j] = NoDataValue;
+          else phi[i][j]=atan(e/d);
+				}					// end if statement for no data value
+				ndv_present = 0;
+			}
+		}
+	}
+	// 2) DETERMINE ORIENTATION MATRIX AT EACH POINT, AND THEN SOLVE FOR THE
+  // EIGENVALUES.
+  // Prepare new kernel
+  kr=ceil(window_radius2/DataResolution);      // Set radius of kernel as >= specified radius
+  kw=2*kr+1;                    // width of kernel
+  // Declare kernel arrays
+  Array2D<float> pheta_kernel(kw,kw);
+  Array2D<float> phi_kernel(kw,kw);
+	// Build circular mask
+	Array2D<int> mask2(kw,kw,0);
+	float x_kernel_ref,y_kernel_ref;
+  for(int i=0;i<kw;++i)
+  {
+    for(int j=0;j<kw;++j)
+    {
+  		x_kernel_ref=(i-kr)*DataResolution;
+     	y_kernel_ref=(j-kr)*DataResolution;
+     	radial_dist = sqrt(y_kernel_ref*y_kernel_ref + x_kernel_ref*x_kernel_ref); // distance from centre to this point.
+     	if (floor(radial_dist) <= window_radius2)
+     	{
+        mask2[i][j] = 1;
+  		}
+    }
+	}
+  
+  // Loop over DEM again, this time looking at variability of surface normals
+  cout << "Finding eigenvalues for local surface. Search radius = " << kr << "m" << endl;
+  for(int i=0; i<NRows; ++i)
+  {
+    cout << flush << "\tRow = " << i+1 << " / " << NRows << "    \r";
+    for(int j=0; j<NCols; ++j)
+    {
+      // Avoid edges and nodata values
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+      {
+        if(raster_selection[0]==1)  s1_raster[i][j] = NoDataValue;
+        if(raster_selection[1]==1)  s2_raster[i][j] = NoDataValue;
+        if(raster_selection[2]==1)  s3_raster[i][j] = NoDataValue;
+      }
+      else
+      {
+        // build orientation matrix for this point
+        Array2D<double> T(3,3,0.0);
+        Array2D<double> D(3,3);
+        for(int i_kernel=0;i_kernel<kw;++i_kernel)
+        {
+          for(int j_kernel=0;j_kernel<kw;++j_kernel)
+          {
+            pheta_kernel[i_kernel][j_kernel]=pheta[i-kr+i_kernel][j-kr+j_kernel];
+            phi_kernel[i_kernel][j_kernel]=phi[i-kr+i_kernel][j-kr+j_kernel];
+            // check for nodata values nearby
+						if(phi_kernel[i_kernel][j_kernel]==NoDataValue)
+						{
+							ndv_present=1;
+						}
+          }
+        }        
+        int N=0;
+        if(ndv_present == 0)  // test for nodata values within the selection
+				{
+          for(int i_kernel=0;i_kernel<kw;++i_kernel)
+          {
+            for(int j_kernel=0;j_kernel<kw;++j_kernel)
+            {
+              if (mask2[i][j]==1)
+              {
+                double li,mi,ni;
+                li=0;
+                mi=0;
+                ni=0;
+                if(phi[i_kernel][j_kernel]!=0)
+                { 
+                  li=sin(pheta_kernel[i_kernel][j_kernel])*cos(phi_kernel[i_kernel][j_kernel]);
+                  mi=sin(pheta_kernel[i_kernel][j_kernel])*sin(phi_kernel[i_kernel][j_kernel]);
+                  ni=cos(pheta_kernel[i_kernel][j_kernel]);
+                  T[0][0] += pow(li,2);
+                  T[0][1] += li*mi;
+                  T[0][2] += li*ni;
+                  T[1][0] += mi*li;
+                  T[1][1] += pow(mi,2);
+                  T[1][2] += mi*ni;
+                  T[2][0] += ni*li;
+                  T[2][1] += ni*mi;
+                  T[2][2] += pow(ni,2);
+                  ++N;
+                }
+              }
+            }
+          }
+          // Find eigenvalues of the orientation matrix
+          Eigenvalue<double> eigenvalue_matrix(T);
+          eigenvalue_matrix.getD(D);
+          //surface_roughness(kw,kw,T,lnS1_S2, S3);
+          if(raster_selection[0]==1)  s1_raster[i][j] = D[2][2]/N;
+          if(raster_selection[1]==1)  s2_raster[i][j] = D[1][1]/N;
+          if(raster_selection[2]==1)  s3_raster[i][j] = D[0][0]/N; 
+        }
+      ndv_present = 0; 
+      } 
+    }
+  }
+	
+	
+	// Now create LSDRasters and load into output vector
+	vector<LSDRaster> output_rasters_temp(3,VOID);
+  vector<LSDRaster> raster_output = output_rasters_temp;
+  if(raster_selection[0]==1)
+  {
+    LSDRaster s1(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,s1_raster);
+    raster_output[0] = s1;
+  }
+  if(raster_selection[1]==1)  
+  {
+    LSDRaster s2(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,s2_raster);
+    raster_output[1] = s2;
+  }	
+  if(raster_selection[2]==1)  
+  {
+    LSDRaster s3(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,s3_raster);
+    raster_output[2] = s3;
+  }  
+  return raster_output;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
 // calculate_polyfit_coefficient_matrices
