@@ -377,9 +377,9 @@ class LSDRaster
   /// 
   /// @detail A six term polynomial surface is fitted to all the points that lie
   /// within circular neighbourhood that is defined by the designated window
-  /// radius.  The user also inputs a boolean raster, which tells the program
-  /// which rasters it wants to create (label as "true" to produce them, "false"
-  /// to ignore them. This has 8 elements, as listed below:
+  /// radius.  The user also inputs a binary raster, which tells the program
+  /// which rasters it wants to create (label as "1" to produce them, "0" to
+  /// ignore them. This has 8 elements, as listed below:
   ///        0 -> Elevation (smoothed by surface fitting)
   ///        1 -> Slope
   ///        2 -> Aspect
@@ -395,7 +395,7 @@ class LSDRaster
   /// is the same as the reference in the input boolean vector.
   /// @param window_radius -> the radius of the circular window over which to
   /// fit the surface
-  /// @param raster_selection -> a boolean raster, with 8 elements, which
+  /// @param raster_selection -> a binary raster, with 8 elements, which
   /// identifies which metrics you want to calculate.
   /// @return A vector of LSDRaster objects.  Those that you have not asked to
   /// be calculated are returned as a 1x1 Raster housing a NoDataValue

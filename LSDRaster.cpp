@@ -995,7 +995,7 @@ void LSDRaster::check_isolated_nodata()
 // 
 // The surface is fitted to all the points that lie within circular
 // neighbourhood that is defined by the designated window radius.  The user also
-// inputs a boolean raster, which tells the program which rasters it wants to
+// inputs a binary raster, which tells the program which rasters it wants to
 // create (label as "true" to produce them, "false" to ignore them. This has 8
 // elements, as listed below:
 //        0 -> Elevation (smoothed by surface fitting)
@@ -1010,7 +1010,7 @@ void LSDRaster::check_isolated_nodata()
 // boolean input raster, the returned LSDRaster houses a blank raster, as this
 // metric has not been calculated.  The desired LSDRaster can be retrieved from
 // the output vector by using the cell reference shown in the list above i.e. it
-// is the same as the reference in the input boolean vector.
+// is the same as the reference in the input binary vector.
 //
 // DTM 28/03/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
