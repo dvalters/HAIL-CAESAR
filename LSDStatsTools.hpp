@@ -71,6 +71,7 @@ float get_durbin_watson_statistic(vector<float> residuals);
 float get_standard_deviation(vector<float>& y_data, float mean);
 float get_standard_error(vector<float>& y_data, float standard_deviation);
 vector<float> get_common_statistics(vector<float>& y_data);
+float get_percentile(vector<float>& data, float percentile);
 
 // these look for linear segments within a data series.
 void populate_segment_matrix(int start_node, int end_node, float no_data_value,
