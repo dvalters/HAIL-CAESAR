@@ -197,6 +197,13 @@ void RemoveSmallBins(vector<float>&  MeanX_output, vector<float>& MeanY_output,
 //    Midpoint LowerLim UpperLim Count ProbabilityDensity                      
 void print_histogram(vector<float> input_values, float bin_width, string filename);
 
+// This is a much simpler version of the binning software.  It takes two vectors, and
+// sorts the values held within the first vector into bins according to their respective
+// values in the second vector.  The output is a vector<vector> with the binned dataset.
+// and a vector of bin midpoints.  These can then be analysed ahd plotted as desired.
+// DTM 14/04/2014
+void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float max, float bin_width, vector<float>& mid_points, vector< vector<float> >& binned_data);
+
 // tools for sorting
 template<class T> struct index_cmp;
 void matlab_float_sort(vector<float>& unsorted, vector<float>& sorted, vector<size_t>& index_map);
