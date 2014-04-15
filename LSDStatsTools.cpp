@@ -2448,7 +2448,53 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
 
 }
  
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// bin_data
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This is a much simpler version of the binning software.  It takes two vectors, and
+// sorts the values held within the first vector into bins according to their respective
+// values in the second vector.  The output is a vector<vector> with the binned dataset.
+// and a vector of bin midpoints.  These can then be analysed ahd plotted as desired.
+// DTM 14/04/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float max, float bin_width, vector<float>& mid_points, vector< vector<float> >& binned_data)
+{
+	
+  // Defining the upper limit, lower limit and width of the bins
+  float upper_limit = ceil(max/bin_width)*bin_width;
+  float lower_limit = floor(min/bin_width)*bin_width;
+  int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
+  vector<float> empty_vector;
+  for(int i = 0; i<NBins; i++)
+  {
+	  binned_data.push_back(empty_vector);
+  }
 
+  // Bin Data from vector1 according to values in vector2
+  for (int i = 0; i < vector1.size(); ++i)
+  {
+    if((vector2[i] >= min) && (vector2[i] <= max))
+    {
+      // Get bin_id from vector 2
+      int bin_id = int((vector2[i]-lower_limit)/bin_width);
+      if (bin_id >= 0)
+      {
+        // Store value from vector1 into this bin
+        binned_data[bin_id].push_back(vector1[i]);
+      }
+    }
+  }
+
+  // Calculating the midpoint in x direction of each bin and the mean of x and y
+  // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
+  // x vs Mean Y to be most robust.  At the moment the program returns both.
+  float midpoint_value = lower_limit + bin_width/2;
+  for (int i = 0; i < NBins; i++)
+  {
+    midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
+    mid_points[i] = midpoint_value;
+  }
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
