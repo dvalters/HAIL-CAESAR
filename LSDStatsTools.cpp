@@ -2463,7 +2463,7 @@ void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float m
   // Defining the upper limit, lower limit and width of the bins
   float upper_limit = ceil(max/bin_width)*bin_width;
   float lower_limit = floor(min/bin_width)*bin_width;
-  int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
+  int NBins = int( (upper_limit - lower_limit)/bin_width );//+1;
   vector<float> empty_vector;
   vector<float> mid_points_temp;
   vector< vector<float> > binned_data_temp(NBins,empty_vector);
