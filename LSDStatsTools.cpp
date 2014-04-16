@@ -2465,10 +2465,8 @@ void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float m
   float lower_limit = floor(min/bin_width)*bin_width;
   int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
   vector<float> empty_vector;
-  for(int i = 0; i<NBins; i++)
-  {
-	  binned_data.push_back(empty_vector);
-  }
+  vector<float> mid_points_temp;
+  vector< vector<float> > binned_data_temp(NBins,empty_vector);
 
   // Bin Data from vector1 according to values in vector2
   for (int i = 0; i < vector1.size(); ++i)
@@ -2480,7 +2478,7 @@ void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float m
       if (bin_id >= 0)
       {
         // Store value from vector1 into this bin
-        binned_data[bin_id].push_back(vector1[i]);
+        binned_data_temp[bin_id].push_back(vector1[i]);
       }
     }
   }
@@ -2492,9 +2490,12 @@ void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float m
   for (int i = 0; i < NBins; i++)
   {
     midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
-    mid_points[i] = midpoint_value;
+    mid_points_temp.push_back(midpoint_value);
   }
+  mid_points = mid_points_temp;
+  binned_data = binned_data_temp;
 }
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
