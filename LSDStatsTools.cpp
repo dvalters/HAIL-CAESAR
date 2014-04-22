@@ -164,7 +164,35 @@ vector<float> sample_without_replacement(vector<float> population_vector, int N)
   }                                                               
   return sample_vector;
 }
-
+vector<int> sample_without_replacement(vector<int> population_vector, int N)
+{
+  vector<int> sample_vector;
+  int Population = population_vector.size(); 
+  if(N > Population)
+  {
+  	cout << "N>Population size, try again" << endl;
+    exit(EXIT_FAILURE);
+  }
+  
+  int sample_count = 0;
+  float random_number,Population_remaining;
+  long seed;
+  int vector_ref;
+  while (sample_count < N)
+  {
+    Population_remaining = population_vector.size();
+    seed = time(NULL);
+    random_number = ran3(&seed);
+    vector_ref = floor(random_number*Population_remaining);
+    
+    if(vector_ref = Population_remaining) vector_ref = Population_remaining - 1;
+    
+    sample_vector.push_back(population_vector[vector_ref]);
+    population_vector.erase(population_vector.begin()+vector_ref);
+    ++sample_count;
+  }                                                               
+  return sample_vector;
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the mean from a population of y_data
