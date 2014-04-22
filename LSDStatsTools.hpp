@@ -162,6 +162,7 @@ float calculate_MLE_from_residuals(vector<float>& residuals, float sigma);
 float ran3( long *idum );
 // Randomly sample from a vector without replacement DTM 21/04/2014
 vector<float> sample_without_replacement(vector<float> population_vector, int N);
+vector<int> sample_without_replacement(vector<int> population_vector, int N);
 // conversion from numbers to strings
 string itoa(int num);
 string dtoa(float num);
