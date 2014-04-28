@@ -1082,7 +1082,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 	// to compute this once, since the window size does not change.
 	// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
 	// 6x6 matrix
-	Array2D<float> A(6,6);
+	Array2D<float> A(6,6,0.0);
 	for (int i=0; i<kw; ++i)
 	{
 		for (int j=0; j<kw; ++j)
@@ -1421,7 +1421,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
 	// to compute this once, since the window size does not change.
 	// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
 	// 6x6 matrix
-	Array2D<float> A(6,6);
+	Array2D<float> A(6,6,0.0);
 	for (int i=0; i<kw; ++i)
 	{
 		for (int j=0; j<kw; ++j)
