@@ -1052,7 +1052,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 	if(raster_selection[6]==1)  tangential_curvature_raster = temp_coef.copy();
 	if(raster_selection[7]==1)  classification_raster = temp_coef.copy();
   
-  float a,b,c,d,e,f;
+  //float a,b,c,d,e,f;
   
 	// scale kernel window to resolution of DEM, and translate coordinates to be
 	// centred on cell of interest (the centre cell)
@@ -1082,7 +1082,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 	// to compute this once, since the window size does not change.
 	// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
 	// 6x6 matrix
-	Array2D<float> A(6,6);
+	Array2D<float> A(6,6,0.0);
 	for (int i=0; i<kw; ++i)
 	{
 		for (int j=0; j<kw; ++j)
@@ -1203,12 +1203,12 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 					LU<float> sol_A(A);  // Create LU object
 					coeffs = sol_A.solve(bb);
 
-			  	a=coeffs[0];
-			  	b=coeffs[1];
-			  	c=coeffs[2];
-			  	d=coeffs[3];
-			  	e=coeffs[4];
-			  	f=coeffs[5];
+			  	float a=coeffs[0];
+			  	float b=coeffs[1];
+			  	float c=coeffs[2];
+			  	float d=coeffs[3];
+			  	float e=coeffs[4];
+			  	float f=coeffs[5];
 			  	
 			  	// Now calculate the required topographic metrics
 			  	if(raster_selection[0]==1)  elevation_raster[i][j] = f;
@@ -1421,7 +1421,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
 	// to compute this once, since the window size does not change.
 	// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
 	// 6x6 matrix
-	Array2D<float> A(6,6);
+	Array2D<float> A(6,6,0.0);
 	for (int i=0; i<kw; ++i)
 	{
 		for (int j=0; j<kw; ++j)
