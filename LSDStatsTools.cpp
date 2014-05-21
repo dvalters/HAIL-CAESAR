@@ -347,15 +347,15 @@ vector<float> get_common_statistics(vector<float>& y_data)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_percentile(vector<float>& data, float percentile)
 {
-	int N = data.size();
-	float n = percentile*(N-1)/100 + 1;
-	int k = int(floor(n));
-	float d = n - floor(n);
-	float percentile_value;
-  if(k==N) percentile_value = data[k-1];
-  else if (k == 0) percentile_value = data[0];
-  else percentile_value = data[k-1] + d*(data[k]-data[k-1]); 
-  return percentile_value;
+	int N = data.size();                                               
+	float n = percentile*(float(N)-1)/100;                                
+	int k = int(floor(n));                                             
+	float d = n - floor(n);                                            
+	float percentile_value;                                            
+  if(k>=N-1) percentile_value = data[k-1];                             
+  else if (k < 0) percentile_value = data[0];                       
+  else percentile_value = data[k] + d*(data[k+1]-data[k]);         
+  return percentile_value;   
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
