@@ -387,7 +387,7 @@ class LSDRaster
   ///        4 -> Planform Curvature
   ///        5 -> Profile Curvature
   ///        6 -> Tangential Curvature
-  ///        8 -> Stationary point classification (1=peak, 2=depression, 3=saddle)
+  ///        7 -> Stationary point classification (1=peak, 2=depression, 3=saddle)
   /// The program returns a vector of LSDRasters.  For options marked "false" in
   /// boolean input raster, the returned LSDRaster houses a blank raster, as this
   /// metric has not been calculated.  The desired LSDRaster can be retrieved from
