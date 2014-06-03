@@ -5088,149 +5088,148 @@ LSDRaster LSDRaster::FreemanMDFlow_SingleSource(int i_source,int j_source)
   return FreemanMultiFlowSingleSource;
 }
 
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This is used to reduce a map of potential sources down to a simplified source
 // network for channel extraction by removing potential sources that are on ANY
 // downslope pathway from previous sources
 // DTM 07/11/2013
-LSDIndexRaster LSDRaster::IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vector<int> source_row_vec,vector<int> source_col_vec)
-{
-
-  //create output array, populated with nodata
-  Array2D<float> area(NRows, NCols, NoDataValue);
-  Array2D<int> sources_array(NRows, NCols, int(NoDataValue));
-  Array2D<int> times_visited(NRows, NCols, int(NoDataValue));
-  //declare variables
-  vector<float> flat;
-  vector<float> sorted;
-  vector<size_t> index_map;
-  float one_ov_root_2 = 0.707106781187;
-  float p = 1.1; //value avoids preferential flow to diagonals
-
-  //loop through the dem cells creating a row major 1D vector, flat, and
-  //setting the cell area to every npn ndv cell
-  for (int i = 0; i < NRows; ++i)
-  {
-    for (int j = 0; j < NCols; ++j)
-    {
-      flat.push_back(RasterData[i][j]);
-      if (RasterData[i][j] != NoDataValue)
-      {
-        area[i][j] = 0;
-        times_visited[i][j] = 0;
-      }
-    }
-  }
-  int n_possible_sources = source_row_vec.size();
-  int row,col;
-  for(int i = 0; i<n_possible_sources; ++i)
-  {
-    row = source_row_vec[i];
-    col = source_col_vec[i];
-    area[row][col] = 1.0;
-    times_visited[row][col] = 1;
-  }
-  Array2D<int> temp = times_visited.copy() ;
-  //sort the 1D elevation vector and produce an index
-  matlab_float_sort_descending(flat, sorted, index_map);
- 
-	//int i_source = 0;
-  for(int q = 0 ;q < int(flat.size()); ++q)
-  {
-
-    if (sorted[q] != NoDataValue)
-    {
-      //use row major ordering to reconstruct each cell's i,j coordinates
-  	  int i = index_map[q] / NCols;
-   	  int j = index_map[q] % NCols;
-
-      //skip edge cells and cells above the source pixel
-      if (i != 0 && j != 0 && i != NRows-1 && j != NCols-1){
-
-        //reset variables on each loop
-			  float total = 0;
-			  float slope1 = 0;
-        float slope2 = 0;
-        float slope3 = 0;
-        float slope4 = 0;
-        float slope5 = 0;
-        float slope6 = 0;
-        float slope7 = 0;
-        float slope8 = 0;
-
-        //Get sum of magnitude of downslope flow, total, and store the magnitude of
-        //each of the 8 downslope cells as slope1->8 *Avoids NDVs*
-			  if (RasterData[i][j] > RasterData[i-1][j-1] && RasterData[i-1][j-1] != NoDataValue){
-          slope1 = pow(((RasterData[i][j] - RasterData[i-1][j-1]) * one_ov_root_2),p);
-          total += slope1;
-          if(times_visited[i][j] > 0) times_visited[i-1][j-1]+=1;
-        }
-			  if (RasterData[i][j] > RasterData[i-1][j] && RasterData[i-1][j] != NoDataValue){
-          slope2 = pow((RasterData[i][j] - RasterData[i-1][j]),p);
-          total += slope2;
-          if(times_visited[i][j] > 0) times_visited[i-1][j]+=1;
-			  }
-		  	if (RasterData[i][j] > RasterData[i-1][j+1] && RasterData[i-1][j+1] != NoDataValue){
-          slope3 = pow(((RasterData[i][j] - RasterData[i-1][j+1]) * one_ov_root_2),p);
-          total += slope3;
-          if(times_visited[i][j] > 0) times_visited[i-1][j+1] += 1;
-		  	}
-			  if (RasterData[i][j] > RasterData[i][j+1] && RasterData[i][j+1] != NoDataValue){
-          slope4 = pow((RasterData[i][j] - RasterData[i][j+1]),p);
-          total += slope4;
-          if(times_visited[i][j] > 0) times_visited[i][j+1] += 1;
-        }
-			  if (RasterData[i][j] > RasterData[i+1][j+1] && RasterData[i+1][j+1] != NoDataValue){
-          slope5 = pow(((RasterData[i][j] - RasterData[i+1][j+1]) * one_ov_root_2),p);
-          total += slope5;
-          if(times_visited[i][j] > 0) times_visited[i+1][j+1]+=1;
-		  	}
-			  if (RasterData[i][j] > RasterData[i+1][j] && RasterData[i+1][j] != NoDataValue){
-          slope6 = pow((RasterData[i][j] - RasterData[i+1][j]),p);
-          total += slope6;
-          if(times_visited[i][j] > 0) times_visited[i+1][j]+=1;
-        }
-			  if (RasterData[i][j] > RasterData[i+1][j-1] && RasterData[i+1][j-1] != NoDataValue){
-          slope7 = pow(((RasterData[i][j] - RasterData[i+1][j-1]) * one_ov_root_2),p);
-          total += slope7;
-          if(times_visited[i][j] > 0) times_visited[i+1][j-1]+=1;
-			  }
-			  if (RasterData[i][j] > RasterData[i][j-1] && RasterData[i][j-1] != NoDataValue){
-          slope8 = pow((RasterData[i][j] - RasterData[i][j-1]),p);
-          total += slope8;
-          if(times_visited[i][j] > 0) times_visited[i][j-1]+=1;
-        }
-
-      //divide slope by total to get the proportion of flow directed to each cell
-      //and increment the downslope cells. If no downslope flow to a node, 0 is
-      //added, so no change is seen.
-			area[i-1][j-1] += (area[i][j] * (slope1)/total);
-			area[i-1][j] += (area[i][j] * (slope2)/total);
-			area[i-1][j+1] += (area[i][j] * (slope3)/total);
-			area[i][j+1] += (area[i][j] * (slope4)/total);
-			area[i+1][j+1] += (area[i][j] * (slope5)/total);
-			area[i+1][j] += (area[i][j] * (slope6)/total);
-			area[i+1][j-1] += (area[i][j] * (slope7)/total);
-			area[i][j-1] += (area[i][j] * (slope8)/total);
-      } 
-    }
-  }                              
-  for(int i = 0; i<n_possible_sources; ++i)
-  {
-    row = source_row_vec[i];
-    col = source_col_vec[i];
-    if (times_visited[row][col] == 1)
-    {
-      sources_array[row][col] = 1;
-    }
-  }
-  //write output LSDRaster object
-  LSDIndexRaster SourcesRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, int(NoDataValue), sources_array);
-  //LSDRaster AreaRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, area);
-  //AreaRaster.write_raster("area","flt");
-  return SourcesRaster;
-}
+// LSDIndexRaster LSDRaster::IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vector<int> source_row_vec,vector<int> source_col_vec, Array2D<float>& tan_curv)
+// {
+// 
+//   //create output array, populated with nodata
+//   Array2D<float> area(NRows, NCols, NoDataValue);
+//   Array2D<int> sources_array(NRows, NCols, int(NoDataValue));
+//   Array2D<int> times_visited(NRows, NCols, int(NoDataValue));
+//   //declare variables
+//   vector<float> flat;
+//   vector<float> sorted;
+//   vector<size_t> index_map;
+//   float one_ov_root_2 = 0.707106781187;
+//   float p = 1.1; //value avoids preferential flow to diagonals
+// 
+//   //loop through the dem cells creating a row major 1D vector, flat, and
+//   //setting the cell area to every npn ndv cell
+//   for (int i = 0; i < NRows; ++i)
+//   {
+//     for (int j = 0; j < NCols; ++j)
+//     {
+//       flat.push_back(RasterData[i][j]);
+//       if (RasterData[i][j] != NoDataValue)
+//       {
+//         area[i][j] = 0;
+//         times_visited[i][j] = 0;
+//       }
+//     }
+//   }
+//   int n_possible_sources = source_row_vec.size();
+//   int row,col;
+//   for(int i = 0; i<n_possible_sources; ++i)
+//   {
+//     row = source_row_vec[i];
+//     col = source_col_vec[i];
+//     area[row][col] = 1.0;
+//     times_visited[row][col] = 1;
+//   }
+//   Array2D<int> temp = times_visited.copy() ;
+//   //sort the 1D elevation vector and produce an index
+//   matlab_float_sort_descending(flat, sorted, index_map);
+//  
+// 	//int i_source = 0;
+//   for(int q = 0 ;q < int(flat.size()); ++q)
+//   {
+// 
+//     if (sorted[q] != NoDataValue)
+//     {
+//       //use row major ordering to reconstruct each cell's i,j coordinates
+//   	  int i = index_map[q] / NCols;
+//    	  int j = index_map[q] % NCols;
+// 
+//       //skip edge cells and cells above the source pixel
+//       if (i != 0 && j != 0 && i != NRows-1 && j != NCols-1){
+// 
+//         //reset variables on each loop
+// 			  float total = 0;
+// 			  float slope1 = 0;
+//         float slope2 = 0;
+//         float slope3 = 0;
+//         float slope4 = 0;
+//         float slope5 = 0;
+//         float slope6 = 0;
+//         float slope7 = 0;
+//         float slope8 = 0;
+// 
+//         //Get sum of magnitude of downslope flow, total, and store the magnitude of
+//         //each of the 8 downslope cells as slope1->8 *Avoids NDVs*
+// 			  if (RasterData[i][j] > RasterData[i-1][j-1] && RasterData[i-1][j-1] != NoDataValue){
+//           slope1 = pow(((RasterData[i][j] - RasterData[i-1][j-1]) * one_ov_root_2),p);
+//           total += slope1;
+//           if(times_visited[i][j] > 0 && tan_curv[i-1][j-1]>0) times_visited[i-1][j-1]+=1;
+//         }
+// 			  if (RasterData[i][j] > RasterData[i-1][j] && RasterData[i-1][j] != NoDataValue){
+//           slope2 = pow((RasterData[i][j] - RasterData[i-1][j]),p);
+//           total += slope2;
+//           if(times_visited[i][j] > 0 && tan_curv[i-1][j]>0) times_visited[i-1][j]+=1;
+// 			  }
+// 		  	if (RasterData[i][j] > RasterData[i-1][j+1] && RasterData[i-1][j+1] != NoDataValue){
+//           slope3 = pow(((RasterData[i][j] - RasterData[i-1][j+1]) * one_ov_root_2),p);
+//           total += slope3;
+//           if(times_visited[i][j] > 0 && tan_curv[i-1][j+1]>0) times_visited[i-1][j+1] += 1;
+// 		  	}
+// 			  if (RasterData[i][j] > RasterData[i][j+1] && RasterData[i][j+1] != NoDataValue){
+//           slope4 = pow((RasterData[i][j] - RasterData[i][j+1]),p);
+//           total += slope4;
+//           if(times_visited[i][j] > 0 && tan_curv[i][j+1]>0) times_visited[i][j+1] += 1;
+//         }
+// 			  if (RasterData[i][j] > RasterData[i+1][j+1] && RasterData[i+1][j+1] != NoDataValue){
+//           slope5 = pow(((RasterData[i][j] - RasterData[i+1][j+1]) * one_ov_root_2),p);
+//           total += slope5;
+//           if(times_visited[i][j] > 0 && tan_curv[i+1][j+1]>0) times_visited[i+1][j+1]+=1;
+// 		  	}
+// 			  if (RasterData[i][j] > RasterData[i+1][j] && RasterData[i+1][j] != NoDataValue){
+//           slope6 = pow((RasterData[i][j] - RasterData[i+1][j]),p);
+//           total += slope6;
+//           if(times_visited[i][j] > 0 && tan_curv[i+1][j]>0) times_visited[i+1][j]+=1;
+//         }
+// 			  if (RasterData[i][j] > RasterData[i+1][j-1] && RasterData[i+1][j-1] != NoDataValue){
+//           slope7 = pow(((RasterData[i][j] - RasterData[i+1][j-1]) * one_ov_root_2),p);
+//           total += slope7;
+//           if(times_visited[i][j] > 0 && tan_curv[i+1][j-1]>0) times_visited[i+1][j-1]+=1;
+// 			  }
+// 			  if (RasterData[i][j] > RasterData[i][j-1] && RasterData[i][j-1] != NoDataValue){
+//           slope8 = pow((RasterData[i][j] - RasterData[i][j-1]),p);
+//           total += slope8;
+//           if(times_visited[i][j] > 0 && tan_curv[i][j-1]>0) times_visited[i][j-1]+=1;
+//         }
+// 
+//       //divide slope by total to get the proportion of flow directed to each cell
+//       //and increment the downslope cells. If no downslope flow to a node, 0 is
+//       //added, so no change is seen.
+// 			area[i-1][j-1] += (area[i][j] * (slope1)/total);
+// 			area[i-1][j] += (area[i][j] * (slope2)/total);
+// 			area[i-1][j+1] += (area[i][j] * (slope3)/total);
+// 			area[i][j+1] += (area[i][j] * (slope4)/total);
+// 			area[i+1][j+1] += (area[i][j] * (slope5)/total);
+// 			area[i+1][j] += (area[i][j] * (slope6)/total);
+// 			area[i+1][j-1] += (area[i][j] * (slope7)/total);
+// 			area[i][j-1] += (area[i][j] * (slope8)/total);
+//       } 
+//     }
+//   }                              
+//   for(int i = 0; i<n_possible_sources; ++i)
+//   {
+//     row = source_row_vec[i];
+//     col = source_col_vec[i];
+//     if (times_visited[row][col] == 1)
+//     {
+//       sources_array[row][col] = 1;
+//     }
+//   }
+//   //write output LSDRaster object
+//   LSDIndexRaster SourcesRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, int(NoDataValue), sources_array);
+//   LSDRaster AreaRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, area);
+//   AreaRaster.write_raster("area","flt");
+//   return SourcesRaster;
+// }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -5764,9 +5763,6 @@ LSDRaster LSDRaster::M2DFlow(){
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // PREDICTING CHANNEL HEADS USING TANGENTIAL CURVATURE
 //
@@ -5793,50 +5789,50 @@ LSDRaster LSDRaster::M2DFlow(){
 // pixels are excluded from the final source map. 
 // 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDIndexRaster LSDRaster::calculate_pelletier_channel_heads(float window_radius, float tan_curv_threshold, Array2D<float>& tan_curv_array)
-{
-  Array2D<float> curv_array(NRows,NCols,NoDataValue);
-  vector<int> possible_sources_row;
-  vector<int> possible_sources_col;
-  vector<float> possible_sources_elev;
-  // Get all the locations where the tan curvature is greater than the user defined threshold
-  for (int row = 0; row < NRows; row++)
-	{
-    for(int col = 0; col < NCols; col++)
-    {
-      if (tan_curv_array[row][col] > tan_curv_threshold)
-      {
-        possible_sources_row.push_back(row);
-        possible_sources_col.push_back(col);
-        possible_sources_elev.push_back(RasterData[row][col]);
-        curv_array[row][col] = tan_curv_array[row][col];
-      }
-    }
-  }
-  //LSDRaster AboveThreshold(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,curv_array);
-  //AboveThreshold.write_raster("thresh","flt");
-  // Now sort possible sources by elevation, then route flow using d-inf,
-  // excluding potential sources that are on downslope pathway from other
-  // sources
-//   int n_possible_sources = possible_sources_elev.size();
-//   if (n_possible_sources <= 0)
-//   {
-//     cout << "NO SOURCES FOUND" << endl;
+// LSDIndexRaster LSDRaster::calculate_pelletier_channel_heads(float tan_curv_threshold, Array2D<float>& tan_curv_array)
+// {
+//   Array2D<float> curv_array(NRows,NCols,NoDataValue);
+//   vector<int> possible_sources_row;
+//   vector<int> possible_sources_col;
+//   vector<float> possible_sources_elev;
+//   // Get all the locations where the tan curvature is greater than the user defined threshold
+//   for (int row = 0; row < NRows; row++)
+// 	{
+//     for(int col = 0; col < NCols; col++)
+//     {
+//       if (tan_curv_array[row][col] > tan_curv_threshold)
+//       {
+//         possible_sources_row.push_back(row);
+//         possible_sources_col.push_back(col);
+//         possible_sources_elev.push_back(RasterData[row][col]);
+//         curv_array[row][col] = tan_curv_array[row][col];
+//       }
+//     }
 //   }
-//   else
-//   {
-//     cout << "Found " << n_possible_sources << " possible source pixels" << endl;
-//   }
-  vector<size_t> index_map;
-
-  // sort
-  matlab_float_sort_descending(possible_sources_elev, possible_sources_elev, index_map);
-  matlab_int_reorder(possible_sources_row, index_map, possible_sources_row);
-  matlab_int_reorder(possible_sources_col, index_map, possible_sources_col);
-  LSDIndexRaster SourcesRaster = IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(possible_sources_row,possible_sources_col);
-   
-  return SourcesRaster;
-}
+//   //LSDRaster AboveThreshold(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,curv_array);
+//   //AboveThreshold.write_raster("thresh","flt");
+//   // Now sort possible sources by elevation, then route flow using d-inf,
+//   // excluding potential sources that are on downslope pathway from other
+//   // sources
+// //   int n_possible_sources = possible_sources_elev.size();
+// //   if (n_possible_sources <= 0)
+// //   {
+// //     cout << "NO SOURCES FOUND" << endl;
+// //   }
+// //   else
+// //   {
+// //     cout << "Found " << n_possible_sources << " possible source pixels" << endl;
+// //   }
+//   vector<size_t> index_map;
+// 
+//   // sort
+//   matlab_float_sort_descending(possible_sources_elev, possible_sources_elev, index_map);
+//   matlab_int_reorder(possible_sources_row, index_map, possible_sources_row);
+//   matlab_int_reorder(possible_sources_col, index_map, possible_sources_col);
+//   LSDIndexRaster SourcesRaster = IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(possible_sources_row,possible_sources_col,tan_curv_array);
+//    
+//   return SourcesRaster;
+// }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
