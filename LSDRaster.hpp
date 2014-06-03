@@ -857,14 +857,14 @@ class LSDRaster
   /// @date 07/11/2013
   LSDRaster FreemanMDFlow_SingleSource(int i_source,int j_source);
 
-  /// @brief This is used to reduce a map of potential sources down to a simplified source
-  /// network for channel extraction by removing potential sources that are on ANY
-  /// downslope pathway from previous sources
-  /// @param source_row_vec -> vector of row indeces for potential source pixels
-  /// @param source_col_vec -> vector of column indeces for potential source pixels
-  /// @author DTM
-  /// @date 07/11/2013
-  LSDIndexRaster IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vector<int> source_row_vec,vector<int> source_col_vec);
+//  /// @brief This is used to reduce a map of potential sources down to a simplified source
+//  /// network for channel extraction by removing potential sources that are on ANY
+//  /// downslope pathway from previous sources
+//  /// @param source_row_vec -> vector of row indeces for potential source pixels
+//  /// @param source_col_vec -> vector of column indeces for potential source pixels
+//  /// @author DTM
+//  /// @date 07/11/2013
+//  LSDIndexRaster IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vector<int> source_row_vec,vector<int> source_col_vec);
   
   /// @brief Generate a flow area raster using a multi direction algorithm.
   ///
@@ -898,26 +898,26 @@ class LSDRaster
   /// @date 02/08/13
   LSDRaster M2DFlow();
 
-	// channel head identification
-	/// @brief This function is used to predict channel head locations based on the method proposed by Pelletier (2013).
-  ///
-  /// @details It creates a contour curvature map and identifies channel heads as pixels greater
-  /// than a user defined contour curvature threshold value, set by default at 0.1.  The threshold curvature
-  /// can also be defined as a multiple of the standard deviation of the curvature.  Before this function is called
-  /// the DEM must be filtered using the wiener filter in the LSDRasterSpectral object in order to remove high frequency
-  /// noise.
-  ///
-  /// Reference: Pelletier (2013) A robust, two-parameter method for the extraction of drainage
-  /// networks from high-resolution digital elevation models (DEMs): Evaluation using synthetic and real-world
-  /// DEMs, Water Resources Research 49: 1-15
-  ///
-  /// @param window_radius Integer window radius - suggest 6m.
-  /// @param tan_curv_threshold Double curvature threshold value.
-  /// @param tan_curv_array 2D array of tangential curvature.
-  /// @return LSDIndexRaster of predicted channel head locations.
-  /// @author FC, DTM
-  /// @date 07/11/13
-		LSDIndexRaster calculate_pelletier_channel_heads(float window_radius, float tan_curv_threshold, Array2D<float>& tan_curv_array);
+//	// channel head identification
+//	/// @brief This function is used to predict channel head locations based on the method proposed by Pelletier (2013).
+//  ///
+//  /// @details It creates a contour curvature map and identifies channel heads as pixels greater
+//  /// than a user defined contour curvature threshold value, set by default at 0.1.  The threshold curvature
+//  /// can also be defined as a multiple of the standard deviation of the curvature.  Before this function is called
+//  /// the DEM must be filtered using the wiener filter in the LSDRasterSpectral object in order to remove high frequency
+//  /// noise.
+//  ///
+//  /// Reference: Pelletier (2013) A robust, two-parameter method for the extraction of drainage
+//  /// networks from high-resolution digital elevation models (DEMs): Evaluation using synthetic and real-world
+//  /// DEMs, Water Resources Research 49: 1-15
+//  ///
+//  /// @param window_radius Integer window radius - suggest 6m.
+//  /// @param tan_curv_threshold Double curvature threshold value.
+//  /// @param tan_curv_array 2D array of tangential curvature.
+//  /// @return LSDIndexRaster of predicted channel head locations.
+//  /// @author FC, DTM
+//  /// @date 07/11/13
+//		LSDIndexRaster calculate_pelletier_channel_heads(float window_radius, float tan_curv_threshold, Array2D<float>& tan_curv_array);
 
 	// some tools associated with ridgeline analyis
 
