@@ -6354,6 +6354,31 @@ LSDRaster LSDRaster::Resample(float OutputResolution){
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Border with nodata values
+// This function replaces the border pixels of a raster with nodatavalues.  This
+// is particularly useful when dealing with output from functions that have edge
+// effects (e.g. spectral filtering)
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::border_with_nodata(int border_width)
+{
+  Array2D<float> Data = RasterData.copy();
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j< NCols; ++j)
+    {
+      if( i<border_width || i>NRows-border_width || j<border_width || j>NCols-border_width)
+      {
+        Data[i][j]=NoDataValue;
+        //cout << i << "/" << NRows << " " << j << "/" << NCols << endl;
+      }
+    }
+  }
+  LSDRaster bordered_DEM(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Data);
+	return bordered_DEM;
+}
+
+
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
