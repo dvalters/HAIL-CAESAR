@@ -1261,6 +1261,14 @@ class LSDRaster
   /// @author SWDG
   /// @date 17/3/14   
   LSDRaster Resample(float OutputResolution);
+  
+  /// @brief Function to change border pixels to nodata
+  ///
+  /// @param int border_width
+  /// @return Updated LSDRaster
+  /// @author DTM
+  /// @date 29/05/2014
+  LSDRaster border_with_nodata(int border_width);
 
 	protected:
 
