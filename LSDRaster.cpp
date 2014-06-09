@@ -417,7 +417,7 @@ void LSDRaster::rewrite_with_random_values(float range)
 // This calculates relief over a window. 
 // Right now it can have a circular window with kernalType == 1 or square otherwise
 //
-// Written by JJ 6-6-2014
+// Written by JAJ 6-6-2014
 // Inserted into trunk by SMM 9-6-2014
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -460,8 +460,93 @@ LSDRaster LSDRaster::calculate_relief(float kernelWidth, int kernelType)
 	return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, reliefMap);
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Return the mean elevation of the raster
+// JAJ, sometime in February 2014
+// modified SMM to make sure division by float 9/6/2014
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float LSDRaster::mean_elevation(void)
+{
+	float sum_elevation = 0;
+	int n = 0;
+	for (int i=0; i<NRows; ++i)
+	{
+		for (int j=0; j<NCols; ++j)
+		{
+			if (RasterData[i][j] != NoDataValue)
+			{
+				sum_elevation += RasterData[i][j];
+				++n;
+			}
+		}
+	}
+	return float(sum_elevation/float(n));
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Return the maximum elevation of the raster
+// JAJ, sometime in February 2014
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float LSDRasterModel::max_elevation( void )
+{
+	float max_elevation = 0.0;
+	bool found=false;
+	for (int i=0; i<NRows; ++i)
+	{
+		for (int j=0; j<NCols; ++j)
+		{
+			if (not found)
+			{
+				if (RasterData[i][j] != NoDataValue)
+				{
+					max_elevation = RasterData[i][j];
+					found = true;
+				}
+			}
+			else if (RasterData[i][j] > max_elevation)
+				max_elevation = RasterData[i][j];
+		}
+	}
+	return max_elevation;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Return the mean relief of the raster
+// JAJ, sometime in February 2014
+// modified SMM to make sure division by float 9/6/2014
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float LSDRasterModel::mean_relief(float kernelWidth)
+{
+	LSDRaster relief = calculate_relief(kernelWidth, 1);
+	float relief_val, sum_relief = 0;
+	int n;
+
+	for (int i=0; i<NRows; ++i)
+	{
+		for (int j=0; j<NCols; ++j)
+		{
+			relief_val = relief.get_data_element(i, j);
+			if (relief_val != NoDataValue)
+			{
+				sum_relief += relief_val;
+				++n;
+			}
+		}
+	}
+	return float(sum_relief/float(n));
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

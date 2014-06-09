@@ -237,14 +237,31 @@ class LSDRaster
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-  /// @brief Calcualtes a relief raster
+  /// @brief Calculates a relief raster
   /// @param The width in metres of the kernal you wnat to use for resolution
-  /// @parame if this ==1 then you use a circular kernal. Otherwise kernal is square
+  /// @param if this ==1 then you use a circular kernal. Otherwise kernal is square
   /// @return The spatially distributed relief
-  /// @author JJ (entered into trunk SMM)
+  /// @author JAJ (entered into trunk SMM)
   /// @date 6/06/2014 Happy 3rd Birthday Skye!!!
   LSDRaster calculate_relief(float kernelWidth, int kernelType);
 
+  /// @brief Calculates mean elevation of a raster
+  /// @return The spatially distributed relief
+  /// @author JAJ (entered into trunk SMM)
+  /// @date 01/02/2014 modified 09/06/2014 by SMM
+  float mean_elevation(void);
+  
+  /// @brief Calculates max elevation of a raster
+  /// @return The spatially distributed relief
+  /// @author JAJ (entered into trunk SMM)
+  /// @date 01/02/2014 
+	float max_elevation(void);
+	
+  /// @brief Calculates mean relief of a raster, it defaults to a circular kernal
+  /// @return The spatially distributed relief
+  /// @author JAJ (entered into trunk SMM)
+  /// @date 01/02/2014 	modified 09/06/2014 by SMM
+	float mean_relief(float kernelsize);
 
   // Functions for the Diamond Square algorithm
 
