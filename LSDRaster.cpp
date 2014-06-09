@@ -494,7 +494,7 @@ float LSDRaster::mean_elevation(void)
 // JAJ, sometime in February 2014
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-float LSDRasterModel::max_elevation( void )
+float LSDRaster::max_elevation( void )
 {
 	float max_elevation = 0.0;
 	bool found=false;
@@ -526,11 +526,11 @@ float LSDRasterModel::max_elevation( void )
 // modified SMM to make sure division by float 9/6/2014
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-float LSDRasterModel::mean_relief(float kernelWidth)
+float LSDRaster::mean_relief(float kernelWidth)
 {
 	LSDRaster relief = calculate_relief(kernelWidth, 1);
 	float relief_val, sum_relief = 0;
-	int n;
+	int n = 0;
 
 	for (int i=0; i<NRows; ++i)
 	{
