@@ -228,6 +228,24 @@ class LSDRaster
   /// @date 29/8/13
   LSDRaster LSDRasterTemplate(Array2D<float> InputData);
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  //
+  // Simple topographic metrics
+  // Several simple topographic metrics measuered over a kernal
+  //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  /// @brief Calcualtes a relief raster
+  /// @param The width in metres of the kernal you wnat to use for resolution
+  /// @parame if this ==1 then you use a circular kernal. Otherwise kernal is square
+  /// @return The spatially distributed relief
+  /// @author JJ (entered into trunk SMM)
+  /// @date 6/06/2014 Happy 3rd Birthday Skye!!!
+  LSDRaster calculate_relief(float kernelWidth, int kernelType);
+
+
   // Functions for the Diamond Square algorithm
 
   /// @brief This returns a value from the array data element but wraps around
