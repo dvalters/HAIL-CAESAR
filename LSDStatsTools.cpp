@@ -156,7 +156,10 @@ vector<float> sample_without_replacement(vector<float> population_vector, int N)
     random_number = ran3(&seed);
     vector_ref = floor(random_number*Population_remaining);
     
-    if(vector_ref = Population_remaining) vector_ref = Population_remaining - 1;
+    if(vector_ref == Population_remaining)
+    {
+      vector_ref = Population_remaining - 1;
+    }
     
     sample_vector.push_back(population_vector[vector_ref]);
     population_vector.erase(population_vector.begin()+vector_ref);
@@ -185,7 +188,10 @@ vector<int> sample_without_replacement(vector<int> population_vector, int N)
     random_number = ran3(&seed);
     vector_ref = floor(random_number*Population_remaining);
     
-    if(vector_ref = Population_remaining) vector_ref = Population_remaining - 1;
+    if(vector_ref == Population_remaining)
+    {
+      vector_ref = Population_remaining - 1;
+    }
     
     sample_vector.push_back(population_vector[vector_ref]);
     population_vector.erase(population_vector.begin()+vector_ref);
@@ -2530,7 +2536,7 @@ void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float m
   vector< vector<float> > binned_data_temp(NBins,empty_vector);
 
   // Bin Data from vector1 according to values in vector2
-  for (int i = 0; i < vector1.size(); ++i)
+  for (int i = 0; i < int(vector1.size()); ++i)
   {
     if((vector2[i] >= min) && (vector2[i] <= max))
     {
@@ -3008,7 +3014,7 @@ double get_QuadraticMean(vector<double> input_values, double bin_width)
     probability_density[i] = number_observations[i]/double(n_data);    
   }
   
-  double QuadraticMean;
+  double QuadraticMean = 0;
   for(int i = 0; i<NBins; i++)
   {
     QuadraticMean += probability_density[i]*bin_midpoints[i]*bin_midpoints[i];
