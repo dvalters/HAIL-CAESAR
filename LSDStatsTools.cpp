@@ -3017,6 +3017,89 @@ double get_QuadraticMean(vector<double> input_values, double bin_width)
   return QuadraticMean;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Line parser for parameter files - JAJ 08/01/2014
+// This might be better off somewhere else
+//
+// To be used on a parameter file of the format:
+// 	Name: 100		comments etc.
+// Which sets parameter as "Name" and value as "100"
+//
+// This just does one line at a time; you need a wrapper function to get all
+// the information out of the file
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void parse_line(ifstream &infile, string &parameter, string &value)
+{
+	char c;
+	char buff[128];
+	int pos = 0;
+	int word = 0;
+
+	while ( infile.get(c) )	
+	{
+		if (pos >= 128)
+		{
+			cout << "Buffer overrun, word too long in parameter line: " << endl;
+			string line;
+			getline(infile, line);
+			cout << "\t" << buff << " ! \n" << line << endl;
+			exit(1);
+		}
+		// preceeding whitespace
+		if (c == '#')
+		{
+			if (word == 0)
+			{
+				parameter = "NULL";
+				value = "NULL";
+			}
+			if (word == 1)
+				value = "NULL";
+			word = 2;
+		}
+
+		if ((c == ' ' || c == '\t') && pos == 0)
+			continue;
+		else if ( (c == ':' && word == 0) || ( (c == ' ' || c == '\n' || c == '\t') && word == 1))
+		{
+			while (buff[pos-1] == ' ' || buff[pos-1] == '\t')
+				--pos;		// Trailing whitespace
+			buff[pos] = '\0';	// Append Null char
+			if (word == 0)
+				parameter = buff;	// Assign buffer contents
+			else if (word == 1)
+				value = buff;
+			++word;
+			pos = 0;		// Rewind buffer
+		}
+		else if ( c == '\n' && word == 0 )
+		{
+			parameter = "NULL";
+			buff[pos] = '\0';
+			value = buff;
+			++word;
+		}
+		else if (word < 2)
+		{
+			buff[pos] = c;
+			++pos;
+		}
+
+		if (c == '\n')
+			break;
+	}
+	if (word == 0)
+	{
+		parameter = "NULL";
+		value = "NULL";
+	}
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 
 #endif
 

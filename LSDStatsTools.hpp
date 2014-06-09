@@ -243,6 +243,10 @@ void get_distribution_stats(vector<float>& y_data, float& mean, float& median, f
 // Method to calculate the quadratic mean. - DTM
 double get_QuadraticMean(vector<double> input_values, double bin_width);
 
+// basic parser for parameter files   JAJ  08/01/2014
+// There may be a better place to put this, but I can't think where 
+void parse_line(ifstream &infile, string &parameter, string &value); 
+
 #endif
 
 
