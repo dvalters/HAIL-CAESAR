@@ -1,6 +1,6 @@
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
-// LSDRasterSpectral
+// LSDRaster
 // Land Surface Dynamics StatsTools
 //
 // An object within the University
@@ -402,6 +402,64 @@ void LSDRaster::rewrite_with_random_values(float range)
   }
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Simple topographic metrics
+// Several simple topographic metrics measuered over a kernal
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Calcualte relief
+// This calculates relief over a window. 
+// Right now it can have a circular window with kernalType == 1 or square otherwise
+//
+// Written by JJ 6-6-2014
+// Inserted into trunk by SMM 9-6-2014
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::calculate_relief(float kernelWidth, int kernelType)
+{
+	int kr = ((kernelWidth/DataResolution))/2-1;
+	float max, min;
+	Array2D <float> reliefMap(NRows, NCols, 0.0);
+	if (kr < 1)
+	{
+		kernelWidth = 2.5;
+		kr = 1;
+	}
+	for (int i=0; i<NRows; ++i)
+	{
+		for (int j=0; j<NCols; ++j)
+		{
+			max = RasterData[i][j];
+			min = RasterData[i][j];
+			for (int sub_i = i-kr; sub_i<=i+kr; ++sub_i)
+			{
+				if (sub_i<0 || sub_i>=NRows) continue;
+				for (int sub_j = j-kr; sub_j<=j+kr; ++sub_j)
+				{
+					if (sub_j<0 || sub_j>=NCols) continue;
+					if (RasterData[sub_i][sub_j] == NoDataValue) continue;
+
+					if (kernelType == 1)	//circular
+						if ((pow(sub_i-i,2) + pow(sub_j-j,2))*DataResolution > kernelWidth/2)
+							continue;
+					if (RasterData[sub_i][sub_j] > max)
+						max = RasterData[sub_i][sub_j];
+					if (RasterData[sub_i][sub_j] < min)
+						min = RasterData[sub_i][sub_j];
+				}
+			}
+			reliefMap[i][j] = max-min;
+		}
+	}
+	return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, reliefMap);
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
 
 
