@@ -891,6 +891,22 @@ class LSDRaster
   /// @author DTM
   /// @date 07/11/2013
   LSDRaster FreemanMDFlow_SingleSource(int i_source,int j_source);
+  
+/// @brief Extracts a multi-pixel channel network, as opposed to a single thread
+  /// channel, using method outlined in Pelletier, 2013, WRR; A robust, two-parameter
+  /// method for the extraction of drainage networks from high-resolution digital 
+  ///elevation models (DEMs): Evaluation using synthetic and real-world DEMs
+  /// 
+  /// @detail First runs Freeman MD flow routing algorithm from previously identified
+  /// source.  Then removes all pixels from the channel network if the ratio of
+  /// discharge to upstream channel heads is below a user-specified threshold
+  /// @param vector<int> channel_heads_rows - a vector of source node row indices
+  /// @param vector<int> channel_heads_cols - a vector of source node column indices
+  /// @param float R_threshold - the threshold ratio of discharge:upstream channel
+  /// heads; Pelletier (2013) reccomends a value of 0.1
+  /// @author DTM
+  /// @date 22/05/2014
+  LSDRaster FMDChannelsFromChannelHeads(vector<int>& channel_heads_rows, vector<int>& channel_heads_cols, float R_threshold);
 
 //  /// @brief This is used to reduce a map of potential sources down to a simplified source
 //  /// network for channel extraction by removing potential sources that are on ANY
