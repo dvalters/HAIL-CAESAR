@@ -907,15 +907,6 @@ class LSDRaster
   /// @author DTM
   /// @date 22/05/2014
   LSDRaster FMDChannelsFromChannelHeads(vector<int>& channel_heads_rows, vector<int>& channel_heads_cols, float R_threshold);
-
-//  /// @brief This is used to reduce a map of potential sources down to a simplified source
-//  /// network for channel extraction by removing potential sources that are on ANY
-//  /// downslope pathway from previous sources
-//  /// @param source_row_vec -> vector of row indeces for potential source pixels
-//  /// @param source_col_vec -> vector of column indeces for potential source pixels
-//  /// @author DTM
-//  /// @date 07/11/2013
-//  LSDIndexRaster IdentifyFurthestUpstreamSourcesWithFreemanMDFlow(vector<int> source_row_vec,vector<int> source_col_vec);
   
   /// @brief Generate a flow area raster using a multi direction algorithm.
   ///
