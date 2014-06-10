@@ -5231,6 +5231,150 @@ LSDRaster LSDRaster::FreemanMDFlow_SingleSource(int i_source,int j_source)
   return FreemanMultiFlowSingleSource;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This extracts the valley network from previously idenified channel heads
+// using workflow outlined in Pelletier (2013)
+// DTM 07/11/2013
+LSDRaster LSDRaster::FMDChannelsFromChannelHeads(vector<int>& channel_heads_rows, vector<int>& channel_heads_cols, float R_threshold)
+{
+  int n_sources = channel_heads_rows.size();
+  //create output array, populated with nodata
+  Array2D<float> area(NRows, NCols, NoDataValue);
+  Array2D<int> upslope_channel_heads(NRows, NCols, int(NoDataValue));
+  //declare variables
+  vector<float> flat;
+  vector<int> rows_flat,cols_flat;
+  vector<float> sorted;
+  vector<size_t> index_map; 
+  vector<int> rows_sort,cols_sort;
+  float one_ov_root_2 = 0.707106781187;
+  float p = 1.1; //value avoids preferential flow to diagonals
+
+  //loop through the dem cells creating a row major 1D vector, flat, and
+  //setting the cell area to every npn ndv cell
+  for (int i = 0; i < NRows; ++i)
+  {
+    for (int j = 0; j < NCols; ++j)
+    {
+      flat.push_back(RasterData[i][j]);
+      rows_flat.push_back(i);
+      cols_flat.push_back(j);
+      if (RasterData[i][j] != NoDataValue)
+      {
+        area[i][j] = 0;
+        upslope_channel_heads[i][j] = 0;
+      }
+    }
+  }
+
+  int row,col;
+  for(int i = 0; i<n_sources; ++i)
+  {
+    row = channel_heads_rows[i];
+    col = channel_heads_cols[i];
+    area[row][col] = DataResolution*DataResolution;
+    upslope_channel_heads[row][col] = 1;
+  }
+  //sort the 1D elevation vector and produce an index
+  matlab_float_sort_descending(flat, sorted, index_map);
+  matlab_int_reorder(rows_flat, index_map, rows_sort);
+  matlab_int_reorder(cols_flat, index_map, cols_sort);
+  
+	//int i_source = 0;
+  for(int q = 0 ;q < int(flat.size()); ++q)
+  {
+
+    if (sorted[q] != NoDataValue)
+    {
+      //use row major ordering to reconstruct each cell's i,j coordinates
+  	  int i = rows_sort[q];
+   	  int j = cols_sort[q];
+
+      //skip edge cells and cells above the source pixel
+      if (i != 0 && j != 0 && i != NRows-1 && j != NCols-1){
+
+        //reset variables on each loop
+			  float total = 0;
+			  float slope1 = 0;
+        float slope2 = 0;
+        float slope3 = 0;
+        float slope4 = 0;
+        float slope5 = 0;
+        float slope6 = 0;
+        float slope7 = 0;
+        float slope8 = 0;
+
+        //Get sum of magnitude of downslope flow, total, and store the magnitude of
+        //each of the 8 downslope cells as slope1->8 *Avoids NDVs*
+			  if (RasterData[i][j] > RasterData[i-1][j-1] && RasterData[i-1][j-1] != NoDataValue){
+          slope1 = pow(((RasterData[i][j] - RasterData[i-1][j-1]) * one_ov_root_2),p);
+          total += slope1;
+          ++upslope_channel_heads[i-1][j-1];
+        }
+			  if (RasterData[i][j] > RasterData[i-1][j] && RasterData[i-1][j] != NoDataValue){
+          slope2 = pow((RasterData[i][j] - RasterData[i-1][j]),p);
+          total += slope2;
+          ++upslope_channel_heads[i-1][j];
+			  }
+		  	if (RasterData[i][j] > RasterData[i-1][j+1] && RasterData[i-1][j+1] != NoDataValue){
+          slope3 = pow(((RasterData[i][j] - RasterData[i-1][j+1]) * one_ov_root_2),p);
+          total += slope3;
+          ++upslope_channel_heads[i-1][j+1];
+		  	}
+			  if (RasterData[i][j] > RasterData[i][j+1] && RasterData[i][j+1] != NoDataValue){
+          slope4 = pow((RasterData[i][j] - RasterData[i][j+1]),p);
+          total += slope4;
+          ++upslope_channel_heads[i][j+1];
+        }
+			  if (RasterData[i][j] > RasterData[i+1][j+1] && RasterData[i+1][j+1] != NoDataValue){
+          slope5 = pow(((RasterData[i][j] - RasterData[i+1][j+1]) * one_ov_root_2),p);
+          total += slope5;
+          ++upslope_channel_heads[i+1][j+1];
+		  	}
+			  if (RasterData[i][j] > RasterData[i+1][j] && RasterData[i+1][j] != NoDataValue){
+          slope6 = pow((RasterData[i][j] - RasterData[i+1][j]),p);
+          total += slope6;
+          ++upslope_channel_heads[i+1][j];
+        }
+			  if (RasterData[i][j] > RasterData[i+1][j-1] && RasterData[i+1][j-1] != NoDataValue){
+          slope7 = pow(((RasterData[i][j] - RasterData[i+1][j-1]) * one_ov_root_2),p);
+          total += slope7;
+          ++upslope_channel_heads[i+1][j-1];
+			  }
+			  if (RasterData[i][j] > RasterData[i][j-1] && RasterData[i][j-1] != NoDataValue){
+          slope8 = pow((RasterData[i][j] - RasterData[i][j-1]),p);
+          total += slope8;
+          ++upslope_channel_heads[i][j-1];
+        }
+
+        //divide slope by total to get the proportion of flow directed to each cell
+        //and increment the downslope cells. If no downslope flow to a node, 0 is
+        //added, so no change is seen.
+  			area[i-1][j-1] += (area[i][j] * (slope1)/total);
+  			area[i-1][j] += (area[i][j] * (slope2)/total);
+  			area[i-1][j+1] += (area[i][j] * (slope3)/total);
+  			area[i][j+1] += (area[i][j] * (slope4)/total);
+  			area[i+1][j+1] += (area[i][j] * (slope5)/total);
+  			area[i+1][j] += (area[i][j] * (slope6)/total);
+  			area[i+1][j-1] += (area[i][j] * (slope7)/total);
+  			area[i][j-1] += (area[i][j] * (slope8)/total);
+      } 
+    }
+  }
+  // Now reduce the channel network according to upslope pixels
+  for(int i = 0; i< NRows; ++i)
+  {
+    for(int j = 0; j<NCols; ++j)
+    {
+      if(area[i][j] <= 0 || area[i][j]/upslope_channel_heads[i][j] < R_threshold) area[i][j] = NoDataValue;
+    }
+  }                              
+  //write output LSDRaster object
+  LSDRaster ChannelRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, area);
+  return ChannelRaster;
+}
+
+
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This is used to reduce a map of potential sources down to a simplified source
 // network for channel extraction by removing potential sources that are on ANY
