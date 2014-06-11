@@ -210,7 +210,7 @@ PointData LoadShapefile(string Filename){
 
     // Get type of shape in file (not currently used) see         
     memcpy(&ShapeType, ByteData+32, 4);
-  
+    
     // Get Georeferencing data (not currently used)
     memcpy(&Xmin, ByteData+36, 8);
     memcpy(&Ymin, ByteData+44, 8);
@@ -228,6 +228,11 @@ PointData LoadShapefile(string Filename){
     //Calculate the number of records in the file
     NoOfRecords = (FileLength-50)/(RecordLength+4);  // FileLength - 50(the length in words of the header)                                            
                                                      // divided by RecordLength+4 (4 is the length in words of the record header)
+    
+    if (NoOfRecords == 0){
+      cout << "Empty Shapefile. No Data to read!\n" << endl;
+      exit(EXIT_FAILURE);
+    }
     
     //Read all of the records into the Points structure
     for (int q = 0; q < NoOfRecords; ++q){
@@ -275,6 +280,11 @@ PointData LoadShapefile(string Filename){
     //Calculate the number of records in the file
     NoOfRecords = (FileLength-50)/(RecordLength+4);  // FileLength - 50(the length in words of the header)                                            
                                                      // divided by RecordLength+4 (4 is the length in words of the record header)
+    
+    if (NoOfRecords == 0){
+      cout << "Empty Shapefile. No Data to read!\n" << endl;
+      exit(EXIT_FAILURE);
+    }
     
     //Read all of the records into the Points structure
     for (int q = 0; q < NoOfRecords; ++q){
