@@ -377,6 +377,11 @@ vector<PointData> LoadPolyline(string Filename){
     ByteSwap(4, ByteData+24);
     memcpy(&FileLength, ByteData+24, 4);
 
+    if (FileLength == 50){
+      cout << "Empty Shapefile. No Data to read!\n" << endl;
+      exit(EXIT_FAILURE);
+    }
+
     // Get type of shape in file (not currently used) see         
     memcpy(&ShapeType, ByteData+32, 4);
   
@@ -393,7 +398,7 @@ vector<PointData> LoadPolyline(string Filename){
     // Get the length of the first record 
     ByteSwap(4, ByteData+104);
     memcpy(&RecordLength, ByteData+104, 4);                                                       
-    Skip = RecordLength*2 + 8 + 100;   
+    Skip = RecordLength*2 + 8 + 100;       
     
     memcpy(&shapetype, ByteData+108, 4);
     memcpy(&numparts, ByteData+144, 4);
@@ -441,6 +446,11 @@ vector<PointData> LoadPolyline(string Filename){
   
     // Get the length of the file
     memcpy(&FileLength, ByteData+24, 4);
+
+    if (FileLength == 50){
+      cout << "Empty Shapefile. No Data to read!\n" << endl;
+      exit(EXIT_FAILURE);
+    }
 
     // Get type of shape in file (not currently used) see
     ByteSwap(4, ByteData+32);         
