@@ -250,6 +250,15 @@ void parse_line(ifstream &infile, string &parameter, string &value);
 // Method to get the maximum value in a 2D array - SWDG 12/6/14
 float Get_Maximum(Array2D<float> Input, float NDV);
 float Get_Maximum(Array2D<int> Input, float NDV);
+
+
+//Method to flatten a 2D array into a 1D vector
+//generates a vector in row major order
+//SWDG 12/6/14
+vector<float> Flatten(Array2D<float> Input);
+vector<int> Flatten(Array2D<int> Input);
+
+
 #endif
 
 
