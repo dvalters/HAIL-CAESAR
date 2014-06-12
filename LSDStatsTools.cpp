@@ -3132,6 +3132,36 @@ float Get_Maximum(Array2D<int> Input, float NDV){
   return max;
 }
 
+//Method to flatten a 2D array into a 1D vector
+//generates a vector in row major order
+//SWDG 12/6/14
+vector<int> Flatten(Array2D<int> Input){
+
+  vector<int> flat;     
+  for (int i = 0; i < Input.dim1(); ++i){
+    for (int j = 0; j < Input.dim2(); ++j){
+      flat.push_back(Input[i][j]);
+    }
+  }
+  return flat;
+
+}
+
+//Method to flatten a 2D array into a 1D vector
+//generates a vector in row major order
+//SWDG 12/6/14
+vector<float> Flatten(Array2D<float> Input){
+
+  vector<float> flat;     
+  for (int i = 0; i < Input.dim1(); ++i){
+    for (int j = 0; j < Input.dim2(); ++j){
+      flat.push_back(Input[i][j]);
+    }
+  }
+  return flat;
+
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
