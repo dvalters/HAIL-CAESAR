@@ -3104,6 +3104,34 @@ void parse_line(ifstream &infile, string &parameter, string &value)
 	}
 }
 
+// Method to get the maximum value in a 2D array of floats - SWDG 12/6/14
+float Get_Maximum(Array2D<float> Input, float NDV){
+
+  float max = 0;
+	for (int i = 0; i < Input.dim1(); ++i){
+    for(int j = 0; j < Input.dim2(); ++j){
+      if (Input[i][j] > max && Input[i][j] != NDV){
+        max = Input[i][j];
+      }
+    }
+  }
+  return max;
+}
+
+// Method to get the maximum value in a 2D array of integers - SWDG 12/6/14
+float Get_Maximum(Array2D<int> Input, float NDV){
+
+  int max = 0;
+	for (int i = 0; i < Input.dim1(); ++i){
+    for(int j = 0; j < Input.dim2(); ++j){
+      if (Input[i][j] > max && Input[i][j] != NDV){
+        max = Input[i][j];
+      }
+    }
+  }
+  return max;
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 

@@ -247,6 +247,9 @@ double get_QuadraticMean(vector<double> input_values, double bin_width);
 // There may be a better place to put this, but I can't think where 
 void parse_line(ifstream &infile, string &parameter, string &value); 
 
+// Method to get the maximum value in a 2D array - SWDG 12/6/14
+float Get_Maximum(Array2D<float> Input, float NDV);
+float Get_Maximum(Array2D<int> Input, float NDV);
 #endif
 
 
