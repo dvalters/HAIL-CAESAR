@@ -213,6 +213,8 @@ class LSDIndexRaster
   /// @date 17/3/14   
   LSDIndexRaster Resample(float OutputResolution);
 
+  LSDIndexRaster CombineBinaryNetwork(LSDIndexRaster& Network1, LSDIndexRaster& Network2);
+
 	protected:
 	///Number of rows.
   int NRows;
