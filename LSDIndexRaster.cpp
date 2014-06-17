@@ -877,7 +877,33 @@ LSDIndexRaster LSDIndexRaster::Resample(float OutputResolution){
 
 }
 
+LSDIndexRaster LSDIndexRaster::CombineBinaryNetwork(LSDIndexRaster& Network1, LSDIndexRaster& Network2){
 
+  Array2D<int> CombinedNetworkArray(NRows, NCols, NoDataValue);
+
+   for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+   
+      if (Network1.get_data_element(i,j) == NoDataValue && Network2.get_data_element(i,j) == NoDataValue){
+        CombinedNetworkArray[i][j] = NoDataValue;
+      }
+      else if ((Network1.get_data_element(i,j) == NoDataValue && Network2.get_data_element(i,j) != NoDataValue)){
+        CombinedNetworkArray[i][j] = Network2.get_data_element(i,j);  
+      }
+      else if ((Network1.get_data_element(i,j) != NoDataValue && Network2.get_data_element(i,j) == NoDataValue)){
+        CombinedNetworkArray[i][j] = Network1.get_data_element(i,j);  
+      }
+      else if ((Network1.get_data_element(i,j) != NoDataValue && Network2.get_data_element(i,j) != NoDataValue)){
+        CombinedNetworkArray[i][j] = Network2.get_data_element(i,j) + Network1.get_data_element(i,j);  
+      }
+      
+    }
+  }
+
+  LSDIndexRaster CombinedNetwork(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, CombinedNetworkArray);
+  return CombinedNetwork;
+
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
