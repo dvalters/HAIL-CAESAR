@@ -3162,6 +3162,42 @@ vector<float> Flatten(Array2D<float> Input){
 
 }
 
+//Method to count the number of instances of a given value in an array
+//SWDG 17/6/14
+int CountValue(Array2D<int> Input, int Value){
+
+  int count = 0;
+
+  for (int i = 0; i < Input.dim1(); ++i){
+    for (int j = 0; j < Input.dim2(); ++j){
+      if (Input[i][j] == Value){
+        ++count;
+      }
+    }
+  }
+
+  return count;
+}
+
+//Method to count the number of instances of a given value in an array
+//SWDG 17/6/14
+int CountValue(Array2D<float> Input, float Value){
+
+  int count = 0;
+
+  for (int i = 0; i < Input.dim1(); ++i){
+    for (int j = 0; j < Input.dim2(); ++j){
+      if (Input[i][j] == Value){
+        ++count;
+      }
+    }
+  }
+
+  return count;
+}
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 

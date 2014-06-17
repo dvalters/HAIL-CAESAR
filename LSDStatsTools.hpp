@@ -258,6 +258,11 @@ float Get_Maximum(Array2D<int> Input, float NDV);
 vector<float> Flatten(Array2D<float> Input);
 vector<int> Flatten(Array2D<int> Input);
 
+//Method to count the number of instances of a given value in an array
+//SWDG 17/6/14
+int CountValue(Array2D<int> Input, int Value);
+int CountValue(Array2D<float> Input, float Value); 
+
 
 #endif
 
