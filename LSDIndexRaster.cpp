@@ -877,6 +877,10 @@ LSDIndexRaster LSDIndexRaster::Resample(float OutputResolution){
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
+// Method to combine two rasters, ignoring nodata.  
+// SWDG 17/6/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
 LSDIndexRaster LSDIndexRaster::CombineBinaryNetwork(LSDIndexRaster& Network1, LSDIndexRaster& Network2){
 
   Array2D<int> CombinedNetworkArray(NRows, NCols, NoDataValue);

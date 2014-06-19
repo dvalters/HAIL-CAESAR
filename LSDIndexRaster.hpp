@@ -213,6 +213,12 @@ class LSDIndexRaster
   /// @date 17/3/14   
   LSDIndexRaster Resample(float OutputResolution);
 
+  /// @brief Method to combine two rasters, ignoring nodata.  
+  /// @param Network1 The first raster to be combined.
+  /// @param Network2 The second raster to be combined.
+  /// @return An LSDIndexRaster of the combined inputs.
+  /// @author SWDG
+  /// @date 17/6/14
   LSDIndexRaster CombineBinaryNetwork(LSDIndexRaster& Network1, LSDIndexRaster& Network2);
 
 	protected:
