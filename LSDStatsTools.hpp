@@ -256,7 +256,9 @@ float Get_Maximum(Array2D<int> Input, float NDV);
 //generates a vector in row major order
 //SWDG 12/6/14
 vector<float> Flatten(Array2D<float> Input);
+vector<float> Flatten_Without_Nodata(Array2D<float> Input, float NDV);
 vector<int> Flatten(Array2D<int> Input);
+vector<int> Flatten_Without_Nodata(Array2D<int> Input, float NDV);
 
 //Method to count the number of instances of a given value in an array
 //SWDG 17/6/14
