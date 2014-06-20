@@ -1304,6 +1304,40 @@ class LSDRaster
   /// @date 17/3/14   
   LSDRaster Resample(float OutputResolution);
   
+  /// @brief creates a circular mask for neighbourhood statistics
+  /// @param window radius of mask
+  /// @return a binary array with the mask
+  /// @author DTM 
+  /// @date 20/06/2014 
+  Array2D<int> create_mask(float window_radius);
+  
+  /// @brief gets mean value for specified circular neighbourhood
+  /// @param float window_radius -> radius of neighbourhood 
+  /// @return an LSDRaster with the mean value of cells in neightbourhood 
+  /// @author DTM 
+  /// @date 20/06/2014   
+  LSDRaster neighbourhood_statistics_spatial_average(float window_radius);
+  
+  /// @brief tests neighbourhood for the fraction of values for which the specified 
+  /// condition is met.
+  ///
+  /// @details the second argument (condition_switch) specifies the condition using
+  /// an integer as follows:
+  ///   0 ==
+  ///   1 !=
+  ///   2 >
+  ///   3 >=
+  ///   4 <
+  ///   5 <=
+  /// @param float window_radius -> radius of neighbourhood
+  /// @param int condition_switch -> see above
+  /// @param float test_value -> the value to test against in the conditional statement  
+  /// @return an LSDRaster with the fraction of cells in neightbourhood for which condition statement is true  
+  /// @author DTM 
+  /// @date 20/06/2014 
+  LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int condition_switch, float test_value);
+
+
   /// @brief Function to change border pixels to nodata
   ///
   /// @param int border_width
