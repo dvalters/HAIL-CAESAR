@@ -6498,6 +6498,178 @@ LSDRaster LSDRaster::Resample(float OutputResolution){
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// BASIC TOOLS
+//---------------------------------------------------------------------------------------
+// Basic functions e.g. spatial averaging, which may be useful for loads of stuff
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Creates a circular mask
+// DTM 19/06/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Array2D<int> LSDRaster::create_mask(float window_radius)
+{
+  int kernel_radius = int(ceil(window_radius/DataResolution));
+  int kernel_width = 2*kernel_radius + 1;
+	Array2D<int> mask(kernel_width,kernel_width,0);
+	float x,y,zeta,radial_dist;
+	for(int i=0;i<kernel_width;++i)
+	{
+	  for(int j=0;j<kernel_width;++j)
+	  {
+	    x=(i-kernel_radius)*DataResolution;
+	    y=(j-kernel_radius)*DataResolution;
+			// Build circular mask
+			// distance from centre to this point.
+			radial_dist = sqrt(y*y + x*x);
+      if (floor(radial_dist) <= window_radius)
+      {
+				mask[i][j] = 1;
+			}
+    }
+	}
+	return mask;
+}
+//---------------------------------------------------------------------------------------
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// spatial_average
+// Calculates a spatial average using a circular window
+// DTM 19/06/2014 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radius)
+{
+  Array2D<float> SpatialAverageArray(NRows,NCols,NoDataValue);
+//   Array2D<float> StandardDeviationArray(NRows,NCols,NoDataValue);
+  
+  // catch if the supplied window radius is less than the data resolution and
+	// set it to equal the data resolution - SWDG
+  if (window_radius < DataResolution)
+  {
+    cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
+    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius = DataResolution;
+  }
+  // Prepare kernel
+	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
+	int kw=2*kr+1;                    						     // width of kernel
+	Array2D<float> data_kernel(kw,kw,NoDataValue);
+	Array2D<int> mask = create_mask(window_radius);
+	// Move window over DEM and extract neighbourhood pixels
+	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
+	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+  float mean, value;
+  vector<float> data;
+  for(int i=0;i<NRows;++i)
+	{
+		cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+		for(int j=0;j<NCols;++j)
+		{
+	    // Avoid edges
+			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+			{
+        SpatialAverageArray[i][j] = NoDataValue;
+			}
+			else
+			{
+				// Sample DEM
+				for(int i_kernel=0;i_kernel<kw;++i_kernel)
+				{
+			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
+			  	{
+						value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+            if(value!=NoDataValue && mask[i_kernel][j_kernel]==1) data.push_back(value);
+			  	}
+				}
+				// Get stats
+        mean = get_mean(data);
+        SpatialAverageArray[i][j] = mean;      
+// 				StandardDeviationArray[i][j] = get_standard_deviation(data,mean);
+        data.clear();
+			}
+		}
+	}
+	LSDRaster SpatialAverage(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,SpatialAverageArray);
+	return SpatialAverage;
+}
+//---------------------------------------------------------------------------------------
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// neighbourhood_statistics_fraction_condition
+// A function that determines the fraction of cells in a circular neighbourhood that
+// satisfy a given condition
+// options
+// 0 ==
+// 1 !=
+// 2 >
+// 3 >=
+// 4 <
+// 5 <=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_radius, int condition_switch, float test_value)
+{
+  Array2D<float> FractionTrueArray(NRows,NCols,NoDataValue);
+
+  if (window_radius < DataResolution)
+  {
+    cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
+    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius = DataResolution;
+  }
+  // Prepare kernel
+	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
+	int kw=2*kr+1;                    						     // width of kernel
+	Array2D<float> data_kernel(kw,kw,NoDataValue);
+	Array2D<int> mask = create_mask(window_radius);
+	
+	// Move window over DEM and extract neighbourhood pixels
+	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
+	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+	float value;
+	float count = 0;
+	vector<float> data;
+
+	for(int i=0;i<NRows;++i)
+	{
+		cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+		for(int j=0;j<NCols;++j)
+		{
+			
+      // Avoid edges
+			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+			{
+        			FractionTrueArray[i][j] = NoDataValue;
+			}
+			else
+			{
+				// Sample DEM
+				for(int i_kernel=0;i_kernel<kw;++i_kernel)
+				{
+			  		for(int j_kernel=0;j_kernel<kw;++j_kernel)
+			  		{
+						value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+            					if(value!=NoDataValue && mask[i_kernel][j_kernel]==1)
+            					{
+              						count = count + 1;
+              						if(condition_switch == 0 && value == test_value) data.push_back(value);
+              						if(condition_switch == 1 && value != test_value) data.push_back(value);
+              						if(condition_switch == 2 && value > test_value) data.push_back(value); 
+              						if(condition_switch == 1 && value >= test_value) data.push_back(value);
+              						if(condition_switch == 1 && value < test_value) data.push_back(value);
+              						if(condition_switch == 1 && value <= test_value) data.push_back(value);            
+            					}
+			  		}
+				}
+				// Get stats
+        			FractionTrueArray[i][j] = float(data.size())/count;
+        			count = 0;
+        			data.clear();
+			}
+		}
+	}
+	LSDRaster FractionTrue(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FractionTrueArray);
+	return FractionTrue;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Border with nodata values
 // This function replaces the border pixels of a raster with nodatavalues.  This
 // is particularly useful when dealing with output from functions that have edge
