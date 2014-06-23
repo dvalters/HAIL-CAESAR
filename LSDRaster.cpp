@@ -6504,11 +6504,17 @@ LSDRaster LSDRaster::Resample(float OutputResolution){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Creates a circular mask
+// Creates a mask for neighbourhood functions.   Uses a neighbourhood switch to select 
+// circular (1) vs square window (0).  Default is a square window.
 // DTM 19/06/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-Array2D<int> LSDRaster::create_mask(float window_radius)
+Array2D<int> LSDRaster::create_mask(float window_radius, int neighbourhood_switch)
 {
+  if((neighbourhood_switch != 1) && (neighbourhood_switch != 0))
+  {
+    neighbourhood_switch = 0;
+    cout << "\t\t incorrect specification of neighbourhood type, so set to square (default). Note that correct neighbourhood_switch values are: 0 = square, 1 = circular" << endl;
+  }
   int kernel_radius = int(ceil(window_radius/DataResolution));
   int kernel_width = 2*kernel_radius + 1;
 	Array2D<int> mask(kernel_width,kernel_width,0);
@@ -6521,11 +6527,16 @@ Array2D<int> LSDRaster::create_mask(float window_radius)
 	    y=(j-kernel_radius)*DataResolution;
 			// Build circular mask
 			// distance from centre to this point.
-			radial_dist = sqrt(y*y + x*x);
-      if (floor(radial_dist) <= window_radius)
-      {
-				mask[i][j] = 1;
-			}
+			if(neighbourhood_switch == 0) mask[i][j] = 1;
+			else if(neighbourhood_switch == 1)
+			{
+        radial_dist = sqrt(y*y + x*x);
+        if (floor(radial_dist) <= window_radius)
+        {
+  				mask[i][j] = 1;
+  			}
+  		}
+  		else mask[i][j] = 1; 
     }
 	}
 	return mask;
@@ -6533,10 +6544,11 @@ Array2D<int> LSDRaster::create_mask(float window_radius)
 //---------------------------------------------------------------------------------------
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // spatial_average
-// Calculates a spatial average using a circular window
+// Calculates a spatial average using a specified moving window.  Uses a neighbourhood 
+// switch to select circular (1) vs square window (0)
 // DTM 19/06/2014 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radius)
+LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch)
 {
   Array2D<float> SpatialAverageArray(NRows,NCols,NoDataValue);
 //   Array2D<float> StandardDeviationArray(NRows,NCols,NoDataValue);
@@ -6553,7 +6565,7 @@ LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radiu
 	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
 	int kw=2*kr+1;                    						     // width of kernel
 	Array2D<float> data_kernel(kw,kw,NoDataValue);
-	Array2D<int> mask = create_mask(window_radius);
+  Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
 	// Move window over DEM and extract neighbourhood pixels
 	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
 	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
@@ -6604,7 +6616,7 @@ LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radiu
 // 4 <
 // 5 <=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_radius, int condition_switch, float test_value)
+LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch, int condition_switch, float test_value)
 {
   Array2D<float> FractionTrueArray(NRows,NCols,NoDataValue);
 
@@ -6618,16 +6630,16 @@ LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_ra
 	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
 	int kw=2*kr+1;                    						     // width of kernel
 	Array2D<float> data_kernel(kw,kw,NoDataValue);
-	Array2D<int> mask = create_mask(window_radius);
+	Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
 	
 	// Move window over DEM and extract neighbourhood pixels
 	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
 	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
-	float value;
+  float value;
 	float count = 0;
 	vector<float> data;
 
-	for(int i=0;i<NRows;++i)
+  for(int i=0;i<NRows;++i)
 	{
 		cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
 		for(int j=0;j<NCols;++j)
@@ -6636,32 +6648,32 @@ LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_ra
       // Avoid edges
 			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
 			{
-        			FractionTrueArray[i][j] = NoDataValue;
+        FractionTrueArray[i][j] = NoDataValue;
 			}
 			else
 			{
 				// Sample DEM
 				for(int i_kernel=0;i_kernel<kw;++i_kernel)
 				{
-			  		for(int j_kernel=0;j_kernel<kw;++j_kernel)
-			  		{
+			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
+			  	{
 						value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
-            					if(value!=NoDataValue && mask[i_kernel][j_kernel]==1)
-            					{
-              						count = count + 1;
-              						if(condition_switch == 0 && value == test_value) data.push_back(value);
-              						if(condition_switch == 1 && value != test_value) data.push_back(value);
-              						if(condition_switch == 2 && value > test_value) data.push_back(value); 
-              						if(condition_switch == 1 && value >= test_value) data.push_back(value);
-              						if(condition_switch == 1 && value < test_value) data.push_back(value);
-              						if(condition_switch == 1 && value <= test_value) data.push_back(value);            
-            					}
-			  		}
+            if(value!=NoDataValue && mask[i_kernel][j_kernel]==1)
+            {
+              count = count + 1;
+              if(condition_switch == 0 && value == test_value) data.push_back(value);
+              if(condition_switch == 1 && value != test_value) data.push_back(value);
+              if(condition_switch == 2 && value > test_value) data.push_back(value); 
+              if(condition_switch == 1 && value >= test_value) data.push_back(value);
+              if(condition_switch == 1 && value < test_value) data.push_back(value);
+              if(condition_switch == 1 && value <= test_value) data.push_back(value);            
+            }
+			  	}
 				}
 				// Get stats
-        			FractionTrueArray[i][j] = float(data.size())/count;
-        			count = 0;
-        			data.clear();
+        FractionTrueArray[i][j] = float(data.size())/count;
+        count = 0;
+        data.clear();
 			}
 		}
 	}

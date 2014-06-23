@@ -1305,23 +1305,36 @@ class LSDRaster
   LSDRaster Resample(float OutputResolution);
   
   /// @brief creates a circular mask for neighbourhood statistics
-  /// @param window radius of mask
+  ///  
+  /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
+  ///   0 Square neighbourhood
+  ///   1 Circular window
+  /// @param window radius of mask 
+  /// @param int neighbourhood_switch -> see above
   /// @return a binary array with the mask
   /// @author DTM 
   /// @date 20/06/2014 
-  Array2D<int> create_mask(float window_radius);
-  
+  Array2D<int> create_mask(float window_radius,  int neighbourhood_switch);
+
   /// @brief gets mean value for specified circular neighbourhood
+  ///
+  /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
+  ///   0 Square neighbourhood
+  ///   1 Circular window
   /// @param float window_radius -> radius of neighbourhood 
+  /// @param int neighbourhood_switch -> see above
   /// @return an LSDRaster with the mean value of cells in neightbourhood 
   /// @author DTM 
   /// @date 20/06/2014   
-  LSDRaster neighbourhood_statistics_spatial_average(float window_radius);
+  LSDRaster neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch);
   
   /// @brief tests neighbourhood for the fraction of values for which the specified 
   /// condition is met.
-  ///
-  /// @details the second argument (condition_switch) specifies the condition using
+  ///   
+  /// The second argument (neighbourhood_switch) specifies the neighbourhood type:
+  ///   0 Square neighbourhood
+  ///   1 Circular window
+  /// @details the third argument (condition_switch) specifies the condition using
   /// an integer as follows:
   ///   0 ==
   ///   1 !=
@@ -1329,14 +1342,14 @@ class LSDRaster
   ///   3 >=
   ///   4 <
   ///   5 <=
-  /// @param float window_radius -> radius of neighbourhood
+  /// @param float window_radius -> radius of neighbourhood 
+  /// @param int neighbourhood_switch -> see above
   /// @param int condition_switch -> see above
   /// @param float test_value -> the value to test against in the conditional statement  
   /// @return an LSDRaster with the fraction of cells in neightbourhood for which condition statement is true  
   /// @author DTM 
   /// @date 20/06/2014 
-  LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int condition_switch, float test_value);
-
+  LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch, int condition_switch,  float test_value);
 
   /// @brief Function to change border pixels to nodata
   ///
