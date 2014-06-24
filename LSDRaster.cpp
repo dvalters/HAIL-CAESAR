@@ -6567,7 +6567,7 @@ LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radiu
 	Array2D<float> data_kernel(kw,kw,NoDataValue);
   Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
 	// Move window over DEM and extract neighbourhood pixels
-	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
+	cout << "\n\tRunning neighbourhood statistics..." << endl;
 	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
   float mean, value;
   vector<float> data;
@@ -6633,7 +6633,7 @@ LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_ra
 	Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
 	
 	// Move window over DEM and extract neighbourhood pixels
-	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
+	cout << "\n\tRunning neighbourhood statistics..." << endl;
 	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
   float value;
 	float count = 0;
