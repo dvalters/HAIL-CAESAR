@@ -6664,9 +6664,9 @@ LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_ra
               if(condition_switch == 0 && value == test_value) data.push_back(value);
               if(condition_switch == 1 && value != test_value) data.push_back(value);
               if(condition_switch == 2 && value > test_value) data.push_back(value); 
-              if(condition_switch == 1 && value >= test_value) data.push_back(value);
-              if(condition_switch == 1 && value < test_value) data.push_back(value);
-              if(condition_switch == 1 && value <= test_value) data.push_back(value);            
+              if(condition_switch == 3 && value >= test_value) data.push_back(value);
+              if(condition_switch == 4 && value < test_value) data.push_back(value);
+              if(condition_switch == 5 && value <= test_value) data.push_back(value);            
             }
 			  	}
 				}
