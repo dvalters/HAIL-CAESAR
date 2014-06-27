@@ -266,6 +266,16 @@ int CountValue(Array2D<int> Input, int Value);
 int CountValue(Array2D<float> Input, float Value); 
 
 
+//Method used to generate a Kolmogorov-Smirnov statistic and p value
+//from numerical recipes
+//Data1 and Data2 must be sorted.
+//d is the KS statistic value
+//p is the p-value. In numerical recipes it is provided as a value subtracted from
+//1, this code has been modified to present value the without this subtraction
+//so that it matches the result from the scipy implementation. SWDG 26/6/14
+void KStwo(vector<float> Data1, vector<float> Data2, float& d, double& p);
+float PKS(float z);
+
 #endif
 
 

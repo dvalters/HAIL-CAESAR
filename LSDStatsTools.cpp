@@ -3235,6 +3235,85 @@ int CountValue(Array2D<float> Input, float Value){
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+//Method used to generate a Kolmogorov-Smirnov statistic and p value
+//from numerical recipes
+//SWDG 26/6/14
+float PKS(float z){
+
+  if (z < 0.0){
+    cout << "Bad z value." << endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if (z == 0.0) { return 0.0;}
+  
+  if (z < 1.18){
+  
+    float y = exp(-1.23370055013616983/pow(z,2)); 
+    return 2.25675833419102515 * sqrt(-log(y)) * (y + pow(y,9) + pow(y,25) + pow(y,49));
+  }
+  else{
+   
+   double x = exp(-2.0 * pow(z,2));
+   double u = ((x - pow(x,4) + pow(x,9)));
+   return 2.0 * (x - pow(x,4) + pow(x,9)); 
+  
+  }
+
+}
+
+//Method used to generate a Kolmogorov-Smirnov statistic and p value
+//from numerical recipes
+//Data1 and Data2 must be sorted.
+//d is the KS statistic value
+//p is the p-value. In numerical recipes it is provided as a value subtracted from
+//1, this code has been modified to present value the without this subtraction
+//so that it matches the result from the scipy implementation. 
+//SWDG 26/6/14
+void KStwo(vector<float> Data1, vector<float> Data2, float& d, double& p){
+
+  int j1 = 0;
+  int j2 = 0;
+  int n1 = Data1.size();
+  int n2  = Data2.size();
+  float d1;
+  float d2;
+  float dt;
+  float en1 = n1;
+  float en2 = n2;
+  float en;
+  float fn1 = 0.0;
+  float fn2 = 0.0;
+  
+  d = 0.0;
+
+  while (j1 < n1 && j2 < n2){
+    
+    if ((d1 = Data1[j1]) <= (d2 = Data2[j2])) {
+      
+      do{
+        fn1 = ++j1/en1;
+      } while (j1 < n1 && d1 == Data1[j1]);
+        
+    }
+  
+    if (d2 <= d1){
+      
+      do{
+        fn2 = ++j2/en2;
+      } while (j2 < n2 && d2 == Data2[j2]);
+      
+    }
+    if ((dt = abs(fn2-fn1)) > d) { d = dt; }
+  
+  } //close while
+
+  en = sqrt(en1 * en2 / (en1 + en2));    
+  p = PKS((en + 0.12 + 0.11 / en) * d );
+
+}
+
+
 
 #endif
 
