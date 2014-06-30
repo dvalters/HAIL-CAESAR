@@ -6689,17 +6689,41 @@ LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_ra
 // is particularly useful when dealing with output from functions that have edge
 // effects (e.g. spectral filtering)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster LSDRaster::border_with_nodata(int border_width)
+LSDRaster LSDRaster::border_with_nodata(int border_width, int irregular_switch)
 {
   Array2D<float> Data = RasterData.copy();
+  // kernel dimensions
+  int kr = border_width;
+  int kw = 2*kr + 1;
+  float value;
   for(int i = 0; i<NRows; ++i)
   {
     for(int j = 0; j< NCols; ++j)
     {
-      if( i<border_width || i>NRows-border_width || j<border_width || j>NCols-border_width)
+      if( i<border_width || i>NRows-border_width-1 || j<border_width || j>NCols-border_width-1)
       {
         Data[i][j]=NoDataValue;
         //cout << i << "/" << NRows << " " << j << "/" << NCols << endl;
+      }
+      else
+      {
+        if(irregular_switch == 1)
+        {
+          // Sample DEM
+				  for(int i_kernel=0;i_kernel<kw;++i_kernel)
+				  {
+			  	  for(int j_kernel=0;j_kernel<kw;++j_kernel)
+			  	  {
+						  value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+						  if(value == NoDataValue)
+						  {
+                i_kernel = kw;    // as soon as NoDataValue found, skip to next cell
+                j_kernel = kw;
+                Data[i][j]=NoDataValue;
+              }
+						}
+					}
+        }        
       }
     }
   }
