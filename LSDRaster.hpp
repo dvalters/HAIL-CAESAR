@@ -1354,10 +1354,11 @@ class LSDRaster
   /// @brief Function to change border pixels to nodata
   ///
   /// @param int border_width
+  /// @param int irregular_switch (0 (default) -> only creates border pixels around raster edge; 1 -> creates border around edges and nodata values e.g. for irregularly shaped datasets)
   /// @return Updated LSDRaster
   /// @author DTM
   /// @date 29/05/2014
-  LSDRaster border_with_nodata(int border_width);
+  LSDRaster border_with_nodata(int border_width, int irregular_switch = 0);
 
 	protected:
 
