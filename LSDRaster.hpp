@@ -1101,7 +1101,6 @@ class LSDRaster
   pair<float,float> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, float log_bin_width = 0.1, int SplineResolution = 200, float bin_threshold = 0.05);
 
   /// @brief Calculate drainage density of a set of input basins.
-  ///
   /// @details Calculated as flow length/basin area and written to every
   /// cell of the identified basin. Completely rewritten to optimise performance.
   /// Now only traverses the DEM 3 times regardless of the number of input basins,
@@ -1352,7 +1351,6 @@ class LSDRaster
   LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch, int condition_switch,  float test_value);
 
   /// @brief Function to change border pixels to nodata
-  ///
   /// @param int border_width
   /// @param int irregular_switch (0 (default) -> only creates border pixels around raster edge; 1 -> creates border around edges and nodata values e.g. for irregularly shaped datasets)
   /// @return Updated LSDRaster
