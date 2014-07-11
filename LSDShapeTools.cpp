@@ -544,6 +544,93 @@ vector<PointData> LoadPolyline(string Filename){
   
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to convert an IndexChannelTree to a PointData object.
+// 
+// Returns a vector of points.
+// DTM 11/07/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+PointData LoadChannelTree(string Filename, int multistem_option)
+{
+	if((multistem_option != 0) && (multistem_option != 1))
+  {
+    cout << "multistem_option must be 0 (mainstem only) or 1 (all tributaries).  Setting mainstem only default" << endl;
+    multistem_option = 0;
+  }
+  
+  ifstream channel_data_in;
+	channel_data_in.open(Filename.c_str());
+
+	if( channel_data_in.fail() )
+	{
+		cout << "\nFATAL ERROR: the channel network file \"" << Filename << "\" doesn't exist" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+  PointData Points;
+
+	int channel_number;
+	int receiver_cnumber;
+	int recevier_cnode;
+
+	int node;
+	int row;
+	int col;
+
+	float flow_dist;
+	float elev;
+	float drain_area;
+
+	int last_cn = 0;		// this is 1 if this is the first node in a channel
+	int last_receiver_node = -1;
+	int last_receiver_channel = -1;
+
+  float XMinimum,YMinimum,DataResolution,NoDataValue;
+  int NRows,NCols;
+
+	channel_data_in >> NRows >> NCols >> XMinimum >> YMinimum >> DataResolution >> NoDataValue;
+  float x,y;
+	while( channel_data_in >> channel_number >> receiver_cnumber >> recevier_cnode
+	                       >> node >> row >> col >> flow_dist >> elev >> drain_area)
+	{
+		// get the receiver_channel and receiver node for the first channel (these will be recursive)
+		if (last_receiver_node == -1)
+		{
+			last_receiver_node = recevier_cnode;
+			last_receiver_channel = receiver_cnumber;
+		}
+    // now load everything into the PointData object :-)
+
+		if(multistem_option == 0)
+		{
+      if(channel_number == 0)
+      {
+        x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
+  		  y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
+        Points.X.push_back(x);
+        Points.Y.push_back(y); 		  		
+      }
+    }
+    else if(multistem_option == 1)
+    {
+      x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
+  		y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
+      Points.X.push_back(x);
+      Points.Y.push_back(y); 	
+		}
+    else
+    {
+      if(channel_number == 0)
+      {
+        x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
+  		  y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
+        Points.X.push_back(x);
+        Points.Y.push_back(y); 		
+      }
+    } 
+  }
+  return Points;
+}
 
 
 

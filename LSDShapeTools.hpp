@@ -125,6 +125,16 @@ PointData LoadShapefile(string Filename);
 vector<PointData> LoadPolyline(string Filename);
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to convert an IndexChannelTree to a PointData object.
+// 
+// Returns a vector of points.
+//
+// multistem_option -> 0 = mainstem only, 1 = all tributaries
+// DTM 11/07/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+PointData LoadChannelTree(string Filename, int multistem_option = 0);
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to get the size of the binary file being loaded.
 //
 // Taken from http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/ 
