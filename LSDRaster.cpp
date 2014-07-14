@@ -199,8 +199,11 @@ void LSDRaster::read_raster(string filename, string extension)
 		string str;			// a temporary string for discarding text
 
 		// read the georeferencing data and metadata
-		data_in >> str >> NCols >> str >> NRows
-			    >> str >> XMinimum >> str >> YMinimum
+		data_in >> str >> NCols;
+                cout << "NCols: " << NCols << " str: " << endl;
+		data_in >> str >> NRows;
+		cout << "NRows: " << NRows << " str: " << endl;
+		data_in	>> str >> XMinimum >> str >> YMinimum
 		   		>> str >> DataResolution
 			    >> str >> NoDataValue;
 
@@ -243,8 +246,11 @@ void LSDRaster::read_raster(string filename, string extension)
 		else
 		{
 			string str;
-			ifs >> str >> NCols >> str >> NRows
-				>> str >> XMinimum >> str >> YMinimum
+			ifs >> str >> NCols;
+			//cout << "NCols: " << NCols << " str: " << endl;
+			ifs >> str >> NRows;
+			//cout << "NRows: " << NRows << " str: " << endl;
+			ifs	>> str >> XMinimum >> str >> YMinimum
 				>> str >> DataResolution
 				>> str >> NoDataValue;
 		}
@@ -322,12 +328,12 @@ void LSDRaster::write_raster(string filename, string extension)
 			exit(EXIT_FAILURE);
 		}
 
-		data_out <<  "ncols         " << NCols
-				<< "\nnrows         " << NRows
-				<< "\nxllcorner     " << setprecision(14) << XMinimum
-				<< "\nyllcorner     " << setprecision(14) << YMinimum
-				<< "\ncellsize      " << DataResolution
-				<< "\nNODATA_value  " << NoDataValue << endl;
+		data_out <<  "ncols\t" << NCols
+			 << "\nnrows\t" << NRows
+			 << "\nxllcorner\t" << setprecision(14) << XMinimum
+			 << "\nyllcorner\t" << setprecision(14) << YMinimum
+			 << "\ncellsize\t" << DataResolution
+			 << "\nNODATA_value\t" << NoDataValue << endl;
 
 
 		for (int i=0; i<NRows; ++i)
