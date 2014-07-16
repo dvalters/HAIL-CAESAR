@@ -365,61 +365,6 @@ float get_percentile(vector<float>& data, float percentile)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// calcualte the imaginary error function using trapezoid rule integration
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double erfi(double tau)
-{
-	double sum = 0;
-	double N_nodes = 100000;
-	double dtau = tau/N_nodes;
-	//double mini_dtau = dtau/4.0;
-	//double term1,term2, term3, term4, term5;
-	//double a;
-	//double front_term = dtau/90.0;
-	int ii;
-
-	// trapezoidal rule
-	double xloc_old;
-	double xloc_new = 0.0;
-	for (ii= 0; ii<N_nodes; ii++)
-	{
-		xloc_old = xloc_new;
-		xloc_new = double(ii)*dtau;
-		sum+= 0.5*dtau*(exp(xloc_old*xloc_old) + exp(xloc_new*xloc_new) );
-	}
-
-	// simpson's
-	//	double xloc_old;
-	//	double xloc_new = 0.0;
-	//	double xloc_mid;
-	//	front_term = dtau/6;
-	//	for (ii= 0; ii<N_nodes; ii++)
-	//	{
-	//		xloc_old = xloc_new;
-	//		xloc_new = double(ii)*dtau;
-	//		xloc_mid = 0.5*(xloc_old+xloc_new);
-	//		sum+= front_term*(exp(xloc_old*xloc_old) + 4*exp(xloc_mid*xloc_mid) + exp(xloc_new*xloc_new) );
-	//	}
-
-
-	// boole's
-	//	for (ii = 0; ii<N_nodes; ii++);
-	//	{
-	//		a = dtau*double(ii);
-	//		term1 =  7.0*exp(a*a);
-	//		term2 = 32.0*exp((a+mini_dtau)*(a+mini_dtau));
-	//		term3 = 12.0*exp((a+2.0*mini_dtau)*(a+2.0*mini_dtau));
-	//		term4 = 32.0*exp((a+3.0*mini_dtau)*(a+3.0*mini_dtau));
-	//		term5 =  7.0*exp((a+4.0*mini_dtau)*(a+4.0*mini_dtau));
-	//		sum += front_term*(term1+term2+term3+term4+term5);
-	//	}
-
-	return 2*sum/sqrt(M_PI);
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function tests for autocorrelation between residuals
 // if the number is less than 2 the residuals show autocorrelation
@@ -3368,6 +3313,28 @@ void KStwo(vector<float> Data1, vector<float> Data2, float& d, double& p){
 
 }
 
+
+// Given a filestream object, read the file into memory and return
+// it as a string. From: http://www.cplusplus.com/forum/general/58945/
+// No error handling.
+// SWDG 16/07/14
+string ReadTextFile(ifstream& File){
+
+  string Lines = "";        //All lines
+    
+  if (File){                      //Check if everything is good  
+	  while (File.good ()){
+	    string TempLine;                  //Temp line
+	    getline(File, TempLine);        //Get temp line
+	    TempLine += "\n";                      //Add newline character
+	    Lines += TempLine;                     //Add newline
+	  }
+	  return Lines;
+    }
+  else{
+    return "";
+  }  
+} 
 
 
 #endif

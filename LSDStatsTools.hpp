@@ -73,10 +73,6 @@ float get_standard_error(vector<float>& y_data, float standard_deviation);
 vector<float> get_common_statistics(vector<float>& y_data);
 float get_percentile(vector<float>& data, float percentile);
 
-// calculate the imaginary error function
-double erfi( double x);
-
-
 // these look for linear segments within a data series.
 void populate_segment_matrix(int start_node, int end_node, float no_data_value,
 								vector<float>& all_x_data, vector<float>& all_y_data, int maximum_segment_length,
@@ -279,6 +275,13 @@ int CountValue(Array2D<float> Input, float Value);
 //so that it matches the result from the scipy implementation. SWDG 26/6/14
 void KStwo(vector<float> Data1, vector<float> Data2, float& d, double& p);
 float PKS(float z);
+
+// Given a filestream object, read the file into memory and return
+// it as a string. From: http://www.cplusplus.com/forum/general/58945/
+// No error handling.
+// SWDG 16/07/14
+string ReadTextFile(ifstream& File);
+
 
 #endif
 
