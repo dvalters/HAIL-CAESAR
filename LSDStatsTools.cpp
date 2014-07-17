@@ -394,8 +394,59 @@ float get_durbin_watson_statistic(vector<float> residuals)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// calculate the imaginary error function using trapezoid rule integration
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+double erfi(double tau)
+{
+	double sum = 0;
+	double N_nodes = 100000;
+	double dtau = tau/N_nodes;
+	//double mini_dtau = dtau/4.0;
+	//double term1,term2, term3, term4, term5;
+	//double a;
+	//double front_term = dtau/90.0;
+	int ii;
+
+	// trapezoidal rule
+	double xloc_old;
+	double xloc_new = 0.0;
+	for (ii= 0; ii<N_nodes; ii++)
+	{
+		xloc_old = xloc_new;
+		xloc_new = double(ii)*dtau;
+		sum+= 0.5*dtau*(exp(xloc_old*xloc_old) + exp(xloc_new*xloc_new) );
+	}
+
+	// simpson's
+	//	double xloc_old;
+	//	double xloc_new = 0.0;
+	//	double xloc_mid;
+	//	front_term = dtau/6;
+	//	for (ii= 0; ii<N_nodes; ii++)
+	//	{
+	//		xloc_old = xloc_new;
+	//		xloc_new = double(ii)*dtau;
+	//		xloc_mid = 0.5*(xloc_old+xloc_new);
+	//		sum+= front_term*(exp(xloc_old*xloc_old) + 4*exp(xloc_mid*xloc_mid) + exp(xloc_new*xloc_new) );
+	//	}
 
 
+	// boole's
+	//	for (ii = 0; ii<N_nodes; ii++);
+	//	{
+	//		a = dtau*double(ii);
+	//		term1 =  7.0*exp(a*a);
+	//		term2 = 32.0*exp((a+mini_dtau)*(a+mini_dtau));
+	//		term3 = 12.0*exp((a+2.0*mini_dtau)*(a+2.0*mini_dtau));
+	//		term4 = 32.0*exp((a+3.0*mini_dtau)*(a+3.0*mini_dtau));
+	//		term5 =  7.0*exp((a+4.0*mini_dtau)*(a+4.0*mini_dtau));
+	//		sum += front_term*(term1+term2+term3+term4+term5);
+	//	}
+
+	return 2*sum/sqrt(M_PI);
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this gets a simple linear regression where the regression model is y = mx+b
