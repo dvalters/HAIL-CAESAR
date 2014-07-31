@@ -6521,33 +6521,34 @@ Array2D<int> LSDRaster::create_mask(float window_radius, int neighbourhood_switc
   if((neighbourhood_switch != 1) && (neighbourhood_switch != 0))
   {
     neighbourhood_switch = 0;
-    cout << "\t\t incorrect specification of neighbourhood type, so set to square (default). Note that correct neighbourhood_switch values are: 0 = square, 1 = circular" << endl;
+    cout << "\t\t incorrect specification of neighbourhood type, so set to square (default).\n"
+         << " Note that correct neighbourhood_switch values are: 0 = square, 1 = circular" << endl;
   }
   int kernel_radius = int(ceil(window_radius/DataResolution));
   int kernel_width = 2*kernel_radius + 1;
-	Array2D<int> mask(kernel_width,kernel_width,0);
-	float x,y,zeta,radial_dist;
-	for(int i=0;i<kernel_width;++i)
-	{
-	  for(int j=0;j<kernel_width;++j)
-	  {
-	    x=(i-kernel_radius)*DataResolution;
-	    y=(j-kernel_radius)*DataResolution;
-			// Build circular mask
-			// distance from centre to this point.
-			if(neighbourhood_switch == 0) mask[i][j] = 1;
-			else if(neighbourhood_switch == 1)
-			{
+  Array2D<int> mask(kernel_width,kernel_width,0);
+  float x,y,radial_dist;
+  for(int i=0;i<kernel_width;++i)
+  {
+    for(int j=0;j<kernel_width;++j)
+    {
+      x=(i-kernel_radius)*DataResolution;
+      y=(j-kernel_radius)*DataResolution;
+      // Build circular mask
+      // distance from centre to this point.
+      if(neighbourhood_switch == 0) mask[i][j] = 1;
+      else if(neighbourhood_switch == 1)
+      {
         radial_dist = sqrt(y*y + x*x);
         if (floor(radial_dist) <= window_radius)
         {
-  				mask[i][j] = 1;
-  			}
-  		}
-  		else mask[i][j] = 1; 
+          mask[i][j] = 1;
+  	}
+      }
+      else mask[i][j] = 1; 
     }
-	}
-	return mask;
+  }
+  return mask;
 }
 //---------------------------------------------------------------------------------------
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
