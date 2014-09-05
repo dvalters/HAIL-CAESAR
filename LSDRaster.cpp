@@ -82,6 +82,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include <vector>
 #include <string>
@@ -289,10 +290,146 @@ void LSDRaster::read_raster(string filename, string extension)
 		// now update the objects raster data
 		RasterData = data.copy();
 	}
+	else if (extension == "bil")
+	{
+		// float data (a binary format created by ArcMap) has a header file
+		// this file must be opened first
+		string header_filename;
+		string header_extension = "hdr";
+		header_filename = filename+dot+header_extension;
+
+		ifstream ifs(header_filename.c_str());
+		if( ifs.fail() )
+		{
+			cout << "\nFATAL ERROR: the header file \"" << header_filename
+				 << "\" doesn't exist" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		else
+		{
+				  
+			string str;
+			ifs >> str;
+			if (str != "ENVI")
+			{
+        cout << "\nFATAL ERROR: this is not an ENVI header file!, first line is: " 
+             << str << endl;
+        exit(EXIT_FAILURE);       
+      }
+      else
+      {
+        // the the rest of the lines
+        int NChars = 5000; // need a big buffer beacause of the projection string
+        char thisline[NChars];  
+        vector<string> lines;
+        while( ifs.getline(thisline, NChars) )
+        {
+          lines.push_back(thisline);
+        }
+        cout << "Number of lines is: " << lines.size() << endl;
+        for(int i = 0; i< int(lines.size()); i++)
+        {
+          cout << "Line["<<i<<"]: " << lines[i] << endl;
+        }
+        
+        // now loop through and get the number of rows
+        int counter = 0;
+        int NLines = int(lines.size());
+        int this_NRows = 0;
+        size_t found; 
+        string str_find = "lines";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            // get the data using a stringstream
+            istringstream iss(lines[counter]);
+            iss >> str >> str >> str;
+            this_NRows = atoi(str.c_str());
+            cout << "NRows = " << this_NRows << endl;
+            NRows = this_NRows;
+            
+            // advance to the end so you move on to the new loop            
+            counter = lines.size();            
+          }
+          else
+          {
+            counter++;
+          }
+        }
+
+        // get the number of columns
+        counter = 0;
+        int this_NCols = 0;
+        str_find = "samples";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            // get the data using a stringstream
+            istringstream iss(lines[counter]);
+            iss >> str >> str >> str;
+            this_NCols = atoi(str.c_str());
+            cout << "NCols = " << this_NCols << endl;
+            NCols = this_Cols;
+            
+            // advance to the end so you move on to the new loop            
+            counter = lines.size();    
+          }
+          else
+          {
+            counter++;
+          }
+        }        
+
+        // get the map info
+        counter = 0;
+        string this_map_info = "empty";
+        str_find = "map info";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            cout << "Found map info on line " << counter << '\n';  
+            counter = lines.size();
+          }
+          else
+          {
+            counter++;
+          }
+        }     
+
+        // get the projection string
+        counter = 0;
+        string this_coordinate_system_string = "empty";
+        str_find = "coordinate system string";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            cout << "Found coordinate system string on line " << counter << '\n';  
+            counter = lines.size();
+          }
+          else
+          {
+            counter++;
+          }
+        }   
+        
+      }
+      
+      
+		}
+		ifs.close();    
+  }
 	else
 	{
 		cout << "You did not enter and approprate extension!" << endl
-				  << "You entered: " << extension << " options are .flt and .asc" << endl;
+				  << "You entered: " << extension << " options are .flt, .asc and .bil" << endl;
 		exit(EXIT_FAILURE);
 	}
 
