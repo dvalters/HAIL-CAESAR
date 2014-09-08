@@ -99,6 +99,7 @@ Tools are included to:
 
 #include <string>
 #include <vector>
+#include <map>
 #include "TNT/tnt.h"
 #include "LSDIndexRaster.hpp"
 using namespace std;
@@ -118,7 +119,7 @@ class LSDRaster
   friend class LSDFlowInfo;
 
   /// @brief The create function. This is default and throws an error.
-  LSDRaster()										{ create(); }
+  LSDRaster()		       	{ create(); }
   
   /// @brief Create an LSDRaster from a file.
   /// Uses a filename and file extension
@@ -141,7 +142,24 @@ class LSDRaster
 	          float cellsize, float ndv, Array2D<float> data)
 		{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
 
-	// Get functions
+  /// @brief Create an LSDRaster from memory, includes georeferencing
+  /// @return LSDRaster
+  /// @param nrows An integer of the number of rows.
+  /// @param ncols An integer of the number of columns.
+  /// @param xmin A float of the minimum X coordinate.
+  /// @param ymin A float of the minimum Y coordinate.
+  /// @param cellsize A float of the cellsize.
+  /// @param ndv An integer of the no data value.
+  /// @param data An Array2D of floats in the shape nrows*ncols,
+  /// @param temp_GRS a map of strings containing georeferencing information. Used
+  /// mainly with ENVI format files
+  ///containing the data to be written.
+  LSDRaster(int nrows, int ncols, float xmin, float ymin,
+	    float cellsize, float ndv, Array2D<float> data, map<string,string> temp_GRS)
+  { create(nrows, ncols, xmin, ymin, cellsize, ndv, data, temp_GRS); } 
+
+
+  // Get functions
 
   /// @return Number of rows as an integer.
   int get_NRows() const				{ return NRows; }
@@ -157,6 +175,8 @@ class LSDRaster
   int get_NoDataValue() const			{ return NoDataValue; }
   /// @return Raster values as a 2D Array.
   Array2D<float> get_RasterData() const { return RasterData.copy(); }
+  /// @return map containing the georeferencing strings
+  map<string,string> get_GeoReferencingStrings() const { return GeoReferencingStrings; }
 
   /// Assignment operator.
   LSDRaster& operator=(const LSDRaster& LSDR);
@@ -469,7 +489,8 @@ class LSDRaster
   ///
   /// @author DTM
   /// @date 01/04/2014
-  vector<LSDRaster> calculate_polyfit_roughness_metrics(float window_radius1, float window_radius2, vector<int> raster_selection);
+  vector<LSDRaster> calculate_polyfit_roughness_metrics(float window_radius1,
+                          float window_radius2, vector<int> raster_selection);
 
   // this calculates coefficeint matrices for calculating a variety of
   // surface metrics such as slope, aspect, curvature, etc.
@@ -499,9 +520,9 @@ class LSDRaster
   /// @author DTM, SMM
   /// @date 01/01/12
   void calculate_polyfit_coefficient_matrices(float window_radius,
-									Array2D<float>& a, Array2D<float>& b,
-									Array2D<float>& c, Array2D<float>& d,
-									Array2D<float>& e, Array2D<float>& f);
+					      Array2D<float>& a, Array2D<float>& b,
+					      Array2D<float>& c, Array2D<float>& d,
+					      Array2D<float>& e, Array2D<float>& f);
 
   // a series of functions for retrieving derived data from the polyfit calculations
 
@@ -561,7 +582,7 @@ class LSDRaster
   /// @author DTM, SMM
   /// @date 01/01/12
   LSDRaster calculate_polyfit_planform_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
-  													Array2D<float>& d, Array2D<float>& e);
+  						Array2D<float>& d, Array2D<float>& e);
   
   /// @brief  This function calculates the profile curvature based on a polynomial fit.
   ///
@@ -576,7 +597,7 @@ class LSDRaster
   /// @author DTM, SMM
   /// @date 01/01/12
   LSDRaster calculate_polyfit_profile_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
-  													Array2D<float>& d, Array2D<float>& e);
+  						Array2D<float>& d, Array2D<float>& e);
   /// @brief  This function calculates the tangential curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -590,7 +611,7 @@ class LSDRaster
   /// @author DTM, SMM
   /// @date 01/01/12
   LSDRaster calculate_polyfit_tangential_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
-  													Array2D<float>& d, Array2D<float>& e);
+  					Array2D<float>& d, Array2D<float>& e);
   
   /// @brief This function identifies approximate position of stationary points within
   /// discrete surface using a threshold slope.
@@ -662,9 +683,9 @@ class LSDRaster
   /// @author DTM
   /// @date 13/09/2012
   void calculate_orientation_matrix_eigenvalues(float window_radius,
-													Array2D<float>& l, Array2D<float>& m,
-													Array2D<float>& n, Array2D<float>& s1,
-                    								Array2D<float>& s2, Array2D<float>& s3);
+				Array2D<float>& l, Array2D<float>& m,
+				Array2D<float>& n, Array2D<float>& s1,
+                    		Array2D<float>& s2, Array2D<float>& s3);
 
   // Rock exposure index  / roughness
   /// @brief This function is a wrapper to get the three roughness eigenvalues
@@ -676,25 +697,26 @@ class LSDRaster
   /// @author DTM
   /// @date 15/7/2013
   void calculate_plane_coefficient_matrices(float window_radius, Array2D<float>& a_plane,
-										Array2D<float>& b_plane, Array2D<float>& c_plane);
+					Array2D<float>& b_plane, Array2D<float>& c_plane);
   /// @brief Create the REI raster
   ///
   /// @details
   /// @param a_plane
-    /// @param b_plane
-    /// @param CriticalSlope
-    /// @return LSDIndexRaster of rock exposure.
-    /// @author DTM
-  	LSDRaster calculate_REI(Array2D<float>& a_plane, Array2D<float>& b_plane, float CriticalSlope);
-    /// @brief Create the REI raster (imporoved wrapper)
-    /// Rock exposure index defined as areas with local slope exceeding some
-    /// critical slope as defined by DiBiase et al. (2012)
-    /// @details
-    /// @param window radius
-    /// @param CriticalSlope
-    /// @return LSDIndexRaster of rock exposure.
-    /// @author DTM
-    LSDRaster calculate_REI(float window_radius, float CriticalSlope);
+  /// @param b_plane
+  /// @param CriticalSlope
+  /// @return LSDIndexRaster of rock exposure.
+  /// @author DTM
+  LSDRaster calculate_REI(Array2D<float>& a_plane, Array2D<float>& b_plane, float CriticalSlope);
+  
+  /// @brief Create the REI raster (imporoved wrapper)
+  /// Rock exposure index defined as areas with local slope exceeding some
+  /// critical slope as defined by DiBiase et al. (2012)
+  /// @details
+  /// @param window radius
+  /// @param CriticalSlope
+  /// @return LSDIndexRaster of rock exposure.
+  /// @author DTM
+  LSDRaster calculate_REI(float window_radius, float CriticalSlope);
 
 	/// @brief this function takes the polyfit functions and requires a window radius and a vector telling the
 	/// function which rasters to print to file.
@@ -715,7 +737,7 @@ class LSDRaster
   /// @author SMM
   /// @date 19-12-2012
 	void calculate_and_print_polyfit_rasters(float window_radius,
-											string file_prefix, vector<int> file_list);
+					string file_prefix, vector<int> file_list);
 
 	// this function combines the polyfit functions and the roughness function in one package that
 	// is data efficient becasue it only requires one calcualtion of the polyfit matrices.
@@ -1087,7 +1109,8 @@ class LSDRaster
   /// @brief Generate data in two text files to create a boomerang plot as in Roering et al [2007].
   ///
   /// @details Should now do all it needs to do: if it gets any more complex I'll look at
-  /// refactoring it into a few methods. The latest addition is to take a bin_threshold to allow different sizes of bins to be 
+  /// refactoring it into a few methods. 
+  /// The latest addition is to take a bin_threshold to allow different sizes of bins to be 
   /// removed from the final analysis - SWDG 11/11/13.
   /// @param Slope LSDRaster of slope.
   /// @param D_inf D-infinity Flowarea LSDRaster.
@@ -1098,7 +1121,8 @@ class LSDRaster
   /// @return A pair of floats containing the two LH values in the order LH(bins), LH(splines).
   /// @author SWDG
   /// @date 27/8/13
-  pair<float,float> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, float log_bin_width = 0.1, int SplineResolution = 200, float bin_threshold = 0.05);
+  pair<float,float> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, 
+          float log_bin_width = 0.1, int SplineResolution = 200, float bin_threshold = 0.05);
 
   /// @brief Calculate drainage density of a set of input basins.
   /// @details Calculated as flow length/basin area and written to every
@@ -1116,7 +1140,8 @@ class LSDRaster
   /// @date 19/11/13
   LSDRaster DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRaster& Basins, Array2D<int> FlowDir);
 
-  /// @brief Simple method to calculate drainage density for each basin and then convert these values into a hillslope length raster.
+  /// @brief Simple method to calculate drainage density for each basin and then 
+  /// convert these values into a hillslope length raster.
   ///
   /// @details The LH value is calculated using LH = 1/2*DD [Tucker et al 2001].  
   /// @param StreamNetwork LSDIndexRaster of the stream network.
@@ -1138,23 +1163,23 @@ class LSDRaster
   /// @date 20/1/14   
   void GetVectors(LSDRaster Magnitude, LSDRaster Direction, string output_file, int step);
 
-	// Smoothing tools
-	//Nonlocal Means Filtering - Default values following Baudes et al [2005]
-	/// @brief Perform Non-local means filtering on a DEM following Baude et al [2005].
+  // Smoothing tools
+  //Nonlocal Means Filtering - Default values following Baudes et al [2005]
+  /// @brief Perform Non-local means filtering on a DEM following Baude et al [2005].
   ///
   /// @details Smoothes non-gaussian noise. Martin Hurst, February, 2012
-	/// Modified by David Milodowski, May 2012- generates grid of recording filtered noise
+  /// Modified by David Milodowski, May 2012- generates grid of recording filtered noise
   ///
-	/// WindowRadius has to be <= SimilarityRadius ?
+  /// WindowRadius has to be <= SimilarityRadius ?
   ///
-	/// Adapted from a matlab script by:
-	/// Author: Jose Vicente Manjon Herrera & Antoni Buades
-	/// Date: 09-03-2006
+  /// Adapted from a matlab script by:
+  /// Author: Jose Vicente Manjon Herrera & Antoni Buades
+  /// Date: 09-03-2006
   ///
-	/// Implementation of the Non local filter proposed for A. Buades, B. Coll and J.M. Morel in
-	/// "A non-local algorithm for image denoising"
+  /// Implementation of the Non local filter proposed for A. Buades, B. Coll and J.M. Morel in
+  /// "A non-local algorithm for image denoising"
   ///
-	/// **Added soft threshold optimal correction - David Milodowski, 05/2012
+  /// **Added soft threshold optimal correction - David Milodowski, 05/2012
   /// @param WindowRadius search window radius (defualt=2).
   /// @param SimilarityRadius similarity window radius (defualt=2).
   /// @param DegreeFiltering degree of filtering (defualt=2).
@@ -1162,30 +1187,32 @@ class LSDRaster
   /// @return Filtered LSDRaster object.
   /// @author MDH, DTM
   /// @date February 2012
-	LSDRaster NonLocalMeansFilter(int WindowRadius=2, int SimilarityRadius=2, int DegreeFiltering=2, float Sigma=1.25);
-	/// @brief Creates a buffer around an array (of size SimilarityRadius) and
+  LSDRaster NonLocalMeansFilter(int WindowRadius=2, int SimilarityRadius=2, int DegreeFiltering=2, float Sigma=1.25);
+  
+  /// @brief Creates a buffer around an array (of size SimilarityRadius) and
   /// gives the new border mirror symmetric values of the original array reflected
   /// across the boundary.
   ///
   /// @details SimilarityRadius should be the size of the window if filtering.
-	/// New array has size nrows + 2*SimilarityRadius by ncols + 2*SimilarityRadius.
+  /// New array has size nrows + 2*SimilarityRadius by ncols + 2*SimilarityRadius.
   /// @param PaddedRasterData Padded LSDRaster.
   /// @param SimilarityRadius similarity window radius.
   /// @author Martin Hurst
   /// @date February 2012
-	void PadRasterSymmetric(Array2D<float>& PaddedRasterData, int& SimilarityRadius);
-	/// @brief Generate gaussian weighted kernel.
+  void PadRasterSymmetric(Array2D<float>& PaddedRasterData, int& SimilarityRadius);
+
+  /// @brief Generate gaussian weighted kernel.
   ///
   /// @details kernel array must be predeclared of size SimilarityRadius and consist of zeros:
-	/// Array2D<float> Kernel(SimilarityRadius,SimilarityRadius,0.0);
-	///
-	/// Kernel generated using: G(x,y) = (1/2*pi*sigma^2) exp ((-x^2+y^2)/(2*sigma^2))
+  /// Array2D<float> Kernel(SimilarityRadius,SimilarityRadius,0.0);
+  ///
+  /// Kernel generated using: G(x,y) = (1/2*pi*sigma^2) exp ((-x^2+y^2)/(2*sigma^2))
   /// @param Kernel
   /// @param sigma
   /// @param SimilarityRadius similarity window radius.
   /// @author Martin Hurst
   /// @date February 2012
-	void MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius);
+  void MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius);
 
   //D-infinity tools
 
@@ -1348,40 +1375,49 @@ class LSDRaster
   /// @return an LSDRaster with the fraction of cells in neightbourhood for which condition statement is true  
   /// @author DTM 
   /// @date 20/06/2014 
-  LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch, int condition_switch,  float test_value);
+  LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch, 
+                    int condition_switch,  float test_value);
 
   /// @brief Function to change border pixels to nodata
   /// @param int border_width
-  /// @param int irregular_switch (0 (default) -> only creates border pixels around raster edge; 1 -> creates border around edges and nodata values e.g. for irregularly shaped datasets)
+  /// @param int irregular_switch (0 (default) -> only creates border pixels around raster edge;
+  /// 1 -> creates border around edges and nodata values e.g. for irregularly shaped datasets)
   /// @return Updated LSDRaster
   /// @author DTM
   /// @date 29/05/2014
   LSDRaster border_with_nodata(int border_width, int irregular_switch = 0);
 
-	protected:
+  protected:
 
-	///Number of rows.
+  ///Number of rows.
   int NRows;
   ///Number of columns.
-	int NCols;
-	///Minimum X coordinate.
+  int NCols;
+  ///Minimum X coordinate.
   float XMinimum;
-	///Minimum Y coordinate.
-	float YMinimum;
+  ///Minimum Y coordinate.
+  float YMinimum;
 
-	///Data resolution.
-	float DataResolution;
-	///No data value.
-	int NoDataValue;
+  ///Data resolution.
+  float DataResolution;
+  ///No data value.
+  int NoDataValue;
 
-	/// Raster data.
-	Array2D<float> RasterData;
+  ///A map of strings for holding georeferencing information
+  map<string,string> GeoReferencingStrings;
+
+  /// Raster data.
+  Array2D<float> RasterData;
+
+
 
 	private:
 	void create();
 	void create(string filename, string extension);
 	void create(int ncols, int nrows, float xmin, float ymin,
 	            float cellsize, float ndv, Array2D<float> data);
+	void create(int ncols, int nrows, float xmin, float ymin,
+	            float cellsize, float ndv, Array2D<float> data, map<string,string> GRS);
 
 };
 
