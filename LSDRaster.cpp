@@ -114,7 +114,8 @@ LSDRaster& LSDRaster::operator=(const LSDRaster& rhs)
   if (&rhs != this)
    {
     create(rhs.get_NRows(),rhs.get_NCols(),rhs.get_XMinimum(),rhs.get_YMinimum(),
-           rhs.get_DataResolution(),rhs.get_NoDataValue(),rhs.get_RasterData());
+           rhs.get_DataResolution(),rhs.get_NoDataValue(),rhs.get_RasterData(),
+           rhs.get_GeoReferencingStrings());
    }
   return *this;
  }
@@ -166,6 +167,38 @@ void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
 	}
 
 }
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Like the above function, but copies the GeoReferencing
+// SMM 2012
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
+		       float cellsize, float ndv, Array2D<float> data, map<string,string> temp_GRS)
+{
+	NRows = nrows;
+	NCols = ncols;
+	XMinimum = xmin;
+	YMinimum = ymin;
+	DataResolution = cellsize;
+	NoDataValue = ndv;
+	GeoReferencingStrings = temp_GRS;
+
+	RasterData = data.copy();
+
+	if (RasterData.dim1() != NRows)
+	{
+		cout << "LSDRaster line 89 dimension of data is not the same as stated in NRows!" << endl;
+		exit(EXIT_FAILURE);
+	}
+	if (RasterData.dim2() != NCols)
+	{
+		cout << "LSDRaster line 94 dimension of data is not the same as stated in NRows!" << endl;
+		exit(EXIT_FAILURE);
+	}
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This function reads a DEM
@@ -257,7 +290,7 @@ void LSDRaster::read_raster(string filename, string extension)
 		}
 		ifs.close();
 
-		cout << "Loading asc file; NCols: " << NCols << " NRows: " << NRows << endl
+		cout << "Loading flt file; NCols: " << NCols << " NRows: " << NRows << endl
 			 << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
 		     << "Data Resolution: " << DataResolution << " and No Data Value: "
 		     << NoDataValue << endl;
@@ -373,7 +406,7 @@ void LSDRaster::read_raster(string filename, string extension)
             iss >> str >> str >> str;
             this_NCols = atoi(str.c_str());
             cout << "NCols = " << this_NCols << endl;
-            NCols = this_Cols;
+            NCols = this_NCols;
             
             // advance to the end so you move on to the new loop            
             counter = lines.size();    
@@ -394,6 +427,41 @@ void LSDRaster::read_raster(string filename, string extension)
           if (found!=string::npos)
           {
             cout << "Found map info on line " << counter << '\n';  
+	    
+	          // now split the line 
+	          size_t start_pos;
+	          size_t end_pos;
+	          string open_curly_bracket = "{";
+	          string closed_curly_bracket = "}";
+	          start_pos = lines[counter].find(open_curly_bracket);
+	          end_pos = lines[counter].find(closed_curly_bracket);
+	          cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+	          string info_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
+	          cout << "\nThe map info string is:\n" << info_str << endl;
+	          string mi_key = "ENVI_map_info";
+	          GeoReferencingStrings[mi_key] = info_str;
+
+	          // now parse the string
+	          vector<string> mapinfo_strings;
+	          istringstream iss(info_str);
+	          while( iss.good() )
+	          {
+	            string substr;
+	            getline( iss, substr, ',' );
+	            mapinfo_strings.push_back( substr );
+	          }
+	          XMinimum = atof(mapinfo_strings[3].c_str());
+	          YMinimum = atof(mapinfo_strings[4].c_str());
+	          DataResolution = atof(mapinfo_strings[5].c_str());
+
+	          if (atof(mapinfo_strings[6].c_str()) != DataResolution)
+	          {
+	            cout << "Warning! Loading ENVI DEM, but X and Y data spacing are different!" << endl;
+	          }
+
+	          cout << "Xmin: " << XMinimum << " YMin: " << YMinimum << " spacing: " 
+                 << DataResolution << endl;
+
             counter = lines.size();
           }
           else
@@ -412,19 +480,62 @@ void LSDRaster::read_raster(string filename, string extension)
           if (found!=string::npos)
           {
             cout << "Found coordinate system string on line " << counter << '\n';  
+
+	          // now split the line 
+	          size_t start_pos;
+	          size_t end_pos;
+	          string open_curly_bracket = "{";
+	          string closed_curly_bracket = "}";
+	          start_pos = lines[counter].find(open_curly_bracket);
+	          end_pos = lines[counter].find(closed_curly_bracket);
+	          cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+	          string csys_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
+	          cout << "\nThe coordinate system string is:\n" << csys_str << endl;
+	          string cs_key = "ENVI_coordinate_system";
+	          GeoReferencingStrings[cs_key] = csys_str;
             counter = lines.size();
           }
           else
           {
             counter++;
           }
-        }   
-        
-      }
-      
-      
+        }          
+      }         
 		}
-		ifs.close();    
+		ifs.close(); 
+     
+		cout << "Loading ENVI bil file; NCols: " << NCols << " NRows: " << NRows << endl
+			 << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+		     << "Data Resolution: " << DataResolution << " and No Data Value: "
+		     << NoDataValue << endl;
+
+		// this is the array into which data is fed
+		Array2D<float> data(NRows,NCols,NoDataValue);
+
+		// now read the DEM, using the binary stream option
+		ifstream ifs_data(string_filename.c_str(), ios::in | ios::binary);
+		if( ifs_data.fail() )
+		{
+			cout << "\nFATAL ERROR: the data file \"" << string_filename
+			     << "\" doesn't exist" << endl;
+			exit(EXIT_FAILURE);
+		}
+		else
+		{
+			float temp;
+			for (int i=0; i<NRows; ++i)
+			{
+				for (int j=0; j<NCols; ++j)
+				{
+					ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+					data[i][j] = float(temp);
+				}
+			}
+		}
+		ifs_data.close();
+
+		// now update the objects raster data
+		RasterData = data.copy();         
   }
 	else
 	{
