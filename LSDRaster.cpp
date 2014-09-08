@@ -85,6 +85,7 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <limits>
 #include <string>
 #include <queue>
 #include <algorithm>
@@ -450,9 +451,13 @@ void LSDRaster::read_raster(string filename, string extension)
 	            getline( iss, substr, ',' );
 	            mapinfo_strings.push_back( substr );
 	          }
-	          XMinimum = atof(mapinfo_strings[3].c_str());
-	          YMinimum = atof(mapinfo_strings[4].c_str());
+	          XMinimum = atof(mapinfo_strings[3].c_str());	          	          
+	          float YMax = atof(mapinfo_strings[4].c_str());
+	          	       	   	          
 	          DataResolution = atof(mapinfo_strings[5].c_str());
+            
+            // get Y minium
+            YMinimum = YMax - NRows*DataResolution;	          
 
 	          if (atof(mapinfo_strings[6].c_str()) != DataResolution)
 	          {
@@ -504,12 +509,9 @@ void LSDRaster::read_raster(string filename, string extension)
 		}
 		ifs.close(); 
      
-		cout << "Loading ENVI bil file; NCols: " << NCols << " NRows: " << NRows << endl
-			 << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
-		     << "Data Resolution: " << DataResolution << " and No Data Value: "
-		     << NoDataValue << endl;
-
 		// this is the array into which data is fed
+		NoDataValue = -9999;
+		//bool set_NDV = false;
 		Array2D<float> data(NRows,NCols,NoDataValue);
 
 		// now read the DEM, using the binary stream option
@@ -528,11 +530,40 @@ void LSDRaster::read_raster(string filename, string extension)
 				for (int j=0; j<NCols; ++j)
 				{
 					ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+					
 					data[i][j] = float(temp);
+					if (data[i][j]<-1e10)
+					{
+            data[i][j] = NoDataValue;
+          }
+					
+					/*
+					// check for NDV
+					if(set_NDV == false)
+					{
+            
+            {
+              cout.precision(12);
+              cout << "Found large negative number, setting NoDataValue " 
+                   << " value is: " << data[i][j] << endl;
+              NoDataValue = data[i][j];
+              cout << "NoDataSet: " << NoDataValue << endl;
+              set_NDV = true;
+              cout << "Max float is: " << -numeric_limits<float>::max() << endl;
+              
+            }
+          }
+          */
+					
 				}
 			}
 		}
 		ifs_data.close();
+
+		cout << "Loading ENVI bil file; NCols: " << NCols << " NRows: " << NRows << endl
+			 << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+		     << "Data Resolution: " << DataResolution << " and No Data Value: "
+		     << NoDataValue << endl;
 
 		// now update the objects raster data
 		RasterData = data.copy();         
@@ -627,14 +658,88 @@ void LSDRaster::write_raster(string filename, string extension)
 		}
 		data_ofs.close();
 	}
-	else
+	else if (extension == "bil")
 	{
-		cout << "You did not enter and approprate extension!" << endl
-				  << "You entered: " << extension << " options are .flt and .asc" << endl;
-		exit(EXIT_FAILURE);
-	}
+		// float data (a binary format created by ArcMap) has a header file
+		// this file must be opened first
+		string header_filename;
+		string header_extension = "hdr";
+		header_filename = filename+dot+header_extension;
 
+    // you need to strip the filename
+    string frontslash = "/";
+    size_t found = string_filename.find_last_of(frontslash); 
+    //cout << "Found is: " << found << endl;
+    
+    int length = int(string_filename.length());
+    string this_fname = string_filename.substr(found+1,length-found-1);
+    //cout << "fname is: " << this_fname << endl;
 
+    ofstream header_ofs(header_filename.c_str());
+    string str;
+    header_ofs <<  "ENVI" << endl;
+    header_ofs << "description = {" << endl << this_fname << "}" << endl;
+    header_ofs <<  "samples = " << NCols << endl;
+    header_ofs <<  "lines = " << NRows << endl;
+    header_ofs <<  "bands = 1" << endl;
+    header_ofs <<  "header offset = 0" << endl;
+    header_ofs <<  "file type = ENVI Standard" << endl;
+    header_ofs <<  "data type = 4" << endl;
+    header_ofs <<  "interleave = bsq" << endl;
+    header_ofs <<  "byte order = 0" << endl;
+    
+    // now check to see if there are the map info and coordinate system 
+    map<string,string>::iterator iter;
+    string cs_str_key = "ENVI_coordinate_system";
+    string mi_str_key = "ENVI_map_info";
+
+    string cs_str;
+    string mi_str;
+    iter = GeoReferencingStrings.find(mi_str_key);
+    if (iter != GeoReferencingStrings.end() )
+    {
+      mi_str = (*iter).second;
+      cout << "Map info system string exists, it is: " << mi_str << endl;
+      header_ofs <<  "map info = {"<<mi_str<<"}" << endl;
+    }
+    else
+    {
+      cout << "Warning, writing ENVI file but no map info string" << endl;
+    } 
+    iter = GeoReferencingStrings.find(cs_str_key);
+    if (iter != GeoReferencingStrings.end() )
+    {
+      cs_str = (*iter).second;
+      cout << "Coord, system string exists, it is: " << cs_str << endl;
+      header_ofs <<  "coordinate system string = {"<<cs_str<<"}" << endl;
+    }
+    else
+    {
+      cout << "Warning, writing ENVI file but no coordinate system string" << endl;
+    }
+    header_ofs <<  "data ignore value = " << NoDataValue << endl;
+ 	      
+    header_ofs.close();
+
+    // now do the main data
+    ofstream data_ofs(string_filename.c_str(), ios::out | ios::binary);
+    float temp;
+    for (int i=0; i<NRows; ++i)
+    {
+      for (int j=0; j<NCols; ++j)
+      {
+        temp = float(RasterData[i][j]);
+	data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
+      }
+    }
+    data_ofs.close();
+  }	
+  else
+  {
+    cout << "You did not enter and approprate extension!" << endl
+	  << "You entered: " << extension << " options are flt, bil and asc" << endl;
+    exit(EXIT_FAILURE);
+   }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
