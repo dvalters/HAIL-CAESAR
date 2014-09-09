@@ -71,6 +71,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include "TNT/tnt.h"
 using namespace std;
 using namespace TNT;
@@ -112,6 +113,24 @@ class LSDIndexRaster
 	          float cellsize, int ndv, Array2D<int> data)
 								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
 
+	/// @brief Create an LSDIndexRaster from memory.
+  /// @return LSDIndexRaster
+  /// @param nrows An integer of the number of rows.
+  /// @param ncols An integer of the number of columns.
+  /// @param xmin A float of the minimum X coordinate.
+  /// @param ymin A float of the minimum Y coordinate.
+  /// @param cellsize A float of the cellsize.
+  /// @param ndv An integer of the no data value.
+  /// @param data An Array2D of integers in the shape nrows*ncols,
+  /// @param GRS_map a map containing information about the georeferencing
+  /// containing the data to be written.
+ 	/// @author SMM
+  /// @date 09/09/14
+	LSDIndexRaster(int nrows, int ncols, float xmin, float ymin,
+	          float cellsize, int ndv, Array2D<int> data, map<string,string> GRS_map)
+								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data, GRS_map); }
+
+
 	// Get functions
 
 	/// @return Number of rows as an integer.
@@ -128,6 +147,8 @@ class LSDIndexRaster
 	int get_NoDataValue() const			{ return NoDataValue; }
 	/// @return Raster values as a 2D Array.
 	Array2D<int> get_RasterData() const { return RasterData; }
+	/// @return Map of strings containing georeferencing information
+	map<string,string> get_GeoReferencingStrings() const { return GeoReferencingStrings; }
 
 	/// Assignment operator.
 	LSDIndexRaster& operator=(const LSDIndexRaster& LSDIR);
@@ -236,6 +257,9 @@ class LSDIndexRaster
 	///No data value.
 	int NoDataValue;
 
+  ///A map of strings for holding georeferencing information
+  map<string,string> GeoReferencingStrings;
+
 	/// Raster data.
 	Array2D<int> RasterData;
 
@@ -244,6 +268,9 @@ class LSDIndexRaster
 	void create(string filename, string extension);
 	void create(int ncols, int nrows, float xmin, float ymin,
 	            float cellsize, int ndv, Array2D<int> data);
+	void create(int ncols, int nrows, float xmin, float ymin,
+	            float cellsize, int ndv, Array2D<int> data, 
+              map<string,string> GRS_map);	            
 
 };
 
