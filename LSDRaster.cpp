@@ -222,7 +222,7 @@ void LSDRaster::read_raster(string filename, string extension)
 	string string_filename;
 	string dot = ".";
 	string_filename = filename+dot+extension;
-	cout << "The filename is " << string_filename << endl;
+	cout << "/n/nLoading and LSDRaster, the filename is " << string_filename << endl;
 
 
 	if (extension == "asc")
@@ -331,6 +331,7 @@ void LSDRaster::read_raster(string filename, string extension)
 		string header_filename;
 		string header_extension = "hdr";
 		header_filename = filename+dot+header_extension;
+		int NoDataExists = 0;
 
 		ifstream ifs(header_filename.c_str());
 		if( ifs.fail() )
@@ -416,8 +417,35 @@ void LSDRaster::read_raster(string filename, string extension)
           {
             counter++;
           }
-        }        
-
+        }  
+                     
+        // get data ignore value
+        counter = 0;
+        float this_NoDataValue = 0;
+        str_find = "data ignore value";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            // get the data using a stringstream
+            istringstream iss(lines[counter]);
+            iss >> str >> str >> str >> str >> str;
+            this_NoDataValue = atoi(str.c_str());
+            //cout << "NCols = " << this_NCols << endl;
+            NoDataValue = this_NoDataValue;
+            
+            NoDataExists = 1;   // set this to true
+            
+            // advance to the end so you move on to the new loop            
+            counter = lines.size();    
+          }
+          else
+          {
+            counter++;
+          }
+        }   
+        
         // get the map info
         counter = 0;
         string this_map_info = "empty";
@@ -510,7 +538,10 @@ void LSDRaster::read_raster(string filename, string extension)
 		ifs.close(); 
      
 		// this is the array into which data is fed
-		NoDataValue = -9999;
+		if (NoDataExists == 0)
+		{
+      NoDataValue = -9999;
+    }
 		//bool set_NDV = false;
 		Array2D<float> data(NRows,NCols,NoDataValue);
 
@@ -680,7 +711,7 @@ void LSDRaster::write_raster(string filename, string extension)
     if (iter != GeoReferencingStrings.end() )
     {
       mi_str = (*iter).second;
-      cout << "Map info system string exists, it is: " << mi_str << endl;
+      //cout << "Map info system string exists, it is: " << mi_str << endl;
       header_ofs <<  "map info = {"<<mi_str<<"}" << endl;
     }
     else
@@ -691,7 +722,7 @@ void LSDRaster::write_raster(string filename, string extension)
     if (iter != GeoReferencingStrings.end() )
     {
       cs_str = (*iter).second;
-      cout << "Coord, system string exists, it is: " << cs_str << endl;
+      //cout << "Coord, system string exists, it is: " << cs_str << endl;
       header_ofs <<  "coordinate system string = {"<<cs_str<<"}" << endl;
     }
     else
