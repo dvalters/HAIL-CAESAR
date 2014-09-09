@@ -360,11 +360,11 @@ void LSDRaster::read_raster(string filename, string extension)
         {
           lines.push_back(thisline);
         }
-        cout << "Number of lines is: " << lines.size() << endl;
-        for(int i = 0; i< int(lines.size()); i++)
-        {
-          cout << "Line["<<i<<"]: " << lines[i] << endl;
-        }
+        //cout << "Number of lines is: " << lines.size() << endl;
+        //for(int i = 0; i< int(lines.size()); i++)
+        //{
+        //  cout << "Line["<<i<<"]: " << lines[i] << endl;
+        //}
         
         // now loop through and get the number of rows
         int counter = 0;
@@ -381,7 +381,7 @@ void LSDRaster::read_raster(string filename, string extension)
             istringstream iss(lines[counter]);
             iss >> str >> str >> str;
             this_NRows = atoi(str.c_str());
-            cout << "NRows = " << this_NRows << endl;
+            //cout << "NRows = " << this_NRows << endl;
             NRows = this_NRows;
             
             // advance to the end so you move on to the new loop            
@@ -406,7 +406,7 @@ void LSDRaster::read_raster(string filename, string extension)
             istringstream iss(lines[counter]);
             iss >> str >> str >> str;
             this_NCols = atoi(str.c_str());
-            cout << "NCols = " << this_NCols << endl;
+            //cout << "NCols = " << this_NCols << endl;
             NCols = this_NCols;
             
             // advance to the end so you move on to the new loop            
@@ -427,7 +427,7 @@ void LSDRaster::read_raster(string filename, string extension)
           found = lines[counter].find(str_find); 
           if (found!=string::npos)
           {
-            cout << "Found map info on line " << counter << '\n';  
+            //cout << "Found map info on line " << counter << '\n';  
 	    
 	          // now split the line 
 	          size_t start_pos;
@@ -436,9 +436,9 @@ void LSDRaster::read_raster(string filename, string extension)
 	          string closed_curly_bracket = "}";
 	          start_pos = lines[counter].find(open_curly_bracket);
 	          end_pos = lines[counter].find(closed_curly_bracket);
-	          cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+	          //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
 	          string info_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
-	          cout << "\nThe map info string is:\n" << info_str << endl;
+	          //cout << "\nThe map info string is:\n" << info_str << endl;
 	          string mi_key = "ENVI_map_info";
 	          GeoReferencingStrings[mi_key] = info_str;
 
@@ -464,8 +464,8 @@ void LSDRaster::read_raster(string filename, string extension)
 	            cout << "Warning! Loading ENVI DEM, but X and Y data spacing are different!" << endl;
 	          }
 
-	          cout << "Xmin: " << XMinimum << " YMin: " << YMinimum << " spacing: " 
-                 << DataResolution << endl;
+	          //cout << "Xmin: " << XMinimum << " YMin: " << YMinimum << " spacing: " 
+            //     << DataResolution << endl;
 
             counter = lines.size();
           }
@@ -484,7 +484,7 @@ void LSDRaster::read_raster(string filename, string extension)
           found = lines[counter].find(str_find); 
           if (found!=string::npos)
           {
-            cout << "Found coordinate system string on line " << counter << '\n';  
+            //cout << "Found coordinate system string on line " << counter << '\n';  
 
 	          // now split the line 
 	          size_t start_pos;
@@ -493,9 +493,9 @@ void LSDRaster::read_raster(string filename, string extension)
 	          string closed_curly_bracket = "}";
 	          start_pos = lines[counter].find(open_curly_bracket);
 	          end_pos = lines[counter].find(closed_curly_bracket);
-	          cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+	          //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
 	          string csys_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
-	          cout << "\nThe coordinate system string is:\n" << csys_str << endl;
+	          //cout << "\nThe coordinate system string is:\n" << csys_str << endl;
 	          string cs_key = "ENVI_coordinate_system";
 	          GeoReferencingStrings[cs_key] = csys_str;
             counter = lines.size();
@@ -536,25 +536,6 @@ void LSDRaster::read_raster(string filename, string extension)
 					{
             data[i][j] = NoDataValue;
           }
-					
-					/*
-					// check for NDV
-					if(set_NDV == false)
-					{
-            
-            {
-              cout.precision(12);
-              cout << "Found large negative number, setting NoDataValue " 
-                   << " value is: " << data[i][j] << endl;
-              NoDataValue = data[i][j];
-              cout << "NoDataSet: " << NoDataValue << endl;
-              set_NDV = true;
-              cout << "Max float is: " << -numeric_limits<float>::max() << endl;
-              
-            }
-          }
-          */
-					
 				}
 			}
 		}
@@ -729,7 +710,7 @@ void LSDRaster::write_raster(string filename, string extension)
       for (int j=0; j<NCols; ++j)
       {
         temp = float(RasterData[i][j]);
-	data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
+	      data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
       }
     }
     data_ofs.close();

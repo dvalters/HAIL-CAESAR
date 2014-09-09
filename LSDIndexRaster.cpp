@@ -81,6 +81,7 @@
 #include <iomanip>
 #include <vector>
 #include <string>
+#include <map>
 #include "TNT/tnt.h"
 #include "LSDIndexRaster.hpp"
 using namespace std;
@@ -96,7 +97,8 @@ LSDIndexRaster& LSDIndexRaster::operator=(const LSDIndexRaster& rhs)
   if (&rhs != this)
    {
     create(rhs.get_NRows(),rhs.get_NCols(),rhs.get_XMinimum(),rhs.get_YMinimum(),
-           rhs.get_DataResolution(), rhs.get_NoDataValue(), rhs.get_RasterData() );
+           rhs.get_DataResolution(), rhs.get_NoDataValue(), rhs.get_RasterData(),
+           rhs.get_GeoReferencingStrings() );
    }
   return *this;
  }
@@ -116,7 +118,7 @@ void LSDIndexRaster::create(string filename, string extension)
 	read_raster(filename,extension);
 }
 
-// this creates a raster filled with no data values
+// this creates a raster filled with the data in data
 // SMM 2012
 void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
             float cellsize, int ndv, Array2D<int> data)
@@ -142,8 +144,40 @@ void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
 	}
 
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// similar to above but contains the georeferencing
+// SMM 2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
+            float cellsize, int ndv, Array2D<int> data, map<string,string> GRS_map)
+{
+	NRows = nrows;
+	NCols = ncols;
+	XMinimum = xmin;
+	YMinimum = ymin;
+	DataResolution = cellsize;
+	NoDataValue = ndv;
+	GeoReferencingStrings = GRS_map;
+
+	RasterData = data.copy();
+
+	if (RasterData.dim1() != NRows)
+	{
+		cout << "dimesntion of data is not the same as stated in NRows!" << endl;
+		exit(EXIT_FAILURE);
+	}
+	if (RasterData.dim2() != NCols)
+	{
+		cout << "dimesntion of data is not the same as stated in NRows!" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // this function reads a DEM
 // One has to provide both the filename and the extension
 // the '.' between the filename and extension is not included
@@ -258,6 +292,231 @@ void LSDIndexRaster::read_raster(string filename, string extension)
 		// now update the objects raster data
 		RasterData = data.copy();
 	}
+	else if (extension == "bil")
+	{
+		// float data (a binary format created by ArcMap) has a header file
+		// this file must be opened first
+		string header_filename;
+		string header_extension = "hdr";
+		header_filename = filename+dot+header_extension;
+
+		ifstream ifs(header_filename.c_str());
+		if( ifs.fail() )
+		{
+			cout << "\nFATAL ERROR: the header file \"" << header_filename
+				 << "\" doesn't exist" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		else
+		{
+				  
+			string str;
+			ifs >> str;
+			if (str != "ENVI")
+			{
+        cout << "\nFATAL ERROR: this is not an ENVI header file!, first line is: " 
+             << str << endl;
+        exit(EXIT_FAILURE);       
+      }
+      else
+      {
+        // the the rest of the lines
+        int NChars = 5000; // need a big buffer beacause of the projection string
+        char thisline[NChars];  
+        vector<string> lines;
+        while( ifs.getline(thisline, NChars) )
+        {
+          lines.push_back(thisline);
+        }
+        //cout << "Number of lines is: " << lines.size() << endl;
+        //for(int i = 0; i< int(lines.size()); i++)
+        //{
+        //  cout << "Line["<<i<<"]: " << lines[i] << endl;
+        //}
+        
+        // now loop through and get the number of rows
+        int counter = 0;
+        int NLines = int(lines.size());
+        int this_NRows = 0;
+        size_t found; 
+        string str_find = "lines";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            // get the data using a stringstream
+            istringstream iss(lines[counter]);
+            iss >> str >> str >> str;
+            this_NRows = atoi(str.c_str());
+            //cout << "NRows = " << this_NRows << endl;
+            NRows = this_NRows;
+            
+            // advance to the end so you move on to the new loop            
+            counter = lines.size();            
+          }
+          else
+          {
+            counter++;
+          }
+        }
+
+        // get the number of columns
+        counter = 0;
+        int this_NCols = 0;
+        str_find = "samples";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            // get the data using a stringstream
+            istringstream iss(lines[counter]);
+            iss >> str >> str >> str;
+            this_NCols = atoi(str.c_str());
+            //cout << "NCols = " << this_NCols << endl;
+            NCols = this_NCols;
+            
+            // advance to the end so you move on to the new loop            
+            counter = lines.size();    
+          }
+          else
+          {
+            counter++;
+          }
+        }        
+
+        // get the map info
+        counter = 0;
+        string this_map_info = "empty";
+        str_find = "map info";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            //cout << "Found map info on line " << counter << '\n';  
+	    
+	          // now split the line 
+	          size_t start_pos;
+	          size_t end_pos;
+	          string open_curly_bracket = "{";
+	          string closed_curly_bracket = "}";
+	          start_pos = lines[counter].find(open_curly_bracket);
+	          end_pos = lines[counter].find(closed_curly_bracket);
+	          //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+	          string info_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
+	          //cout << "\nThe map info string is:\n" << info_str << endl;
+	          string mi_key = "ENVI_map_info";
+	          GeoReferencingStrings[mi_key] = info_str;
+
+	          // now parse the string
+	          vector<string> mapinfo_strings;
+	          istringstream iss(info_str);
+	          while( iss.good() )
+	          {
+	            string substr;
+	            getline( iss, substr, ',' );
+	            mapinfo_strings.push_back( substr );
+	          }
+	          XMinimum = atof(mapinfo_strings[3].c_str());	          	          
+	          float YMax = atof(mapinfo_strings[4].c_str());
+	          	       	   	          
+	          DataResolution = atof(mapinfo_strings[5].c_str());
+            
+            // get Y minium
+            YMinimum = YMax - NRows*DataResolution;	          
+
+	          if (atof(mapinfo_strings[6].c_str()) != DataResolution)
+	          {
+	            cout << "Warning! Loading ENVI DEM, but X and Y data spacing are different!" << endl;
+	          }
+
+	          //cout << "Xmin: " << XMinimum << " YMin: " << YMinimum << " spacing: " 
+            //     << DataResolution << endl;
+
+            counter = lines.size();
+          }
+          else
+          {
+            counter++;
+          }
+        }     
+
+        // get the projection string
+        counter = 0;
+        string this_coordinate_system_string = "empty";
+        str_find = "coordinate system string";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            //cout << "Found coordinate system string on line " << counter << '\n';  
+
+	          // now split the line 
+	          size_t start_pos;
+	          size_t end_pos;
+	          string open_curly_bracket = "{";
+	          string closed_curly_bracket = "}";
+	          start_pos = lines[counter].find(open_curly_bracket);
+	          end_pos = lines[counter].find(closed_curly_bracket);
+	          //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+	          string csys_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
+	          //cout << "\nThe coordinate system string is:\n" << csys_str << endl;
+	          string cs_key = "ENVI_coordinate_system";
+	          GeoReferencingStrings[cs_key] = csys_str;
+            counter = lines.size();
+          }
+          else
+          {
+            counter++;
+          }
+        }          
+      }         
+		}
+		ifs.close(); 
+     
+		// this is the array into which data is fed
+		NoDataValue = -9999;
+		//bool set_NDV = false;
+		Array2D<int> data(NRows,NCols,NoDataValue);
+
+		// now read the DEM, using the binary stream option
+		ifstream ifs_data(string_filename.c_str(), ios::in | ios::binary);
+		if( ifs_data.fail() )
+		{
+			cout << "\nFATAL ERROR: the data file \"" << string_filename
+			     << "\" doesn't exist" << endl;
+			exit(EXIT_FAILURE);
+		}
+		else
+		{
+			float temp;
+			for (int i=0; i<NRows; ++i)
+			{
+				for (int j=0; j<NCols; ++j)
+				{
+					ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+					
+					data[i][j] = int(temp);
+					if (data[i][j]<-1e10)
+					{
+            data[i][j] = NoDataValue;
+          }					
+				}
+			}
+		}
+		ifs_data.close();
+
+		cout << "Loading ENVI bil file; NCols: " << NCols << " NRows: " << NRows << endl
+			 << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+		     << "Data Resolution: " << DataResolution << " and No Data Value: "
+		     << NoDataValue << endl;
+
+		// now update the objects raster data
+		RasterData = data.copy();         
+  }	
 	else
 	{
 		cout << "You did not enter and approprate extension!" << endl
@@ -345,6 +604,82 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 		}
 		data_ofs.close();
 	}
+	else if (extension == "bil")
+	{
+		// float data (a binary format created by ArcMap) has a header file
+		// this file must be opened first
+		string header_filename;
+		string header_extension = "hdr";
+		header_filename = filename+dot+header_extension;
+
+    // you need to strip the filename
+    string frontslash = "/";
+    size_t found = string_filename.find_last_of(frontslash); 
+    //cout << "Found is: " << found << endl;
+    
+    int length = int(string_filename.length());
+    string this_fname = string_filename.substr(found+1,length-found-1);
+    //cout << "fname is: " << this_fname << endl;
+
+    ofstream header_ofs(header_filename.c_str());
+    string str;
+    header_ofs <<  "ENVI" << endl;
+    header_ofs << "description = {" << endl << this_fname << "}" << endl;
+    header_ofs <<  "samples = " << NCols << endl;
+    header_ofs <<  "lines = " << NRows << endl;
+    header_ofs <<  "bands = 1" << endl;
+    header_ofs <<  "header offset = 0" << endl;
+    header_ofs <<  "file type = ENVI Standard" << endl;
+    header_ofs <<  "data type = 4" << endl;
+    header_ofs <<  "interleave = bsq" << endl;
+    header_ofs <<  "byte order = 0" << endl;
+    
+    // now check to see if there are the map info and coordinate system 
+    map<string,string>::iterator iter;
+    string cs_str_key = "ENVI_coordinate_system";
+    string mi_str_key = "ENVI_map_info";
+
+    string cs_str;
+    string mi_str;
+    iter = GeoReferencingStrings.find(mi_str_key);
+    if (iter != GeoReferencingStrings.end() )
+    {
+      mi_str = (*iter).second;
+      cout << "Map info system string exists, it is: " << mi_str << endl;
+      header_ofs <<  "map info = {"<<mi_str<<"}" << endl;
+    }
+    else
+    {
+      cout << "Warning, writing ENVI file but no map info string" << endl;
+    } 
+    iter = GeoReferencingStrings.find(cs_str_key);
+    if (iter != GeoReferencingStrings.end() )
+    {
+      cs_str = (*iter).second;
+      cout << "Coord, system string exists, it is: " << cs_str << endl;
+      header_ofs <<  "coordinate system string = {"<<cs_str<<"}" << endl;
+    }
+    else
+    {
+      cout << "Warning, writing ENVI file but no coordinate system string" << endl;
+    }
+    header_ofs <<  "data ignore value = " << NoDataValue << endl;
+ 	      
+    header_ofs.close();
+
+    // now do the main data
+    ofstream data_ofs(string_filename.c_str(), ios::out | ios::binary);
+    float temp;
+    for (int i=0; i<NRows; ++i)
+    {
+      for (int j=0; j<NCols; ++j)
+      {
+        temp = float(RasterData[i][j]);
+	      data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
+      }
+    }
+    data_ofs.close();
+  }	
 	else
 	{
 		cout << "You did not enter and approprate extension!" << endl
