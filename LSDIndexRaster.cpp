@@ -831,7 +831,7 @@ LSDIndexRaster LSDIndexRaster::LSDRasterTemplate(Array2D<int> InputData){
 
   //do a dimensions check and exit on failure
   if (InputData.dim1() == NRows && InputData.dim2() == NCols){
-    LSDIndexRaster OutputRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, InputData);
+    LSDIndexRaster OutputRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, InputData,GeoReferencingStrings);
     return OutputRaster;
   }
   else{
@@ -1201,7 +1201,7 @@ LSDIndexRaster LSDIndexRaster::thin_to_single_thread_network()
     }
   }
   
-  LSDIndexRaster skeleton_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Skeleton);
+  LSDIndexRaster skeleton_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Skeleton,GeoReferencingStrings);
 	return skeleton_raster;
 }
 
@@ -1273,7 +1273,7 @@ LSDIndexRaster LSDIndexRaster::CombineBinaryNetwork(LSDIndexRaster& Network1, LS
     }
   }
 
-  LSDIndexRaster CombinedNetwork(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, CombinedNetworkArray);
+  LSDIndexRaster CombinedNetwork(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, CombinedNetworkArray,GeoReferencingStrings);
   return CombinedNetwork;
 
 }
