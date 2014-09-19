@@ -127,7 +127,7 @@ LSDRaster& LSDRaster::operator=(const LSDRaster& rhs)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::create()
 {
-	cout << "LSDRaster line 64 Warning you have an empty LSDRaster!" << endl;
+	//cout << "LSDRaster line 64 Warning you have an empty LSDRaster!" << endl;
 	//exit(EXIT_FAILURE);
 }
 

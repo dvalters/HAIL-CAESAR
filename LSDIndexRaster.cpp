@@ -107,8 +107,8 @@ LSDIndexRaster& LSDIndexRaster::operator=(const LSDIndexRaster& rhs)
 // SMM 2012
 void LSDIndexRaster::create()
 {
-	cout << "You need to initialize with a filename!" << endl;
-	exit(EXIT_FAILURE);
+	//cout << "You need to initialize with a filename!" << endl;
+	//exit(EXIT_FAILURE);
 }
 
 // this creates a raster using an infile
