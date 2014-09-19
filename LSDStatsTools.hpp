@@ -286,6 +286,11 @@ float PKS(float z);
 string ReadTextFile(ifstream& File);
 
 
+// removes control characters from the end of strings. 
+// This is necessary when people use a DOS file format, which 
+// stupidly adds control characters to the end of lines. 
+string RemoveControlCharactersFromEndOfString(string toRemove);
+
 #endif
 
 

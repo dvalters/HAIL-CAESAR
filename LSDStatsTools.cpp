@@ -3387,6 +3387,23 @@ string ReadTextFile(ifstream& File){
   }  
 } 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This function removes control characters from the end of a string
+// These get introduced if you use the DOS format in your parameter file
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+string RemoveControlCharactersFromEndOfString(string toRemove)
+{
+  int len =  toRemove.length();  
+  if(len != 0)  
+  {  
+    if (iscntrl(toRemove[len-1]))  
+    { 
+      //cout << "Bloody hell, here is another control character! Why Microsoft? Why?" << endl; 
+      toRemove.erase(len-1);  
+    }  
+  }  
+  return toRemove;
+}
 
 #endif
 
