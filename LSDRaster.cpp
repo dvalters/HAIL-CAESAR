@@ -1522,7 +1522,7 @@ void LSDRaster::check_isolated_nodata()
 //        4 -> Planform Curvature
 //        5 -> Profile Curvature
 //        6 -> Tangential Curvature
-//        8 -> Stationary point classification (1=peak, 2=depression, 3=saddle)
+//        7 -> Stationary point classification (1=peak, 2=depression, 3=saddle)
 // The program returns a vector of LSDRasters.  For options marked "false" in
 // boolean input raster, the returned LSDRaster houses a blank raster, as this
 // metric has not been calculated.  The desired LSDRaster can be retrieved from
@@ -1533,11 +1533,11 @@ void LSDRaster::check_isolated_nodata()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
 vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radius, vector<int> raster_selection)
 {
-	Array2D<float> void_array(1,1,NoDataValue);
+  Array2D<float> void_array(1,1,NoDataValue);
   LSDRaster VOID(1,1,NoDataValue,NoDataValue,NoDataValue,NoDataValue,void_array,GeoReferencingStrings);  
   
   // catch if the supplied window radius is less than the data resolution and
-	// set it to equal the data resolution - SWDG
+  // set it to equal the data resolution - SWDG
   if (window_radius < DataResolution)
   {
     cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
@@ -1546,50 +1546,50 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
   }
   // this fits a polynomial surface over a kernel window. First, perpare the
   // kernel
-	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
-	int kw=2*kr+1;                    						     // width of kernel
+  int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
+  int kw=2*kr+1;                    						     // width of kernel
 
-	Array2D<float> data_kernel(kw,kw,NoDataValue);
-	Array2D<float> x_kernel(kw,kw,NoDataValue);
-	Array2D<float> y_kernel(kw,kw,NoDataValue);
-	Array2D<int> mask(kw,kw,0);
+  Array2D<float> data_kernel(kw,kw,NoDataValue);
+  Array2D<float> x_kernel(kw,kw,NoDataValue);
+  Array2D<float> y_kernel(kw,kw,NoDataValue);
+  Array2D<int> mask(kw,kw,0);
 
-	// reset the a,b,c,d,e and f matrices (the coefficient matrices)
-	Array2D<float> temp_coef(NRows,NCols,NoDataValue);
-	Array2D<float> elevation_raster, slope_raster, aspect_raster, curvature_raster, planform_curvature_raster, 
+  // reset the a,b,c,d,e and f matrices (the coefficient matrices)
+  Array2D<float> temp_coef(NRows,NCols,NoDataValue);
+  Array2D<float> elevation_raster, slope_raster, aspect_raster, curvature_raster, planform_curvature_raster, 
                   profile_curvature_raster, tangential_curvature_raster, classification_raster, 
                   s1_raster, s2_raster, s3_raster;
   // Copy across raster template into the desired array containers
   if(raster_selection[0]==1)  elevation_raster = temp_coef.copy();
   if(raster_selection[1]==1)  slope_raster = temp_coef.copy();
-	if(raster_selection[2]==1)  aspect_raster = temp_coef.copy();
-	if(raster_selection[3]==1)  curvature_raster = temp_coef.copy();
-	if(raster_selection[4]==1)  planform_curvature_raster = temp_coef.copy();
-	if(raster_selection[5]==1)  profile_curvature_raster = temp_coef.copy();
-	if(raster_selection[6]==1)  tangential_curvature_raster = temp_coef.copy();
-	if(raster_selection[7]==1)  classification_raster = temp_coef.copy();
+  if(raster_selection[2]==1)  aspect_raster = temp_coef.copy();
+  if(raster_selection[3]==1)  curvature_raster = temp_coef.copy();
+  if(raster_selection[4]==1)  planform_curvature_raster = temp_coef.copy();
+  if(raster_selection[5]==1)  profile_curvature_raster = temp_coef.copy();
+  if(raster_selection[6]==1)  tangential_curvature_raster = temp_coef.copy();
+  if(raster_selection[7]==1)  classification_raster = temp_coef.copy();
   
   //float a,b,c,d,e,f;
   
-	// scale kernel window to resolution of DEM, and translate coordinates to be
-	// centred on cell of interest (the centre cell)
-	float x,y,zeta,radial_dist;
-	for(int i=0;i<kw;++i)
-	{
-	  for(int j=0;j<kw;++j)
-	  {
-	    x_kernel[i][j]=(i-kr)*DataResolution;
-	    y_kernel[i][j]=(j-kr)*DataResolution;
-			// Build circular mask
-			// distance from centre to this point.
-			radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
+  // scale kernel window to resolution of DEM, and translate coordinates to be
+  // centred on cell of interest (the centre cell)
+  float x,y,zeta,radial_dist;
+  for(int i=0;i<kw;++i)
+  {
+    for(int j=0;j<kw;++j)
+    {
+      x_kernel[i][j]=(i-kr)*DataResolution;
+      y_kernel[i][j]=(j-kr)*DataResolution;
+      // Build circular mask
+      // distance from centre to this point.
+      radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
 
       if (floor(radial_dist) <= window_radius)
       {
-				mask[i][j] = 1;
-			}
+	mask[i][j] = 1;
+      }
     }
-	}
+  }
 	// FIT POLYNOMIAL SURFACE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO
 	// DETERMINE TOPOGRAPHIC METRICS
 	// Have N simultaneous linear equations, and N unknowns.
