@@ -1353,6 +1353,17 @@ class LSDRaster
   /// @author DTM 
   /// @date 20/06/2014   
   LSDRaster neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch);
+  /// @brief gets mean & standard deviation value specified circular neighbourhood
+  ///
+  /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
+  ///   0 Square neighbourhood
+  ///   1 Circular window
+  /// @param float window_radius -> radius of neighbourhood 
+  /// @param int neighbourhood_switch -> see above
+  /// @return vector<LSDRaster> with 2 LSDRasters, the first with the mean value of cells in neightbourhood, the second with the standard deviation
+  /// @author DTM 
+  /// @date 24/09/2014    
+  vector<LSDRaster> neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch)
   
   /// @brief tests neighbourhood for the fraction of values for which the specified 
   /// condition is met.
@@ -1377,6 +1388,7 @@ class LSDRaster
   /// @date 20/06/2014 
   LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch, 
                     int condition_switch,  float test_value);
+  
 
   /// @brief Function to change border pixels to nodata
   /// @param int border_width

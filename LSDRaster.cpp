@@ -6993,6 +6993,67 @@ LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radiu
 	LSDRaster SpatialAverage(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,SpatialAverageArray,GeoReferencingStrings);
 	return SpatialAverage;
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// overloaded function to kick out 2 rasters -> local standard deviation & average
+vector<LSDRaster> LSDRaster::neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch)
+{
+  Array2D<float> SpatialAverageArray(NRows,NCols,NoDataValue);
+  Array2D<float> StandardDeviationArray(NRows,NCols,NoDataValue);
+  
+  // catch if the supplied window radius is less than the data resolution and
+	// set it to equal the data resolution - SWDG
+  if (window_radius < DataResolution)
+  {
+    cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
+    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius = DataResolution;
+  }
+  // Prepare kernel
+	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
+	int kw=2*kr+1;                    						     // width of kernel
+	Array2D<float> data_kernel(kw,kw,NoDataValue);
+  Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
+	// Move window over DEM and extract neighbourhood pixels
+	cout << "\n\tRunning spatial statistics module..." << endl;
+	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+  float mean, value;
+  vector<float> data;
+  for(int i=0;i<NRows;++i)
+	{
+		cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+		for(int j=0;j<NCols;++j)
+		{
+	    // Avoid edges
+			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+			{
+        SpatialAverageArray[i][j] = NoDataValue;
+			}
+			else
+			{
+				// Sample DEM
+				for(int i_kernel=0;i_kernel<kw;++i_kernel)
+				{
+			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
+			  	{
+						value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+            if(value!=NoDataValue && mask[i_kernel][j_kernel]==1) data.push_back(value);
+			  	}
+				}
+				// Get stats
+        mean = get_mean(data);
+        SpatialAverageArray[i][j] = mean;      
+ 				StandardDeviationArray[i][j] = get_standard_deviation(data,mean);
+        data.clear();
+			}
+		}
+	}
+	LSDRaster SpatialAverage(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,SpatialAverageArray,GeoReferencingStrings);
+	LSDRaster SpatialSD(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,StandardDeviationArray,GeoReferencingStrings);
+	vector<LSDRaster> output_rasters;
+  output_rasters.push_back(SpatialAverage);
+  output_rasters.push_back(SpatialSD);
+  return output_rasters;
+}
 //---------------------------------------------------------------------------------------
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // neighbourhood_statistics_fraction_condition
