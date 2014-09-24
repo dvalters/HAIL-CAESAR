@@ -178,6 +178,14 @@ class LSDRaster
   /// @return map containing the georeferencing strings
   map<string,string> get_GeoReferencingStrings() const { return GeoReferencingStrings; }
 
+  /// @brief Get the raster data at a specified location.
+  /// @param row An integer, the X coordinate of the target cell.
+  /// @param column An integer, the Y coordinate of the target cell.
+  /// @return The raster value at the position (row, column).
+  /// @author SMM
+  /// @date 01/01/12
+  float get_data_element(int row, int column)	{ return RasterData[row][column]; }
+
   /// Assignment operator.
   LSDRaster& operator=(const LSDRaster& LSDR);
 
@@ -420,13 +428,7 @@ class LSDRaster
   /// @date 01/01/12
   void check_isolated_nodata();
 
-  /// @brief Get the raster data at a specified location.
-  /// @param row An integer, the X coordinate of the target cell.
-  /// @param column An integer, the Y coordinate of the target cell.
-  /// @return The raster value at the position (row, column).
-  /// @author SMM
-  /// @date 01/01/12
-  float get_data_element(int row, int column)	{ return RasterData[row][column]; }
+
 
   /// @brief Surface polynomial fitting and extraction of topographic metrics
   /// 
