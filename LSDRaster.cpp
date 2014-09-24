@@ -6995,7 +6995,7 @@ LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radiu
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // overloaded function to kick out 2 rasters -> local standard deviation & average
-vector<LSDRaster> LSDRaster::neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch)
+vector<LSDRaster> LSDRaster::neighbourhood_statistics_spatial_average_and_SD(float window_radius, int neighbourhood_switch)
 {
   Array2D<float> SpatialAverageArray(NRows,NCols,NoDataValue);
   Array2D<float> StandardDeviationArray(NRows,NCols,NoDataValue);
