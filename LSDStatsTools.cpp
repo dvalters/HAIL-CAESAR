@@ -2524,14 +2524,19 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
   float midpoint_value, lower_lim_value, upper_lim_value;
 
   // Bin Data
+  int n_nan=0;
   for (int i = 0; i < n_data; ++i)
   {
     float X = input_values[i];
     // Get bin_id for this particular value of X
     int bin_id = int((X-lower_limit)/bin_width);
-    ++number_observations[bin_id];
+    if(input_values[i]!=input_values[i])
+    {
+      cout << "FOUND NAN - skipping" << endl;
+      ++n_nan;
+    }
+    else ++number_observations[bin_id];
   }
-  
   for(int i = 0; i<NBins; i++)
   {
     midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
@@ -2542,7 +2547,7 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
     bin_lower_lim[i]= lower_lim_value;
     bin_upper_lim[i]= upper_lim_value;
     
-    probability_density[i] = number_observations[i]/float(n_data);    
+    probability_density[i] = number_observations[i]/float(n_data-n_nan);    
   }
 
   // Print histogram to file
