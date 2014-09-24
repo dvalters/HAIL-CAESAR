@@ -1363,7 +1363,7 @@ class LSDRaster
   /// @return vector<LSDRaster> with 2 LSDRasters, the first with the mean value of cells in neightbourhood, the second with the standard deviation
   /// @author DTM 
   /// @date 24/09/2014    
-  vector<LSDRaster> neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch);
+  vector<LSDRaster> neighbourhood_statistics_spatial_average_and_SD(float window_radius, int neighbourhood_switch);
   
   /// @brief tests neighbourhood for the fraction of values for which the specified 
   /// condition is met.
