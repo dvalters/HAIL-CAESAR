@@ -808,6 +808,12 @@ class LSDRaster
 
 
 	// hydrology tools
+	
+	/// @brief This function changes any elevation <= 0 to NoDataValue
+	/// @author SMM
+	/// @date 03/10/2014
+	void remove_seas();
+	
 	///@brief This function fills pits/sinks in a DEM by incrementing elevations for cells with
   ///no downslope neighbour. The process is repeated adnausium until no cells require
   ///incrementing.
