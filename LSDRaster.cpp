@@ -332,6 +332,7 @@ void LSDRaster::read_raster(string filename, string extension)
 		string header_extension = "hdr";
 		header_filename = filename+dot+header_extension;
 		int NoDataExists = 0;
+		int DataType = 4;     // default is float data
 
 		ifstream ifs(header_filename.c_str());
 		if( ifs.fail() )
@@ -445,6 +446,31 @@ void LSDRaster::read_raster(string filename, string extension)
             counter++;
           }
         }   
+
+        // get data type
+        counter = 0;
+
+        str_find = "data type";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            // get the data using a stringstream
+            istringstream iss(lines[counter]);
+            iss >> str >> str >> str >> str >> str;
+            DataType = atoi(str.c_str());
+            cout << "Data Type = " << DataType << endl;
+
+            
+            // advance to the end so you move on to the new loop            
+            counter = lines.size();    
+          }
+          else
+          {
+            counter++;
+          }
+        }  
         
         // get the map info
         counter = 0;
@@ -555,20 +581,65 @@ void LSDRaster::read_raster(string filename, string extension)
 		}
 		else
 		{
-			float temp;
-			for (int i=0; i<NRows; ++i)
-			{
-				for (int j=0; j<NCols; ++j)
-				{
-					ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
-					
-					data[i][j] = float(temp);
-					if (data[i][j]<-1e10)
-					{
-            data[i][j] = NoDataValue;
-          }
-				}
-			}
+      if (DataType == 2)
+      {
+        //cout << "Loading raster, recasting data from int to float!" << endl;
+			  int temp;
+			  //cout << "Integer size: " << sizeof(temp) << endl;
+			  for (int i=0; i<NRows; ++i)
+			  {
+				  for (int j=0; j<NCols; ++j)
+				  {
+					  ifs_data.read(reinterpret_cast<char*>(&temp), 2);
+					  //cout << temp << " ";
+					  data[i][j] = float(temp);
+					  if (data[i][j]<-1e10)
+					  {
+              data[i][j] = NoDataValue;
+            }
+				  }
+				  cout << endl;
+			  }		
+		  }
+		  else if (DataType == 4)
+		  {
+			  float temp;
+			  //cout << "Float size: " << sizeof(temp) << endl;
+			  for (int i=0; i<NRows; ++i)
+			  {
+				  for (int j=0; j<NCols; ++j)
+				  {
+					  ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+					  
+					  data[i][j] = float(temp);
+					  if (data[i][j]<-1e10)
+					  {
+              data[i][j] = NoDataValue;
+            }
+				  }
+			  }
+			} 
+		  else
+		  {
+		    cout << "WARNING loading ENVI raster with unusual data type. " << endl
+		         << "If you get a crazy DEM go to LINE 625 of LSDRaster.cpp to debug" << endl;
+			  float temp;   // might need to change this
+			  //cout << "Float size: " << sizeof(temp) << endl;
+			  for (int i=0; i<NRows; ++i)
+			  {
+				  for (int j=0; j<NCols; ++j)
+				  {
+					  // Use data type to control the bytes being read for each entry
+            ifs_data.read(reinterpret_cast<char*>(&temp), DataType);
+					  
+					  data[i][j] = float(temp);
+					  if (data[i][j]<-1e10)
+					  {
+              data[i][j] = NoDataValue;
+            }
+				  }
+			  }
+			}       
 		}
 		ifs_data.close();
 
@@ -3559,18 +3630,40 @@ void LSDRaster::calculate_roughness_rasters(float window_radius, float roughness
 
 
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // HH  HH YY   YY DDDD   RRRRR    OOOO   LL       OOOO    GGGGG  YY   YY
 // HH  HH  YYYY   DD DD  RR  RR  OO  OO  LL      OO  OO  GG	      YYYY
 // HHHHHH   YY    DD  DD RRRR   OO    OO LL     OO    OO GG GGG    YY
 // HH  HH   YY    DD DD  RR RR   OO  OO  LL      OO  OO  GG  GG    YY
 // HH  HH   YY    DDDD   RR  RR   OOOO   LLLLLL   OOOO    GGGGG    YY
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This function looks for data with 0 elevation and changes it to nodata
+// Seems to be required when GDAL has been used to manipulate coastal tiles
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::remove_seas()
+{
+  cout << "Removing seas, NoDataValue is: " << NoDataValue << endl;
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if(RasterData[row][col] <= 0)
+      {
+        RasterData[row][col] = NoDataValue;  
+      }
+    }
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Fill
 //---------------------------------------------------------------------------------
 //
@@ -3761,8 +3854,10 @@ bool operator<( const FillNode& lhs, const FillNode& rhs )
 
 LSDRaster LSDRaster::fill(float& MinSlope)
 {
-	//cout << "Inside NewFill" << endl;
-
+	cout << "Inside NewFill" << endl;
+  cout << "DataResolution is: " << DataResolution << endl;
+  cout << "Data[200][200]: "  << RasterData[200][200] << endl;
+  
 	//declare 1/root(2)
 	float one_over_root2 = 0.707106781;
 
@@ -3895,7 +3990,8 @@ LSDRaster LSDRaster::fill(float& MinSlope)
 					{
 						if (MinSlope > 0)
 						{
-							FilledZeta[row_kernal[Neighbour]][col_kernal[Neighbour]] = CentreFillNode.Zeta + MinSlope*DataResolution;
+							FilledZeta[row_kernal[Neighbour]][col_kernal[Neighbour]] = 
+                               CentreFillNode.Zeta + MinSlope*DataResolution;
 						}
 						else
 						{
