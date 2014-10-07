@@ -3854,9 +3854,9 @@ bool operator<( const FillNode& lhs, const FillNode& rhs )
 
 LSDRaster LSDRaster::fill(float& MinSlope)
 {
-	cout << "Inside NewFill" << endl;
-  cout << "DataResolution is: " << DataResolution << endl;
-  cout << "Data[200][200]: "  << RasterData[200][200] << endl;
+	//cout << "Inside NewFill" << endl;
+  //cout << "DataResolution is: " << DataResolution << endl;
+  //cout << "Data[200][200]: "  << RasterData[200][200] << endl;
   
 	//declare 1/root(2)
 	float one_over_root2 = 0.707106781;
