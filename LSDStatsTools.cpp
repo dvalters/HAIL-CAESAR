@@ -448,6 +448,21 @@ double erfi(double tau)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Function returning a Gaussian random number
+// DAV 16/10/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+double Gauss_rand(int Nrand, double GaussAdd, double GaussFac)
+{
+	double sum = 0;
+	
+	for (int i=1; i <= Nrand; i++)
+	{
+		sum = sum + rand();
+	}
+	return (GaussFac * sum - GaussAdd);
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this gets a simple linear regression where the regression model is y = mx+b
 // it returns a vector with the best fit values for m, b, r^2 and the durban_watson

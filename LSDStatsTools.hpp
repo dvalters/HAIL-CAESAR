@@ -170,6 +170,12 @@ vector<int> sample_without_replacement(vector<int> population_vector, int N);
 string itoa(int num);
 string dtoa(float num);
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Function returning a Gaussian random number
+// DAV 16/10/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+double Gauss_rand(double Nrand, double GaussAdd, double GaussFac);
+
 
 // Log binning module
 // two overloaded functions:
