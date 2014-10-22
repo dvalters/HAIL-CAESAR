@@ -174,7 +174,7 @@ string dtoa(float num);
 // Function returning a Gaussian random number
 // DAV 16/10/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-double Gauss_rand(double Nrand, double GaussAdd, double GaussFac);
+double Gauss_rand(int Nrand, double GaussAdd, double GaussFac);
 
 
 // Log binning module
