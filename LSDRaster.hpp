@@ -813,6 +813,12 @@ class LSDRaster
 	/// @author SMM
 	/// @date 03/10/2014
 	void remove_seas();
+
+  /// @brief This function changes any elevation <= threshold to NoDataValue
+	/// @author SMM
+	/// @date 29/10/2014
+  mask_to_nodata_below_threshold(float threshold);
+
 	
 	///@brief This function fills pits/sinks in a DEM by incrementing elevations for cells with
   ///no downslope neighbour. The process is repeated adnausium until no cells require
