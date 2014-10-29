@@ -6482,8 +6482,8 @@ LSDRaster LSDRaster::M2DFlow(){
 //   return SourcesRaster;
 // }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
 // all the surrounding NoDataValues to reduce the size and load times of output
 // rasters.
@@ -6495,7 +6495,7 @@ LSDRaster LSDRaster::M2DFlow(){
 // Returns A trimmed LSDRaster object.
 //
 // SWDG 22/08/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDRaster LSDRaster::RasterTrimmer(){
 
   //minimum index value in a column
@@ -7297,12 +7297,89 @@ LSDRaster LSDRaster::border_with_nodata(int border_width, int irregular_switch)
   LSDRaster bordered_DEM(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Data,GeoReferencingStrings);
 	return bordered_DEM;
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// this function creates an LSDIndexRaster
+// that has values of 1 for nodes that are not on edge or are borderd
+// by nodata, and 0 for those that are on the edge and bordered by nodata
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDRaster::find_cells_bordered_by_nodata()
+{
+  // this is the array that holds the mask
+  Array2D<int> Mask(NRows,NCols,1);
+  
+  // first, get the edges:
+  for(int row = 0; row<NRows; row++)
+  {
+    Mask[row][0] = 0;
+    Mask[row][NCols-1] = 0;
+  }
+  for(int col = 0; col<NCols; col++)
+  {
+    Mask[0][col] = 0;
+    Mask[NRows-1][col] = 0;
+  }
+
+  // now loop through the rest of the data. 
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if(RasterData[row][col] == NoDataValue)
+      {
+        // you need to mask all the surrounding nodes
+        Mask[row][col] = 0;
+        
+        // these are a bunch of tedious if statments to make sure you
+        // don't try and access data out of the array bounds       
+        if(row !=0)
+        {          
+          Mask[row-1][col] = 0;
+          
+          if(col != 0)
+          {
+            Mask[row-1][col-1] = 0;
+          }
+          if(col != NCols-1)
+          {
+            Mask[row-1][col+1] = 0;
+          }
+        }
+        if(row !=NRows-1)
+        {          
+          Mask[row+1][col] = 0;
+          
+          if(col != 0)
+          {
+            Mask[row+1][col-1] = 0;
+          }
+          if(col != NCols-1)
+          {
+            Mask[row+1][col+1] = 0;
+          }
+        } 
+        if(col != 0)
+        {
+          Mask[row][col-1] = 0;
+        }       
+        if(col != NCols-1)
+        {
+          Mask[row][col+1] = 0;
+        }
+      }
+    }
+  }
+
+  LSDIndexRaster Mask_Raster(NRows,NCols,XMinimum,YMinimum,DataResolution,int(NoDataValue),Mask,GeoReferencingStrings);
+	return Mask_Raster;
+
+}
 
 
 
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 #endif
