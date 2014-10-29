@@ -817,7 +817,7 @@ class LSDRaster
   /// @brief This function changes any elevation <= threshold to NoDataValue
 	/// @author SMM
 	/// @date 29/10/2014
-  mask_to_nodata_below_threshold(float threshold);
+  void mask_to_nodata_below_threshold(float threshold);
 
 	
 	///@brief This function fills pits/sinks in a DEM by incrementing elevations for cells with
@@ -1412,6 +1412,13 @@ class LSDRaster
   /// @author DTM
   /// @date 29/05/2014
   LSDRaster border_with_nodata(int border_width, int irregular_switch = 0);
+
+  /// @brief This function creates a mask that has the value of 0 for cells 
+  /// that are either on the edge or bordered by nodata (from their 9 neighbors)
+  /// @return and LSDIndexRaster with the mask
+  /// @author SMM
+  /// @date 29/10/2014
+  LSDIndexRaster find_cells_bordered_by_nodata();
 
   protected:
 
