@@ -215,6 +215,10 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
 // and a vector of bin midpoints.  These can then be analysed ahd plotted as desired.
 // DTM 14/04/2014
 void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float max, float bin_width, vector<float>& mid_points, vector< vector<float> >& binned_data);
+// log_bin_data
+// This is a similar version for log-binning
+// DTM 30/10/2014
+void log_bin_data(vector<float>& vector1, vector<float>& vector2, float log_bin_width, vector<float>& bin_mid_points, vector<float>& bin_vector1_mean, vector<float>& bin_vector2_mean, vector< vector<float> >& binned_data, const float NoDataValue = -9999);
 
 // tools for sorting
 template<class T> struct index_cmp;

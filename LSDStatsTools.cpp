@@ -2635,6 +2635,92 @@ void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float m
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// log_bin_data
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This is a much simpler version of the log-binning software.  It takes two vectors, and
+// sorts the values held within the first vector into bins according to their respective
+// values in the second vector.  The output is a vector<vector> with the binned dataset.
+// and a vector of bin midpoints.  These can then be analysed ahd plotted as desired.
+// DTM 30/10/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void log_bin_data(vector<float>& vector1, vector<float>& vector2, float log_bin_width, vector<float>& bin_mid_points, vector<float>& bin_vector1_mean, vector<float>& bin_vector2_mean, vector< vector<float> >& binned_data, const float NoDataValue)
+{
+	int n_data = vector1.size();
+  float max_X = vector2[n_data-1];
+	float min_X = vector2[1];
+  for (int i = 0; i < n_data; ++i)
+	{
+    if (vector2[i] > max_X)
+    {
+      max_X = vector2[i];
+    }
+    if (vector2[i] < min_X || min_X == 0)    // Cannot have take a logarithm of zero.
+    {
+      min_X = vector2[i];
+    }
+  }
+  // Defining the upper limit, lower limit and width of the bins
+  float upper_limit = ceil((log10(max_X)/log_bin_width))*log_bin_width;
+  float lower_limit = floor((log10(min_X)/log_bin_width))*log_bin_width;
+  int NBins = int( (upper_limit - lower_limit)/log_bin_width )+1;
+  // These will be copied into their respective function output vectors
+	vector<float> mid_points(NBins,NoDataValue);
+  vector<float> binned_vector1_mean(NBins,NoDataValue);
+  vector<float> binned_vector2_mean(NBins,NoDataValue);
+  vector< vector<float> > binned_vector1;
+  vector< vector<float> > binned_vector2;
+	// create the vector of vectors.  Nested vectors will store data within that
+  // bin.
+  vector<float> empty_vector;
+  for(int i = 0; i<NBins; i++)
+  {
+	  binned_vector1.push_back(empty_vector);
+	  binned_vector2.push_back(empty_vector);
+  }
+  // Bin Data into logarithmically spaced bins
+  for (int i = 0; i < n_data; ++i)
+  {
+    if (vector1[i] != NoDataValue)
+    {
+      if (vector2[i] > 0 && vector1[i] > 0)
+      {
+        // Get bin_id for this particular value of X
+        int bin_id = int(((log10(vector2[i]))-lower_limit)/log_bin_width);
+
+        // Store X and corresponding Y into this bin, for their respective
+        // vector<vector> object
+        binned_vector1[bin_id].push_back(vector1[i]);
+        binned_vector2[bin_id].push_back(vector2[i]);
+      }
+    }
+  }
+  // Calculating the midpoint in x direction of each bin and the mean of x and y
+  // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
+  // x vs Mean Y to be most robust.  At the moment the program returns both.
+  float midpoint_value = lower_limit + log_bin_width/2;
+  for (int bin_id = 0; bin_id < NBins; bin_id++)
+  {
+    mid_points[bin_id] = midpoint_value;
+    midpoint_value = midpoint_value + log_bin_width;
+    if (binned_vector1[bin_id].size() != 0)
+    {
+      binned_vector1_mean[bin_id] = get_mean(binned_vector1[bin_id]);
+      binned_vector2_mean[bin_id] = get_mean(binned_vector2[bin_id]);
+    }
+    else 
+    {
+      binned_vector1_mean[bin_id] = NoDataValue;
+      binned_vector2_mean[bin_id] = NoDataValue;
+    }
+  }
+  // Copy output into output vectors
+  bin_mid_points = mid_points;
+	binned_data = binned_vector1;
+	bin_vector1_mean = binned_vector1_mean;
+	bin_vector2_mean = binned_vector2_mean;
+	cout << "\t\t\t\t\t\t log binning complete!" << endl;
+}
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // SORT MODULE (required for constructing radial frequency)  S.M.Mudd
