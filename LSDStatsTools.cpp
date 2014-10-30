@@ -546,6 +546,27 @@ vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_d
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// least_squares_linear_regression
+// DTM 07/10/2014
+void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, float& intercept, float& gradient, float& R_squared)
+{
+  float SS_xx=0;
+  float SS_yy=0;
+  float SS_xy=0;
+  float x_mean = get_mean(x_data);
+  float y_mean = get_mean(y_data);
+  for(int i = 0; i<x_data.size(); ++i)
+  {
+    SS_xx += (x_data[i]-x_mean)*(x_data[i]-x_mean);
+    SS_yy += (y_data[i]-y_mean)*(y_data[i]-y_mean);
+    SS_xy += (x_data[i]-x_mean)*(y_data[i]-y_mean);
+  }
+  R_squared = SS_xy*SS_xy/(SS_xx*SS_yy);
+  gradient = SS_xy/SS_xx;
+  intercept = y_mean - gradient*x_mean; 
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Slice_vector
 // This function accesses a slice of a vector
 // Usage vector<float> new_vec = slice_vector(original_vector.begin() + 1, original_vector.begin() + 5);

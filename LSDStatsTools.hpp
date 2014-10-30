@@ -73,6 +73,10 @@ float get_standard_error(vector<float>& y_data, float standard_deviation);
 vector<float> get_common_statistics(vector<float>& y_data);
 float get_percentile(vector<float>& data, float percentile);
 
+// calculates least squares linear regression for two datasets, returning
+// gradient and intercept of regression line, alongside the R-squared value. 
+// DTM 07/10/2014
+void least_squares_linear_regression(vector<float> x_data, vector<float> y_data, float& intercept, float& gradient, float& R_squared);
 // take a slice of a vector
 // DTM 30/10/2014
 vector<float> slice_vector(vector<float>::iterator first,vector<float>::iterator last);
