@@ -73,6 +73,10 @@ float get_standard_error(vector<float>& y_data, float standard_deviation);
 vector<float> get_common_statistics(vector<float>& y_data);
 float get_percentile(vector<float>& data, float percentile);
 
+// take a slice of a vector
+// DTM 30/10/2014
+vector<float> slice_vector(vector<float>::iterator first,vector<float>::iterator last);
+
 // calculate the imaginary error function using trapezoid rule integration
 double erfi(double tau);
 

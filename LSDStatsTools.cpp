@@ -545,7 +545,20 @@ vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_d
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Slice_vector
+// This function accesses a slice of a vector
+// Usage vector<float> new_vec = slice_vector(original_vector.begin() + 1, original_vector.begin() + 5);
+// DTM 30/10/2014
+vector<float> slice_vector(vector<float>::iterator first,vector<float>::iterator last)
+{
+  vector<float> slice;
+  for (vector<float>::iterator cur = first; cur != last; ++cur)
+  {
+    slice.push_back(*cur);
+  }
+  return slice;
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function drives the partitioning algorithms
 // k is the number of elements in the partition
