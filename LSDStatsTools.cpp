@@ -292,6 +292,46 @@ float get_variance_ignore_ndv(Array2D<float>& data, float ndv, float mean)
   return variance;
 }  
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// gets the range from a population of data
+// this uses and array and ignores no data values
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float get_range_ignore_ndv(Array2D<float>& data, float ndv)
+{
+  int NRows = data.dim1();
+  int NCols = data.dim2();
+  float max,min;
+  float range;
+  int flag = 0;
+
+  for (int row = 0; row<NRows; row++)
+  {
+    for (int col = 0; col<NCols; col++)
+    {
+      if (data[row][col] != ndv)
+      {
+        if(flag == 0)
+        {
+          min=data[row][col];
+          max=data[row][col];
+          flag = 1;
+        }
+        if(data[row][col]>max)
+        {
+          max=data[row][col];
+        }
+        if(data[row][col]<min)
+        {
+          min=data[row][col];
+        }
+      }
+    }
+  }
+
+  range = max-min;
+  return range;
+}  
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the standard deviation from a population of data
