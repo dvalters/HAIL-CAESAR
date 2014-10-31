@@ -1413,7 +1413,7 @@ class LSDRaster
   /// @date 29/05/2014
   LSDRaster border_with_nodata(int border_width, int irregular_switch = 0);
 
-  /// @brief This function creates a mask that has the value of 0 for cells 
+  /// @brief This function creates a mask that has the value of 1 for cells 
   /// that are either on the edge or bordered by nodata (from their 9 neighbors)
   /// @return and LSDIndexRaster with the mask
   /// @author SMM
