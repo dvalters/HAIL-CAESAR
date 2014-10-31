@@ -7302,24 +7302,24 @@ LSDRaster LSDRaster::border_with_nodata(int border_width, int irregular_switch)
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // this function creates an LSDIndexRaster
-// that has values of 1 for nodes that are not on edge or are borderd
-// by nodata, and 0 for those that are on the edge and bordered by nodata
+// that has values of 0 for nodes that are not on edge or are borderd
+// by nodata, and 1 for those that are on the edge and bordered by nodata
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDIndexRaster LSDRaster::find_cells_bordered_by_nodata()
 {
   // this is the array that holds the mask
-  Array2D<int> Mask(NRows,NCols,1);
+  Array2D<int> Mask(NRows,NCols,0);
   
   // first, get the edges:
   for(int row = 0; row<NRows; row++)
   {
-    Mask[row][0] = 0;
-    Mask[row][NCols-1] = 0;
+    Mask[row][0] = 1;
+    Mask[row][NCols-1] = 1;
   }
   for(int col = 0; col<NCols; col++)
   {
-    Mask[0][col] = 0;
-    Mask[NRows-1][col] = 0;
+    Mask[0][col] = 1;
+    Mask[NRows-1][col] = 1;
   }
 
   // now loop through the rest of the data. 
@@ -7330,43 +7330,43 @@ LSDIndexRaster LSDRaster::find_cells_bordered_by_nodata()
       if(RasterData[row][col] == NoDataValue)
       {
         // you need to mask all the surrounding nodes
-        Mask[row][col] = 0;
+        Mask[row][col] = 1;
         
         // these are a bunch of tedious if statments to make sure you
         // don't try and access data out of the array bounds       
         if(row !=0)
         {          
-          Mask[row-1][col] = 0;
+          Mask[row-1][col] = 1;
           
           if(col != 0)
           {
-            Mask[row-1][col-1] = 0;
+            Mask[row-1][col-1] = 1;
           }
           if(col != NCols-1)
           {
-            Mask[row-1][col+1] = 0;
+            Mask[row-1][col+1] = 1;
           }
         }
         if(row !=NRows-1)
         {          
-          Mask[row+1][col] = 0;
+          Mask[row+1][col] = 1;
           
           if(col != 0)
           {
-            Mask[row+1][col-1] = 0;
+            Mask[row+1][col-1] = 1;
           }
           if(col != NCols-1)
           {
-            Mask[row+1][col+1] = 0;
+            Mask[row+1][col+1] = 1;
           }
         } 
         if(col != 0)
         {
-          Mask[row][col-1] = 0;
+          Mask[row][col-1] = 1;
         }       
         if(col != NCols-1)
         {
-          Mask[row][col+1] = 0;
+          Mask[row][col+1] = 1;
         }
       }
     }
