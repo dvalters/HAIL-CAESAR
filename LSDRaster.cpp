@@ -461,8 +461,7 @@ void LSDRaster::read_raster(string filename, string extension)
             iss >> str >> str >> str >> str >> str;
             DataType = atoi(str.c_str());
             cout << "Data Type = " << DataType << endl;
-
-            
+                     
             // advance to the end so you move on to the new loop            
             counter = lines.size();    
           }
@@ -591,7 +590,7 @@ void LSDRaster::read_raster(string filename, string extension)
 				  for (int j=0; j<NCols; ++j)
 				  {
 					  ifs_data.read(reinterpret_cast<char*>(&temp), 2);
-					  //cout << temp << " ";
+					  cout << temp << " ";
 					  data[i][j] = float(temp);
 					  if (data[i][j]<-1e10)
 					  {
