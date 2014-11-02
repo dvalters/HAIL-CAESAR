@@ -590,14 +590,14 @@ void LSDRaster::read_raster(string filename, string extension)
 				  for (int j=0; j<NCols; ++j)
 				  {
 					  ifs_data.read(reinterpret_cast<char*>(&temp), 2);
-					  cout << temp << " ";
+					  //cout << temp << " ";
 					  data[i][j] = float(temp);
 					  if (data[i][j]<-1e10)
 					  {
               data[i][j] = NoDataValue;
             }
 				  }
-				  cout << endl;
+				  //cout << endl;
 			  }		
 		  }
 		  else if (DataType == 4)
