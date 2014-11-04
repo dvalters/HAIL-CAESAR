@@ -819,6 +819,15 @@ class LSDRaster
 	/// @date 29/10/2014
   void mask_to_nodata_below_threshold(float threshold);
 
+  /// @brief This function masks a raster to nodata based on a mask value and
+  /// a mask raster
+  /// @param Mask_raster the LSDIndexRaster that contains the mask
+  /// @param mask_value the value on the mask that triggers a nodata
+  /// @return a new LSDRaster that has the masked portions as nodata
+	/// @author SMM
+	/// @date 4/11/2014
+  LSDRaster mask_to_nodata_with_mask_raster(LSDIndexRaster& Mask_raster, int mask_value);
+
 	
 	///@brief This function fills pits/sinks in a DEM by incrementing elevations for cells with
   ///no downslope neighbour. The process is repeated adnausium until no cells require
