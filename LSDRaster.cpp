@@ -3152,7 +3152,7 @@ LSDRaster LSDRaster::get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hill
     	}
   	}
 
-  	LSDRaster hilltop_curvature_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+  LSDRaster hilltop_curvature_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
 	                           NoDataValue,hilltop_curvature,GeoReferencingStrings);
 	return hilltop_curvature_raster;
 }
@@ -3682,6 +3682,51 @@ void LSDRaster::mask_to_nodata_below_threshold(float threshold)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This masks to nodata based on a masking raster
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::mask_to_nodata_with_mask_raster(LSDIndexRaster& Mask_raster, int mask_value)
+{
+  
+  Array2D<float> new_data_raster;
+  new_data_raster = RasterData.copy();
+  
+  // first check to see if the rasters are the same size
+  int IR_NRows = Mask_raster.get_NRows();
+  int IR_NCols = Mask_raster.get_NCols();
+  int IR_NDV   = Mask_raster.get_NoDataValue();
+  
+  if(IR_NRows == NRows && IR_NCols == NCols)
+  {
+    for(int row = 0; row<NRows; row++)
+    {
+      for(int col = 0; col<NCols; col++)
+      {
+        
+        if(Mask_raster.get_data_element(row,col) == IR_NDV || 
+           Mask_raster.get_data_element(row,col) == mask_value)
+        {
+          //cout << "r: " << row << " c: " << col << " mask: " <<Mask_raster.get_data_element(row,col) << endl;
+          new_data_raster[row][col] = NoDataValue;        
+        }
+      }
+    }    
+  }
+  else
+  {
+    cout << "Trying to mask raster but the dimensions of the mask do not match"
+         << " the dimensions of the raster" << endl;
+  }
+
+  LSDRaster NDR(NRows,NCols,XMinimum,YMinimum,DataResolution,
+	                           NoDataValue,new_data_raster,GeoReferencingStrings);
+	return NDR;
+
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
