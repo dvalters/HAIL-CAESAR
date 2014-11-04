@@ -421,13 +421,6 @@ class LSDRaster
   /// @date 11/4/13
   LSDRaster TopoShield(int theta_step, int phi_step);
 
-  /// @brief This looks for isolated instances of no data.
-  ///
-  /// Does nothing else but print their location to the screen.
-  /// @author MDH, DTM
-  /// @date 01/01/12
-  void check_isolated_nodata();
-
   /// @brief Surface polynomial fitting and extraction of topographic metrics
   /// 
   /// @detail A six term polynomial surface is fitted to all the points that lie
@@ -1441,6 +1434,20 @@ class LSDRaster
   /// @date 29/10/2014
   LSDIndexRaster find_cells_bordered_by_nodata();
 
+
+  /// @brief This looks for isolated instances of no data.
+  ///
+  /// Does nothing else but print their location to the screen.
+  /// @author MDH, DTM
+  /// @date 01/01/12
+  void check_isolated_nodata();
+
+  /// @brief a very rudimentay filling routine that just fills nodata nodes
+  /// with the average elevation of its neighbors
+  /// @author SMM
+  /// @date 04/11/2014
+  void rudimentary_nodata_fill();
+  
   protected:
 
   ///Number of rows.

@@ -1542,35 +1542,7 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step){
 
 
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// this looks for isolated instances of nodata and fills them
-//
-// Not sure about author, I think MDH (SMM comment) 2012
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void LSDRaster::check_isolated_nodata()
-{
-	for (int row=0; row<NRows; ++row)
-	{
-		for(int col=0; col<NCols; ++col)
-		{
-			if(RasterData[row][col] < 0)
-			{
-				cout << "LSDRaster::check_isolated_nodata stargine data point: row: "
-				     << row << " col: " << col << " data: " << RasterData[row][col];
-				RasterData[row][col] = NoDataValue;
-			}
 
-			if(RasterData[row][col] == NoDataValue)
-			{
-				cout << "LSDRaster::check_isolated_nodata found nodata: row: "
-				     << row << " col: " << col << " data: " << RasterData[row][col];
-			}
-
-		}
-	}
-	cout << "Done!" << endl;
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1617,7 +1589,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
   // this fits a polynomial surface over a kernel window. First, perpare the
   // kernel
   int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
-  int kw=2*kr+1;                    						     // width of kernel
+  int kw=2*kr+1;                                     // width of kernel
 
   Array2D<float> data_kernel(kw,kw,NoDataValue);
   Array2D<float> x_kernel(kw,kw,NoDataValue);
@@ -1656,69 +1628,69 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 
       if (floor(radial_dist) <= window_radius)
       {
-	mask[i][j] = 1;
+        mask[i][j] = 1;
       }
     }
   }
-	// FIT POLYNOMIAL SURFACE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO
-	// DETERMINE TOPOGRAPHIC METRICS
-	// Have N simultaneous linear equations, and N unknowns.
-	// => b = Ax, where x is a 1xN array containing the coefficients we need for
-	// surface fitting.
-	// A is constructed using different combinations of x and y, thus we only need
-	// to compute this once, since the window size does not change.
-	// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
-	// 6x6 matrix
-	Array2D<float> A(6,6,0.0);
-	for (int i=0; i<kw; ++i)
-	{
-		for (int j=0; j<kw; ++j)
-		{
-			if (mask[i][j] == 1)
+  // FIT POLYNOMIAL SURFACE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO
+  // DETERMINE TOPOGRAPHIC METRICS
+  // Have N simultaneous linear equations, and N unknowns.
+  // => b = Ax, where x is a 1xN array containing the coefficients we need for
+  // surface fitting.
+  // A is constructed using different combinations of x and y, thus we only need
+  // to compute this once, since the window size does not change.
+  // For 2nd order surface fitting, there are 6 coefficients, therefore A is a
+  // 6x6 matrix
+  Array2D<float> A(6,6,0.0);
+  for (int i=0; i<kw; ++i)
+  {
+    for (int j=0; j<kw; ++j)
+    {
+      if (mask[i][j] == 1)
       {
-       	x = x_kernel[i][j];
-				y = y_kernel[i][j];
+        x = x_kernel[i][j];
+        y = y_kernel[i][j];
 
-				// Generate matrix A
-				A[0][0] += pow(x,4);
-				A[0][1] += pow(x,2)*pow(y,2);
-				A[0][2] += pow(x,3)*y;
-				A[0][3] += pow(x,3);
-				A[0][4] += pow(x,2)*y;
-				A[0][5] += pow(x,2);
-				A[1][0] += pow(x,2)*pow(y,2);
-				A[1][1] += pow(y,4);
-				A[1][2] += x*pow(y,3);
-				A[1][3] += x*pow(y,2);
-				A[1][4] += pow(y,3);
-				A[1][5] += pow(y,2);
-				A[2][0] += pow(x,3)*y;
-				A[2][1] += x*pow(y,3);
-				A[2][2] += pow(x,2)*pow(y,2);
-				A[2][3] += pow(x,2)*y;
-				A[2][4] += x*pow(y,2);
-				A[2][5] += x*y;
-				A[3][0] += pow(x,3);
-				A[3][1] += x*pow(y,2);
-				A[3][2] += pow(x,2)*y;
-				A[3][3] += pow(x,2);
-				A[3][4] += x*y;
-				A[3][5] += x;
-				A[4][0] += pow(x,2)*y;
-				A[4][1] += pow(y,3);
-				A[4][2] += x*pow(y,2);
-				A[4][3] += x*y;
-				A[4][4] += pow(y,2);
-				A[4][5] += y;
-				A[5][0] += pow(x,2);
-				A[5][1] += pow(y,2);
-				A[5][2] += x*y;
-				A[5][3] += x;
-				A[5][4] += y;
-				A[5][5] += 1;
-		  }
-		}
-	}
+        // Generate matrix A
+        A[0][0] += pow(x,4);
+        A[0][1] += pow(x,2)*pow(y,2);
+        A[0][2] += pow(x,3)*y;
+        A[0][3] += pow(x,3);
+        A[0][4] += pow(x,2)*y;
+        A[0][5] += pow(x,2);
+        A[1][0] += pow(x,2)*pow(y,2);
+        A[1][1] += pow(y,4);
+        A[1][2] += x*pow(y,3);
+        A[1][3] += x*pow(y,2);
+        A[1][4] += pow(y,3);
+        A[1][5] += pow(y,2);
+        A[2][0] += pow(x,3)*y;
+        A[2][1] += x*pow(y,3);
+        A[2][2] += pow(x,2)*pow(y,2);
+        A[2][3] += pow(x,2)*y;
+        A[2][4] += x*pow(y,2);
+        A[2][5] += x*y;
+        A[3][0] += pow(x,3);
+        A[3][1] += x*pow(y,2);
+        A[3][2] += pow(x,2)*y;
+        A[3][3] += pow(x,2);
+        A[3][4] += x*y;
+        A[3][5] += x;
+        A[4][0] += pow(x,2)*y;
+        A[4][1] += pow(y,3);
+        A[4][2] += x*pow(y,2);
+        A[4][3] += x*y;
+        A[4][4] += pow(y,2);
+        A[4][5] += y;
+        A[5][0] += pow(x,2);
+        A[5][1] += pow(y,2);
+        A[5][2] += x*y;
+        A[5][3] += x;
+        A[5][4] += y;
+        A[5][5] += 1;
+      }
+    }
+  }
 
 	// Move window over DEM, fitting 2nd order polynomial surface to the
 	// elevations within the window.
@@ -6871,50 +6843,50 @@ void LSDRaster::PadRasterSymmetric(Array2D<float>& PaddedRasterData, int& Simila
 	}
 
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//	Generate gaussian weighted kernel
-//	kernel array must be predeclared of size SimilarityRadius and consist of zeros:
-//	Array2D<float> Kernel(SimilarityRadius,SimilarityRadius,0.0);
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Generate gaussian weighted kernel
+//  kernel array must be predeclared of size SimilarityRadius and consist of zeros:
+//  Array2D<float> Kernel(SimilarityRadius,SimilarityRadius,0.0);
 //
-//	Kernel generated using:
-//	G(x,y) = (1/2*pi*sigma^2) exp ((-x^2+y^2)/(2*sigma^2))
+//  Kernel generated using:
+//  G(x,y) = (1/2*pi*sigma^2) exp ((-x^2+y^2)/(2*sigma^2))
 //
-//	Martin Hurst, Feb 2012
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//  Martin Hurst, Feb 2012
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius)
 {
 
+  float pi = 3.1415926536;
+  float left_side = 1/(2*pi*sigma*sigma);
+  float twosigma2 = 2.0*sigma*sigma;
+  float right_side;
+  float wgt = 0;
+  float value;
 
-	float pi = 3.1415926536;
-	float left_side = 1/(2*pi*sigma*sigma);
-	float twosigma2 = 2.0*sigma*sigma;
-	float right_side;
-	float wgt = 0;
-	float value;
+  //calculate kernel values
+  for (int i=0;i<2*SimilarityRadius+1;++i)
+  {
+    for (int j=0;j<2*SimilarityRadius+1;++j)
+    {
+      right_side = -(((j-SimilarityRadius)*(j-SimilarityRadius) 
+                        + (i-SimilarityRadius)*(i-SimilarityRadius))/twosigma2);
+      right_side = exp(right_side);
+      value = left_side*right_side;
+      Kernel[i][j] = value;
+      wgt += value;
+    }
+  }
 
-	//calculate kernel values
-	for (int i=0;i<2*SimilarityRadius+1;++i)
-	{
-		for (int j=0;j<2*SimilarityRadius+1;++j)
-		{
-			right_side = -(((j-SimilarityRadius)*(j-SimilarityRadius) + (i-SimilarityRadius)*(i-SimilarityRadius))/twosigma2);
-			right_side = exp(right_side);
-			value = left_side*right_side;
-			Kernel[i][j] = value;
-			wgt += value;
-		}
-	}
-
-	//scale to sum to 1
-	for (int i=0;i<2*SimilarityRadius+1;++i)
-	{
-		for (int j=0;j<2*SimilarityRadius+1;++j)
-		{
-			Kernel[i][j] = Kernel[i][j]/wgt;
-		}
-	}
+  //scale to sum to 1
+  for (int i=0;i<2*SimilarityRadius+1;++i)
+  {
+    for (int j=0;j<2*SimilarityRadius+1;++j)
+    {
+      Kernel[i][j] = Kernel[i][j]/wgt;
+    }
+  }
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -7003,7 +6975,8 @@ LSDIndexRaster LSDRaster::PolylineShapefileToRaster(string FileName){
     }
   }
   
-  LSDIndexRaster OutputRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Output,GeoReferencingStrings);
+  LSDIndexRaster OutputRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+     NoDataValue,Output,GeoReferencingStrings);
   return OutputRaster;
   
 }
@@ -7018,7 +6991,7 @@ LSDRaster LSDRaster::Resample(float OutputResolution){
 
   if (OutputResolution < DataResolution){
     cout << "Your resample resolution of " << OutputResolution << " is lower that the current data resolution " << DataResolution << endl;
-	  exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   } 
 
   int NewNRows = (NRows*DataResolution/OutputResolution); 
@@ -7039,11 +7012,11 @@ LSDRaster LSDRaster::Resample(float OutputResolution){
       centre_j = (j*ResolutionRatio) + (ResolutionRatio/2);
      
       Resampled[i][j] = RasterData[centre_i][centre_j];           
-      
     }
   }                              
 
-  LSDRaster OutputRaster(NewNRows,NewNCols,XMinimum,YMinimum,OutputResolution,NoDataValue,Resampled,GeoReferencingStrings);
+  LSDRaster OutputRaster(NewNRows,NewNCols,XMinimum,YMinimum,OutputResolution,
+                      NoDataValue,Resampled,GeoReferencingStrings);
   return OutputRaster;
 
 }
@@ -7106,64 +7079,71 @@ LSDRaster LSDRaster::neighbourhood_statistics_spatial_average(float window_radiu
 //   Array2D<float> StandardDeviationArray(NRows,NCols,NoDataValue);
   
   // catch if the supplied window radius is less than the data resolution and
-	// set it to equal the data resolution - SWDG
+  // set it to equal the data resolution - SWDG
   if (window_radius < DataResolution)
   {
     cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
     DataResolution << ".\nWindow radius has been set to data resolution." << endl;
     window_radius = DataResolution;
   }
+  
   // Prepare kernel
-	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
-	int kw=2*kr+1;                    						     // width of kernel
-	Array2D<float> data_kernel(kw,kw,NoDataValue);
+  int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
+  int kw=2*kr+1;                                     // width of kernel
+  Array2D<float> data_kernel(kw,kw,NoDataValue);
   Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
-	// Move window over DEM and extract neighbourhood pixels
-	cout << "\n\tRunning neighbourhood statistics..." << endl;
-	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+  
+  // Move window over DEM and extract neighbourhood pixels
+  cout << "\n\tRunning neighbourhood statistics..." << endl;
+  cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
   float mean, value;
   vector<float> data;
   for(int i=0;i<NRows;++i)
-	{
-		cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
-		for(int j=0;j<NCols;++j)
-		{
-	    // Avoid edges
-			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
-			{
+  {
+    cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+    for(int j=0;j<NCols;++j)
+    {
+      // Avoid edges
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+      {
         SpatialAverageArray[i][j] = NoDataValue;
-			}
-			else
-			{
-				// Sample DEM
-				for(int i_kernel=0;i_kernel<kw;++i_kernel)
-				{
-			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
-			  	{
-						value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+      }
+      else
+      {
+        // Sample DEM
+        for(int i_kernel=0;i_kernel<kw;++i_kernel)
+        {
+          for(int j_kernel=0;j_kernel<kw;++j_kernel)
+          {
+            value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
             if(value!=NoDataValue && mask[i_kernel][j_kernel]==1) data.push_back(value);
-			  	}
-				}
-				// Get stats
+          }
+        }
+        // Get stats
         mean = get_mean(data);
         SpatialAverageArray[i][j] = mean;      
-// 				StandardDeviationArray[i][j] = get_standard_deviation(data,mean);
+        // StandardDeviationArray[i][j] = get_standard_deviation(data,mean);
         data.clear();
-			}
-		}
-	}
-	LSDRaster SpatialAverage(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,SpatialAverageArray,GeoReferencingStrings);
-	return SpatialAverage;
+      }
+    }
+  }
+  
+  LSDRaster SpatialAverage(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                      NoDataValue,SpatialAverageArray,GeoReferencingStrings);
+  return SpatialAverage;
 }
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // overloaded function to kick out 2 rasters -> local standard deviation & average
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 vector<LSDRaster> LSDRaster::neighbourhood_statistics_spatial_average_and_SD(float window_radius, int neighbourhood_switch)
 {
   Array2D<float> SpatialAverageArray(NRows,NCols,NoDataValue);
   Array2D<float> StandardDeviationArray(NRows,NCols,NoDataValue);
   
   // catch if the supplied window radius is less than the data resolution and
-	// set it to equal the data resolution - SWDG
+  // set it to equal the data resolution - SWDG
   if (window_radius < DataResolution)
   {
     cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
@@ -7171,53 +7151,59 @@ vector<LSDRaster> LSDRaster::neighbourhood_statistics_spatial_average_and_SD(flo
     window_radius = DataResolution;
   }
   // Prepare kernel
-	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
-	int kw=2*kr+1;                    						     // width of kernel
-	Array2D<float> data_kernel(kw,kw,NoDataValue);
+  int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
+  int kw=2*kr+1;                    						     // width of kernel
+  Array2D<float> data_kernel(kw,kw,NoDataValue);
   Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
-	// Move window over DEM and extract neighbourhood pixels
-	cout << "\n\tRunning spatial statistics module..." << endl;
-	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+  
+  // Move window over DEM and extract neighbourhood pixels
+  cout << "\n\tRunning spatial statistics module..." << endl;
+  cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
   float mean, value;
   vector<float> data;
   for(int i=0;i<NRows;++i)
-	{
-		cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
-		for(int j=0;j<NCols;++j)
-		{
-	    // Avoid edges
-			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
-			{
+  {
+    cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+    for(int j=0;j<NCols;++j)
+    {
+      // Avoid edges
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) 
+                    || RasterData[i][j]==NoDataValue)
+      {
         SpatialAverageArray[i][j] = NoDataValue;
-			}
-			else
-			{
-				// Sample DEM
-				for(int i_kernel=0;i_kernel<kw;++i_kernel)
-				{
-			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
-			  	{
-						value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+      }
+      else
+      {
+        // Sample DEM
+        for(int i_kernel=0;i_kernel<kw;++i_kernel)
+        {
+          for(int j_kernel=0;j_kernel<kw;++j_kernel)
+          {
+            value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
             if(value!=NoDataValue && mask[i_kernel][j_kernel]==1) data.push_back(value);
-			  	}
-				}
-				// Get stats
+          }
+        }
+        
+        // Get stats
         mean = get_mean(data);
         SpatialAverageArray[i][j] = mean;      
- 				StandardDeviationArray[i][j] = get_standard_deviation(data,mean);
+        StandardDeviationArray[i][j] = get_standard_deviation(data,mean);
         data.clear();
-			}
-		}
-	}
-	LSDRaster SpatialAverage(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,SpatialAverageArray,GeoReferencingStrings);
-	LSDRaster SpatialSD(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,StandardDeviationArray,GeoReferencingStrings);
-	vector<LSDRaster> output_rasters;
+      }
+    }
+  }
+  
+  LSDRaster SpatialAverage(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                         NoDataValue,SpatialAverageArray,GeoReferencingStrings);
+  LSDRaster SpatialSD(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,
+                          StandardDeviationArray,GeoReferencingStrings);
+  vector<LSDRaster> output_rasters;
   output_rasters.push_back(SpatialAverage);
   output_rasters.push_back(SpatialSD);
   return output_rasters;
 }
-//---------------------------------------------------------------------------------------
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//------------------------------------------------------------------------------
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // neighbourhood_statistics_fraction_condition
 // A function that determines the fraction of cells in a circular neighbourhood that
 // satisfy a given condition
@@ -7229,7 +7215,8 @@ vector<LSDRaster> LSDRaster::neighbourhood_statistics_spatial_average_and_SD(flo
 // 4 <
 // 5 <=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch, int condition_switch, float test_value)
+LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_radius,
+            int neighbourhood_switch, int condition_switch, float test_value)
 {
   Array2D<float> FractionTrueArray(NRows,NCols,NoDataValue);
 
@@ -7239,38 +7226,39 @@ LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_ra
     DataResolution << ".\nWindow radius has been set to data resolution." << endl;
     window_radius = DataResolution;
   }
+  
   // Prepare kernel
-	int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
-	int kw=2*kr+1;                    						     // width of kernel
-	Array2D<float> data_kernel(kw,kw,NoDataValue);
-	Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
-	
-	// Move window over DEM and extract neighbourhood pixels
-	cout << "\n\tRunning neighbourhood statistics..." << endl;
-	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+  int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
+  int kw=2*kr+1;                    						     // width of kernel
+  Array2D<float> data_kernel(kw,kw,NoDataValue);
+  Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
+  
+  // Move window over DEM and extract neighbourhood pixels
+  cout << "\n\tRunning neighbourhood statistics..." << endl;
+  cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
   float value;
-	float count = 0;
-	vector<float> data;
+  float count = 0;
+  vector<float> data;
 
   for(int i=0;i<NRows;++i)
-	{
-		cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
-		for(int j=0;j<NCols;++j)
-		{
-			
+  {
+    cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+    for(int j=0;j<NCols;++j)
+    {
       // Avoid edges
-			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
-			{
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) 
+                    || RasterData[i][j]==NoDataValue)
+      {
         FractionTrueArray[i][j] = NoDataValue;
-			}
-			else
-			{
-				// Sample DEM
-				for(int i_kernel=0;i_kernel<kw;++i_kernel)
-				{
-			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
-			  	{
-						value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+      }
+      else
+      {
+        // Sample DEM
+        for(int i_kernel=0;i_kernel<kw;++i_kernel)
+        {
+          for(int j_kernel=0;j_kernel<kw;++j_kernel)
+          {
+            value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
             if(value!=NoDataValue && mask[i_kernel][j_kernel]==1)
             {
               count = count + 1;
@@ -7279,19 +7267,20 @@ LSDRaster LSDRaster::neighbourhood_statistics_fraction_condition(float window_ra
               if(condition_switch == 2 && value > test_value) data.push_back(value); 
               if(condition_switch == 3 && value >= test_value) data.push_back(value);
               if(condition_switch == 4 && value < test_value) data.push_back(value);
-              if(condition_switch == 5 && value <= test_value) data.push_back(value);            
+              if(condition_switch == 5 && value <= test_value) data.push_back(value);
             }
-			  	}
-				}
-				// Get stats
+          }
+        }
+        // Get stats
         FractionTrueArray[i][j] = float(data.size())/count;
         count = 0;
         data.clear();
-			}
-		}
-	}
-	LSDRaster FractionTrue(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FractionTrueArray,GeoReferencingStrings);
-	return FractionTrue;
+      }
+    }
+  }
+  LSDRaster FractionTrue(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                        NoDataValue,FractionTrueArray,GeoReferencingStrings);
+  return FractionTrue;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -7321,25 +7310,27 @@ LSDRaster LSDRaster::border_with_nodata(int border_width, int irregular_switch)
         if(irregular_switch == 1)
         {
           // Sample DEM
-				  for(int i_kernel=0;i_kernel<kw;++i_kernel)
-				  {
-			  	  for(int j_kernel=0;j_kernel<kw;++j_kernel)
-			  	  {
-						  value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
-						  if(value == NoDataValue)
-						  {
+          for(int i_kernel=0;i_kernel<kw;++i_kernel)
+          {
+            for(int j_kernel=0;j_kernel<kw;++j_kernel)
+            {
+              value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+              if(value == NoDataValue)
+              {
                 i_kernel = kw;    // as soon as NoDataValue found, skip to next cell
                 j_kernel = kw;
                 Data[i][j]=NoDataValue;
               }
-						}
-					}
+            }
+          }
         }        
       }
     }
   }
-  LSDRaster bordered_DEM(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Data,GeoReferencingStrings);
-	return bordered_DEM;
+  
+  LSDRaster bordered_DEM(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                      NoDataValue,Data,GeoReferencingStrings);
+  return bordered_DEM;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -7416,14 +7407,88 @@ LSDIndexRaster LSDRaster::find_cells_bordered_by_nodata()
     }
   }
 
-  LSDIndexRaster Mask_Raster(NRows,NCols,XMinimum,YMinimum,DataResolution,int(NoDataValue),Mask,GeoReferencingStrings);
-	return Mask_Raster;
+  LSDIndexRaster Mask_Raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                         int(NoDataValue),Mask,GeoReferencingStrings);
+  return Mask_Raster;
 
 }
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// this looks for isolated instances of nodata and fills them
+//
+// Not sure about author, I think MDH (SMM comment) 2012
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::check_isolated_nodata()
+{
+  for (int row=0; row<NRows; ++row)
+  {
+    for(int col=0; col<NCols; ++col)
+    {
+      if(RasterData[row][col] < 0)
+      {
+        cout << "LSDRaster::check_isolated_nodata stargine data point: row: "
+             << row << " col: " << col << " data: " << RasterData[row][col];
+        RasterData[row][col] = NoDataValue;
+      }
+
+      if(RasterData[row][col] == NoDataValue)
+      {
+        cout << "LSDRaster::check_isolated_nodata found nodata: row: "
+             << row << " col: " << col << " data: " << RasterData[row][col];
+      }
+
+    }
+  }
+  cout << "Done!" << endl;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This is a rudimentary NoData filling algorithm
+// you should run the raster trimmer before invoking this
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::rudimentary_nodata_fill()
+{
+  int local_row, local_col;
+  float local_average;
+
+  // loop through all interior nodes. Nodes on the edge should not have nodata
+  // after the trimming process
+  for (int row=1; row<NRows-1; ++row)
+  {
+    for(int col=1; col<NCols-1; ++col)
+    {
+      float total = 0;
+      int n_cells = 0;
+      if(RasterData[row][col] == NoDataValue)
+      {
+        for(int i = -1; i<=1; i++)
+        {
+          for(int j = -1; j<=1; j++)
+          {
+            local_row = row+i;
+            local_col = col+j;
+            if(RasterData[local_row][local_col] != NoDataValue)
+            {
+              total+= RasterData[local_row][local_col];
+              n_cells++;
+            } 
+          }
+        }       
+      }
+      if(n_cells<0)
+      {
+        local_average = total/float(n_cells);
+        RasterData[row][col] = local_average;  
+      }
+    }
+  }
+  cout << "Done!" << endl;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 
 
 #endif
