@@ -2474,24 +2474,23 @@ void LSDRaster::calculate_polyfit_coefficient_matrices(float window_radius,
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::calculate_polyfit_elevation(Array2D<float>& f)
 {
-	// create the new elevation raster
-	Array2D<float> elevation_data(NRows,NCols,NoDataValue);
+  // create the new elevation raster
+  Array2D<float> elevation_data(NRows,NCols,NoDataValue);
 
-	for (int row = 0; row<NRows; row++)
-	{
-		for(int col = 0; col<NCols; col++)
-		{
-			if (f[row][col] != NoDataValue)
-			{
-				elevation_data[row][col] = f[row][col];
-			}
-		}
-	}
+  for (int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if (f[row][col] != NoDataValue)
+      {
+        elevation_data[row][col] = f[row][col];
+      }
+    }
+  }
 
-
-	LSDRaster elevation_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,
-                            elevation_data,GeoReferencingStrings);
-	return elevation_raster;
+  LSDRaster elevation_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,
+                           elevation_data,GeoReferencingStrings);
+  return elevation_raster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -2507,24 +2506,23 @@ LSDRaster LSDRaster::calculate_polyfit_elevation(Array2D<float>& f)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::calculate_polyfit_slope(Array2D<float>& d, Array2D<float>& e)
 {
-	// create the new slope raster
-	Array2D<float> slope_data(NRows,NCols,NoDataValue);
+  // create the new slope raster
+  Array2D<float> slope_data(NRows,NCols,NoDataValue);
 
-	for (int row = 0; row<NRows; row++)
-	{
-		for(int col = 0; col<NCols; col++)
-		{
-			if (d[row][col] != NoDataValue)
-			{
-				slope_data[row][col] = sqrt(d[row][col]*d[row][col]+e[row][col]*e[row][col]);
-			}
-		}
-	}
+  for (int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if (d[row][col] != NoDataValue)
+      {
+        slope_data[row][col] = sqrt(d[row][col]*d[row][col]+e[row][col]*e[row][col]);
+      }
+    }
+  }
 
-
-	LSDRaster slope_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+  LSDRaster slope_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
                          NoDataValue,slope_data,GeoReferencingStrings);
-	return slope_raster;
+  return slope_raster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -2538,39 +2536,39 @@ LSDRaster LSDRaster::calculate_polyfit_slope(Array2D<float>& d, Array2D<float>& 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::calculate_polyfit_aspect(Array2D<float>& d, Array2D<float>& e)
 {
-	// create the new slope raster
-	Array2D<float> aspect_data(NRows,NCols,NoDataValue);
+  // create the new slope raster
+  Array2D<float> aspect_data(NRows,NCols,NoDataValue);
 
-	for (int row = 0; row<NRows; row++)
-	{
-		for(int col = 0; col<NCols; col++)
-		{
-			if (d[row][col] != NoDataValue)
-			{
-				if(d[row][col]==0 || e[row][col]==0)
-				{
-					aspect_data[row][col] = NoDataValue;
-				}
-				else
-				{
-					aspect_data[row][col] = 180 - 57.29578*atan(e[row][col]/d[row][col])
-					                            + 90*(d[row][col]/abs(d[row][col]));
-					if(aspect_data[row][col] < 180.0)
-					{
-						aspect_data[row][col] = 180.0 - aspect_data[row][col];
-					}
-					else
-					{
-						aspect_data[row][col] = 360.0 + (180 - aspect_data[row][col]);
-					}
-				}
-			}
-		}
-	}
+  for (int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if (d[row][col] != NoDataValue)
+      {
+        if(d[row][col]==0 || e[row][col]==0)
+        {
+          aspect_data[row][col] = NoDataValue;
+        }
+        else
+        {
+          aspect_data[row][col] = 180 - 57.29578*atan(e[row][col]/d[row][col])
+                                      + 90*(d[row][col]/abs(d[row][col]));
+          if(aspect_data[row][col] < 180.0)
+          {
+            aspect_data[row][col] = 180.0 - aspect_data[row][col];
+          }
+          else
+          {
+            aspect_data[row][col] = 360.0 + (180 - aspect_data[row][col]);
+          }
+        }
+      }
+    }
+  }
 
-	LSDRaster aspect_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
-	                           NoDataValue,aspect_data,GeoReferencingStrings);
-	return aspect_raster;
+  LSDRaster aspect_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                             NoDataValue,aspect_data,GeoReferencingStrings);
+  return aspect_raster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -2584,24 +2582,24 @@ LSDRaster LSDRaster::calculate_polyfit_aspect(Array2D<float>& d, Array2D<float>&
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::calculate_polyfit_curvature(Array2D<float>& a, Array2D<float>& b)
 {
-	// create the new slope raster
-	Array2D<float> curvature_data(NRows,NCols,NoDataValue);
+  // create the new slope raster
+  Array2D<float> curvature_data(NRows,NCols,NoDataValue);
 
-	for (int row = 0; row<NRows; row++)
-	{
-		for(int col = 0; col<NCols; col++)
-		{
-			if (a[row][col] != NoDataValue)
-			{
-				curvature_data[row][col] = 2*a[row][col]+2*b[row][col];
-			}
-		}
-	}
+  for (int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if (a[row][col] != NoDataValue)
+      {
+        curvature_data[row][col] = 2*a[row][col]+2*b[row][col];
+      }
+    }
+  }
 
 
-	LSDRaster curvature_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
-	                           NoDataValue,curvature_data,GeoReferencingStrings);
-	return curvature_raster;
+  LSDRaster curvature_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                             NoDataValue,curvature_data,GeoReferencingStrings);
+  return curvature_raster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -3110,23 +3108,23 @@ void LSDRaster::calculate_and_print_polyfit_and_roughness_rasters(float window_r
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hilltops)
 {
-	// create the new planform curvature raster
-	Array2D<float> hilltop_curvature(NRows,NCols,NoDataValue);
+  // create the new planform curvature raster
+  Array2D<float> hilltop_curvature(NRows,NCols,NoDataValue);
 
-	for (int row = 0; row<NRows; row++)
-	{
-		for(int col = 0; col<NCols; col++)
-		{
-			if (Hilltops.get_data_element(row,col) != NoDataValue)
-      		{
-        		hilltop_curvature[row][col] = curvature.get_data_element(row,col);
-        	}
-    	}
-  	}
+  for (int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if (Hilltops.get_data_element(row,col) != NoDataValue)
+      {
+        hilltop_curvature[row][col] = curvature.get_data_element(row,col);
+        }
+    }
+  }
 
   LSDRaster hilltop_curvature_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
-	                           NoDataValue,hilltop_curvature,GeoReferencingStrings);
-	return hilltop_curvature_raster;
+                             NoDataValue,hilltop_curvature,GeoReferencingStrings);
+  return hilltop_curvature_raster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
