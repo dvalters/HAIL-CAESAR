@@ -6512,7 +6512,8 @@ LSDRaster LSDRaster::M2DFlow(){
 //
 // SWDG 22/08/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster LSDRaster::RasterTrimmer(){
+LSDRaster LSDRaster::RasterTrimmer()
+{
 
   //minimum index value in a column
   int a = 0;
@@ -6592,17 +6593,185 @@ LSDRaster LSDRaster::RasterTrimmer(){
   //calculate lower left corner coordinates of new array
   float new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
   float new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
-  cout << "LSDRaster::RasterTrimmer WARNING: IF YOU ARE USING BIL FORMAT THE GEOREFERENCING WILL NOT BE PRESERVED" << endl;
+  cout << "LSDRaster::RasterTrimmer WARNING: IF YOU ARE USING BIL FORMAT "
+       << " THE GEOREFERENCING WILL NOT BE PRESERVED" << endl;
   LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
                           new_YLL, DataResolution, NoDataValue, TrimmedData);
 
   return TrimmedRaster;
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This is a raster trimmer that gets a rectangular DEM that doesn't have NoData
+// around the edges
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::RasterTrimmerSpiral()
+{
+  int North_node = 0;
+  int South_node = NRows-1;
+  int East_node = NCols-1;
+  int West_node = 0;
+  int row,col;
+  
+  bool found_NDV;
+  
+  // mark the borders as not found
+  bool found_north_border = false;
+  bool found_south_border = false;
+  bool found_east_border = false;
+  bool found_west_border = false; 
+  
+  // the border row and columns are set to nodata
+  int North_border = NoDataValue;
+  int South_border = NoDataValue;
+  int West_border = NoDataValue;
+  int East_border = NoDataValue;
+  
+  // enter the spiral routine
+  while(North_node < South_node && East_node > West_node)
+  {
+    cout << "Nn: " << North_node << " En: " << East_node << " Sn: " << South_node << " Wn: " << West_node << endl;
+    cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
+      
+    // first do north edge
+    if(found_north_border == false)
+    {
+      col = West_node;
+      row = North_node;
+      found_NDV = false;
+      while(col<=East_node && found_NDV == false)
+      {
+        if( RasterData[row][col])
+        {
+          found_NDV = true;
+          North_node++;
+        }  
+        col++;
+      }
+      if (found_NDV == false)
+      {
+        found_north_border = true;
+        North_border = North_node;
+      }   
+    }
+    
+    // now do the east edge
+    if(found_east_border == false)
+    {
+      row = North_node;
+      col = East_node;
+      found_NDV = false;
+      while(row<=South_node && found_NDV == false)
+      {
+        if( RasterData[row][col])
+        {
+          found_NDV = true;
+          East_node++;
+        } 
+        row++; 
+      }
+      if (found_NDV == false)
+      {
+        found_east_border = true;
+        East_border = East_node;
+      }        
+    }
+
+    // now do the south edge
+    if(found_south_border == false)
+    {
+      row = South_node;
+      col = West_node;
+      found_NDV = false;
+      while(col<=East_node && found_NDV == false)
+      {
+        if( RasterData[row][col])
+        {
+          found_NDV = true;
+          South_node++;
+        } 
+        col++; 
+      }
+      if (found_NDV == false)
+      {
+        found_south_border = true;
+        South_border = South_node;
+      }        
+    }
+
+    // now do the west edge
+    if(found_west_border == false)
+    {
+      row = North_node;
+      col = West_node;
+      found_NDV = false;
+      while(row<=South_node && found_NDV == false)
+      {
+        if( RasterData[row][col])
+        {
+          found_NDV = true;
+          West_node++;
+        } 
+        row++; 
+      }
+      if (found_NDV == false)
+      {
+        found_west_border = true;
+        West_border = South_node;
+      }        
+    }    
+  }
+
+
+  int min_row = North_node;
+  int max_row = South_node;
+  int min_col = West_node;
+  int max_col = East_node;
+
+  // create new row and col sizes taking account of zero indexing
+  int new_row_dimension = (max_row-min_row) + 1;
+  int new_col_dimension = (max_col-min_col) + 1;
+
+  Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
+
+  //loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
+  int TrimmedRow = 0;
+  int TrimmedCol = 0;
+  for (int row = min_row - 1; row < max_row; ++row){
+    for(int col = min_col - 1; col < max_col; ++col){
+      TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
+      ++TrimmedCol;
+    }
+    ++TrimmedRow;
+    TrimmedCol = 0;
+  }
+
+  //calculate lower left corner coordinates of new array
+  float new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
+  float new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
+  cout << "LSDRaster::RasterTrimmer WARNING: IF YOU ARE USING BIL FORMAT "
+       << " THE GEOREFERENCING WILL NOT BE PRESERVED" << endl;
+  LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
+                          new_YLL, DataResolution, NoDataValue, TrimmedData);  
+
+  return TrimmedRaster;
+  
+}
+
+
+
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Export input LSDRasters as a vector field which can be plotted in python.
 // Data is written in the format "i j Magnitude Direction"
 // SWDG 20/1/14
-void LSDRaster::GetVectors(LSDRaster Magnitude, LSDRaster Direction, string output_file, int step){
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::GetVectors(LSDRaster Magnitude, LSDRaster Direction, string output_file, int step)
+{
 
   vector<string> OutputData;
 
@@ -6633,8 +6802,8 @@ void LSDRaster::GetVectors(LSDRaster Magnitude, LSDRaster Direction, string outp
   
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
 //		 sSSSs MM   MM  oOOo   oOOo  TTTTTT HH  HH IIII NN   NN  gGGGG
 //		SS     M M M M oO  Oo oO  Oo   TT   HH  HH  II  NNN  NN GG
@@ -6642,135 +6811,132 @@ void LSDRaster::GetVectors(LSDRaster Magnitude, LSDRaster Direction, string outp
 //		    SS M     M oO  Oo oO  Oo   TT   HH  HH  II  NN  NNN GG  GG
 //		sSSSs  M     M  oOOo   oOOo    TT   HH  HH IIII NN   NN  GGGGG
 //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+//  Perform Non-local means filtering on a DEM following Baude et al. [2005]
+//  Smoothes non-gaussian noise.
+//
+//  Inputs required:
+//    the search window radius,
+//    the similarity window radius and
+//    the degree of filtering
+//
+//  Martin Hurst, February, 2012
+//  Modified by David Milodowski, May 2012- generates grid of recording filtered noise
+//
+//  WindowRadius has to be <= SimilarityRadius ?
+//
+//  Adapted from a matlab script by:
+//  Author: Jose Vicente Manjon Herrera & Antoni Buades
+//  Date: 09-03-2006
+//
+//  Implementation of the Non local filter proposed for A. Buades, B. Coll and J.M. Morel in
+//  "A non-local algorithm for image denoising"
+//
+//  Added soft threshold optimal correction - David Milodowski, 05/2012
+//
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
-//	Perform Non-local means filtering on a DEM following Baude et al. [2005]
-//	Smoothes non-gaussian noise.
-//
-//	Inputs required:
-//		the search window radius,
-//		the similarity window radius and
-//		the degree of filtering
-//
-//	Martin Hurst, February, 2012
-//	Modified by David Milodowski, May 2012- generates grid of recording filtered noise
-//
-//	WindowRadius has to be <= SimilarityRadius ?
-//
-//	Adapted from a matlab script by:
-//	Author: Jose Vicente Manjon Herrera & Antoni Buades
-//	Date: 09-03-2006
-//
-//	Implementation of the Non local filter proposed for A. Buades, B. Coll and J.M. Morel in
-//	"A non-local algorithm for image denoising"
-//
-//	Added soft threshold optimal correction - David Milodowski, 05/2012
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-//	Martin Hurst, February, 2012
-//	Modified by David Milodowski, May 2012- generates grid of recording filtered noise
+//  Martin Hurst, February, 2012
+//  Modified by David Milodowski, May 2012- generates grid of recording filtered noise
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::NonLocalMeansFilter(int WindowRadius, int SimilarityRadius, int DegreeFiltering, float Sigma)
 {
 
+  //Declare Arrays to hold Filtered Data and Noise
+  Array2D<float> FilteredRasterData(NRows,NCols);
+  //Array2D<float> FilteredNoise(NRows,NCols);
 
+  //Declare Array to hold a padded copy of the raster with padding values taken
+  //as reflected values from the edge of RasterData
+  Array2D<float> PaddedRasterData(NRows+2*SimilarityRadius, NCols+2*SimilarityRadius,0.0);
+  PadRasterSymmetric(PaddedRasterData, SimilarityRadius);
 
-	//Declare Arrays to hold Filtered Data and Noise
-	Array2D<float> FilteredRasterData(NRows,NCols);
-	//Array2D<float> FilteredNoise(NRows,NCols);
+  //initiate the local gaussian kernel and populate
+  int KernelDimension = 2*SimilarityRadius+1;
+  Array2D<float> Kernel(KernelDimension,KernelDimension,0.0);
+  MakeGaussianKernel(Kernel, Sigma, SimilarityRadius);
 
-	//Declare Array to hold a padded copy of the raster with padding values taken
-	//as reflected values from the edge of RasterData
-	Array2D<float> PaddedRasterData(NRows+2*SimilarityRadius, NCols+2*SimilarityRadius,0.0);
-	PadRasterSymmetric(PaddedRasterData, SimilarityRadius);
+  //initiate temporary arrays
+  Array2D<float> W1(KernelDimension,KernelDimension);
+  Array2D<float> W2(KernelDimension,KernelDimension);
 
-	//initiate the local gaussian kernel and populate
-	int KernelDimension = 2*SimilarityRadius+1;
-	Array2D<float> Kernel(KernelDimension,KernelDimension,0.0);
-  	MakeGaussianKernel(Kernel, Sigma, SimilarityRadius);
+  //initiate temp variables
+  float w, wmax, average, sweight, d;
 
-	//initiate temporary arrays
-	Array2D<float> W1(KernelDimension,KernelDimension);
-	Array2D<float> W2(KernelDimension,KernelDimension);
+  //loop through DEM
+  int i1, j1, rowmin, rowmax, colmin, colmax;
 
-	//initiate temp variables
-	float w, wmax, average, sweight, d;
+  for (int i=0; i<NRows; ++i)
+  {
+    i1 = i+SimilarityRadius;
+    for (int j=0; j<NCols; ++j)
+      {
+        j1 = j+SimilarityRadius;
+        //Get DEM sample  with size SimilarityRadius, centred on cell of interest
+        for (int a=0; a<(KernelDimension); ++a)
+        {
+          for (int b=0; b<(KernelDimension); ++b)
+          {
+            W1[a][b] = PaddedRasterData[i1-SimilarityRadius+a][j1-SimilarityRadius+b];
+          }
+        }
 
-	//loop through DEM
-	int i1, j1, rowmin, rowmax, colmin, colmax;
+        wmax=0;
+        average=0;
+        sweight=0;
 
-  	for (int i=0; i<NRows; ++i)
-	{
-		i1 = i+SimilarityRadius;
-		for (int j=0; j<NCols; ++j)
-		{
-			j1 = j+SimilarityRadius;
-      		//Get DEM sample  with size SimilarityRadius, centred on cell of interest
-      		for (int a=0; a<(KernelDimension); ++a)
-			{
-  		  		for (int b=0; b<(KernelDimension); ++b)
-				{
-          			W1[a][b] = PaddedRasterData[i1-SimilarityRadius+a][j1-SimilarityRadius+b];
-				}
-      		}
+        //get bounding conditions
+        rowmin = max(i1-WindowRadius,SimilarityRadius);
+        rowmax = min(i1+WindowRadius,NRows+SimilarityRadius-1);
+        colmin = max(j1-WindowRadius,SimilarityRadius);
+        colmax = min(j1+WindowRadius,NCols+SimilarityRadius-1);
 
-      		wmax=0;
-      		average=0;
-  			sweight=0;
+        //loop to calculate weigths for each cell
+        for (int row=rowmin; row<rowmax+1; ++row)
+        {
+          for (int col=colmin; col<colmax+1; ++col)
+          {
+            d=0;
 
-			//get bounding conditions
-			rowmin = max(i1-WindowRadius,SimilarityRadius);
-			rowmax = min(i1+WindowRadius,NRows+SimilarityRadius-1);
-			colmin = max(j1-WindowRadius,SimilarityRadius);
-			colmax = min(j1+WindowRadius,NCols+SimilarityRadius-1);
+            //If centre cell do nothing
+            if (row!=i1 || col!=j1)
+            //Otherwise do the calculations
+            {
+              //Extract DEM centred around each point in kernel
+              for (int a=0; a<(KernelDimension); ++a)
+              {
+                for (int b=0; b<(KernelDimension); ++b)
+                {
+                  W2[a][b] = PaddedRasterData[row+a-SimilarityRadius][col+b-SimilarityRadius];
+                  d += Kernel[a][b]*(W1[a][b]-W2[a][b])*(W1[a][b]-W2[a][b]);
+                }
+              }
 
-			//loop to calculate weigths for each cell
-      		for (int row=rowmin; row<rowmax+1; ++row)
-			{
-			     for (int col=colmin; col<colmax+1; ++col)
-				{
-			          d=0;
+              w = exp(-d/(DegreeFiltering*DegreeFiltering));
+              if (w>wmax) wmax=w;
+              sweight += w;
+              average += w*PaddedRasterData[row][col];
+            }
+         }
+      }
+      average += wmax*PaddedRasterData[i1][j1];
+      sweight += wmax;
 
-					//If centre cell do nothing
-			          if (row!=i1 || col!=j1)
-					//Otherwise do the calculations
-			          {
-						//Extract DEM centred around each point in kernel
-						for (int a=0; a<(KernelDimension); ++a)
-						{
-							for (int b=0; b<(KernelDimension); ++b)
-							{
-								W2[a][b] = PaddedRasterData[row+a-SimilarityRadius][col+b-SimilarityRadius];
-								d += Kernel[a][b]*(W1[a][b]-W2[a][b])*(W1[a][b]-W2[a][b]);
-							}
-						}
+      if (sweight > 0) FilteredRasterData[i][j] = average/sweight;
+      else FilteredRasterData[i][j] = RasterData[i][j];
 
-						w = exp(-d/(DegreeFiltering*DegreeFiltering));
-            				if (w>wmax) wmax=w;
-           				sweight += w;
-            				average += w*PaddedRasterData[row][col];
-          			}
-				}
-      		}
+      // Also extract a record of the noise
+      //FilteredNoise[i][j]=RasterData[i][j]-FilteredRasterData[i][j];
+    }
+  }
 
-			average += wmax*PaddedRasterData[i1][j1];
-			sweight += wmax;
-
-      		if (sweight > 0) FilteredRasterData[i][j] = average/sweight;
-			else FilteredRasterData[i][j] = RasterData[i][j];
-
-      		// Also extract a record of the noise
-      		//FilteredNoise[i][j]=RasterData[i][j]-FilteredRasterData[i][j];
-		}
-	}
-
-	LSDRaster NLFilteredDEM(NRows,NCols,XMinimum,YMinimum,DataResolution,
+  LSDRaster NLFilteredDEM(NRows,NCols,XMinimum,YMinimum,DataResolution,
                       NoDataValue,FilteredRasterData,GeoReferencingStrings);
-	//LSDRaster NLFilteredNoise(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilteredNoise);
-	return NLFilteredDEM; //, NLFilteredNoise;
+  //LSDRaster NLFilteredNoise(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilteredNoise);
+  return NLFilteredDEM; //, NLFilteredNoise;
 }
 
 

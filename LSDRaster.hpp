@@ -249,6 +249,13 @@ class LSDRaster
   /// @date 22/08/13
   LSDRaster RasterTrimmer();
 
+  /// @brief Takes a raster and trims nodata from around the edges to 
+  /// result in a rectangular LSDRaster
+  /// @return A trimmed LSDRaster object.
+  /// @author SMM
+  /// @date 5/11/14
+  LSDRaster RasterTrimmerSpiral();
+
   /// @brief Make LSDRaster object using a 'template' raster and an Array2D of data.
   /// @param InputData 2DArray of floats to be written to LSDRaster.
   /// @return LSDRaster containing the data passed in.
