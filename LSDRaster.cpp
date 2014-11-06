@@ -513,6 +513,7 @@ void LSDRaster::read_raster(string filename, string extension)
             YMinimum = YMax - NRows*DataResolution;	          
 
 	          if (atof(mapinfo_strings[6].c_str()) != DataResolution)
+	          //if (mapinfo_strings[5] != mapinfo_strings[6])  
 	          {
 	            cout << "Warning! Loading ENVI DEM, but X and Y data spacing are different!" << endl;
 	          }
