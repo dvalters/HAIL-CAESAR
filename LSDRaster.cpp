@@ -6799,35 +6799,108 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
 //
 // SWDG 6/11/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-map<string, string> LSDRaster::Update_GeoReferencingStrings(float NewXmin, float NewYmax){
+map<string, string> LSDRaster::Update_GeoReferencingStrings(float NewXmin, float NewYmax)
+{
+
+  // set up strings and iterators
+  map<string,string>::iterator iter;
+
   //String to get the map_info out of the map
   string cs_key = "ENVI_map_info";  
 
-  // now parse the string
-	vector<string> mapinfo_strings;
-	istringstream iss(GeoReferencingStrings[cs_key]);
-	while( iss.good() )
-	{
-	  string substr;
-	  getline( iss, substr, ',' );
-	  mapinfo_strings.push_back( substr );
-	}
-  	
-	//Construct the new string with the updated xmin ymin values
-  stringstream CombineMapinfo;
-	
-	CombineMapinfo << mapinfo_strings[0] << "," << mapinfo_strings[1] << "," 
-  << mapinfo_strings[2] << ", " << NewXmin << ", " << NewYmax << "," 
-  << mapinfo_strings[5] << "," << mapinfo_strings[6] << "," << mapinfo_strings[7] 
-  << "," << mapinfo_strings[8];
-			
-	//Store the new string in the map
-	GeoReferencingStrings[cs_key] = CombineMapinfo.str();
+  //check to see if there is already a map info string
+  iter = GeoReferencingStrings.find(mi_str_key);
+  if (iter != GeoReferencingStrings.end() )
+  {
+    // there is a mapinfo string  
+    // now parse the string
+    vector<string> mapinfo_strings;
+    istringstream iss(GeoReferencingStrings[cs_key]);
+    while( iss.good() )
+    {
+      string substr;
+      getline( iss, substr, ',' );
+      mapinfo_strings.push_back( substr );
+    }
+  
+    //Construct the new string with the updated xmin ymin values
+    stringstream CombineMapinfo;
 
+    CombineMapinfo << mapinfo_strings[0] << "," << mapinfo_strings[1] << "," 
+       << mapinfo_strings[2] << ", " << NewXmin << ", " << NewYmax << "," 
+       << mapinfo_strings[5] << "," << mapinfo_strings[6] << "," << mapinfo_strings[7] 
+      << "," << mapinfo_strings[8];
+
+    //Store the new string in the map
+    GeoReferencingStrings[cs_key] = CombineMapinfo.str();
+
+  }
+
+  
   return GeoReferencingStrings;
 
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Similar to above, but in this case the function uses data stored within
+// the data members of the raster
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::Update_GeoReferencingStrings()
+{
+
+  // set up strings and iterators
+  map<string,string>::iterator iter;
+  string mi_str_key = "ENVI_map_info";
+  
+  string info_str;
+  
+  string delim = ", ";
+  string str_UTM;
+  string str_x,str_y;
+  string xmin = dtoa(XMinimum);
+  float YMax =  YMinimum + NRows*DataResolution;
+  string ymax = dtoa(YMax);
+  
+  string DR = dtoa(DataResolution);
+  string str_UTMZ;
+  string str_hemis;
+  string str_spheroid;
+  
+  //check to see if there is already a map info string
+  iter = GeoReferencingStrings.find(mi_str_key);
+  if (iter != GeoReferencingStrings.end() )
+  {
+    // there is a mapinfo string  
+    info_str = GeoReferencingStrings[mi_str_key];
+
+    // now parse the string
+    vector<string> mapinfo_strings;
+    istringstream iss(info_str);
+    while( iss.good() )
+    {
+      string substr;
+      getline( iss, substr, ',' );
+      mapinfo_strings.push_back( substr );
+    }
+
+    //Construct the new string with the updated xmin ymin values
+    stringstream CombineMapinfo;
+
+    CombineMapinfo << mapinfo_strings[0] << "," << mapinfo_strings[1] << "," 
+       << mapinfo_strings[2] << ", " << NewXmin << ", " << NewYmax << "," 
+       << mapinfo_strings[5] << "," << mapinfo_strings[6] << "," << mapinfo_strings[7] 
+      << "," << mapinfo_strings[8];
+    
+    //Store the new string in the map
+    GeoReferencingStrings[mi_str_key] = CombineMapinfo.str();
+    
+    
+    cout << "New string is: " << endl << GeoReferencingStrings[cs_key] << endl;
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

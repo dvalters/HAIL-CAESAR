@@ -273,6 +273,16 @@ class LSDRaster
   /// @date 6/11/14
   map<string, string> Update_GeoReferencingStrings(float NewXmin, float NewYmax);
 
+  /// @brief Method which updates the map info element of the georeferencing strings based on
+  /// information within the datamembers of the raster
+  ///
+  /// @details Intended for use when changing raster dimesions
+  ///
+  /// @author SMM
+  /// @date 6/11/14
+  void Update_GeoReferencingStrings();
+
+
   /// @brief Make LSDRaster object using a 'template' raster and an Array2D of data.
   /// @param InputData 2DArray of floats to be written to LSDRaster.
   /// @return LSDRaster containing the data passed in.
