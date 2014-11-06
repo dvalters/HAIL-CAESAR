@@ -6756,11 +6756,13 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
   int West_border = NoDataValue;
   int East_border = NoDataValue;
   
+  bool AllBordersFound = false;
+  
   // enter the spiral routine
-  while(North_node < South_node && East_node > West_node)
+  while(North_node < South_node && East_node > West_node && AllBordersFound == false)
   {
-    cout << "Nn: " << North_node << " En: " << East_node << " Sn: " << South_node << " Wn: " << West_node << endl;
-    cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
+    //cout << "Nn: " << North_node << " En: " << East_node << " Sn: " << South_node << " Wn: " << West_node << endl;
+    //cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
       
     // first do north edge
     if(found_north_border == false)
@@ -6770,8 +6772,9 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       found_NDV = false;
       while(col<=East_node && found_NDV == false)
       {
-        if( RasterData[row][col])
+        if( RasterData[row][col] == NoDataValue)
         {
+          //cout << "N Found nodata: ["<<row<<"]["<< col << "]"<< endl;
           found_NDV = true;
           North_node++;
         }  
@@ -6779,6 +6782,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       }
       if (found_NDV == false)
       {
+        //cout << "I found the north border!" << endl;
         found_north_border = true;
         North_border = North_node;
       }   
@@ -6792,10 +6796,11 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       found_NDV = false;
       while(row<=South_node && found_NDV == false)
       {
-        if( RasterData[row][col])
+        if( RasterData[row][col] == NoDataValue)
         {
+          //cout << "E Found nodata: ["<<row<<"]["<< col << "]"<< endl;
           found_NDV = true;
-          East_node++;
+          East_node--;
         } 
         row++; 
       }
@@ -6814,10 +6819,11 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       found_NDV = false;
       while(col<=East_node && found_NDV == false)
       {
-        if( RasterData[row][col])
+        if( RasterData[row][col] == NoDataValue)
         {
+          //cout << "S Found nodata: ["<<row<<"]["<< col << "]"<< endl;
           found_NDV = true;
-          South_node++;
+          South_node--;
         } 
         col++; 
       }
@@ -6836,8 +6842,9 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       found_NDV = false;
       while(row<=South_node && found_NDV == false)
       {
-        if( RasterData[row][col])
+        if( RasterData[row][col] == NoDataValue)
         {
+          //cout << "W Found nodata: ["<<row<<"]["<< col << "]"<< endl;
           found_NDV = true;
           West_node++;
         } 
@@ -6847,10 +6854,16 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       {
         found_west_border = true;
         West_border = South_node;
-      }        
-    }    
+      } 
+    }       
+    
+    // check to see if all the borders have been found
+    if(North_border != NoDataValue && South_border != NoDataValue
+         && East_border != NoDataValue && West_border != NoDataValue)
+    {
+      AllBordersFound = true;
+    }
   }
-
 
   int min_row = North_node;
   int max_row = South_node;
@@ -6878,20 +6891,16 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
   //calculate lower left corner coordinates of new array
   float new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
   float new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
-  
-  //Check if the file is in *.bil format and if it is update the GeoReferencingStrings
-  if (!GeoReferencingStrings.empty()){
-    float YMax = new_YLL + (new_row_dimension* DataResolution);
-    GeoReferencingStrings = Update_GeoReferencingStrings(new_XLL,YMax);
-  }
-  
+
   LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
                           new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);  
+
+  TrimmedRaster.Update_GeoReferencingStrings();
 
   return TrimmedRaster;
   
 }
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 
