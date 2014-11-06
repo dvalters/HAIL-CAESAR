@@ -6762,10 +6762,15 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
   //calculate lower left corner coordinates of new array
   float new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
   float new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
-  cout << "LSDRaster::RasterTrimmer WARNING: IF YOU ARE USING BIL FORMAT "
-       << " THE GEOREFERENCING WILL NOT BE PRESERVED" << endl;
+  
+  //Check if the file is in *.bil format and if it is update the GeoReferencingStrings
+  if (!GeoReferencingStrings.empty()){
+    float YMax = new_YLL + (new_row_dimension* DataResolution);
+    GeoReferencingStrings = Update_GeoReferencingStrings(new_XLL,YMax);
+  }
+  
   LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
-                          new_YLL, DataResolution, NoDataValue, TrimmedData);  
+                          new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);  
 
   return TrimmedRaster;
   
