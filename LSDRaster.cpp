@@ -6759,7 +6759,46 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
 }
 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
+// Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
+// map_info line to contain these new values. Intended for use in the rastertrimmer
+// methods and is called from within these methods.
+// 
+// Modifying georeferencing information by hand is messy and should be avoided if
+// at all possible. 
+//
+// Returns an updated GeoReferencingStrings object
+//
+// SWDG 6/11/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+map<string, string> LSDRaster::Update_GeoReferencingStrings(float NewXmin, float NewYmax){
+  //String to get the map_info out of the map
+  string cs_key = "ENVI_map_info";  
 
+  // now parse the string
+	vector<string> mapinfo_strings;
+	istringstream iss(GeoReferencingStrings[cs_key]);
+	while( iss.good() )
+	{
+	  string substr;
+	  getline( iss, substr, ',' );
+	  mapinfo_strings.push_back( substr );
+	}
+  	
+	//Construct the new string with the updated xmin ymin values
+  stringstream CombineMapinfo;
+	
+	CombineMapinfo << mapinfo_strings[0] << "," << mapinfo_strings[1] << "," 
+  << mapinfo_strings[2] << ", " << NewXmin << ", " << NewYmax << "," 
+  << mapinfo_strings[5] << "," << mapinfo_strings[6] << "," << mapinfo_strings[7] 
+  << "," << mapinfo_strings[8];
+			
+	//Store the new string in the map
+	GeoReferencingStrings[cs_key] = CombineMapinfo.str();
+
+  return GeoReferencingStrings;
+
+}
 
 
 
