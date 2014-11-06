@@ -6497,6 +6497,7 @@ LSDRaster LSDRaster::M2DFlow(){
 // }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
 // all the surrounding NoDataValues to reduce the size and load times of output
@@ -6505,6 +6506,9 @@ LSDRaster LSDRaster::M2DFlow(){
 // Ideal for use with chi analysis tools which output basin and chi m value rasters
 // which can be predominantly no data. As an example, a 253 Mb file can be reduced to
 // ~5 Mb with no loss or resampling of data.
+//
+// Modded 6/11/14 to cope with bil files and to catch cases where some or all of the
+// edges cannot be trimmed - SWDG
 //
 // Returns A trimmed LSDRaster object.
 //
@@ -6540,6 +6544,7 @@ LSDRaster LSDRaster::RasterTrimmer(){
     }
   }
 
+
   //minimum index value in a row
   a = 0;
   int min_row = 100000; //a big number
@@ -6568,12 +6573,6 @@ LSDRaster LSDRaster::RasterTrimmer(){
     }
   }
 
-  // create new row and col sizes taking account of zero indexing
-  int new_row_dimension = (max_row-min_row) + 1;
-  int new_col_dimension = (max_col-min_col) + 1;
-
-  Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
-
   if (min_row == 0 && min_col == 0 && max_row == (NRows - 1) && max_col == (NCols - 1)){
     cout << "Raster cannot be trimmed! \nReturning original raster.\n" << endl;
         
@@ -6582,10 +6581,21 @@ LSDRaster LSDRaster::RasterTrimmer(){
                      
     return Output;
   }
+   
+  // create new row and col sizes taking account of zero indexing
+  int new_row_dimension = (max_row-min_row) + 1;
+  int new_col_dimension = (max_col-min_col) + 1;
+
+  Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
 
   //loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
   int TrimmedRow = 0;
   int TrimmedCol = 0;
+  
+  //check if the north or west edges cannot be trimmed and stop an out of bounds error
+  if (min_row == 0){ min_row = 1; }
+  if (min_col == 0){ min_col = 1; }
+  
   for (int row = min_row - 1; row < max_row; ++row){
     for(int col = min_col - 1; col < max_col; ++col){
       
@@ -6611,8 +6621,8 @@ LSDRaster LSDRaster::RasterTrimmer(){
 
   return TrimmedRaster;
 }
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This is a raster trimmer that gets a rectangular DEM that doesn't have NoData

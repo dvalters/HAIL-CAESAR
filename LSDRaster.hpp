@@ -242,7 +242,10 @@ class LSDRaster
   ///
   /// @details Ideal for use with chi analysis tools which output basin and chi m value rasters
   /// which can be predominantly no data. As an example, a 253 Mb file can be reduced to
-  /// ~5 Mb with no loss or resampling of data.
+  /// ~5 Mb with no loss or resampling of data.\n
+  ///
+  /// Modded 6/11/14 to cope with bil files and to catch cases where some or all of the
+  /// edges cannot be trimmed - SWDG
   ///
   /// @return A trimmed LSDRaster object.
   /// @author SWDG
