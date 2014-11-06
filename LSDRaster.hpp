@@ -230,6 +230,30 @@ class LSDRaster
   /// @date 01/01/12
   void write_raster(string filename, string extension);
 
+  /// @brief Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
+  /// map_info line to contain these new values.
+  ///
+  /// @details Intended for use in the rastertrimmer methods and is called from within these methods. 
+  /// Modifying georeferencing information by hand is messy and should be avoided if
+  /// at all possible.
+  /// @param NewXmin floating point value of the new minimum x value in the raster.
+  /// @param NewYmax floating point value of the new maximum y value in the raster.
+  /// @return An updated GeoReferencingStrings object.
+  ///
+  /// @author SWDG
+  /// @date 6/11/14
+  map<string, string> Update_GeoReferencingStrings(float NewXmin, float NewYmax);
+
+  /// @brief Method which updates the map info element of the georeferencing strings based on
+  /// information within the datamembers of the raster
+  ///
+  /// @details Intended for use when changing raster dimesions
+  ///
+  /// @author SMM
+  /// @date 6/11/14
+  void Update_GeoReferencingStrings();
+
+
   /// @brief rewrite all the data array values with random numbers (with a 
   /// uniform distribution). 
   /// @param range is the range of values.
@@ -259,28 +283,7 @@ class LSDRaster
   /// @date 5/11/14
   LSDRaster RasterTrimmerSpiral();
   
-  /// @brief Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
-  /// map_info line to contain these new values.
-  ///
-  /// @details Intended for use in the rastertrimmer methods and is called from within these methods. 
-  /// Modifying georeferencing information by hand is messy and should be avoided if
-  /// at all possible.
-  /// @param NewXmin floating point value of the new minimum x value in the raster.
-  /// @param NewYmax floating point value of the new maximum y value in the raster.
-  /// @return An updated GeoReferencingStrings object.
-  ///
-  /// @author SWDG
-  /// @date 6/11/14
-  map<string, string> Update_GeoReferencingStrings(float NewXmin, float NewYmax);
 
-  /// @brief Method which updates the map info element of the georeferencing strings based on
-  /// information within the datamembers of the raster
-  ///
-  /// @details Intended for use when changing raster dimesions
-  ///
-  /// @author SMM
-  /// @date 6/11/14
-  void Update_GeoReferencingStrings();
 
 
   /// @brief Make LSDRaster object using a 'template' raster and an Array2D of data.
