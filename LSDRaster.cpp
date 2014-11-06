@@ -672,81 +672,81 @@ void LSDRaster::read_raster(string filename, string extension)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::write_raster(string filename, string extension)
 {
-	string string_filename;
-	string dot = ".";
-	string_filename = filename+dot+extension;
-	cout << "The filename is " << string_filename << endl;
+  string string_filename;
+  string dot = ".";
+  string_filename = filename+dot+extension;
+  cout << "The filename is " << string_filename << endl;
 
-	// this first bit of logic is for the asc file.
-	if (extension == "asc")
-	{
-		// open the data file
-		ofstream data_out(string_filename.c_str());
+  // this first bit of logic is for the asc file.
+  if (extension == "asc")
+  {
+    // open the data file
+    ofstream data_out(string_filename.c_str());
 
-		if( data_out.fail() )
-		{
-			cout << "\nFATAL ERROR: unable to write to " << string_filename << endl;
-			exit(EXIT_FAILURE);
-		}
+    if( data_out.fail() )
+    {
+      cout << "\nFATAL ERROR: unable to write to " << string_filename << endl;
+      exit(EXIT_FAILURE);
+    }
 
-		data_out <<  "ncols\t" << NCols
-			 << "\nnrows\t" << NRows
-			 << "\nxllcorner\t" << setprecision(14) << XMinimum
-			 << "\nyllcorner\t" << setprecision(14) << YMinimum
-			 << "\ncellsize\t" << DataResolution
-			 << "\nNODATA_value\t" << NoDataValue << endl;
+    data_out <<  "ncols\t" << NCols
+       << "\nnrows\t" << NRows
+       << "\nxllcorner\t" << setprecision(14) << XMinimum
+       << "\nyllcorner\t" << setprecision(14) << YMinimum
+       << "\ncellsize\t" << DataResolution
+       << "\nNODATA_value\t" << NoDataValue << endl;
 
 
-		for (int i=0; i<NRows; ++i)
-		{
-			for (int j=0; j<NCols; ++j)
-			{
-				data_out << setprecision(6) << RasterData[i][j] << " ";
-			}
-			if (i != NRows-1) data_out << endl;
-		}
-		data_out.close();
+    for (int i=0; i<NRows; ++i)
+    {
+      for (int j=0; j<NCols; ++j)
+      {
+        data_out << setprecision(6) << RasterData[i][j] << " ";
+      }
+      if (i != NRows-1) data_out << endl;
+    }
+    data_out.close();
 
-	}
-	else if (extension == "flt")
-	{
-		// float data (a binary format created by ArcMap) has a header file
-		// this file must be opened first
-		string header_filename;
-		string header_extension = "hdr";
-		header_filename = filename+dot+header_extension;
+  }
+  else if (extension == "flt")
+  {
+    // float data (a binary format created by ArcMap) has a header file
+    // this file must be opened first
+    string header_filename;
+    string header_extension = "hdr";
+    header_filename = filename+dot+header_extension;
 
-		ofstream header_ofs(header_filename.c_str());
-		string str;
-		header_ofs <<  "ncols         " << NCols
-			<< "\nnrows         " << NRows
-			<< "\nxllcorner     " << setprecision(14) << XMinimum
-			<< "\nyllcorner     " << setprecision(14) << YMinimum
-			<< "\ncellsize      " << DataResolution
-			<< "\nNODATA_value  " << NoDataValue
-			<< "\nbyteorder     LSBFIRST" << endl;
-		header_ofs.close();
+    ofstream header_ofs(header_filename.c_str());
+    string str;
+    header_ofs <<  "ncols         " << NCols
+      << "\nnrows         " << NRows
+      << "\nxllcorner     " << setprecision(14) << XMinimum
+      << "\nyllcorner     " << setprecision(14) << YMinimum
+      << "\ncellsize      " << DataResolution
+      << "\nNODATA_value  " << NoDataValue
+      << "\nbyteorder     LSBFIRST" << endl;
+    header_ofs.close();
 
-		// now do the main data
-		ofstream data_ofs(string_filename.c_str(), ios::out | ios::binary);
-		float temp;
-		for (int i=0; i<NRows; ++i)
-		{
-			for (int j=0; j<NCols; ++j)
-			{
-				temp = float(RasterData[i][j]);
-				data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
-			}
-		}
-		data_ofs.close();
-	}
-	else if (extension == "bil")
-	{
-		// float data (a binary format created by ArcMap) has a header file
-		// this file must be opened first
-		string header_filename;
-		string header_extension = "hdr";
-		header_filename = filename+dot+header_extension;
+    // now do the main data
+    ofstream data_ofs(string_filename.c_str(), ios::out | ios::binary);
+    float temp;
+    for (int i=0; i<NRows; ++i)
+    {
+      for (int j=0; j<NCols; ++j)
+      {
+        temp = float(RasterData[i][j]);
+        data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
+      }
+    }
+    data_ofs.close();
+  }
+  else if (extension == "bil")
+  {
+    // float data (a binary format created by ArcMap) has a header file
+    // this file must be opened first
+    string header_filename;
+    string header_extension = "hdr";
+    header_filename = filename+dot+header_extension;
 
     // you need to strip the filename
     string frontslash = "/";
@@ -800,7 +800,7 @@ void LSDRaster::write_raster(string filename, string extension)
       cout << "Warning, writing ENVI file but no coordinate system string" << endl;
     }
     header_ofs <<  "data ignore value = " << NoDataValue << endl;
- 	      
+
     header_ofs.close();
 
     // now do the main data
@@ -811,7 +811,7 @@ void LSDRaster::write_raster(string filename, string extension)
       for (int j=0; j<NCols; ++j)
       {
         temp = float(RasterData[i][j]);
-	      data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
+        data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
       }
     }
     data_ofs.close();
@@ -819,7 +819,7 @@ void LSDRaster::write_raster(string filename, string extension)
   else
   {
     cout << "You did not enter and approprate extension!" << endl
-	  << "You entered: " << extension << " options are flt, bil and asc" << endl;
+    << "You entered: " << extension << " options are flt, bil and asc" << endl;
     exit(EXIT_FAILURE);
    }
 }
@@ -847,7 +847,7 @@ map<string, string> LSDRaster::Update_GeoReferencingStrings(float NewXmin, float
   string cs_key = "ENVI_map_info";  
 
   //check to see if there is already a map info string
-  iter = GeoReferencingStrings.find(mi_str_key);
+  iter = GeoReferencingStrings.find(cs_key);
   if (iter != GeoReferencingStrings.end() )
   {
     // there is a mapinfo string  
@@ -917,7 +917,7 @@ void LSDRaster::Update_GeoReferencingStrings()
     stringstream CombineMapinfo;
 
     CombineMapinfo << mapinfo_strings[0] << "," << mapinfo_strings[1] << "," 
-       << mapinfo_strings[2] << ", " << XMinimum << ", " << Ymax << "," 
+       << mapinfo_strings[2] << ", " << XMinimum << ", " << YMax << "," 
        << DataResolution << "," << DataResolution << "," << mapinfo_strings[7] 
        << "," << mapinfo_strings[8] << "," << mapinfo_strings[9];
     
@@ -925,7 +925,7 @@ void LSDRaster::Update_GeoReferencingStrings()
     GeoReferencingStrings[mi_str_key] = CombineMapinfo.str();
     
     
-    cout << "New string is: " << endl << GeoReferencingStrings[cs_key] << endl;
+    cout << "New string is: " << endl << GeoReferencingStrings[mi_str_key] << endl;
   }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -934,6 +934,7 @@ void LSDRaster::Update_GeoReferencingStrings()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // 
 // This function imposes the mapinfo strings. It assumes UTM
+// THIS HAS NOT BEEN TESTED!!!!!!!!!!!!
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
@@ -941,13 +942,13 @@ void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
   string str_NorS;
   string str_NorSlong;
   string cs_string_fnbit;
-  if (NorS[0] == "N" || NorS[0] == "n")
+  if (NorS.find("N") == 0 || NorS.find("n") == 0)
   {
     str_NorS = "N";
     str_NorSlong = "North";
     cs_string_fnbit = "0";
   }
-  else if (NorS[0] == "S" || NorS[0] == "s")
+  else if (NorS.find("S") == 0 || NorS.find("s") == 0)
   {
     str_NorS = "S";
     str_NorSlong = "South"; 
@@ -963,7 +964,7 @@ void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
 
   string delim = ", ";
   string str_UTM = "UTM";
-  string str_x  = "1"
+  string str_x  = "1";
   string str_y = "1";
   string xmin = dtoa(XMinimum);
   float YMax =  YMinimum + NRows*DataResolution;
@@ -981,11 +982,11 @@ void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
   
   string cs_string_firstbit = "PROJCS[\"WGS_1984_UTM_Zone_";
   string cs_string_secondbit = str_UTMZ+str_NorS;
-  string cs_string_thirdbit =  "\",GEOGCS["GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",";
+  string cs_string_thirdbit =  "\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",";
   string cs_string_fifthbit = "],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",";
   string cs_string_seventhbit = "],UNIT[\"Meter\",1]]";
   
-  int cnetral_meridian = Find_UTM_central_meridian(zone);
+  int central_meridian = Find_UTM_central_meridian(zone);
   string cs_string_central_merid = itoa(central_meridian);
   
   
