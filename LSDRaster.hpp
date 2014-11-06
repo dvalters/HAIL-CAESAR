@@ -253,6 +253,13 @@ class LSDRaster
   /// @date 6/11/14
   void Update_GeoReferencingStrings();
 
+  /// @brief This method looks up the central meridian given a UTM zone
+  /// @param UTM_zone the UTM zone
+  /// @return central_meridian an integer of the central meridian of this UTM zone
+  /// @author SMM
+  /// @date 6/11/14
+  int Find_UTM_central_meridian(int UTM_zone);
+
 
   /// @brief rewrite all the data array values with random numbers (with a 
   /// uniform distribution). 

@@ -931,6 +931,97 @@ void LSDRaster::Update_GeoReferencingStrings()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This is a utility function to find the central meridian of a UTM zone
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+int LSDRaster::Find_UTM_central_meridian(int UTM_zone)
+{
+  // initiate the vector
+  vector<int> zone(61,NoDataValue);
+  
+  // here is the lookuptable
+  zone[1]=-177;
+  zone[2]=-171;
+  zone[3]=-165;
+  zone[4]=-159;
+  zone[5]=-153;
+  zone[6]=-147;
+  zone[7]=-141;
+  zone[8]=-135;
+  zone[9]=-129;
+  zone[10]=-123;
+  zone[11]=-117;
+  zone[12]=-111;
+  zone[13]=-105;
+  zone[14]=-99;
+  zone[15]=-93;
+  zone[16]=-87;
+  zone[17]=-81;
+  zone[18]=-75;
+  zone[19]=-69;
+  zone[20]=-63;
+  zone[21]=-57;
+  zone[22]=-51;
+  zone[23]=-45;
+  zone[24]=-39;
+  zone[25]=-33;
+  zone[26]=-27;
+  zone[27]=-21;
+  zone[28]=-15;
+  zone[29]=-9;
+  zone[30]=-3;
+  zone[31]=3;
+  zone[32]=9;
+  zone[33]=15;
+  zone[34]=21;
+  zone[35]=27;
+  zone[36]=33;
+  zone[37]=39;
+  zone[38]=45;
+  zone[39]=51;
+  zone[40]=57;
+  zone[41]=63;
+  zone[42]=69;
+  zone[43]=75;
+  zone[44]=81;
+  zone[45]=87;
+  zone[46]=93;
+  zone[47]=99;
+  zone[48]=105;
+  zone[49]=111;
+  zone[50]=117;
+  zone[51]=123;
+  zone[52]=129;
+  zone[53]=135;
+  zone[54]=141;
+  zone[55]=147;
+  zone[56]=153;
+  zone[57]=159;
+  zone[58]=165;
+  zone[59]=171;
+  zone[60]=177;
+
+  int central_meridian;
+
+  // now look up the table
+  if(UTM_zone <1 || UTM_zone > 60)
+  {
+    cout << "Trying to assign central meridian but you have chosen an invalid UTM zone" << endl;
+    cout << "defaulting to central meridian of 0";
+    central_meridian = 0;
+  }
+  else
+  {
+    central_meridian = zone[UTM_zone];
+  }
+  
+  return central_meridian;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // rewrite_with_random_values
 // This overwrites existing data with random values
