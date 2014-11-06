@@ -6510,8 +6510,7 @@ LSDRaster LSDRaster::M2DFlow(){
 //
 // SWDG 22/08/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster LSDRaster::RasterTrimmer()
-{
+LSDRaster LSDRaster::RasterTrimmer(){
 
   //minimum index value in a column
   int a = 0;
@@ -6540,7 +6539,6 @@ LSDRaster LSDRaster::RasterTrimmer()
       max_col = a;
     }
   }
-
 
   //minimum index value in a row
   a = 0;
@@ -6576,11 +6574,21 @@ LSDRaster LSDRaster::RasterTrimmer()
 
   Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
 
+  if (min_row == 0 && min_col == 0 && max_row == (NRows - 1) && max_col == (NCols - 1)){
+    cout << "Raster cannot be trimmed! \nReturning original raster.\n" << endl;
+        
+    LSDRaster Output(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, 
+                     RasterData, GeoReferencingStrings);
+                     
+    return Output;
+  }
+
   //loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
   int TrimmedRow = 0;
   int TrimmedCol = 0;
   for (int row = min_row - 1; row < max_row; ++row){
     for(int col = min_col - 1; col < max_col; ++col){
+      
       TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
       ++TrimmedCol;
     }
@@ -6591,10 +6599,15 @@ LSDRaster LSDRaster::RasterTrimmer()
   //calculate lower left corner coordinates of new array
   float new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
   float new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
-  cout << "LSDRaster::RasterTrimmer WARNING: IF YOU ARE USING BIL FORMAT "
-       << " THE GEOREFERENCING WILL NOT BE PRESERVED" << endl;
+  
+  //Check if the file is in *.bil format and if it is update the GeoReferencingStrings
+  if (!GeoReferencingStrings.empty()){
+    float YMax = new_YLL + (new_row_dimension* DataResolution);
+    GeoReferencingStrings = Update_GeoReferencingStrings(new_XLL,YMax);
+  }
+    
   LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
-                          new_YLL, DataResolution, NoDataValue, TrimmedData);
+                          new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);
 
   return TrimmedRaster;
 }
