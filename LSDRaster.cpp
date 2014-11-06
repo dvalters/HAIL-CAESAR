@@ -932,6 +932,72 @@ void LSDRaster::Update_GeoReferencingStrings()
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// 
+// This function imposes the mapinfo strings. It assumes UTM
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
+{
+  string str_NorS;
+  string str_NorSlong;
+  string cs_string_fnbit;
+  if (NorS[0] == "N" || NorS[0] == "n")
+  {
+    str_NorS = "N";
+    str_NorSlong = "North";
+    cs_string_fnbit = "0";
+  }
+  else if (NorS[0] == "S" || NorS[0] == "s")
+  {
+    str_NorS = "S";
+    str_NorSlong = "South"; 
+    cs_string_fnbit = "10000000";   
+  }
+  else
+  {
+    cout << "imposing georeferencing, but I didn't understand N or S, defaulting to North." << endl;
+    str_NorS = "N";
+    str_NorSlong = "North";
+    cs_string_fnbit = "0";
+  }
+
+  string delim = ", ";
+  string str_UTM = "UTM";
+  string str_x  = "1"
+  string str_y = "1";
+  string xmin = dtoa(XMinimum);
+  float YMax =  YMinimum + NRows*DataResolution;
+  string ymax = dtoa(YMax);
+  
+  string DR = dtoa(DataResolution);
+  string str_UTMZ = itoa(zone);
+  string str_hemis = str_NorSlong;
+  string str_spheroid = "WGS-84";  
+
+  string new_string = str_UTM+delim+str_x+delim+str_y+delim+xmin+delim
+                       +ymax+delim+DR+delim+DR+delim+str_UTMZ+delim+str_hemis
+                       +delim+str_spheroid;
+  GeoReferencingStrings["ENVI_map_info"]= new_string;
+  
+  string cs_string_firstbit = "PROJCS[\"WGS_1984_UTM_Zone_";
+  string cs_string_secondbit = str_UTMZ+str_NorS;
+  string cs_string_thirdbit =  "\",GEOGCS["GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",";
+  string cs_string_fifthbit = "],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",";
+  string cs_string_seventhbit = "],UNIT[\"Meter\",1]]";
+  
+  int cnetral_meridian = Find_UTM_central_meridian(zone);
+  string cs_string_central_merid = itoa(central_meridian);
+  
+  
+  string cs_str = cs_string_firstbit+cs_string_secondbit+cs_string_thirdbit
+                 +cs_string_central_merid+cs_string_fifthbit+cs_string_fnbit
+                 +cs_string_seventhbit;
+                 
+  GeoReferencingStrings["ENVI_coordinate_system"]= cs_str;               
+}                 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
 // This is a utility function to find the central meridian of a UTM zone
 //

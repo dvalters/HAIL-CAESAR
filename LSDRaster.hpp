@@ -253,6 +253,15 @@ class LSDRaster
   /// @date 6/11/14
   void Update_GeoReferencingStrings();
 
+  /// @brief This method imposes georefereing strings assuming the coordinate
+  /// system is UTM
+  /// @param zone the UTM zone
+  /// @param NorS a string containing characters that start either N (for north)
+  /// or S for south. The letter is not case sensitive
+  /// @author SMM
+  /// @date 6/11/14
+  void impose_georeferencing_UTM(int zone, string NorS);
+
   /// @brief This method looks up the central meridian given a UTM zone
   /// @param UTM_zone the UTM zone
   /// @return central_meridian an integer of the central meridian of this UTM zone
