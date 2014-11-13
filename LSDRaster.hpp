@@ -269,7 +269,14 @@ class LSDRaster
   /// @date 6/11/14
   int Find_UTM_central_meridian(int UTM_zone);
 
-
+  /// @brief this check to see if a point is within the raster
+  /// @param X_coordinate the x location of the point
+  /// @param Y_coordinate the y location of the point
+  /// @return is_in_raster a boolean telling if the point is in the raster
+  /// @author SMM
+  /// @date 13/11/2014
+  bool check_if_point_is_in_raster(float X_coordinate,Y_coordinate);
+  
   /// @brief rewrite all the data array values with random numbers (with a 
   /// uniform distribution). 
   /// @param range is the range of values.
