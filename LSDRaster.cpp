@@ -1095,7 +1095,7 @@ int LSDRaster::Find_UTM_central_meridian(int UTM_zone)
 // Checks to see is a point is in the raster
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-bool LSDRaster::check_if_point_is_in_raster(float X_coordinate,Y_coordinate)
+bool LSDRaster::check_if_point_is_in_raster(float X_coordinate,float Y_coordinate)
 {
   bool is_in_raster = true;
   
@@ -3575,7 +3575,7 @@ LSDRaster LSDRaster::calculate_factor_of_safety_at_saturation(float C_r, float r
         else
         {
           FS_for_sat[row][col] = C_r/(g*rho_s*soil_thick*cos_SA*sin_SA) +
-                                (rho_s - 1000)*cos_SA*tan_phi/(rho_s*sin_SA);
+                                (rho_s - rho_w)*cos_SA*tan_phi/(rho_s*sin_SA);
         }
       
       }

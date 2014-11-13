@@ -275,7 +275,7 @@ class LSDRaster
   /// @return is_in_raster a boolean telling if the point is in the raster
   /// @author SMM
   /// @date 13/11/2014
-  bool check_if_point_is_in_raster(float X_coordinate,Y_coordinate);
+  bool check_if_point_is_in_raster(float X_coordinate,float Y_coordinate);
   
   /// @brief rewrite all the data array values with random numbers (with a 
   /// uniform distribution). 

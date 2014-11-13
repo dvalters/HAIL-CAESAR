@@ -76,6 +76,11 @@
 //DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
 //-----------------------------------------------------------------
 
+
+
+#ifndef LSDIndexRaster_CPP
+#define LSDIndexRaster_CPP
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -84,11 +89,10 @@
 #include <map>
 #include "TNT/tnt.h"
 #include "LSDIndexRaster.hpp"
+#include "LSDStatsTools.hpp"
 using namespace std;
 using namespace TNT;
 
-#ifndef LSDIndexRaster_CPP
-#define LSDIndexRaster_CPP
 
 // operators
 // SMM 2012
@@ -738,7 +742,7 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 //
 // SWDG 6/11/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-map<string, string> LSDRaster::Update_GeoReferencingStrings(float NewXmin, float NewYmax)
+map<string, string> LSDIndexRaster::Update_GeoReferencingStrings(float NewXmin, float NewYmax)
 {
 
   // set up strings and iterators
@@ -786,7 +790,7 @@ map<string, string> LSDRaster::Update_GeoReferencingStrings(float NewXmin, float
 // Similar to above, but in this case the function uses data stored within
 // the data members of the raster
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::Update_GeoReferencingStrings()
+void LSDIndexRaster::Update_GeoReferencingStrings()
 {
 
   float YMax =  YMinimum + NRows*DataResolution;
@@ -838,7 +842,7 @@ void LSDRaster::Update_GeoReferencingStrings()
 // THIS HAS NOT BEEN TESTED!!!!!!!!!!!!
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
+void LSDIndexRaster::impose_georeferencing_UTM(int zone, string NorS)
 {
   string str_NorS;
   string str_NorSlong;
@@ -904,7 +908,7 @@ void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
 // This is a utility function to find the central meridian of a UTM zone
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-int LSDRaster::Find_UTM_central_meridian(int UTM_zone)
+int LSDIndexRaster::Find_UTM_central_meridian(int UTM_zone)
 {
   // initiate the vector
   vector<int> zone(61,NoDataValue);
@@ -994,7 +998,7 @@ int LSDRaster::Find_UTM_central_meridian(int UTM_zone)
 // Checks to see is a point is in the raster
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-bool LSDRaster::check_if_point_is_in_raster(float X_coordinate,Y_coordinate)
+bool LSDIndexRaster::check_if_point_is_in_raster(float X_coordinate, float Y_coordinate)
 {
   bool is_in_raster = true;
   
