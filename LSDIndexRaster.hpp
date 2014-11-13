@@ -182,11 +182,11 @@ class LSDIndexRaster
 	///
 	/// If the full filename is my_dem.01.asc then:
   /// filename = "my_dem.01" and extension = "asc".
-	///
-	/// For float files both a data file and a header are written
-	/// the header file must have the same filename, before extention, of
-	/// the raster data, and the extension must be .hdr.
-	/// @author SMM
+  ///
+  /// For float files both a data file and a header are written
+  /// the header file must have the same filename, before extention, of
+  /// the raster data, and the extension must be .hdr.
+  /// @author SMM
   /// @date 01/01/12
   void write_raster(string filename, string extension);
 
@@ -194,9 +194,57 @@ class LSDIndexRaster
   /// @param row An integer, the X coordinate of the target cell.
   /// @param column An integer, the Y coordinate of the target cell.
   /// @return The raster value at the position (row, column).
-	/// @author SMM
+  /// @author SMM
   /// @date 01/01/12
   int get_data_element(int row, int column)	{ return RasterData[row][column]; }
+
+  /// @brief Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
+  /// map_info line to contain these new values.
+  ///
+  /// @details Intended for use in the rastertrimmer methods and is called from within these methods. 
+  /// Modifying georeferencing information by hand is messy and should be avoided if
+  /// at all possible.
+  /// @param NewXmin floating point value of the new minimum x value in the raster.
+  /// @param NewYmax floating point value of the new maximum y value in the raster.
+  /// @return An updated GeoReferencingStrings object.
+  ///
+  /// @author SWDG
+  /// @date 6/11/14
+  map<string, string> Update_GeoReferencingStrings(float NewXmin, float NewYmax);
+
+  /// @brief Method which updates the map info element of the georeferencing strings based on
+  /// information within the datamembers of the raster
+  ///
+  /// @details Intended for use when changing raster dimesions
+  ///
+  /// @author SMM
+  /// @date 6/11/14
+  void Update_GeoReferencingStrings();
+
+  /// @brief This method imposes georefereing strings assuming the coordinate
+  /// system is UTM
+  /// @param zone the UTM zone
+  /// @param NorS a string containing characters that start either N (for north)
+  /// or S for south. The letter is not case sensitive
+  /// @author SMM
+  /// @date 6/11/14
+  void impose_georeferencing_UTM(int zone, string NorS);
+
+  /// @brief This method looks up the central meridian given a UTM zone
+  /// @param UTM_zone the UTM zone
+  /// @return central_meridian an integer of the central meridian of this UTM zone
+  /// @author SMM
+  /// @date 6/11/14
+  int Find_UTM_central_meridian(int UTM_zone);
+
+  /// @brief this check to see if a point is within the raster
+  /// @param X_coordinate the x location of the point
+  /// @param Y_coordinate the y location of the point
+  /// @return is_in_raster a boolean telling if the point is in the raster
+  /// @author SMM
+  /// @date 13/11/2014
+  bool check_if_point_is_in_raster(float X_coordinate,Y_coordinate);
+
 
   /// @brief Calculate the minimum bounding rectangle for an LSDIndexRaster Object and crop out
   /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
