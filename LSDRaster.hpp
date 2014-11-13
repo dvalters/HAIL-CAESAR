@@ -184,7 +184,7 @@ class LSDRaster
   /// @return The raster value at the position (row, column).
   /// @author SMM
   /// @date 01/01/12
-  float get_data_element(int row, int column)	{ return RasterData[row][column]; }
+  float get_data_element(int row, int column)  { return RasterData[row][column]; }
 
   /// Assignment operator.
   LSDRaster& operator=(const LSDRaster& LSDR);
@@ -680,11 +680,8 @@ class LSDRaster
   LSDIndexRaster calculate_polyfit_classification(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
                                                 Array2D<float>& d, Array2D<float>& e);
 
-
   /// @brief Gets the hilltop curvature raster.
-  ///
   /// @details Modified to take an LSDRaster of hilltops - SWDG 29/8/13
-  ///
   /// @param curvature LSDRaster of curvatures.
   /// @param Hilltops LSDRaster of hilltops.
   /// @return LSDRaster of hilltop curvatures.
@@ -693,7 +690,6 @@ class LSDRaster
   LSDRaster get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hilltops);
   
   /// @brief Removes positive hilltop curvature values
-  ///
   /// @details Modifies the hilltop curvature raster to remove pixels with
   /// positive curvature caused by noise
   /// @param hilltop_curvature hilltop curvature input raster
@@ -701,6 +697,46 @@ class LSDRaster
   /// @author FJC
   /// @date 24/03/14 
   LSDRaster remove_positive_hilltop_curvature(LSDRaster& hilltop_curvature);
+
+  /// @brief Calculates slope angle in radians. Needs the slope raster
+  /// @return LSDRaster containing the slope angle in radians. For use in trigonometric
+  /// calculations
+  /// @author SMM
+  /// @date 13/11/14 
+  LSDRaster calculate_slope_angles();
+
+  /// @brief Calculates the water supply rate required for saturation of the hillslope
+  /// soil
+  /// @details Water supply rate is the precipitation rate minus recharge and ET
+  /// @param soil_thick soil thickness in m
+  /// @param K hydraulic conductivity in m/ (some time unit)
+  /// @param ConstributingArea the contributing area raster, should be in m^2
+  /// @param SlopeAngle the angle of the slope (you need to use the function calculate_slope_angles)
+  ///  to get this
+  /// @return Water_supply_rate_for_saturation a raster holding the water supply 
+  /// rate required for saturation. The units will be the same as hydraulic 
+  /// conductivity but the lenght unit must be metres (to match contributing area)
+  /// @author SMM
+  /// @date 13/11/14 
+  LSDRaster calculate_water_supply_rate_for_saturation(float soil_thick,
+                  float K, LSDRaster& ContributingArea, LSDRaster& SlopeAngle);
+
+  /// @brief This calculates the factor of safety if the soil is completely 
+  /// saturated
+  /// @details Factor of safety <1 == unstable
+  /// @param C_r root cohesion in N/m^2
+  /// @param rho_s soil density in kg/m^3
+  /// @param soil_thick soil thickness in m
+  /// @param tan_phi the friction angle of the soil
+  /// @param SlopeAngle the angle of the slope (you need to use the function calculate_slope_angles)
+  ///  to get this
+  /// @return Factor_of_safety The factor of safety when the soil is saturated
+  /// rate required for saturation. The units will be the same as hydraulic 
+  /// conductivity but the lenght unit must be metres (to match contributing area)
+  /// @author SMM
+  /// @date 13/11/14 
+  LSDRaster calculate_factor_of_safety_at_saturation(float C_r, float rho_s,
+                         float soil_thick, float tan_phi, LSDRaster& SlopeAngle);
 
   // surface roughness
   /// @brief Algorithm that assesses surface roughness based on a polynomial fit.
