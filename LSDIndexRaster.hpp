@@ -69,6 +69,11 @@
 //DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
 //-----------------------------------------------------------------
 
+
+
+#ifndef LSDIndexRaster_H
+#define LSDIndexRaster_H
+
 #include <string>
 #include <vector>
 #include <map>
@@ -76,8 +81,6 @@
 using namespace std;
 using namespace TNT;
 
-#ifndef LSDIndexRaster_H
-#define LSDIndexRaster_H
 
 /// @brief Object to handle integer rasters.
 class LSDIndexRaster
@@ -243,7 +246,7 @@ class LSDIndexRaster
   /// @return is_in_raster a boolean telling if the point is in the raster
   /// @author SMM
   /// @date 13/11/2014
-  bool check_if_point_is_in_raster(float X_coordinate,Y_coordinate);
+  bool check_if_point_is_in_raster(float X_coordinate,float Y_coordinate);
 
 
   /// @brief Calculate the minimum bounding rectangle for an LSDIndexRaster Object and crop out
