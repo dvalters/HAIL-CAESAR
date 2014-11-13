@@ -3421,17 +3421,158 @@ LSDRaster LSDRaster::remove_positive_hilltop_curvature(LSDRaster& hilltop_curvat
   
   return CHT;
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Trigonometry
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Get slope angles
+//
+// This only works on a slope raster!!
+// SMM
+// 13/11/2014
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::calculate_slope_angles()
+{
+  cout << "I am calculating the slope angles; make sure you are using a slope raster!" << endl;
+  
+  Array2D<float> slope_angle(NRows,NCols, NoDataValue);
+  
+  for(int row = 0; row < NRows; row++)
+  {
+    for(int col = 0; col < NCols; col++)
+    {
+      if(RasterData[row][col] != NoDataValue)
+      {
+        slope_angle = atan(RasterData[row][col]);
+      }
+    }
+  }
+
+  LSDRaster Slope_angle(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,
+                        slope_angle,GeoReferencingStrings);
+  return Slope_angle;
+
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This function calculates the water supply rate that causes overland flow
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::calculate_water_supply_rate_for_saturation(float soil_thick,
+                         float K, LSDRaster& ContributingArea, LSDRaster& SlopeAngle)
+{
+
+  Array2D<float> W_for_sat(NRows,NCols, NoDataValue);
+  float SA;
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if(RasterData[row][col] != NoDataValue)
+      {
+        if( ContributingArea.get_data_element(row,col) == 0)
+        {
+          W_for_sat[row][col] = NoDataValue;
+        }
+        else
+        {
+          SA = SlopeAngle.get_data_element(row,col);
+          W_for_sat[row][col] = (soil_thick*K*sin(SA)*cos(SA)*DataResolution) /
+                                ContributingArea.get_data_element(row,col);
+        }
+      
+      }
+    }
+  }
+
+  LSDRaster w_for_sat(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,
+                        W_for_sat,GeoReferencingStrings);
+  return w_for_sat;
+
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This function calculates the water supply rate that causes overland flow
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::calculate_factor_of_safety_at_saturation(float C_r, float rho_s,
+                         float soil_thick, float tan_phi, LSDRaster& SlopeAngle)
+{
+
+  Array2D<float> FS_for_sat(NRows,NCols, NoDataValue);
+  float SA;
+  float cos_SA;
+  float sin_SA;
+  float g = 9.80;       // gravity
+  float rho_w = 1000;   // density of water
+  
+  if(rho_s < 700)
+  {
+    cout << "Calculating factor of Safety. You soil density is really low" << endl
+         << "Perhaps you entered it in g/cm^3? It should be in kg/m^3" << endl;
+    if(rho_s < 5)
+    {
+      cout << "Assuming density was given in g/cm^3 so muliplying by 1000" << endl;
+      rho_s = rho_s*1000;
+    }
+  }
+  
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if(RasterData[row][col] != NoDataValue)
+      {
+        SA = SlopeAngle.get_data_element(row,col);
+        cos_SA = cos(SA);
+        sin_SA = sin(SA);
+        
+        if (sin_SA == 0)
+        {
+          FS_for_sat[row][col] = 0;
+        }
+        else if (cos_SA == 0)
+        {
+          FS_for_sat[row][col] = NoDataValue;
+        }
+        else
+        {
+          FS_for_sat[row][col] = C_r/(g*rho_s*soil_thick*cos_SA*sin_SA) +
+                                (rho_s - 1000)*cos_SA*tan_phi/(rho_s*sin_SA);
+        }
+      
+      }
+    }
+  }
+
+  LSDRaster fs_for_sat(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,
+                        FS_for_sat,GeoReferencingStrings);
+  return fs_for_sat;
+
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // RRRRR  EEEEEE IIIIII
 // RR  RR EE       II
 // RRRR   EEEE     II
 // RR RR  EE       II
 // RR  RR EEEEEE IIIIII
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=
 // ROCK EXPOSURE INDEX
 // DiBiase et al. (2012) developed the rock eposure index as a proxy for the
