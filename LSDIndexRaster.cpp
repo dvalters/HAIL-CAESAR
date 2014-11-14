@@ -719,7 +719,7 @@ void LSDIndexRaster::write_raster(string filename, string extension)
       }
     }
     data_ofs.close();
-  }	
+  }
   else
   {
     cout << "You did not enter and approprate extension!" << endl
