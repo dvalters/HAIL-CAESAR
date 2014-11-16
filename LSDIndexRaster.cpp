@@ -428,45 +428,45 @@ void LSDIndexRaster::read_raster(string filename, string extension)
           if (found!=string::npos)
           {
             //cout << "Found map info on line " << counter << '\n';  
-	    
-	          // now split the line 
-	          size_t start_pos;
-	          size_t end_pos;
-	          string open_curly_bracket = "{";
-	          string closed_curly_bracket = "}";
-	          start_pos = lines[counter].find(open_curly_bracket);
-	          end_pos = lines[counter].find(closed_curly_bracket);
-	          //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
-	          string info_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
-	          //cout << "\nThe map info string is:\n" << info_str << endl;
-	          string mi_key = "ENVI_map_info";
-	          GeoReferencingStrings[mi_key] = info_str;
+      
+            // now split the line 
+            size_t start_pos;
+            size_t end_pos;
+            string open_curly_bracket = "{";
+            string closed_curly_bracket = "}";
+            start_pos = lines[counter].find(open_curly_bracket);
+            end_pos = lines[counter].find(closed_curly_bracket);
+            //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+            string info_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
+            //cout << "\nThe map info string is:\n" << info_str << endl;
+            string mi_key = "ENVI_map_info";
+            GeoReferencingStrings[mi_key] = info_str;
 
-	          // now parse the string
-	          vector<string> mapinfo_strings;
-	          istringstream iss(info_str);
-	          while( iss.good() )
-	          {
-	            string substr;
-	            getline( iss, substr, ',' );
-	            mapinfo_strings.push_back( substr );
-	          }
-	          XMinimum = atof(mapinfo_strings[3].c_str());
-	          float YMax = atof(mapinfo_strings[4].c_str());
-	          	       	   	          
-	          DataResolution = atof(mapinfo_strings[5].c_str());
+            // now parse the string
+            vector<string> mapinfo_strings;
+            istringstream iss(info_str);
+            while( iss.good() )
+            {
+              string substr;
+              getline( iss, substr, ',' );
+              mapinfo_strings.push_back( substr );
+            }
+            XMinimum = atof(mapinfo_strings[3].c_str());
+            float YMax = atof(mapinfo_strings[4].c_str());
+            	       	   	          
+            DataResolution = atof(mapinfo_strings[5].c_str());
             
             // get Y minium
             YMinimum = YMax - NRows*DataResolution;	          
 
-	          //using a string comparison as float(X) != float(X) in many cases due to floating point math
-	          // http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm  - SWDG	          
-	          if (mapinfo_strings[5] != mapinfo_strings[6]) 
-	          {
-	            cout << "Warning! Loading ENVI DEM, but X and Y data spacing are different!" << endl;
-	          }
+            //using a string comparison as float(X) != float(X) in many cases due to floating point math
+            // http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm  - SWDG	          
+            if (mapinfo_strings[5] != mapinfo_strings[6]) 
+            {
+              cout << "Warning! Loading ENVI DEM, but X and Y data spacing are different!" << endl;
+            }
 
-	          //cout << "Xmin: " << XMinimum << " YMin: " << YMinimum << " spacing: " 
+            //cout << "Xmin: " << XMinimum << " YMin: " << YMinimum << " spacing: " 
             //     << DataResolution << endl;
 
             counter = lines.size();
@@ -1513,7 +1513,7 @@ LSDIndexRaster LSDIndexRaster::Resample(float OutputResolution){
 
   if (OutputResolution < DataResolution){
     cout << "Your resample resolution of " << OutputResolution << " is lower that the current data resolution " << DataResolution << endl;
-	  exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   } 
 
   int NewNRows = (NRows*DataResolution/OutputResolution); 
