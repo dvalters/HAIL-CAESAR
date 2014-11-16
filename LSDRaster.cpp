@@ -7699,6 +7699,8 @@ Array2D<int> LSDRaster::create_mask(float window_radius, int neighbourhood_switc
   return mask;
 }
 //---------------------------------------------------------------------------------------
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // spatial_average
 // Calculates a spatial average using a specified moving window.  Uses a neighbourhood 
@@ -7835,6 +7837,102 @@ vector<LSDRaster> LSDRaster::neighbourhood_statistics_spatial_average_and_SD(flo
   return output_rasters;
 }
 //------------------------------------------------------------------------------
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// local relief
+// Calculates relief using a specified moving window.  Uses a neighbourhood 
+// switch to select circular (1) vs square window (0)
+// SMM 15/11/2014 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::neighbourhood_statistics_local_relief(float window_radius, int neighbourhood_switch)
+{
+  Array2D<float> SpatialReliefArray(NRows,NCols,NoDataValue);
+//   Array2D<float> StandardDeviationArray(NRows,NCols,NoDataValue);
+  
+  // catch if the supplied window radius is less than the data resolution and
+  // set it to equal the data resolution - SWDG
+  if (window_radius < DataResolution)
+  {
+    cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
+    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius = DataResolution;
+  }
+  
+  // Prepare kernel
+  int kr = int(ceil(window_radius/DataResolution));  // Set radius of kernel
+  int kw=2*kr+1;                                     // width of kernel
+  Array2D<float> data_kernel(kw,kw,NoDataValue);
+  Array2D<int> mask = create_mask(window_radius, neighbourhood_switch);
+  
+  // Move window over DEM and extract neighbourhood pixels
+  cout << "\n\tRunning neighbourhood statistics..." << endl;
+  cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+  
+  float min_in_window;
+  float max_in_window;
+  float value;
+  float relief;
+  
+  bool max_set, min_set;     // switches to state whether max and min have been set
+  for(int i=0;i<NRows;++i)
+  {
+    cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+    for(int j=0;j<NCols;++j)
+    {
+      // Avoid edges
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+      {
+        SpatialReliefArray[i][j] = NoDataValue;
+      }
+      else
+      {
+        // reset max and min values
+        min_in_window = 100000;      // set to a large value to make sure it is reset lower
+        max_in_window = -100000;     // set to a small value
+        
+        // Sample DEM
+        for(int i_kernel=0;i_kernel<kw;++i_kernel)
+        {
+          for(int j_kernel=0;j_kernel<kw;++j_kernel)
+          {
+            value = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+            // make sure it is in the mask and not nodata
+            if(value!=NoDataValue && mask[i_kernel][j_kernel]==1)
+            {
+              
+              // set min and max values
+              if (value > max_in_window)
+              {
+                max_in_window = value;
+                max_set = true;  
+              }
+              if (value < min_in_window)
+              {
+                min_in_window = value;
+                min_set = true;
+              }
+            
+            } 
+          }
+        }
+        // Get relief
+        if(min_set && max_set)
+        {
+          relief = max_in_window-min_in_window;
+        }
+        SpatialReliefArray[i][j] = relief;      
+
+      }
+    }
+  }
+  
+  LSDRaster SpatialRelief(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                      NoDataValue,SpatialReliefArray,GeoReferencingStrings);
+  return SpatialRelief;
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // neighbourhood_statistics_fraction_condition
 // A function that determines the fraction of cells in a circular neighbourhood that
