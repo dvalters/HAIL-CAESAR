@@ -670,7 +670,7 @@ void LSDIndexRaster::write_raster(string filename, string extension)
     header_ofs <<  "bands = 1" << endl;
     header_ofs <<  "header offset = 0" << endl;
     header_ofs <<  "file type = ENVI Standard" << endl;
-    header_ofs <<  "data type = 2" << endl;
+    header_ofs <<  "data type = 4" << endl;
     header_ofs <<  "interleave = bsq" << endl;
     header_ofs <<  "byte order = 0" << endl;
     
@@ -709,7 +709,7 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 
     // now do the main data
     ofstream data_ofs(string_filename.c_str(), ios::out | ios::binary);
-    int temp;
+    float temp;
     for (int i=0; i<NRows; ++i)
     {
       for (int j=0; j<NCols; ++j)
