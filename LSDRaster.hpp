@@ -1475,6 +1475,7 @@ class LSDRaster
   /// @author DTM 
   /// @date 20/06/2014   
   LSDRaster neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch);
+
   /// @brief gets mean & standard deviation value specified circular neighbourhood
   ///
   /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
@@ -1487,6 +1488,19 @@ class LSDRaster
   /// @author DTM 
   /// @date 24/09/2014    
   vector<LSDRaster> neighbourhood_statistics_spatial_average_and_SD(float window_radius, 
+                                                    int neighbourhood_switch);
+
+  /// @brief gets relief within value specified circular neighbourhood
+  ///
+  /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
+  ///   0 Square neighbourhood
+  ///   1 Circular window
+  /// @param float window_radius -> radius of neighbourhood 
+  /// @param int neighbourhood_switch -> see above
+  /// @return LSDRasters contianing the relief within a neighbourhood
+  /// @author SMM 
+  /// @date 16/11/2014    
+  LSDRaster neighbourhood_statistics_local_relief(float window_radius, 
                                                     int neighbourhood_switch);
   
   /// @brief tests neighbourhood for the fraction of values for which the specified 
