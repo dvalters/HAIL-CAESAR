@@ -595,7 +595,7 @@ void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, 
   float SS_xy=0;
   float x_mean = get_mean(x_data);
   float y_mean = get_mean(y_data);
-  for(int i = 0; i<x_data.size(); ++i)
+  for(int i = 0; i<int(x_data.size()); ++i)
   {
     SS_xx += (x_data[i]-x_mean)*(x_data[i]-x_mean);
     SS_yy += (y_data[i]-y_mean)*(y_data[i]-y_mean);
@@ -3486,7 +3486,7 @@ float PKS(float z){
   else{
    
    double x = exp(-2.0 * pow(z,2));
-   double u = ((x - pow(x,4) + pow(x,9)));
+   //double u = ((x - pow(x,4) + pow(x,9)));
    return 2.0 * (x - pow(x,4) + pow(x,9)); 
   
   }
@@ -3544,11 +3544,286 @@ void KStwo(vector<float> Data1, vector<float> Data2, float& d, double& p){
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This function returns the value of the normal distribution for a given 
+// value of x
+// used to calculate p values for various statistical tests
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+float NormalDistributionAtX(float mu, float sigma, float x)
+{
+  float exponent = -(x-mu)*(x-mu)/(2*sigma*sigma);
+  float first_term = 1/(sigma*sqrt(2*M_PI));
+  float norm_at_x = first_term*exp(exponent);
+  return norm_at_x;
+}
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This calculates the p value from the normal distribution given a Z
+// value
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+float pValueNormalDistribution(float Z)
+{
+  float p;
+  //float pos_z, neg_z;
+  float mu = 0;
+  float sigma = 1.0;
+  
+  // if Z is negative, you double the value at Z to get p
+  if (Z < 0)
+  {
+    p = NormalDistributionAtX(mu,sigma,Z);
+  }
+  else
+  {
+    p = (1-NormalDistributionAtX(mu,sigma,Z));
+  }
+  
+  return p;
+
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This is the Mann-Whitney U test. It is a nonparametric test
+// to see if two populations have the same median
+// see http://www.statstutor.ac.uk/resources/uploaded/mannwhitney.pdf
+// It returns the U value
+// SMM 
+// 20/11/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
+{
+  // get the size of the samples
+  unsigned int sizeA = sampleA.size();
+  unsigned int sizeB = sampleB.size();
+  
+  // now make two vectors with keys to the samples
+  vector<int> keyA(sizeA,0);
+  vector<int> keyB(sizeB,1);
+  
+  // initiate vectors for concatenating
+  vector<float> all_samples = sampleA;
+  vector<int> all_samples_indices = keyA;
+  
+  // concatenate the two vectors. Now sample A will contain 
+  // the concatenated data set. 
+  all_samples.insert( all_samples.end(), sampleB.begin(), sampleB.end() );
+  all_samples_indices.insert( all_samples_indices.end(), 
+                              keyB.begin(), keyB.end() );
+  
+  //for(int i = 0; i<int(all_samples.size()); i++)
+  //{
+  //  cout << "samp["<<i<< "]: " << all_samples[i] << " and indices: " << all_samples_indices[i] << endl;
+  //}
+  
+  // initiate vectors for sorting 
+  vector<float> sorted_samples;  
+  vector<int> sorted_indices;
+  vector<size_t> index_map;                          
+  
+  // now do a matlab sort on all samples
+  matlab_float_sort(all_samples, sorted_samples, index_map);
+  
+  // now reorganise the indices based on the sorted vec
+  matlab_int_reorder(all_samples_indices, index_map, sorted_indices);
+                           
+  // initiate vectors for rankings
+  vector<float> ranks;
+  vector<int> number_in_groups;
+  
+  // now get the rankings
+  rank_vector_with_groups(sorted_samples, ranks, number_in_groups);
+  int n_groups = int(number_in_groups.size());
+
+  // print to screen for bug checking
+  //int n_data = int(ranks.size());
+  //for(int i = 0; i< n_data; i++)
+  //{
+  //  cout << "data["<<i<<"]: " << sorted_samples[i] << " rank: " << ranks[i] 
+  //       << " sorted_index: " << sorted_indices[i] << endl;
+  //}
+
+  //for(int i = 0; i<n_groups; i++)
+  //{
+  //  cout << "Group of " << number_in_groups[i] << endl;
+  //}
+
+  
+  // now loop through the ranked vector, getting the sum of group 1
+  int n_sample_A = int(sampleA.size());
+  int n_sample_B = int(sampleB.size());
+  int total_samples = n_sample_A+n_sample_B;
+  float sum_sample1 = 0;
+  float sum_sample2 = 0;
+  for(int i = 0; i< total_samples; i++)
+  {
+    if(sorted_indices[i] == 0)
+    {
+      sum_sample1+=ranks[i];
+      //cout << "SR1: " << sum_sample1 << endl;
+    }
+    else
+    {
+      sum_sample2+=ranks[i];
+      //cout << "SR2: " << sum_sample2 << endl;
+    }    
+  }
+  
+  //cout << "sum_ranks1: " << sum_sample1 << " sum_ranks2: " << sum_sample2 << endl;
+  
+  // now calculate the U values
+  // see: http://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+  float U_1 = float(n_sample_A*n_sample_B)+float(n_sample_A*(n_sample_A+1))*0.5-sum_sample1;
+  float U_2 = float(n_sample_A*n_sample_B)+float(n_sample_B*(n_sample_B+1))*0.5-sum_sample2;
+  
+  float sumU = U_1+U_2;
+  float multiplen = float(n_sample_A*n_sample_B);
+  if (sumU != multiplen)
+  {
+    cout << "Something has gone wrong since the sum of the ranks does not"
+         << " equal the multplile of the number of elements" << endl
+         << "U_1: " << U_1 << " U_2: " << U_2 << " n1: " << n_sample_A 
+         << " n2: " << n_sample_B << endl;
+  }
+  
+  //cout << "U_1: " << U_1 << " U_2: " << U_2 << " n1: " << n_sample_A 
+  //     << " n2: " << n_sample_B << endl;  
+  
+  float U;
+  if (U_1 < U_2)
+  {
+    U = U_1;
+  }
+  else
+  {
+    U = U_2;
+  }
+  
+  // now we need to get the mean and standard deviation for the normal approximation
+  float mean = 0.5*float(n_sample_A*n_sample_B);
+                          
+  // now get the group term in the standard deviation
+  //int n_groups = int(number_in_groups.size());  
+  float group_sum = 0;
+  for(int g = 0; g<n_groups; g++)
+  {
+    group_sum = float(number_in_groups[g]*number_in_groups[g]*number_in_groups[g]
+                 - number_in_groups[g])/12.0;
+  }
+  //cout << "group_sum_is: " << group_sum << endl;
+  float std_dev_U;
+  if (group_sum == 0)
+  {
+    std_dev_U = sqrt((float(n_sample_A*n_sample_B)*float(total_samples+1))/12.0); 
+  }
+  else
+  {
+    float std_dev_U_first_term = float(n_sample_A*n_sample_B)/
+                    float(total_samples*(total_samples-1));
+    float std_dev_U_second_term = float(total_samples*total_samples*total_samples-total_samples)/12.0;                 
+    std_dev_U = sqrt(std_dev_U_first_term*(std_dev_U_second_term- group_sum));
+  }
+  //cout << "mean is: " << mean << " and std_dev_u is: " << std_dev_U << endl;
+  
+  float z_value = (U - mean) /std_dev_U;
+  //cout << "Z_value is: " << z_value << endl;
+  float p_value = pValueNormalDistribution(z_value);
+   
+   
+  //cout << "U: " << U << " and p: " << p_value << endl;
+   
+  return p_value;
+  
+  
+  
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This function returns a rank list and a vector that contains a list of
+// how many elements are in each group of repeated data
+// SMM 
+// 20/11/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void rank_vector_with_groups(vector<float> sorted_data, 
+                             vector<float>& ranks, vector<int>& number_in_groups)
+{
+
+  // now go through the sorted list, getting the ranks.
+  unsigned int total_samples = sorted_data.size();
+  
+  // initiate some vectors for managing the ranked lists
+  vector<float> normalised_ranks(total_samples);
+  vector<int> repeat_group_sizes;
+  vector<int>::iterator viter;
+  
+  float last_sample = -10000;
+  //float this_group = -10000;
+  int n_in_this_group = 1;
+  float this_sample;
+  //float this_rank;
+  float group_ranksum;
+  
+  // loop through the sorted list checking for ties
+  for(int i = 0; i<int(total_samples); i++)
+  {
+    this_sample = sorted_data[i];
+    if (this_sample == last_sample)
+    {
+      n_in_this_group++;
+      //cout << "n_in_this_group: " << n_in_this_group << endl;
+      
+      // if it is a new group, push back the group sizes vector
+      if (n_in_this_group == 2)
+      {
+        repeat_group_sizes.push_back(n_in_this_group);
+      }
+      else
+      {
+        // there are more than 2 in this group, add one to the final element
+        // in the group list
+        viter = repeat_group_sizes.end()-1;
+        //cout << "incrementing group, " << (*viter) << endl;
+        (*viter)=n_in_this_group;
+      }
+      
+      // now reset the ranks
+      group_ranksum = 0;
+      for (int g = 0; g<n_in_this_group; g++)
+      {
+        group_ranksum += float((i+1)-g);
+      }
+      float avg_group_rank = group_ranksum/float(n_in_this_group);
+      for (int g = 0; g<n_in_this_group; g++)
+      {
+        normalised_ranks[i-g] = avg_group_rank;
+      }
+    }
+    else
+    {
+      n_in_this_group = 1;
+      normalised_ranks[i] = float(i+1);
+    }
+    
+    last_sample = this_sample;      
+      
+      
+  }
+
+  ranks = normalised_ranks;
+  number_in_groups = repeat_group_sizes;
+
+}                             
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 // Given a filestream object, read the file into memory and return
 // it as a string. From: http://www.cplusplus.com/forum/general/58945/
 // No error handling.
 // SWDG 16/07/14
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 string ReadTextFile(ifstream& File){
 
   string Lines = "";        //All lines
