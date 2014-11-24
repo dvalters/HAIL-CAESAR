@@ -298,6 +298,25 @@ int CountValue(Array2D<float> Input, float Value);
 void KStwo(vector<float> Data1, vector<float> Data2, float& d, double& p);
 float PKS(float z);
 
+// gets the value of a normal distribution at a point x
+// mu is mean
+// sigma is standard deviation
+// x is the point you want the normal distribution evaluated
+float NormalDistributionAtX(float mu, float sigma, float x);
+
+// this gets the p value of a normal distribution for a given Z
+float pValueNormalDistribution(float Z);
+
+// This is a function to perform the Mann-Whitney U test, a nonparametric
+// test that checks if two data sets have the same median
+float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB);
+
+// this takes a sorted vector and then finds the normalised ranks (that is
+// if data elements are the same the ranks take an average rank)
+// It replaces two vectors passed to it
+void rank_vector_with_groups(vector<float> sorted_data, 
+                             vector<float>& ranks, vector<int>& number_in_groups);
+
 // Given a filestream object, read the file into memory and return
 // it as a string. From: http://www.cplusplus.com/forum/general/58945/
 // No error handling.
