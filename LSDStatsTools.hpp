@@ -96,6 +96,10 @@ double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_lo
 vector<double> interp1D_unordered(vector<double> x, vector<double> y, vector<double>& x_interp_loc);
 vector<double> interp1D_spline_unordered(vector<double> x_data, vector<double> y_data, 
                                        vector<double>& x_interp_locs);
+double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D<double> data, 
+                        double x_interp, double y_interp);    
+float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<float> data, 
+                        float x_interp, float y_interp);                                                           
                                        
 // Generate spline curves from X and Y vectors of floats
 Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y);
