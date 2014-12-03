@@ -883,8 +883,201 @@ vector<double> interp1D_spline_unordered(vector<double> x_data, vector<double> y
   vector<double> y_interp = interp1D_spline_ordered(x_sorted,y_sorted,x_interp_locs);
   return y_interp;
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Now a bilinear interpolation routine
+// SMM 03/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D<double> data, 
+                        double x_interp, double y_interp)
+{
+  double interpolated_point = -9999;
+  //int n_index;
+  
+  int ndv_index = -9999;
+  int x_index = ndv_index;
+  int y_index = ndv_index;
+  
+  // first check bounds
+  int n_xlocs = int(x_locs.size());
+  int n_ylocs = int(y_locs.size());
+  
+  if(data.dim1() != n_xlocs || data.dim2() != n_ylocs)
+  {
+    cout << "Trying to do bilinear interpolation but data is not the same size" << endl
+         << "as the x and y location vectors" << endl
+         << "returning ndv = -9999" << endl;
+  }
+  else 
+  {
+    // first find the index of the x data
+    if(x_interp < x_locs[0])
+    {
+      cout << "x is too small for 2D interpolation, defaulting to ndv";
+      x_index = ndv_index;
+    }
+    else if (x_interp > x_locs[n_xlocs-1])
+    {
+      cout << "x is too big for 2D interpolation, defaulting to ndv";
+      x_index = ndv_index;
+    }
+    else
+    {
+      int i = 0;
+      
+      // increment the vector until you get to the right node
+      do 
+      {
+        i++;      
+      } while(x_interp > x_locs[i]);
+      x_index = i;
+    }
+    
+    // now get the index of the y data
+    if(y_interp < y_locs[0])
+    {
+      cout << "y is too small for 2D interpolation, defaulting to ndv";
+      y_index = ndv_index;
+    }
+    else if (y_interp > y_locs[n_xlocs-1])
+    {
+      cout << "y is too big for 2D interpolation, defaulting to ndv";
+      y_index = ndv_index;
+    }
+    else
+    {
+      int i = 0;
+      
+      // increment the vector until you get to the right node
+      do 
+      {
+        i++;      
+      } while(y_interp > y_locs[i]);
+      y_index = i;
+    }
+    
+    // now you need to calculate the interpolated point
+    // see  http://en.wikipedia.org/wiki/Bilinear_interpolation
+    double x2 = x_locs[x_index];
+    double x1 = x_locs[x_index-1];
+    double y1 = y_locs[y_index];
+    double y2 = y_locs[y_index-1];
+    double Q11 = data[x_index-1][y_index-1];
+    double Q21 = data[x_index][y_index-1];
+    double Q12 = data[x_index-1][y_index];
+    double Q22 = data[x_index][y_index];
+    
+    double R1 = ((x2-x_interp)/(x2-x1))*Q11 + ((x_interp-x1)/(x2-x1))*Q21;
+    double R2 = ((x2-x_interp)/(x2-x1))*Q12 + ((x_interp-x1)/(x2-x1))*Q22;
+    
+    interpolated_point = ((y2-y_interp)/(y2-y1))*R1 + ((y_interp-y1)/(y2-y1))*R2;
+      
+  }
+  
+  return interpolated_point;
+
+}                       
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Float version
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<float> data, 
+                        float x_interp, float y_interp)
+{
+  float interpolated_point = -9999;
+  //int n_index;
+  
+  int ndv_index = -9999;
+  int x_index = ndv_index;
+  int y_index = ndv_index;
+  
+  // first check bounds
+  int n_xlocs = int(x_locs.size());
+  int n_ylocs = int(y_locs.size());
+  
+  if(data.dim1() != n_xlocs || data.dim2() != n_ylocs)
+  {
+    cout << "Trying to do bilinear interpolation but data is not the same size" << endl
+         << "as the x and y location vectors" << endl
+         << "returning ndv = -9999" << endl;
+  }
+  else 
+  {
+    // first find the index of the x data
+    if(x_interp < x_locs[0])
+    {
+      cout << "x is too small for 2D interpolation, defaulting to ndv";
+      x_index = ndv_index;
+    }
+    else if (x_interp > x_locs[n_xlocs-1])
+    {
+      cout << "x is too big for 2D interpolation, defaulting to ndv";
+      x_index = ndv_index;
+    }
+    else
+    {
+      int i = 0;
+      
+      // increment the vector until you get to the right node
+      do 
+      {
+        i++;      
+      } while(x_interp > x_locs[i]);
+      x_index = i;
+    }
+    
+    // now get the index of the y data
+    if(y_interp < y_locs[0])
+    {
+      cout << "y is too small for 2D interpolation, defaulting to ndv";
+      y_index = ndv_index;
+    }
+    else if (y_interp > y_locs[n_xlocs-1])
+    {
+      cout << "y is too big for 2D interpolation, defaulting to ndv";
+      y_index = ndv_index;
+    }
+    else
+    {
+      int i = 0;
+      
+      // increment the vector until you get to the right node
+      do 
+      {
+        i++;      
+      } while(y_interp > y_locs[i]);
+      y_index = i;
+    }
+    
+    // now you need to calculate the interpolated point
+    // see  http://en.wikipedia.org/wiki/Bilinear_interpolation
+    float x2 = x_locs[x_index];
+    float x1 = x_locs[x_index-1];
+    float y1 = y_locs[y_index];
+    float y2 = y_locs[y_index-1];
+    float Q11 = data[x_index-1][y_index-1];
+    float Q21 = data[x_index][y_index-1];
+    float Q12 = data[x_index-1][y_index];
+    float Q22 = data[x_index][y_index];
+    
+    float R1 = ((x2-x_interp)/(x2-x1))*Q11 + ((x_interp-x1)/(x2-x1))*Q21;
+    float R2 = ((x2-x_interp)/(x2-x1))*Q12 + ((x_interp-x1)/(x2-x1))*Q22;
+    
+    interpolated_point = ((y2-y_interp)/(y2-y1))*R1 + ((y_interp-y1)/(y2-y1))*R2;
+      
+  }
+  
+  return interpolated_point;
+
+}                       
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
