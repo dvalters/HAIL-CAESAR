@@ -300,7 +300,8 @@ float get_range_ignore_ndv(Array2D<float>& data, float ndv)
 {
   int NRows = data.dim1();
   int NCols = data.dim2();
-  float max,min;
+  float max = ndv;
+  float min = ndv;
   float range;
   int flag = 0;
 
@@ -583,9 +584,9 @@ vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_d
 	return soln;
 
 }
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // least_squares_linear_regression
 // DTM 07/10/2014
 void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, float& intercept, float& gradient, float& R_squared)
@@ -606,7 +607,160 @@ void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, 
   intercept = y_mean - gradient*x_mean; 
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Linear interpolation. Two versions: there is the ordered version where
+// the x vector is assumed ordered, and the unordered version which calls
+// the matlab sort function
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+double interp1D_ordered(vector<double>& x, vector<double>& y, double x_interp_loc)
+{
+  // loop through x vector to find the interpolation point
+  unsigned int n_nodes = x.size();
+  unsigned int y_nodes = y.size();
+  
+  double y_interp = y[0];
+  
+  if(n_nodes != y_nodes)
+  {
+    cout << "Trying to interpolate but the vectors are not the same size!" << endl;
+    cout << "Defaulting to y[0]" << endl;
+    y_interp = y[0];
+  }
+  else if (n_nodes == 1)
+  {
+    cout << "Trying to interpolate you have only given me a single datapoint" << endl;
+    cout << "Defaulting to y[0]" << endl;
+    y_interp = y[0];
+  }
+  else
+  {
+    if(x_interp_loc < x[0])
+    {
+      cout << "Interpolation point is outside bounds (too small) of x vector!" << endl;
+      cout << "Defaulting to y[0]" << endl;
+      y_interp = y[0];    
+    }
+    else if (x_interp_loc > x[n_nodes-1])
+    {
+      cout << "Interpolation point is outside bounds (too big) of x vector!" << endl;
+      cout << "Defaulting to y[n_nodes-1]" << endl;
+      y_interp = y[n_nodes-1];        
+    }
+    else
+    {
+      int i = 0;
+      
+      // increment the vector until you get to the right node
+      do 
+      {
+        i++;      
+      } while(x_interp_loc > x[i]);
+      
+      // we are now at the correct node. Get the interpolant
+      //cout << "xi loc: " << x_interp_loc << " and x: " << x[i] << endl;
+      //cout << "i: " << i << " x[i] " << x[i] << " x[i-1]: " << x[i-1]
+      //     << " y[i]: " << y[i] << " y[i-1]: " << y[i-1] << endl;
+      y_interp = y[i-1]+(y[i]-y[i-1])*((x_interp_loc-x[i-1])/(x[i]-x[i-1]));
+    }
+  }
+  return y_interp;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// float version of the ordered interp1D function
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float interp1D_ordered(vector<float>& x, vector<float>& y, float x_interp_loc)
+{
+  // loop through x vector to find the interpolation point
+  unsigned int n_nodes = x.size();
+  unsigned int y_nodes = y.size();
+  
+  float y_interp = y[0];
+  
+  if(n_nodes != y_nodes)
+  {
+    cout << "Trying to interpolate but the vectors are not the same size!" << endl;
+    cout << "Defaulting to y[0]" << endl;
+    y_interp = y[0];
+  }
+  else if (n_nodes == 1)
+  {
+    cout << "Trying to interpolate you have only given me a single datapoint" << endl;
+    cout << "Defaulting to y[0]" << endl;
+    y_interp = y[0];
+  }
+  else
+  {
+    if(x_interp_loc < x[0])
+    {
+      cout << "Interpolation point is outside bounds (too small) of x vector!" << endl;
+      cout << "Defaulting to y[0]" << endl;
+      y_interp = y[0];    
+    }
+    else if (x_interp_loc > x[n_nodes-1])
+    {
+      cout << "Interpolation point is outside bounds (too big) of x vector!" << endl;
+      cout << "Defaulting to y[n_nodes-1]" << endl;
+      y_interp = y[n_nodes-1];        
+    }
+    else
+    {
+      int i = 0;
+      
+      // increment the vector until you get to the right node
+      do 
+      {
+        i++;      
+      } while(x_interp_loc > x[i]);
+      
+      // we are now at the correct node. Get the interpolant
+      //cout << "xi loc: " << x_interp_loc << " and x: " << x[i] << endl;
+      //cout << "i: " << i << " x[i] " << x[i] << " x[i-1]: " << x[i-1]
+      //     << " y[i]: " << y[i] << " y[i-1]: " << y[i-1] << endl;
+      y_interp = y[i-1]+(y[i]-y[i-1])*((x_interp_loc-x[i-1])/(x[i]-x[i-1]));
+    }
+  }
+  return y_interp;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Unordered versions of the interpolation functions
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float interp1D_unordered(vector<float> x, vector<float> y, float x_interp_loc)
+{
+  // initiate the sorted vectors
+  vector<float> x_sorted;
+  vector<float> y_sorted;
+  vector<size_t> index_map;
+  
+  matlab_float_sort(x,  x_sorted, index_map);
+  matlab_float_reorder(y, index_map, y_sorted);
+  
+  float y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
+  return y_interp;
+}
+
+double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_loc)
+{
+  // initiate the sorted vectors
+  vector<double> x_sorted;
+  vector<double> y_sorted;
+  vector<size_t> index_map;
+  
+  matlab_double_sort(x,  x_sorted, index_map);
+  matlab_double_reorder(y, index_map, y_sorted);
+  
+  double y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
+  return y_interp;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Slice_vector
 // This function accesses a slice of a vector
 // Usage vector<float> new_vec = slice_vector(original_vector.begin() + 1, original_vector.begin() + 5);
@@ -2814,6 +2968,35 @@ template<class T> struct index_cmp
   const T arr;
 };
 
+
+// This implementation is O(n), but also uses O(n) extra memory
+void matlab_double_reorder(std::vector<double> & unordered, std::vector<size_t> const & index_map, std::vector<double> & ordered)
+{
+  // copy for the reorder according to index_map, because unsorted may also be
+  // sorted
+  vector<double> copy = unordered;
+  ordered.resize(index_map.size());
+  for(int i = 0; i< int(index_map.size());i++)
+  {
+    ordered[i] = copy[index_map[i]];
+  }
+}
+
+void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map)
+{
+  // Original unsorted index map
+  index_map.resize(unsorted.size());
+  for(size_t i=0;i<unsorted.size();i++)
+  {
+    index_map[i] = i;
+  }
+  // Sort the index map, using unsorted for comparison
+  sort(index_map.begin(), index_map.end(), index_cmp<std::vector<double>& >(unsorted));
+  sorted.resize(unsorted.size());
+  matlab_double_reorder(unsorted,index_map,sorted);
+}
+
+
 // This implementation is O(n), but also uses O(n) extra memory
 void matlab_float_reorder(std::vector<float> & unordered, std::vector<size_t> const & index_map, std::vector<float> & ordered)
 {
@@ -2826,6 +3009,8 @@ void matlab_float_reorder(std::vector<float> & unordered, std::vector<size_t> co
     ordered[i] = copy[index_map[i]];
   }
 }
+
+
 
 void matlab_float_sort(vector<float>& unsorted, vector<float>& sorted, vector<size_t>& index_map)
 {

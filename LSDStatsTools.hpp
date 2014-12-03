@@ -82,6 +82,13 @@ void least_squares_linear_regression(vector<float> x_data, vector<float> y_data,
 // DTM 30/10/2014
 vector<float> slice_vector(vector<float>::iterator first,vector<float>::iterator last);
 
+
+// interpolation
+double interp1D_ordered(vector<double>& x, vector<double>& y, double x_interp_loc);
+float interp1D_ordered(vector<float>& x, vector<float>& y, float x_interp_loc);
+float interp1D_unordered(vector<float> x, vector<float> y, float x_interp_loc);
+double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_loc);
+
 // calculate the imaginary error function using trapezoid rule integration
 double erfi(double tau);
 
@@ -231,6 +238,8 @@ void log_bin_data(vector<float>& vector1, vector<float>& vector2, float log_bin_
 
 // tools for sorting
 template<class T> struct index_cmp;
+void matlab_double_sort(vector<double>& unsorted, vector<double>& sorted, vector<size_t>& index_map);
+void matlab_double_reorder(std::vector<double> & unordered, std::vector<size_t> const & index_map, std::vector<double> & ordered);
 void matlab_float_sort(vector<float>& unsorted, vector<float>& sorted, vector<size_t>& index_map);
 void matlab_float_reorder(std::vector<float> & unordered, std::vector<size_t> const & index_map, std::vector<float> & ordered);
 void matlab_float_sort_descending(vector<float>& unsorted, vector<float>& sorted, vector<size_t>& index_map);
