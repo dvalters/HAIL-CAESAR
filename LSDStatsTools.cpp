@@ -671,6 +671,22 @@ double interp1D_ordered(vector<double>& x, vector<double>& y, double x_interp_lo
   return y_interp;
 }
 
+// vector version of the linear interpolation
+vector<double> interp1D_ordered(vector<double>& x, vector<double>& y, vector<double> x_interp_loc)
+{
+  // initiate the vector for holding interpolation
+  vector<double> y_interp;
+  
+  // loop through the interpolating points
+  int n_nodes = int(x_interp_loc.size());
+  for(int i = 0; i<n_nodes; i++)
+  {
+    y_interp.push_back(interp1D_ordered(x, y, x_interp_loc[i]));
+  }
+  return y_interp;
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // float version of the ordered interp1D function
 // SMM 3/12/2014
@@ -728,7 +744,53 @@ float interp1D_ordered(vector<float>& x, vector<float>& y, float x_interp_loc)
   }
   return y_interp;
 }
+
+// vector version of the linear interpolation
+vector<float> interp1D_ordered(vector<float>& x, vector<float>& y, vector<float> x_interp_loc)
+{
+  // initiate the vector for holding interpolation
+  vector<float> y_interp;
+  
+  // loop through the interpolating points
+  int n_nodes = int(x_interp_loc.size());
+  for(int i = 0; i<n_nodes; i++)
+  {
+    y_interp.push_back(interp1D_ordered(x, y, x_interp_loc[i]));
+  }
+  return y_interp;
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Spline wrapper for the spline object
+// this returns a vector of the interpolated points
+// note that the data vecs must be ordered but the interpolation points do not
+//
+// SMM 3/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<double> interp1D_spline_ordered(vector<double>& x_data, vector<double>& y_data, 
+                                       vector<double>& x_interp_locs)
+{
+  // set up spline
+  spline s;
+  s.set_points(x_data,y_data);
+  
+  // initiate the interpolated vector
+  vector<double> y_interpolated;
+  
+  // loop through interpolation points
+  int n_interp = int(x_interp_locs.size());
+  for(int i = 0; i<n_interp; i++)
+  {
+    y_interpolated.push_back( s(x_interp_locs[i]) );
+  }
+  
+  return y_interpolated;
+}   
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
@@ -742,12 +804,29 @@ float interp1D_unordered(vector<float> x, vector<float> y, float x_interp_loc)
   vector<float> y_sorted;
   vector<size_t> index_map;
   
+  // sort the vectors
   matlab_float_sort(x,  x_sorted, index_map);
   matlab_float_reorder(y, index_map, y_sorted);
   
   float y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
+
+vector<float> interp1D_unordered(vector<float> x, vector<float> y, vector<float>& x_interp_loc)
+{
+  // initiate the sorted vectors
+  vector<float> x_sorted;
+  vector<float> y_sorted;
+  vector<size_t> index_map;
+  
+  // sort the vectors
+  matlab_float_sort(x,  x_sorted, index_map);
+  matlab_float_reorder(y, index_map, y_sorted);
+  
+  vector<float> y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
+  return y_interp;
+}
+
 
 double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_loc)
 {
@@ -756,13 +835,56 @@ double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_lo
   vector<double> y_sorted;
   vector<size_t> index_map;
   
+  // sort the vectors
   matlab_double_sort(x,  x_sorted, index_map);
   matlab_double_reorder(y, index_map, y_sorted);
   
   double y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
+
+vector<double> interp1D_unordered(vector<double> x, vector<double> y, vector<double>& x_interp_loc)
+{
+  // initiate the sorted vectors
+  vector<double> x_sorted;
+  vector<double> y_sorted;
+  vector<size_t> index_map;
+  
+  // sort the vectors
+  matlab_double_sort(x,  x_sorted, index_map);
+  matlab_double_reorder(y, index_map, y_sorted);
+  
+  vector<double> y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
+  return y_interp;
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Spline wrapper for the spline object
+// this returns a vector of the interpolated points
+// this is the unordered version
+//
+// SMM 3/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<double> interp1D_spline_unordered(vector<double> x_data, vector<double> y_data, 
+                                       vector<double>& x_interp_locs)
+{
+  // initiate the sorted vectors
+  vector<double> x_sorted;
+  vector<double> y_sorted;
+  vector<size_t> index_map;
+  
+  // sort the vectors
+  matlab_double_sort(x_data,  x_sorted, index_map);
+  matlab_double_reorder(y_data, index_map, y_sorted);
+
+  vector<double> y_interp = interp1D_spline_ordered(x_sorted,y_sorted,x_interp_locs);
+  return y_interp;
+}
+
+
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -829,6 +951,9 @@ Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y){
   
   return Splines;
 }
+
+                                    
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Spline plotting function which calls CalculateCubicSplines() to generate a  pair of

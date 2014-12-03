@@ -85,10 +85,18 @@ vector<float> slice_vector(vector<float>::iterator first,vector<float>::iterator
 
 // interpolation
 double interp1D_ordered(vector<double>& x, vector<double>& y, double x_interp_loc);
+vector<double> interp1D_ordered(vector<double>& x, vector<double>& y, vector<double> x_interp_loc);
 float interp1D_ordered(vector<float>& x, vector<float>& y, float x_interp_loc);
+vector<float> interp1D_ordered(vector<float>& x, vector<float>& y, vector<float> x_interp_loc);
+vector<double> interp1D_spline_ordered(vector<double>& x_data, vector<double>& y_data, 
+                                       vector<double>& x_interp_locs);
 float interp1D_unordered(vector<float> x, vector<float> y, float x_interp_loc);
+vector<float> interp1D_unordered(vector<float> x, vector<float> y, vector<float>& x_interp_loc);
 double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_loc);
-
+vector<double> interp1D_unordered(vector<double> x, vector<double> y, vector<double>& x_interp_loc);
+vector<double> interp1D_spline_unordered(vector<double> x_data, vector<double> y_data, 
+                                       vector<double>& x_interp_locs);
+                                       
 // Generate spline curves from X and Y vectors of floats
 Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y);
 void PlotCubicSplines(vector<float> X, vector<float> Y, int SplineResolution, vector<float>& Spline_X, vector<float>& Spline_Y);
