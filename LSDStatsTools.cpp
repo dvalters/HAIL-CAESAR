@@ -764,6 +764,130 @@ double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_lo
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Spline fitting function called by PlotCubicSplines() to generate an array of
+// parameters used to fit splines to vectors of data. Should not be called directly.
+//
+// Ported from a python implementation from http://jayemmcee.wordpress.com/cubic-splines/
+//
+// Not at all optimised for c++ architecture.
+//
+// SWDG - 31/10/13
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y){
+
+  int np = X.size(); //number of points in the dataset
+  
+  //declare vectors used in calculations
+  vector<float> a(Y); //copy vector Y into a -> WHY? 
+  vector<float> b((np-1),0.0);
+  vector<float> d((np-1),0.0);
+  vector<float> alpha((np-1),0.0);
+  vector<float> c(np,0.0);
+  vector<float> u(np,0.0);
+  vector<float> z(np,0.0);
+  vector<float> L(np,0.0);
+  L[0] = 1.0;
+  
+  //Output array
+  Array2D<float> Splines((np-1),5);
+
+  vector<float> h;
+  for (int i = 0; i < np-1; ++i){
+    h.push_back(X[i+1] - X[i]);
+  }
+
+  for (int i = 1; i < (np-1); ++i){           
+    alpha[i] = 3/h[i]*(a[i+1]-a[i]) - 3/h[i-1]*(a[i]-a[i-1]);      
+  }
+
+  for (int i = 1; i < (np-1); ++i){   
+    L[i] = 2*(X[i+1]-X[i-1]) - h[i-1]*u[i-1];
+    u[i] = h[i]/L[i];
+    z[i] = (alpha[i]-h[i-1]*z[i-1])/L[i];    
+  }
+  
+  L[np-1] = 1.0;
+  z[np-1] = 0.0;
+  c[np-1] = 0.0;
+
+  for (int j = np-2; j > -1; --j){
+    c[j] = z[j] - u[j]*c[j+1];
+    b[j] = (a[j+1]-a[j])/h[j] - (h[j]*(c[j+1]+2*c[j]))/3;
+    d[j] = (c[j+1]-c[j])/(3*h[j]);
+  }
+  
+  for (int i = 0; i < (np-1); ++i){  
+    Splines[i][0] = a[i];
+    Splines[i][1] = b[i];
+    Splines[i][2] = c[i];
+    Splines[i][3] = d[i];
+    Splines[i][4] = X[i]; 
+  }
+  
+  return Splines;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Spline plotting function which calls CalculateCubicSplines() to generate a  pair of
+// X and Y vectors containing coordinates to plot a spline curve from a given set of data.
+//
+// Call this with vectors of X and Y data, a resolution (used to get the number of points 
+// between each data point for the output curve) and Spline_X and Spline_Y, which are passed in
+// by reference and are overwritten with the resulting sets of coordinates.
+
+// Ported from a python implementation from http://jayemmcee.wordpress.com/cubic-splines/
+//
+// Not at all optimised for c++ architecture.
+//
+// SWDG - 31/10/13
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void PlotCubicSplines(vector<float> X, vector<float> Y, int SplineResolution, vector<float>& Spline_X, vector<float>& Spline_Y){
+
+  //declare temporary variables used in the calculations
+  float x0;
+  float x1;
+  float h;
+  
+  //Call the cubic splines function to get the splines data as an array
+  Array2D<float> Splines = CalculateCubicSplines(X, Y);
+
+  int n = Splines.dim1(); // This is one fewer than the number of points in the dataset
+  
+  //check there will be enough partitions between each pair of points for the plotting
+  int perSpline = SplineResolution/n; // integer division
+  if (perSpline < 3){perSpline = 3;} 
+  
+  for (int i = 0; i < n-1; ++i){
+    x0 = Splines[i][4];
+    x1 = Splines[i+1][4];
+    vector<float> x = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given    
+    
+    //calculate x and y values for points along the spline curve between each set of points
+    for (int q = 0; q != int(x.size()); ++q){ 
+      Spline_X.push_back(x[q]);
+      h = (x[q] - x0);
+      Spline_Y.push_back(Splines[i][0] + Splines[i][1] * h + Splines[i][2]*(h*h) + (Splines[i][3]*(h*h*h)));    
+    }
+  }
+    
+  //calculate x and y values for the curve between the final pair of points
+  x0 = Splines[n-1][4]; 
+  x1 = X[n];
+  vector<float> x2 = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given
+    
+  for (int q = 0; q != int(x2.size()); ++q){
+    Spline_X.push_back(x2[q]);
+    h = (x2[q] - x0);
+    Spline_Y.push_back(Splines[n-1][0] + Splines[n-1][1] * h + Splines[n-1][2]*(h*h) + (Splines[n-1][3]*(h*h*h)));
+  }    
+  
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // simple cubic spline interpolation library without external
 // dependencies
@@ -3397,127 +3521,6 @@ void matlab_int_reorder(std::vector<int> & unordered, std::vector<size_t> const 
 }
 
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Spline fitting function called by PlotCubicSplines() to generate an array of
-// parameters used to fit splines to vectors of data. Should not be called directly.
-//
-// Ported from a python implementation from http://jayemmcee.wordpress.com/cubic-splines/
-//
-// Not at all optimised for c++ architecture.
-//
-// SWDG - 31/10/13
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y){
-
-  int np = X.size(); //number of points in the dataset
-  
-  //declare vectors used in calculations
-  vector<float> a(Y); //copy vector Y into a -> WHY? 
-  vector<float> b((np-1),0.0);
-  vector<float> d((np-1),0.0);
-  vector<float> alpha((np-1),0.0);
-  vector<float> c(np,0.0);
-  vector<float> u(np,0.0);
-  vector<float> z(np,0.0);
-  vector<float> L(np,0.0);
-  L[0] = 1.0;
-  
-  //Output array
-  Array2D<float> Splines((np-1),5);
-
-  vector<float> h;
-  for (int i = 0; i < np-1; ++i){
-    h.push_back(X[i+1] - X[i]);
-  }
-
-  for (int i = 1; i < (np-1); ++i){           
-    alpha[i] = 3/h[i]*(a[i+1]-a[i]) - 3/h[i-1]*(a[i]-a[i-1]);      
-  }
-
-  for (int i = 1; i < (np-1); ++i){   
-    L[i] = 2*(X[i+1]-X[i-1]) - h[i-1]*u[i-1];
-    u[i] = h[i]/L[i];
-    z[i] = (alpha[i]-h[i-1]*z[i-1])/L[i];    
-  }
-  
-  L[np-1] = 1.0;
-  z[np-1] = 0.0;
-  c[np-1] = 0.0;
-
-  for (int j = np-2; j > -1; --j){
-    c[j] = z[j] - u[j]*c[j+1];
-    b[j] = (a[j+1]-a[j])/h[j] - (h[j]*(c[j+1]+2*c[j]))/3;
-    d[j] = (c[j+1]-c[j])/(3*h[j]);
-  }
-  
-  for (int i = 0; i < (np-1); ++i){  
-    Splines[i][0] = a[i];
-    Splines[i][1] = b[i];
-    Splines[i][2] = c[i];
-    Splines[i][3] = d[i];
-    Splines[i][4] = X[i]; 
-  }
-  
-  return Splines;
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Spline plotting function which calls CalculateCubicSplines() to generate a  pair of
-// X and Y vectors containing coordinates to plot a spline curve from a given set of data.
-//
-// Call this with vectors of X and Y data, a resolution (used to get the number of points 
-// between each data point for the output curve) and Spline_X and Spline_Y, which are passed in
-// by reference and are overwritten with the resulting sets of coordinates.
-
-// Ported from a python implementation from http://jayemmcee.wordpress.com/cubic-splines/
-//
-// Not at all optimised for c++ architecture.
-//
-// SWDG - 31/10/13
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void PlotCubicSplines(vector<float> X, vector<float> Y, int SplineResolution, vector<float>& Spline_X, vector<float>& Spline_Y){
-
-  //declare temporary variables used in the calculations
-  float x0;
-  float x1;
-  float h;
-  
-  //Call the cubic splines function to get the splines data as an array
-  Array2D<float> Splines = CalculateCubicSplines(X, Y);
-
-  int n = Splines.dim1(); // This is one fewer than the number of points in the dataset
-  
-  //check there will be enough partitions between each pair of points for the plotting
-  int perSpline = SplineResolution/n; // integer division
-  if (perSpline < 3){perSpline = 3;} 
-  
-  for (int i = 0; i < n-1; ++i){
-    x0 = Splines[i][4];
-    x1 = Splines[i+1][4];
-    vector<float> x = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given    
-    
-    //calculate x and y values for points along the spline curve between each set of points
-    for (int q = 0; q != int(x.size()); ++q){ 
-      Spline_X.push_back(x[q]);
-      h = (x[q] - x0);
-      Spline_Y.push_back(Splines[i][0] + Splines[i][1] * h + Splines[i][2]*(h*h) + (Splines[i][3]*(h*h*h)));    
-    }
-  }
-    
-  //calculate x and y values for the curve between the final pair of points
-  x0 = Splines[n-1][4]; 
-  x1 = X[n];
-  vector<float> x2 = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given
-    
-  for (int q = 0; q != int(x2.size()); ++q){
-    Spline_X.push_back(x2[q]);
-    h = (x2[q] - x0);
-    Spline_Y.push_back(Splines[n-1][0] + Splines[n-1][1] * h + Splines[n-1][2]*(h*h) + (Splines[n-1][3]*(h*h*h)));
-  }    
-  
-}
 
 //Overloaded function to take in an array of integers and return a vector of the
 //unique values found in the array, excluding the passed in NoDataValue.
