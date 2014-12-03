@@ -89,6 +89,10 @@ float interp1D_ordered(vector<float>& x, vector<float>& y, float x_interp_loc);
 float interp1D_unordered(vector<float> x, vector<float> y, float x_interp_loc);
 double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_loc);
 
+// Generate spline curves from X and Y vectors of floats
+Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y);
+void PlotCubicSplines(vector<float> X, vector<float> Y, int SplineResolution, vector<float>& Spline_X, vector<float>& Spline_Y);
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // simple cubic spline interpolation library without external
 // dependencies
@@ -328,9 +332,7 @@ void matlab_float_sort_descending(vector<float>& unsorted, vector<float>& sorted
 void matlab_int_sort(vector<int>& unsorted, vector<int>& sorted, vector<size_t>& index_map); // added 27/11/13 SWDG
 void matlab_int_reorder(std::vector<int> & unordered, std::vector<size_t> const & index_map, std::vector<int> & ordered);
 
-// Generate spline curves from X and Y vectors of floats
-Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y);
-void PlotCubicSplines(vector<float> X, vector<float> Y, int SplineResolution, vector<float>& Spline_X, vector<float>& Spline_Y);
+
 
 //Get vector of unique values in an input array of ints
 vector<int> Unique(Array2D<int> InputArray, int NoDataValue);
