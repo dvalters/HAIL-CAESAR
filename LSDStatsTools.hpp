@@ -59,6 +59,10 @@ using namespace TNT;
 #ifndef StatsTools_H
 #define StatsTools_H
 
+// tools for reversing arrays
+Array2D<double> reverse_array_rows(Array2D<double>& data);
+Array2D<double> reverse_array_cols(Array2D<double>& data);
+
 // computes linear regression
 // replaces data in residuals with residuals and returns a 4 element vector, which has slope, intercept, r^2 and
 // the Durbin-Watson test statistic which looks for autocorrelation of the residuals
