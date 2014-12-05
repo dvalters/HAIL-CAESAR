@@ -62,6 +62,10 @@ using namespace TNT;
 // tools for reversing arrays
 Array2D<double> reverse_array_rows(Array2D<double>& data);
 Array2D<double> reverse_array_cols(Array2D<double>& data);
+Array2D<float> reverse_array_rows(Array2D<float>& data);
+Array2D<float> reverse_array_cols(Array2D<float>& data);
+Array2D<int> reverse_array_rows(Array2D<int>& data);
+Array2D<int> reverse_array_cols(Array2D<int>& data);
 
 // computes linear regression
 // replaces data in residuals with residuals and returns a 4 element vector, which has slope, intercept, r^2 and
