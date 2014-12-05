@@ -610,13 +610,13 @@ double erfi(double tau)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 double Gauss_rand(int Nrand, double GaussAdd, double GaussFac)
 {
-	double sum = 0;
-	
-	for (int i=1; i <= Nrand; i++)
-	{
-		sum = sum + rand();
-	}
-	return (GaussFac * sum - GaussAdd);
+  double sum = 0;
+  
+  for (int i=1; i <= Nrand; i++)
+  {
+    sum = sum + rand();
+  }
+  return (GaussFac * sum - GaussAdd);
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -628,75 +628,70 @@ double Gauss_rand(int Nrand, double GaussAdd, double GaussFac)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_data, vector<float>& residuals)
 {
-	float rounding_cutoff = 1e-12;
+  float rounding_cutoff = 1e-12;
 
-	int n_rows = x_data.size();
-	int n_cols = 2;
-	Array2D<float> A(n_rows,n_cols);
-	Array2D<float> b(n_rows,1);
-	Array2D<float> A_transpose(n_cols,n_rows);
+  int n_rows = x_data.size();
+  int n_cols = 2;
+  Array2D<float> A(n_rows,n_cols);
+  Array2D<float> b(n_rows,1);
+  Array2D<float> A_transpose(n_cols,n_rows);
 
-	// construct solution matrices
-	for(int i = 0; i<n_rows; i++)
-	{
-		A[i][0] = x_data[i];
-		A[i][1] = 1.0;
-		A_transpose[0][i] = x_data[i];
-		A_transpose[1][i] = 1.0;
-		b[i][0] = y_data[i];
-	}
+  // construct solution matrices
+  for(int i = 0; i<n_rows; i++)
+  {
+    A[i][0] = x_data[i];
+    A[i][1] = 1.0;
+    A_transpose[0][i] = x_data[i];
+    A_transpose[1][i] = 1.0;
+    b[i][0] = y_data[i];
+  }
 
+  // solve the system
+  Array2D<float> LHS = matmult(A_transpose,A);
+  Array2D<float> RHS = matmult(A_transpose,b);
+  LU<float> LU_mat(LHS);
+  Array2D<float> solution= LU_mat.solve(RHS);
 
-	// solve the system
-	Array2D<float> LHS = matmult(A_transpose,A);
-	Array2D<float> RHS = matmult(A_transpose,b);
-	LU<float> LU_mat(LHS);
-	Array2D<float> solution= LU_mat.solve(RHS);
+  vector<float> soln;
+  for(int i = 0; i<2; i++)
+  {
+    soln.push_back(solution[i][0]);
+  }
 
+  // get some statistics
+  float mean = get_mean(y_data);
+  float SST = get_SST(y_data, mean);
+  // now get the predictions
+  vector<float> predicted;
+  vector<float> temp_residuals;
 
-	vector<float> soln;
-	for(int i = 0; i<2; i++)
-	{
-		soln.push_back(solution[i][0]);
-	}
+  // get predicted, residuals, etc
+  float SS_reg = 0;
+  float SS_err = 0;
+  //cout << endl;
+  for(int i = 0; i<n_rows; i++)
+  {
+    predicted.push_back(soln[0]*x_data[i] + soln[1]);
+    temp_residuals.push_back(predicted[i]-y_data[i]);
+    if (fabs(temp_residuals[i]) < rounding_cutoff)
+    {
+      temp_residuals[i] = 0;
+    }
+    SS_reg+=(predicted[i]-mean)*(predicted[i]-mean);
 
-	// get some statistics
-	float mean = get_mean(y_data);
-	float SST = get_SST(y_data, mean);
-	// now get the predictions
-	vector<float> predicted;
-	vector<float> temp_residuals;
+    SS_err+=temp_residuals[i]*temp_residuals[i];
 
-	// get predicted, residuals, etc
-	float SS_reg = 0;
-	float SS_err = 0;
-	//cout << endl;
-	for(int i = 0; i<n_rows; i++)
-	{
-		predicted.push_back(soln[0]*x_data[i] + soln[1]);
-		temp_residuals.push_back(predicted[i]-y_data[i]);
-		if (fabs(temp_residuals[i]) < rounding_cutoff)
-		{
-			temp_residuals[i] = 0;
-		}
-		SS_reg+=(predicted[i]-mean)*(predicted[i]-mean);
+    //cout << "RESIDUAL, i: " << i << " pred: " << predicted[i] << " data: " << y_data[i] << " resid: " << temp_residuals[i] << endl;
+  }
 
+  // now get R^2
+  soln.push_back(1 - SS_err/SST);
 
-		SS_err+=temp_residuals[i]*temp_residuals[i];
+  // now get the durbin_watson statistic
+  soln.push_back( get_durbin_watson_statistic(temp_residuals) );
 
-		//cout << "RESIDUAL, i: " << i << " pred: " << predicted[i] << " data: " << y_data[i] << " resid: " << temp_residuals[i] << endl;
-	}
-
-	//cout << "SST: " << SST << " SS_reg: " << SS_reg << " SS_err " << SS_err << endl;
-
-	// now get R^2
-	soln.push_back(1 - SS_err/SST);
-
-	// now get the durbin_watson statistic
-	soln.push_back( get_durbin_watson_statistic(temp_residuals) );
-
-	residuals = temp_residuals;
-	return soln;
+  residuals = temp_residuals;
+  return soln;
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
