@@ -171,6 +171,82 @@ Array2D<double> revetrse_array_cols(Array2D<double> data_array)
   return reversed_data;
 }
 
+
+// this function flips an array. Set the flip rows or flip cols to true to flip
+// in these directions
+Array2D<float> reverse_array_rows(Array2D<float> data_array)
+{
+  int n_rows = data_array.dim1();
+  int n_cols = data_array.dim2();
+  
+  Array2D<float> reversed_data(n_rows,n_cols,0.0);
+
+  for(int row = 0; row<n_rows; row++)
+  {
+    for (int col = 0; col<n_cols; col++)
+    {
+      reversed_data[n_rows-row-1][col] = data_array[row][col];
+    }
+  }
+  return reversed_data;
+}
+// this function flips an array. Set the flip rows or flip cols to true to flip
+// in these directions
+Array2D<float> revetrse_array_cols(Array2D<float> data_array)
+{
+  int n_rows = data_array.dim1();
+  int n_cols = data_array.dim2();
+  
+  Array2D<float> reversed_data(n_rows,n_cols,0.0);
+
+  for(int row = 0; row<n_rows; row++)
+  {
+    for (int col = 0; col<n_cols; col++)
+    {
+      reversed_data[row][n_cols-col-1] = data_array[row][col];
+    }
+  }
+  return reversed_data;
+}
+
+
+// this function flips an array. Set the flip rows or flip cols to true to flip
+// in these directions
+Array2D<int> reverse_array_rows(Array2D<int> data_array)
+{
+  int n_rows = data_array.dim1();
+  int n_cols = data_array.dim2();
+  
+  Array2D<int> reversed_data(n_rows,n_cols,0.0);
+
+  for(int row = 0; row<n_rows; row++)
+  {
+    for (int col = 0; col<n_cols; col++)
+    {
+      reversed_data[n_rows-row-1][col] = data_array[row][col];
+    }
+  }
+  return reversed_data;
+}
+// this function flips an array. Set the flip rows or flip cols to true to flip
+// in these directions
+Array2D<int> revetrse_array_cols(Array2D<int> data_array)
+{
+  int n_rows = data_array.dim1();
+  int n_cols = data_array.dim2();
+  
+  Array2D<int> reversed_data(n_rows,n_cols,0.0);
+
+  for(int row = 0; row<n_rows; row++)
+  {
+    for (int col = 0; col<n_cols; col++)
+    {
+      reversed_data[row][n_cols-col-1] = data_array[row][col];
+    }
+  }
+  return reversed_data;
+}
+
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Randomly sample from a vector without replacement DTM 21/04/2014
 //------------------------------------------------------------------------------
@@ -1023,10 +1099,10 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
     {
       reverse(x_locs.begin(),x_locs.end());
       x_index = n_xlocs-x_index;
-      x2 = x_locs[x_index-1];
-      x1 = x_locs[x_index];
-      xib = x_index-1;
-      xis = x_index;      
+      x2 = x_locs[x_index];
+      x1 = x_locs[x_index-1];
+      xib = x_index;
+      xis = x_index-1;      
     }
     else
     {
@@ -1039,10 +1115,10 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
     {
       reverse(y_locs.begin(),y_locs.end());
       y_index = n_ylocs-y_index;
-      y2 = y_locs[y_index-1];
-      y1 = y_locs[y_index]; 
-      yib = y_index-1;
-      yis = y_index;     
+      y2 = y_locs[y_index];
+      y1 = y_locs[y_index-1]; 
+      yib = y_index;
+      yis = y_index-1;     
     }
     else
     {
@@ -1052,13 +1128,11 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
       yis = y_index-1;
     }
     
-    
-    
-    
-    cout << "Data at end: " << data[n_xlocs-1][n_ylocs-1] << endl;
-    cout << "x_index is: " << x_index << " and y_index is: " << y_index << endl;
-    cout << "x1: " << x1 << " x2: " << x2 << " y1: " << y1 << " y2: " << y2 << endl;
-    cout << "xib: " << xib << " xis: " << xis << " yib: " << yib << " yis: " << yis << endl;
+    // some debugging couts
+    //cout << "Data at end: " << data[n_xlocs-1][n_ylocs-1] << endl;
+    //cout << "x_index is: " << x_index << " and y_index is: " << y_index << endl;
+    //cout << "x1: " << x1 << " x2: " << x2 << " y1: " << y1 << " y2: " << y2 << endl;
+    //cout << "xib: " << xib << " xis: " << xis << " yib: " << yib << " yis: " << yis << endl;
     
     // now you need to calculate the interpolated point
     // see  http://en.wikipedia.org/wiki/Bilinear_interpolation
@@ -1067,27 +1141,13 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
     double Q12 = data[xis][yib];
     double Q22 = data[xib][yib];
     
-    cout << "Q11: " << Q11 << " Q21: " << Q21 << " Q12: " << Q12 << " Q22: " << Q22 << endl;
+    //cout << "Q11: " << Q11 << " Q21: " << Q21 << " Q12: " << Q12 << " Q22: " << Q22 << endl;
     
     double R1 = ((x2-x_interp)/(x2-x1))*Q11 + ((x_interp-x1)/(x2-x1))*Q21;
     double R2 = ((x2-x_interp)/(x2-x1))*Q12 + ((x_interp-x1)/(x2-x1))*Q22;
     
     interpolated_point = ((y2-y_interp)/(y2-y1))*R1 + ((y_interp-y1)/(y2-y1))*R2;
     
-    //int row,col;
-    //do
-    //{
-    //  cout << "enter row (matlab index)" << endl;
-    //  cin >> row;
-    //  cout << "enter col (matlab index)" << endl;
-    //  cin >> col;
-    //  cout << "data is: " << data[row-1][col-1];
-    //  
-    //} while(row !=50);
-    
-
-    
-      
   }
   
   return interpolated_point;
@@ -1123,6 +1183,23 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
   }
   else 
   {
+    // first we need to check if either of the data vectors are reversed
+    bool is_x_reversed = false;
+    bool is_y_reversed = false;
+    
+    // reverse to positive order if reversed
+    if( x_locs[0] > x_locs[1])
+    {
+      is_x_reversed = true;
+      reverse(x_locs.begin(),x_locs.end());
+    }
+    if( y_locs[0] > y_locs[1])
+    {
+      is_y_reversed = true;
+      reverse(y_locs.begin(),y_locs.end());
+    }
+  
+  
     // first find the index of the x data
     if(x_interp < x_locs[0])
     {
@@ -1141,7 +1218,8 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
       // increment the vector until you get to the right node
       do 
       {
-        i++;      
+        i++;
+        //cout << "lat: " << x_interp << " i: " << i << " lat[i]: " << x_locs[i] << endl;      
       } while(x_interp > x_locs[i]);
       x_index = i;
     }
@@ -1164,27 +1242,69 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
       // increment the vector until you get to the right node
       do 
       {
-        i++;      
+        i++;  
+        //cout << "long: " << x_interp << " i: " << i << " long[i]: " << y_locs[i] << endl;          
       } while(y_interp > y_locs[i]);
       y_index = i;
     }
     
+    float x1,x2,y1,y2;
+    int xib, xis, yib, yis;
+    
+    // now restore vector order if it has been reversed
+    if( is_x_reversed ==true)
+    {
+      reverse(x_locs.begin(),x_locs.end());
+      x_index = n_xlocs-x_index;
+      x2 = x_locs[x_index];
+      x1 = x_locs[x_index-1];
+      xib = x_index;
+      xis = x_index-1;      
+    }
+    else
+    {
+      x2 = x_locs[x_index];
+      x1 = x_locs[x_index-1];
+      xib = x_index;
+      xis = x_index-1;       
+    }
+    if( is_y_reversed ==true)
+    {
+      reverse(y_locs.begin(),y_locs.end());
+      y_index = n_ylocs-y_index;
+      y2 = y_locs[y_index];
+      y1 = y_locs[y_index-1]; 
+      yib = y_index;
+      yis = y_index-1;     
+    }
+    else
+    {
+      y2 = y_locs[y_index];
+      y1 = y_locs[y_index-1];
+      yib = y_index;
+      yis = y_index-1;
+    }
+    
+    // some debugging couts
+    //cout << "Data at end: " << data[n_xlocs-1][n_ylocs-1] << endl;
+    //cout << "x_index is: " << x_index << " and y_index is: " << y_index << endl;
+    //cout << "x1: " << x1 << " x2: " << x2 << " y1: " << y1 << " y2: " << y2 << endl;
+    //cout << "xib: " << xib << " xis: " << xis << " yib: " << yib << " yis: " << yis << endl;
+    
     // now you need to calculate the interpolated point
     // see  http://en.wikipedia.org/wiki/Bilinear_interpolation
-    float x2 = x_locs[x_index];
-    float x1 = x_locs[x_index-1];
-    float y1 = y_locs[y_index];
-    float y2 = y_locs[y_index-1];
-    float Q11 = data[x_index-1][y_index-1];
-    float Q21 = data[x_index][y_index-1];
-    float Q12 = data[x_index-1][y_index];
-    float Q22 = data[x_index][y_index];
+    float Q11 = data[xis][yis];
+    float Q21 = data[xib][yis];
+    float Q12 = data[xis][yib];
+    float Q22 = data[xib][yib];
+    
+    //cout << "Q11: " << Q11 << " Q21: " << Q21 << " Q12: " << Q12 << " Q22: " << Q22 << endl;
     
     float R1 = ((x2-x_interp)/(x2-x1))*Q11 + ((x_interp-x1)/(x2-x1))*Q21;
     float R2 = ((x2-x_interp)/(x2-x1))*Q12 + ((x_interp-x1)/(x2-x1))*Q22;
     
     interpolated_point = ((y2-y_interp)/(y2-y1))*R1 + ((y_interp-y1)/(y2-y1))*R2;
-      
+    
   }
   
   return interpolated_point;
