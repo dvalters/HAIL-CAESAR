@@ -916,7 +916,7 @@ float interp1D_unordered(vector<float> x, vector<float> y, float x_interp_loc)
   matlab_float_sort(x,  x_sorted, index_map);
   matlab_float_reorder(y, index_map, y_sorted);
   
-  float y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
+  float y_interp = interp1D_ordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
 
@@ -931,7 +931,7 @@ vector<float> interp1D_unordered(vector<float> x, vector<float> y, vector<float>
   matlab_float_sort(x,  x_sorted, index_map);
   matlab_float_reorder(y, index_map, y_sorted);
   
-  vector<float> y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
+  vector<float> y_interp = interp1D_ordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
 
@@ -942,12 +942,15 @@ double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_lo
   vector<double> x_sorted;
   vector<double> y_sorted;
   vector<size_t> index_map;
-  
+
   // sort the vectors
   matlab_double_sort(x,  x_sorted, index_map);
   matlab_double_reorder(y, index_map, y_sorted);
+
+  matlab_double_sort(x,  x_sorted, index_map);
+  matlab_double_reorder(y, index_map, y_sorted);
   
-  double y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
+  double y_interp = interp1D_ordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
 
@@ -957,12 +960,12 @@ vector<double> interp1D_unordered(vector<double> x, vector<double> y, vector<dou
   vector<double> x_sorted;
   vector<double> y_sorted;
   vector<size_t> index_map;
-  
+
   // sort the vectors
   matlab_double_sort(x,  x_sorted, index_map);
   matlab_double_reorder(y, index_map, y_sorted);
-  
-  vector<double> y_interp = interp1D_unordered(x_sorted,y_sorted,x_interp_loc);
+
+  vector<double> y_interp = interp1D_ordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
 
