@@ -59,7 +59,9 @@
 #include <cstring>
 #include <vector>
 #include <fstream>
+#include <cmath>
 #include "LSDShapeTools.hpp"
+#include "LSDStatsTools.hpp"
 using namespace std;
 
 #ifndef ShapeTools_CPP
@@ -633,6 +635,325 @@ PointData LoadChannelTree(string Filename, int multistem_option)
 }
 
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// The create function, sets up some vectors for holding 
+// ellipses and datums
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDCoordinateConverterLLandUTM::create()
+{
+  // this sets up the ellipsoid and datum vectors
+  vector<LSDEllipsoid> Ellipse_data_temp;
+  
+  // declare the names of the ellipsoids
+  char t00[] = "Airy1830";
+  char t01[] = "AiryModified";
+  char t02[] = "AustralianNational";
+  char t03[] = "Bessel1841Namibia";
+  char t04[] = "Bessel1841";
+  char t05[] = "Clarke1866";
+  char t06[] = "Clarke1880";
+  char t07[] = "EverestIndia1830";
+  char t08[] = "EverestSabahSarawak";
+  char t09[] = "EverestIndia1956";
+  char t10[] = "EverestMalaysia1969";
+  char t11[] = "EverestMalay_Sing";
+  char t12[] = "EverestPakistan";
+  char t13[] = "Fischer1960Modified";
+  char t14[] = "Helmert1906";
+  char t15[] = "Hough1960";
+  char t16[] = "Indonesian1974";
+  char t17[] = "International1924";
+  char t18[] = "Krassovsky1940";
+  char t19[] = "GRS80";
+  char t20[] = "SouthAmerican1969";
+  char t21[] = "WGS72";
+  char t22[] = "WGS84";
+  
+  // add the ellipsoids to the vector
+  LSDEllipsoid E00( 0, t00,		6377563.396,	299.3249646);
+  LSDEllipsoid E01( 1, t01,		6377340.189,	299.3249646);
+  LSDEllipsoid E02( 2, t02,	6378160,	298.25);
+  LSDEllipsoid E03( 3, t03,	6377483.865,	299.1528128);
+  LSDEllipsoid E04( 4, t04,		6377397.155,	299.1528128);
+  LSDEllipsoid E05( 5, t05,		6378206.4,	294.9786982);
+  LSDEllipsoid E06( 6, t06,		6378249.145,	293.465);
+  LSDEllipsoid E07( 7, t07,	6377276.345,	300.8017);
+  LSDEllipsoid E08( 8, t08,	6377298.556,	300.8017);
+  LSDEllipsoid E09( 9, t09,	6377301.243,	300.8017);
+  LSDEllipsoid E10(10, t10,	6377295.664,	300.8017);	//Dana has no datum that uses this LSDEllipsoid E00!
+  LSDEllipsoid E11(11, t11,	6377304.063,	300.8017);
+  LSDEllipsoid E12(12, t12,	6377309.613,	300.8017);
+  LSDEllipsoid E13(13, t13,	6378155,	298.3);
+  LSDEllipsoid E14(14, t14,		6378200,	298.3);
+  LSDEllipsoid E15(15, t15,		6378270,	297);
+  LSDEllipsoid E16(16, t16,		6378160,	298.247);
+  LSDEllipsoid E17(17, t17,	6378388,	297);
+  LSDEllipsoid E18(18, t18,		6378245,	298.3);
+  LSDEllipsoid E19(19, t19,			6378137,	298.257222101);
+  LSDEllipsoid E20(20, t20,	6378160,	298.25);
+  LSDEllipsoid E21(21, t21,			6378135,	298.26);
+  LSDEllipsoid E22(22, t22,			6378137,	298.257223563);
+  
+  Ellipse_data_temp.push_back(E01);
+  Ellipse_data_temp.push_back(E02);
+  Ellipse_data_temp.push_back(E03);
+  Ellipse_data_temp.push_back(E04);
+  Ellipse_data_temp.push_back(E05);
+  Ellipse_data_temp.push_back(E06);
+  Ellipse_data_temp.push_back(E07);
+  Ellipse_data_temp.push_back(E08);
+  Ellipse_data_temp.push_back(E09);
+  Ellipse_data_temp.push_back(E10);
+  Ellipse_data_temp.push_back(E11);
+  Ellipse_data_temp.push_back(E12);
+  Ellipse_data_temp.push_back(E13);
+  Ellipse_data_temp.push_back(E14);
+  Ellipse_data_temp.push_back(E15);
+  Ellipse_data_temp.push_back(E16);
+  Ellipse_data_temp.push_back(E17);
+  Ellipse_data_temp.push_back(E18);
+  Ellipse_data_temp.push_back(E19);
+  Ellipse_data_temp.push_back(E20);
+  Ellipse_data_temp.push_back(E21);
+  Ellipse_data_temp.push_back(E22);
+
+  //names for ellipsoidId's
+  int eClarke1866 = 5;
+  int eGRS80 = 19;
+  int eWGS72 = 21;
+  int eWGS84 = 22;
+
+
+  // now for the datum
+  vector<LSDDatum> Datum_data_temp;
+  
+  // initiate the datum names
+  char T00[] = "NAD27_AK";
+  char T01[] = "NAD27_AK_AleutiansE";
+  char T02[] = "NAD27_AK_AleutiansW";
+  char T03[] = "NAD27_Bahamas";
+  char T04[] = "NAD27_Bahamas_SanSalv";
+  char T05[] = "NAD27_AB_BC";
+  char T06[] = "NAD27_MB_ON";
+  char T07[] = "NAD27_NB_NL_NS_QC";
+  char T08[] = "NAD27_NT_SK";
+  char T09[] = "NAD27_YT";
+  char T10[] = "NAD27_CanalZone";
+  char T11[] = "NAD27_Cuba";
+  char T12[] = "NAD27_Greenland";
+  char T13[] = "NAD27_Carribean";
+  char T14[] = "NAD27_CtrlAmerica";
+  char T15[] = "NAD27_Canada";
+  char T16[] = "NAD27_ConUS";
+  char T17[] = "NAD27_ConUS_East";
+  char T18[] = "NAD27_ConUS_West";
+  char T19[] = "NAD27_Mexico";
+  char T20[] = "NAD83_AK";
+  char T21[] = "NAD83_AK_Aleutians";
+  char T22[] = "NAD83_Canada";  
+  char T23[] = "NAD83_ConUS";
+  char T24[] = "NAD83_Hawaii";
+  char T25[] = "NAD83_Mexico_CtrlAmerica";
+  char T26[] = "WGS72";
+  char T27[] = "WGS84";
+
+  LSDDatum D00(0, T00,			eClarke1866,	-5,	135,	172); //NAD27 for Alaska Excluding Aleutians
+  LSDDatum D01( 1, T01,	eClarke1866,	-2,	152,	149); //NAD27 for Aleutians East of 180W
+  LSDDatum D02( 2, T02,	eClarke1866,	2,	204,	105); //NAD27 for Aleutians West of 180W
+  LSDDatum D03( 3, T03,		eClarke1866,	-4,	154,	178); //NAD27 for Bahamas Except SanSalvadorIsland
+  LSDDatum D04( 4, T04,	eClarke1866,	1,	140,	165); //NAD27 for Bahamas SanSalvadorIsland
+  LSDDatum D05( 5, T05,		eClarke1866,	-7,	162,	188); //NAD27 for Canada Alberta BritishColumbia
+  LSDDatum D06( 6, T06,		eClarke1866,	-9,	157,	184); //NAD27 for Canada Manitoba Ontario
+  LSDDatum D07( 7, T07,		eClarke1866,	-22,	160,	190); //NAD27 for Canada NewBrunswick Newfoundland NovaScotia Quebec
+  LSDDatum D08( 8, T08,		eClarke1866,	4,	159,	188); //NAD27 for Canada NorthwestTerritories Saskatchewan
+  LSDDatum D09( 9, T09,			eClarke1866,	-7,	139,	181); //NAD27 for Canada Yukon
+  LSDDatum D10(10, T10,		eClarke1866,	0,	125,	201); //NAD27 for CanalZone (ER: is that Panama??)
+  LSDDatum D11(11, T11,			eClarke1866,	-9,	152,	178); //NAD27 for Cuba
+  LSDDatum D12(12, T12,		eClarke1866,	11,	114,	195); //NAD27 for Greenland (HayesPeninsula)
+  LSDDatum D13(13, T13,		eClarke1866,	-3,	142,	183); //NAD27 for Antigua Barbados Barbuda Caicos Cuba DominicanRep GrandCayman Jamaica Turks
+  LSDDatum D14(14, T14,		eClarke1866,	0,	125,	194); //NAD27 for Belize CostaRica ElSalvador Guatemala Honduras Nicaragua
+  LSDDatum D15(15, T15,		eClarke1866,	-10,	158,	187); //NAD27 for Canada
+  LSDDatum D16(16, T16,		eClarke1866,	-8,	160,	176); //NAD27 for CONUS
+  LSDDatum D17(17, T17,		eClarke1866,	-9,	161,	179); //NAD27 for CONUS East of Mississippi Including Louisiana Missouri Minnesota
+  LSDDatum D18(18, T18,		eClarke1866,	-8,	159,	175); //NAD27 for CONUS West of Mississippi Excluding Louisiana Missouri Minnesota
+  LSDDatum D19(19, T19,		eClarke1866,	-12,	130,	190); //NAD27 for Mexico
+  LSDDatum D20(20, T20,			eGRS80,		0,	0,	0); //NAD83 for Alaska Excluding Aleutians
+  LSDDatum D21(21, T21,		eGRS80,		-2,	0,	4); //NAD83 for Aleutians
+  LSDDatum D22(22, T22,		eGRS80,		0,	0,	0); //NAD83 for Canada
+  LSDDatum D23(23, T23,		eGRS80,		0,	0,	0); //NAD83 for CONUS
+  LSDDatum D24(24, T24,		eGRS80,		1,	1,	-1); //NAD83 for Hawaii
+  LSDDatum D25(25, T25,	eGRS80,		0,	0,	0); //NAD83 for Mexico CentralAmerica
+  LSDDatum D26(26, T26,			eWGS72,		0,	0,	0); //WGS72 for world
+  LSDDatum D27(27, T27,			eWGS84,		0,	0,	0); //WGS84 for world
+  
+  Datum_data_temp.push_back(D00);
+  Datum_data_temp.push_back(D01);
+  Datum_data_temp.push_back(D02);
+  Datum_data_temp.push_back(D03);
+  Datum_data_temp.push_back(D04);
+  Datum_data_temp.push_back(D05);
+  Datum_data_temp.push_back(D06);
+  Datum_data_temp.push_back(D07);
+  Datum_data_temp.push_back(D08);
+  Datum_data_temp.push_back(D09);
+  Datum_data_temp.push_back(D10);
+  Datum_data_temp.push_back(D11);
+  Datum_data_temp.push_back(D12);
+  Datum_data_temp.push_back(D13);
+  Datum_data_temp.push_back(D14);
+  Datum_data_temp.push_back(D15);
+  Datum_data_temp.push_back(D16);
+  Datum_data_temp.push_back(D17);
+  Datum_data_temp.push_back(D18);
+  Datum_data_temp.push_back(D19);
+  Datum_data_temp.push_back(D20);
+  Datum_data_temp.push_back(D21);
+  Datum_data_temp.push_back(D22);
+  Datum_data_temp.push_back(D23);
+  Datum_data_temp.push_back(D24);
+  Datum_data_temp.push_back(D25);
+  Datum_data_temp.push_back(D26);
+  Datum_data_temp.push_back(D27);
+
+  Ellipsoids = Ellipse_data_temp;
+  Datums = Datum_data_temp;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// converts LatLong to UTM coords
+// 3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
+// Lat and Long are in degrees;  
+// North latitudes and East Longitudes are positive.
+//
+// Minor modifications for our objects by SMM, 07/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,  
+             double& Northing, double& Easting, int& Zone)
+{
+   const double k0 = 0.9996;
+   double a = Ellipsoids[eId].EquatorialRadius;
+   double ee= Ellipsoids[eId].eccSquared;
+   Long -= int((Long+180)/360)*360;			//ensure longitude within -180.00..179.9
+   double N, T, C, A, M;
+   double LatRad = rad(Lat);
+   double LongRad = rad(Long);
+
+   Zone = int((Long + 186)/6);
+   if( Lat >= 56.0 && Lat < 64.0 && Long >= 3.0 && Long < 12.0 )  Zone = 32;
+   if( Lat >= 72.0 && Lat < 84.0 ){			//Special zones for Svalbard
+      if(      Long >= 0.0  && Long <  9.0 )  Zone = 31;
+      else if( Long >= 9.0  && Long < 21.0 )  Zone = 33;
+      else if( Long >= 21.0 && Long < 33.0 )  Zone = 35;
+      else if( Long >= 33.0 && Long < 42.0 )  Zone = 37;
+   }
+   double LongOrigin = Zone*6 - 183;			//origin in middle of zone
+   double LongOriginRad = rad(LongOrigin);
+
+   double EE = ee/(1-ee);
+
+   N = a/sqrt(1-ee*sin(LatRad)*sin(LatRad));
+   T = tan(LatRad)*tan(LatRad);
+   C = EE*cos(LatRad)*cos(LatRad);
+   A = cos(LatRad)*(LongRad-LongOriginRad);
+
+   M= a*((1 - ee/4    - 3*ee*ee/64 - 5*ee*ee*ee/256  ) *LatRad
+      - (3*ee/8 + 3*ee*ee/32 + 45*ee*ee*ee/1024) *sin(2*LatRad)
+      + (15*ee*ee/256 + 45*ee*ee*ee/1024	  ) *sin(4*LatRad)
+      - (35*ee*ee*ee/3072			  ) *sin(6*LatRad));
+
+   Easting = k0*N*(A+(1-T+C)*A*A*A/6+(5-18*T+T*T+72*C-58*EE)*A*A*A*A*A/120) + 500000.0;
+
+   Northing = k0*(M+N*tan(LatRad)*(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24
+                + (61-58*T+T*T+600*C-330*EE)*A*A*A*A*A*A/720));
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// converts UTM coords to LatLong;  3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
+// Lat and Long are in degrees;  North latitudes and East Longitudes are positive.
+//
+// Minor modifications for our objects by SMM, 07/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDCoordinateConverterLLandUTM::UTMtoLL(int eId, double Northing, double Easting, int Zone,  
+             double& Lat, double& Long)
+{
+  const double k0 = 0.9996;
+  double a = Ellipsoids[eId].EquatorialRadius;
+  double ee = Ellipsoids[eId].eccSquared;
+  double EE = ee/(1-ee);
+  double e1 = (1-sqrt(1-ee))/(1+sqrt(1-ee));
+  double N1, T1, C1, R1, D, M, mu, phi1Rad;
+  double x = Easting - 500000.0;			//remove 500,000 meter offset for longitude
+  double y = Northing;
+  double LongOrigin = Zone*6 - 183;			//origin in middle of zone
+
+  M = y / k0;
+  mu = M/(a*(1-ee/4-3*ee*ee/64-5*ee*ee*ee/256));
+
+  phi1Rad = mu + (3*e1/2-27*e1*e1*e1/32) *sin(2*mu)
+               + (21*e1*e1/16-55*e1*e1*e1*e1/32) *sin(4*mu)
+               + (151*e1*e1*e1/96) *sin(6*mu);
+  N1 = a/sqrt(1-ee*sin(phi1Rad)*sin(phi1Rad));
+  T1 = tan(phi1Rad)*tan(phi1Rad);
+  C1 = EE*cos(phi1Rad)*cos(phi1Rad);
+  R1 = a*(1-ee)/pow(1-ee*sin(phi1Rad)*sin(phi1Rad), 1.5);
+  D = x/(N1*k0);
+
+  Lat = phi1Rad - (N1*tan(phi1Rad)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*EE)*D*D*D*D/24
+                +(61+90*T1+298*C1+45*T1*T1-252*EE-3*C1*C1)*D*D*D*D*D*D/720);
+  Lat = deg(Lat);
+  Long = (D-(1+2*T1+C1)*D*D*D/6+(5-2*C1+28*T1-3*C1*C1+8*EE+24*T1*T1)*D*D*D*D*D/120) / cos(phi1Rad);
+  Long = LongOrigin + deg(Long);
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// converts LatLongHt in datum dIn, to LatLongHt in datum dTo;  
+// 2002dec: by Eugene Reimer, from PeterDana equations.
+// Lat and Long params are in degrees;  
+// North latitudes and East longitudes are positive;  Height is in meters;
+// ==This approach to Datum-conversion is a waste of time;  
+// to get acceptable accuracy a large table is needed -- see NADCON, NTv2...
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDCoordinateConverterLLandUTM::DatumConvert(int dIn, double LatIn, 
+                  double LongIn, double HtIn, 
+                  int dTo,  double& LatTo, double& LongTo, double& HtTo)
+{
+  double a,ee,N,X,Y,Z,EE,p,b,t;
+
+  //--transform to XYZ, using the "In" ellipsoid
+  //LongIn += 180;
+  a = Ellipsoids[Datums[dIn].eId].EquatorialRadius;
+  ee= Ellipsoids[Datums[dIn].eId].eccSquared;
+  N = a / sqrt(1 - ee*sin(rad(LatIn))*sin(rad(LatIn)));
+  X = (N + HtIn) * cos(rad(LatIn)) * cos(rad(LongIn));
+  Y = (N + HtIn) * cos(rad(LatIn)) * sin(rad(LongIn));
+  Z = (N*(1-ee) + HtIn) * sin(rad(LatIn));
+
+  //--apply delta-terms dX dY dZ
+  //cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;		//==DEBUG
+  X+= Datums[dIn].dX - Datums[dTo].dX;
+  Y+= Datums[dIn].dY - Datums[dTo].dY;
+  Z+= Datums[dIn].dZ - Datums[dTo].dZ;
+  //cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;		//==DEBUG
+
+  //--transform back to LatLongHeight, using the "To" ellipsoid
+  a = Ellipsoids[Datums[dTo].eId].EquatorialRadius;
+  ee= Ellipsoids[Datums[dTo].eId].eccSquared;
+  EE= ee/(1-ee);
+  p = sqrt(X*X + Y*Y);
+  b = a*sqrt(1-ee);
+  t = atan(Z*a/(p*b));
+  LatTo = atan((Z+EE*b*sin(t)*sin(t)*sin(t)) / (p-ee*a*cos(t)*cos(t)*cos(t)));
+  LongTo= atan(Y/X);
+  HtTo  = p/cos(LatTo) - a/sqrt(1-ee*sin(LatTo)*sin(LatTo));
+  LatTo = deg(LatTo);
+  LongTo = deg(LongTo);
+  LongTo -= 180;
+}
 
 
 #endif
