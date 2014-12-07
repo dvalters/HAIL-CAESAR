@@ -140,7 +140,160 @@ PointData LoadChannelTree(string Filename, int multistem_option = 0);
 // Taken from http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/ 
 //
 // SWDG 10/3/14
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 long getFileSize(FILE *file);
+
+/// @brief Ellipsoid class for converting coordinates between UTM and lat long
+class LSDEllipsoid
+{
+  public:
+  
+  /// @detail the default constructor
+  LSDEllipsoid()    {};
+  
+  /// @detail assigment constructor for the ellipsiod class
+  /// @param id a reference into the ellipsoid
+  /// @param name the name of the ellipsoid
+  /// @param radius the radius of the equator in km
+  /// @param fr not sure what this is
+  LSDEllipsoid(int id, char* name, double radius, double fr)
+      { Name=name;  EquatorialRadius=radius;  eccSquared=2/fr-1/(fr*fr);}
+  
+  /// name of the ellipsoid
+  char* Name;
+  
+  /// equatorial radius in km
+  double EquatorialRadius;
+  
+  /// square of the equatorial radius 
+  double eccSquared;
+};
+
+/// @brief Datum class for converting coordinates between UTM and lat long
+class LSDDatum
+{
+  public:
+    LSDDatum(){};
+    LSDDatum(int id, char* name, int eid, double dx, double dy, double dz)
+      { Name=name;  eId=eid;  dX=dx;  dY=dy;  dZ=dz;}
+  
+  /// name of the datum
+  char* Name;
+  
+  /// the ellipsoid id
+  int   eId;
+  
+  double dX;
+  double dY;
+  double dZ;
+};
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// A class for converting datums and coordinates
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+class LSDCoordinateConverterLLandUTM
+{
+  public:
+    // default constructor. This sets up the data elements. 
+    LSDCoordinateConverterLLandUTM()     { create(); }
+  
+  protected:
+  
+    /// @brief converts LatLong to UTM coords
+    /// 3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
+    /// @param eID the ellipsoid ID. Options are:
+    ///  0 = "Airy1830";
+    ///  1 = "AiryModified";
+    ///  2 = "AustralianNational";
+    ///  3 = "Bessel1841Namibia";
+    ///  4 = "Bessel1841";
+    ///  5 = "Clarke1866";
+    ///  6 = "Clarke1880";
+    ///  7 = "EverestIndia1830";
+    ///  8 = "EverestSabahSarawak";
+    ///  9 = "EverestIndia1956";
+    ///  10 = "EverestMalaysia1969";
+    ///  11 = "EverestMalay_Sing";
+    ///  12 = "EverestPakistan";
+    ///  13 = "Fischer1960Modified";
+    ///  14 = "Helmert1906";
+    ///  15 = "Hough1960";
+    ///  16 = "Indonesian1974";
+    ///  17 = "International1924";
+    ///  18 = "Krassovsky1940";
+    ///  19 = "GRS80";
+    ///  20 = "SouthAmerican1969";
+    ///  21 = "WGS72";
+    ///  22 = "WGS84";
+    /// @param Lat the latitude in decimal degrees
+    /// @param Long the longitude in decimal degrees
+    /// @param Northing in metres. This argument is replaced by the function
+    /// @param Easting in metres. This argument is replaced by the function
+    /// @param Zone the UTM zone. This argument is replaced by the function
+    /// @author SMM, modified from Chuck Gantz
+    /// @date 07/12/2014
+    void LLtoUTM(int eId, double Lat, double Long,  
+             double& Northing, double& Easting, int& Zone);
+  
+    /// @brief converts LatLong to UTM coords
+    /// 3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
+    /// @param eID the ellipsoid ID. Options are:
+    ///  0 = "Airy1830";
+    ///  1 = "AiryModified";
+    ///  2 = "AustralianNational";
+    ///  3 = "Bessel1841Namibia";
+    ///  4 = "Bessel1841";
+    ///  5 = "Clarke1866";
+    ///  6 = "Clarke1880";
+    ///  7 = "EverestIndia1830";
+    ///  8 = "EverestSabahSarawak";
+    ///  9 = "EverestIndia1956";
+    ///  10 = "EverestMalaysia1969";
+    ///  11 = "EverestMalay_Sing";
+    ///  12 = "EverestPakistan";
+    ///  13 = "Fischer1960Modified";
+    ///  14 = "Helmert1906";
+    ///  15 = "Hough1960";
+    ///  16 = "Indonesian1974";
+    ///  17 = "International1924";
+    ///  18 = "Krassovsky1940";
+    ///  19 = "GRS80";
+    ///  20 = "SouthAmerican1969";
+    ///  21 = "WGS72";
+    ///  22 = "WGS84";
+    /// @param Northing in metres. 
+    /// @param Easting in metres. 
+    /// @param Zone the UTM zone. 
+    /// @param Lat the latitude in decimal degrees. 
+    ///  This argument is replaced by the function
+    /// @param Long the longitude in decimal degrees
+    ///  This argument is replaced by the function
+    /// @author SMM, modified from Chuck Gantz
+    /// @date 07/12/2014
+    void UTMtoLL(int eId, double Northing, double Easting, int Zone,  
+             double& Lat, double& Long);
+
+    /// @brief converts LatLongHt in datum dIn, to LatLongHt in datum dTo;  
+    /// @detail 2002dec: by Eugene Reimer, from PeterDana equations.
+    ///   Lat and Long params are in degrees;  
+    /// North latitudes and East longitudes are positive;  Height is in meters;
+    /// ==This approach to Datum-conversion is a waste of time;  
+    /// to get acceptable accuracy a large table is needed -- see NADCON, NTv2...
+    void DatumConvert(int dIn, double LatIn, double LongIn, double HtIn, 
+                  int dTo,  double& LatTo, double& LongTo, double& HtTo);
+
+    /// @brief a vector holding the ellipsoids
+    vector<LSDEllipsoid> Ellipsoids;
+    
+    /// @brief a vectro holding the datums
+    vector<LSDDatum> Datums;
+  
+  private:
+  
+    /// @brief This create function sets up the data membeers that hold the
+    ///  ellipsoid and datum data
+    void create();
+
+};
 
 #endif
