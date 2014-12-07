@@ -368,9 +368,11 @@ float BearingToRad(float Bearing);
 
 // conversion from degrees to radians
 float rad(float degree);
+double rad(double degree);
 
 // conversion from radians to degrees
 float deg(float radians);
+double deg(double radians);
 
 //Method to generate Statistical distribution. - DTM
 void get_distribution_stats(vector<float>& y_data, float& mean, float& median, float& UpperQuartile, float& LowerQuartile, float& MaxValue);

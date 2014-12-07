@@ -56,7 +56,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cassert>
-#include <math.h>
+#include <cmath>
 #include <time.h>
 #include "TNT/tnt.h"
 #include "TNT/jama_lu.h"
@@ -4171,19 +4171,32 @@ float BearingToRad(float Bearing)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float rad(float degree)
 {
-	float pi = 3.14159265;
-	float deg = 180.0;
-	return degree*(pi/deg);
+  float pi = 3.14159265;
+  float deg = 180.0;
+  return degree*(pi/deg);
+}
+double rad(double degree)
+{
+  //float pi = 3.14159265;
+  float deg = 180.0;
+  return degree*(M_PI/deg);
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // conversion from radians to degrees - SWDG 12/12/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-float deg(float radians){
+float deg(float radians
+){
   float pi = 3.14159265;
   float deg = 180.0;
   return (radians/pi)*deg;
+}
+double deg(double radians)
+{
+  //float pi = 3.14159265;
+  float deg = 180.0;
+  return (radians/M_PI)*deg;
 }
 
 
