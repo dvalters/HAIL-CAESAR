@@ -1557,6 +1557,32 @@ class LSDRaster
   /// @author SMM
   /// @date 04/11/2014
   void rudimentary_nodata_fill();
+
+  /// @brief A routine that fills nodata holes. It cannot recognise nodata
+  ///  around the edges so the spiral trimmer should be used first
+  /// @detail The routine sweeps the raster looking for nodata and filling
+  ///  this nodata with an average value from surrounding nodes. The sweeping
+  ///  changes directions, four sweep directions in all (+ rows, - rows, + cols, -cols)
+  ///  and it alternates between these directions until the raster is filled. 
+  /// @param window_size the number of pixles around the centre pixel to take the 
+  ///  spatial average
+  /// @author SMM
+  /// @date 09/12/2014
+  LSDRaster alternating_direction_nodata_fill(int window_width);
+
+  /// @brief A routine that fills nodata holes. It first prepares the data
+  ///  with the sprial trimmer so nodata around the edges is removed.
+  /// @detail The routine sweeps the raster looking for nodata and filling
+  ///  this nodata with an average value from surrounding nodes. The sweeping
+  ///  changes directions, four sweep directions in all (+ rows, - rows, + cols, -cols)
+  ///  and it alternates between these directions until the raster is filled.
+  ///  The routine is particularly useful for data with holes that is to be
+  ///  prepared for spectral analysis. 
+  /// @param window_size the number of pixles around the centre pixel to take the 
+  ///  spatial average
+  /// @author SMM
+  /// @date 09/12/2014
+  LSDRaster alternating_direction_nodata_fill_with_trimmer(int window_width);
   
   protected:
 
