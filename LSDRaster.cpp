@@ -1783,15 +1783,16 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step){
   float MaxFactor = 0;
 
   for(int theta = 10; theta < 90; theta += theta_step){
-    MaxFactor += pow(sin(rad(theta)),3.3) * phi_factor;
+    MaxFactor += pow(sin(rad(float(theta))),3.3) * phi_factor;
   }
 
   //calculate maximum scaling factor and write it to an array
-  MaxFactor += pow(sin(rad(90)),3.3);
+  float f90 = 90.0;
+  MaxFactor += pow(sin(rad(f90)),3.3);
   Array2D<float> MaxFactorArray(NRows,NCols,MaxFactor);
 
   //Calculate first shadow with theta value of 90 and scale it
-  Array2D<float> Scaler90(NRows,NCols, pow(sin(rad(90)),3.3));
+  Array2D<float> Scaler90(NRows,NCols, pow(sin(rad(f90)),3.3));
   Array2D<float> FinalArray = Shadow(0,90) * Scaler90;
 
   //loop through all the theta, phi pairs and increment the FinalArray with the scaled values
@@ -1801,7 +1802,7 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step){
       cout << flush <<  "\tTheta = " << theta << ", Phi = " << phi << "           \r";
 
       Array2D<float> TempArray = Shadow(theta,phi);
-      Array2D<float> Scaler(NRows, NCols, pow(sin(rad(theta)),3.3));
+      Array2D<float> Scaler(NRows, NCols, pow(sin(rad(float(theta))),3.3));
       FinalArray += TempArray * Scaler;
     }
   }
@@ -8226,6 +8227,239 @@ void LSDRaster::rudimentary_nodata_fill()
   cout << "Done!" << endl;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This is a slightly more complex nodata filler
+// you should run the raster trimmer before invoking this
+// SMM
+// 09/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
+{
+  // check argument
+  if(window_width <1)
+  {
+    cout << "You need a positive window width, defaulting to 1" << endl;
+    window_width = 1;
+  }
+  
+  // This function loops in alternating directions until there is no more nodata
+  int NNoData = 0;
+  float this_window_sum;
+  float local_average;
+  int this_window_ndata;
+  int window_row, window_col;
+  
+  // set up data to be 
+  Array2D<float> this_sweep_data = RasterData.copy();;
+  Array2D<float> updated_raster;
+  
+  // set the sweep number to 0
+  int nsweep = 0;
+  
+  do
+  {
+    // reset the number of nodata points in this sweep to zero
+    NNoData = 0;
+    
+    // copy over the updated raster
+    updated_raster = this_sweep_data.copy();
+    
+    // now run a sweep
+    switch(nsweep%4)
+    {
+      case(0):
+      {
+        
+        // sweep 0
+        for (int row=0; row<NRows; ++row)
+        {
+          for(int col=0; col<NCols; ++col)
+          {
+            // if the node contains nodata, search the surrounding nodes
+            if(updated_raster[row][col] == NoDataValue)
+            {
+              NNoData++;
+              this_window_sum = 0;
+              this_window_ndata = 0;
+              for(int r = -window_width; r<=window_width; r++)
+              {
+                for(int c = -window_width; r<=window_width; r++)
+                {
+                  window_row = r+row;
+                  window_col = c+col;
+                  
+                  if(window_row > 0 && window_row < NRows-1 
+                     && window_col > 0 && window_col < NCols-1)
+                  {
+                    if(updated_raster[window_row][window_col] != NoDataValue)
+                    {
+                      this_window_sum += updated_raster[window_row][window_col];
+                      this_window_ndata += 1;
+                    }
+                  }
+                }
+              }
+              
+              // now get the average
+              if(this_window_ndata<0)
+              {
+                local_average = this_window_sum/float(this_window_ndata );
+                this_sweep_data[row][col] = local_average;  
+              }
+            }
+          }
+        }
+      }
+      case(1):
+      {
+        // sweep 1
+        for (int col=0; col<NCols; ++col)
+        {
+          for(int row=0; row<NRows; ++row)
+          {
+            // if the node contains nodata, search the surrounding nodes
+            if(updated_raster[row][col] == NoDataValue)
+            {
+              NNoData++;
+              this_window_sum = 0;
+              this_window_ndata = 0;
+              for(int r = -window_width; r<=window_width; r++)
+              {
+                for(int c = -window_width; r<=window_width; r++)
+                {
+                  window_row = r+row;
+                  window_col = c+col;
+                  
+                  if(window_row > 0 && window_row < NRows-1 && window_col > 0 && window_col < NCols-1)
+                  {
+                    if(updated_raster[window_row][window_col] != NoDataValue)
+                    {
+                      this_window_sum += updated_raster[window_row][window_col];
+                      this_window_ndata += 1;
+                    }
+                  }
+                }
+              }
+              
+              // now get the average
+              if(this_window_ndata<0)
+              {
+                local_average = this_window_sum/float(this_window_ndata );
+                this_sweep_data[row][col] = local_average;  
+              }
+            }
+          }
+        }
+      }
+      case(2):
+      {
+        // sweep 2
+        for (int row=0; row<NRows; ++row)
+        {
+          for(int col=NCols-1; col>0; --col)
+          {
+            // if the node contains nodata, search the surrounding nodes
+            if(updated_raster[row][col] == NoDataValue)
+            {
+              NNoData++;
+              this_window_sum = 0;
+              this_window_ndata = 0;
+              for(int r = -window_width; r<=window_width; r++)
+              {
+                for(int c = -window_width; r<=window_width; r++)
+                {
+                  window_row = r+row;
+                  window_col = c+col;
+                  
+                  if(window_row > 0 && window_row < NRows-1 && window_col > 0 && window_col < NCols-1)
+                  {
+                    if(updated_raster[window_row][window_col] != NoDataValue)
+                    {
+                      this_window_sum += updated_raster[window_row][window_col];
+                      this_window_ndata += 1;
+                    }
+                  }
+                }
+              }
+              
+              // now get the average
+              if(this_window_ndata<0)
+              {
+                local_average = this_window_sum/float(this_window_ndata );
+                this_sweep_data[row][col] = local_average;  
+              }
+            }
+          }
+        }        
+      }
+      case(3):
+      {
+        // sweep 3
+        for (int col=0; col<NCols; ++col)
+        {
+          for(int row=NRows-1; row>0; --row)
+          {
+            // if the node contains nodata, search the surrounding nodes
+            if(updated_raster[row][col] == NoDataValue)
+            {
+              NNoData++;
+              this_window_sum = 0;
+              this_window_ndata = 0;
+              for(int r = -window_width; r<=window_width; r++)
+              {
+                for(int c = -window_width; r<=window_width; r++)
+                {
+                  window_row = r+row;
+                  window_col = c+col;
+                  
+                  if(window_row > 0 && window_row < NRows-1 && window_col > 0 && window_col < NCols-1)
+                  {
+                    if(updated_raster[window_row][window_col] != NoDataValue)
+                    {
+                      this_window_sum += updated_raster[window_row][window_col];
+                      this_window_ndata += 1;
+                    }
+                  }
+                }
+              }
+              
+              // now get the average
+              if(this_window_ndata<0)
+              {
+                local_average = this_window_sum/float(this_window_ndata );
+                this_sweep_data[row][col] = local_average;  
+              }
+            }
+          }
+        }        
+      }    
+    }
+    
+    // increment the sweep number
+    nsweep++;
+
+  } while(NNoData > 0);
+  
+  
+  LSDRaster Hole_filled_Raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                         int(NoDataValue),this_sweep_data,GeoReferencingStrings);
+  return Hole_filled_Raster;
+
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Same as above but trims the data
+// SMM
+// 09/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_width)
+{
+  LSDRaster Trimmed_raster = RasterTrimmerSpiral();
+  LSDRaster nodata_filled = Trimmed_raster.alternating_direction_nodata_fill(window_width);
+  return nodata_filled;
+}
 
 
 
