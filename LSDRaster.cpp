@@ -8237,6 +8237,8 @@ void LSDRaster::rudimentary_nodata_fill()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
 {
+  
+
   // check argument
   if(window_width <1)
   {
@@ -8500,9 +8502,16 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
 LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_width)
 {
   cout << "Starting nodata filling by trimming the raster" << endl;
+  
+  // first remove the seas
+  remove_seas();
+
+  // now trim the raster << endl;
   LSDRaster Trimmed_raster = RasterTrimmerSpiral();
   cout << "I've trimmed the raster" << endl;
   LSDRaster nodata_filled = Trimmed_raster.alternating_direction_nodata_fill(window_width);
+  cout << "Trimmed raster dimensions are rows: " << nodata_filled.get_NRows()
+       << " and cols: " << nodata_filled.get_NCols() << endl;
   return nodata_filled;
 }
 
