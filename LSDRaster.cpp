@@ -8244,6 +8244,8 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
     window_width = 1;
   }
   
+  cout << "Sweeping nodata, window width is: " << window_width << endl;
+
   // This function loops in alternating directions until there is no more nodata
   int NNoData = 0;
   float this_window_sum;
@@ -8262,13 +8264,29 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
   {
     // reset the number of nodata points in this sweep to zero
     NNoData = 0;
+
+    cout << "LINE 8268, Sweep number: " << nsweep << endl;
+    cout << "Line 8275, switch is: " << nsweep%4 << endl;
     
     // copy over the updated raster
     updated_raster = this_sweep_data.copy();
-    
+ 
+   int begin_ndv = 0;
+    for(int row = 0; row<NRows; row++)
+      {
+	for(int col = 0; col <NCols; col++)
+	  {
+	    if( updated_raster[row][col] == NoDataValue)
+	      {
+		begin_ndv++;
+	      }
+	  }
+        }
+    cout << "Line 8285, the updated raster has " << begin_ndv << " no data nodes " << endl;
+   
     // now run a sweep
     switch(nsweep%4)
-    {
+    {     
       case(0):
       {
         
@@ -8283,16 +8301,20 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
               NNoData++;
               this_window_sum = 0;
               this_window_ndata = 0;
+
+              //cout << "Row: " << row << " col: " << col << endl;
               for(int r = -window_width; r<=window_width; r++)
               {
-                for(int c = -window_width; r<=window_width; r++)
+                for(int c = -window_width; c<=window_width; c++)
                 {
                   window_row = r+row;
                   window_col = c+col;
                   
+                  
                   if(window_row > 0 && window_row < NRows-1 
                      && window_col > 0 && window_col < NCols-1)
                   {
+		    //cout << "wr: " << window_row << " wc: " << window_col << " data: " << updated_raster[window_row][window_col] << endl;
                     if(updated_raster[window_row][window_col] != NoDataValue)
                     {
                       this_window_sum += updated_raster[window_row][window_col];
@@ -8303,14 +8325,16 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
               }
               
               // now get the average
-              if(this_window_ndata<0)
+              if(this_window_ndata>0)
               {
+                //cout << "Found a nodata replacement" << endl;
                 local_average = this_window_sum/float(this_window_ndata );
                 this_sweep_data[row][col] = local_average;  
               }
             }
           }
         }
+        break;
       }
       case(1):
       {
@@ -8327,7 +8351,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
               this_window_ndata = 0;
               for(int r = -window_width; r<=window_width; r++)
               {
-                for(int c = -window_width; r<=window_width; r++)
+                for(int c = -window_width; c<=window_width; c++)
                 {
                   window_row = r+row;
                   window_col = c+col;
@@ -8344,7 +8368,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
               }
               
               // now get the average
-              if(this_window_ndata<0)
+              if(this_window_ndata>0)
               {
                 local_average = this_window_sum/float(this_window_ndata );
                 this_sweep_data[row][col] = local_average;  
@@ -8352,6 +8376,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
             }
           }
         }
+	break;
       }
       case(2):
       {
@@ -8368,7 +8393,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
               this_window_ndata = 0;
               for(int r = -window_width; r<=window_width; r++)
               {
-                for(int c = -window_width; r<=window_width; r++)
+                for(int c = -window_width; c<=window_width; c++)
                 {
                   window_row = r+row;
                   window_col = c+col;
@@ -8385,14 +8410,15 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
               }
               
               // now get the average
-              if(this_window_ndata<0)
+              if(this_window_ndata>0)
               {
                 local_average = this_window_sum/float(this_window_ndata );
                 this_sweep_data[row][col] = local_average;  
               }
             }
           }
-        }        
+        }
+        break;        
       }
       case(3):
       {
@@ -8409,7 +8435,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
               this_window_ndata = 0;
               for(int r = -window_width; r<=window_width; r++)
               {
-                for(int c = -window_width; r<=window_width; r++)
+                for(int c = -window_width; c<=window_width; c++)
                 {
                   window_row = r+row;
                   window_col = c+col;
@@ -8426,7 +8452,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
               }
               
               // now get the average
-              if(this_window_ndata<0)
+              if(this_window_ndata>0)
               {
                 local_average = this_window_sum/float(this_window_ndata );
                 this_sweep_data[row][col] = local_average;  
@@ -8434,9 +8460,26 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
             }
           }
         }        
-      }    
+      }
+      break;    
     }
+
+    int test_ndv = 0;
+    for(int row = 0; row<NRows; row++)
+      {
+	for(int col = 0; col <NCols; col++)
+	  {
+	    if( this_sweep_data[row][col] == NoDataValue)
+	      {
+		test_ndv++;
+	      }
+	  }
+        }
+
+	cout << "Line 8452, testing ndv = " << test_ndv<< endl; 
+      
     
+    cout << "Line 8445, number of nodata nodes: " << NNoData << endl;
     // increment the sweep number
     nsweep++;
 
@@ -8456,7 +8499,9 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_width)
 {
+  cout << "Starting nodata filling by trimming the raster" << endl;
   LSDRaster Trimmed_raster = RasterTrimmerSpiral();
+  cout << "I've trimmed the raster" << endl;
   LSDRaster nodata_filled = Trimmed_raster.alternating_direction_nodata_fill(window_width);
   return nodata_filled;
 }
