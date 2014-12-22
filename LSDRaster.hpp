@@ -185,6 +185,15 @@ class LSDRaster
   /// @author SMM
   /// @date 01/01/12
   float get_data_element(int row, int column)  { return RasterData[row][column]; }
+  
+  /// @brief this gets the x and y location of a node at row and column
+  /// @param row the row of the node
+  /// @param col the column of the node
+  /// @param x_loc the x location (Northing) of the node
+  /// @param y_loc the y location (Easting) of the node
+  /// @author SMM
+  /// @date 22/12/2014
+  void get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc);
 
   /// Assignment operator.
   LSDRaster& operator=(const LSDRaster& LSDR);

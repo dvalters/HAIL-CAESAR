@@ -1002,6 +1002,22 @@ void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
+// This function returns the x and y location of a row and column
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc)
+{
+  
+  x_loc = XMinimum + float(this_col)*DataResolution + 0.5*DataResolution;
+    
+  // Slightly different logic for y because the DEM starts from the top corner
+  y_loc = YMinimum + float(NRows-this_row)*DataResolution - 0.5*DataResolution;
+
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
 // This is a utility function to find the central meridian of a UTM zone
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
