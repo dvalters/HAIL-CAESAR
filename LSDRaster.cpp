@@ -1004,14 +1004,13 @@ void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
 // This function returns the x and y location of a row and column
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc, 
-                                      LSDCoordinateConverterLLandUTM& Converter)
+void LSDRaster::get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc)
 {
   
-  x_loc = XMinimum + float(this_col)*DataResolution + 0.5*DataResolution;
+  x_loc = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
     
   // Slightly different logic for y because the DEM starts from the top corner
-  y_loc = YMinimum + float(NRows-this_row)*DataResolution - 0.5*DataResolution;
+  y_loc = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1022,8 +1021,8 @@ void LSDRaster::get_x_and_y_locations(int row, int col, float& x_loc, float& y_l
 // and long coordinate
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::get_lat_and_long_locations(int row, int col, float& lat, float& long, 
-                                      LSDCoordinateConverterLLandUTM& Converter)
+void LSDRaster::get_lat_and_long_locations(int row, int col, float& lat, 
+                   float& longitude, LSDCoordinateConverterLLandUTM Converter)
 {
   // get the x and y locations of the node
   float x_loc,y_loc;
@@ -1034,20 +1033,28 @@ void LSDRaster::get_lat_and_long_locations(int row, int col, float& lat, float& 
   bool is_North;
   get_UTM_information(UTM_zone, is_North);
   
-  // set the default ellipsoid to WGS84
-  int eId = 22;
+  if(UTM_zone == NoDataValue)
+  {
+    lat = NoDataValue;
+    longitude = NoDataValue;
+  }
+  else
+  {
+    // set the default ellipsoid to WGS84
+    int eId = 22;
   
-  double xld = double(x_loc);
-  double yld = double(y_loc);
+    double xld = double(x_loc);
+    double yld = double(y_loc);
   
-  // use the converter to convert to lat and long
-  double Lat,Long;
-  Converter.UTMtoLL(eId, yld, xld, UTM_one, Lat, Long);
-  float Lat_float = float(Lat);
-  float Long_float = float(Long);           
+    // use the converter to convert to lat and long
+    double Lat,Long;
+    Converter.UTMtoLL(eId, yld, xld, UTM_zone, Lat, Long);
+    float Lat_float = float(Lat);
+    float Long_float = float(Long);           
   
-  lat = Lat_float;
-  long = Long_float;
+    lat = Lat_float;
+    longitude = Long_float;
+  }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1061,12 +1068,15 @@ void LSDRaster::get_lat_and_long_locations(int row, int col, float& lat, float& 
 void LSDRaster::get_UTM_information(int& UTM_zone, bool& is_North)
 {
 
+  // set up strings and iterators
+  map<string,string>::iterator iter;
+
   //check to see if there is already a map info string
   string mi_key = "ENVI_map_info";
   iter = GeoReferencingStrings.find(mi_key);
   if (iter != GeoReferencingStrings.end() )
   {
-    GeoReferencingStrings[mi_key] = info_str;
+    string info_str = GeoReferencingStrings[mi_key] ;
 
     // now parse the string
     vector<string> mapinfo_strings;
@@ -1085,12 +1095,12 @@ void LSDRaster::get_UTM_information(int& UTM_zone, bool& is_North)
     string n_str = "n";
     string N_str = "N";
     is_North = false;
-    size_t found = str.find(N_str);
+    size_t found = mapinfo_strings[8].find(N_str);
     if (found!=std::string::npos)
     {
       is_North = true;
     }
-    size_t found = str.find(n_str);
+    found = mapinfo_strings[8].find(n_str);
     if (found!=std::string::npos)
     {
       is_North = true;

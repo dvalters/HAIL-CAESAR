@@ -196,9 +196,7 @@ class LSDCoordinateConverterLLandUTM
   public:
     // default constructor. This sets up the data elements. 
     LSDCoordinateConverterLLandUTM()     { create(); }
-  
-  protected:
-  
+
     /// @brief converts LatLong to UTM coords
     /// 3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
     /// @param eID the ellipsoid ID. Options are:
@@ -281,7 +279,9 @@ class LSDCoordinateConverterLLandUTM
     /// to get acceptable accuracy a large table is needed -- see NADCON, NTv2...
     void DatumConvert(int dIn, double LatIn, double LongIn, double HtIn, 
                   int dTo,  double& LatTo, double& LongTo, double& HtTo);
-
+  
+  protected:
+  
     /// @brief a vector holding the ellipsoids
     vector<LSDEllipsoid> Ellipsoids;
     

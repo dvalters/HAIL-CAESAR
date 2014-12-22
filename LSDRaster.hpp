@@ -102,6 +102,7 @@ Tools are included to:
 #include <map>
 #include "TNT/tnt.h"
 #include "LSDIndexRaster.hpp"
+#include "LSDShapeTools.hpp"
 using namespace std;
 using namespace TNT;
 
@@ -296,8 +297,8 @@ class LSDRaster
   /// @param Converter a converter object (from LSDShapeTools)
   /// @author SMM
   /// @date 22/12/2014
-  void get_lat_and_long_locations(int row, int col, float& lat, float& long, 
-                                      LSDCoordinateConverterLLandUTM& Converter);
+  void get_lat_and_long_locations(int row, int col, float& lat, 
+                  float& longitude, LSDCoordinateConverterLLandUTM Converter);
 
   /// @brief this check to see if a point is within the raster
   /// @param X_coordinate the x location of the point
