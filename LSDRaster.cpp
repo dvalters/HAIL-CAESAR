@@ -219,67 +219,66 @@ void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::read_raster(string filename, string extension)
 {
-	string string_filename;
-	string dot = ".";
-	string_filename = filename+dot+extension;
-	cout << "\n\nLoading an LSDRaster, the filename is " << string_filename << endl;
+  string string_filename;
+  string dot = ".";
+  string_filename = filename+dot+extension;
+  cout << "\n\nLoading an LSDRaster, the filename is " << string_filename << endl;
 
+  if (extension == "asc")
+  {
+    // open the data file
+    ifstream data_in(string_filename.c_str());
 
-	if (extension == "asc")
-	{
-		// open the data file
-		ifstream data_in(string_filename.c_str());
+    //Read in raster data
+    string str;			// a temporary string for discarding text
 
-		//Read in raster data
-		string str;			// a temporary string for discarding text
-
-		// read the georeferencing data and metadata
-		data_in >> str >> NCols;
+    // read the georeferencing data and metadata
+    data_in >> str >> NCols;
                 cout << "NCols: " << NCols << " str: " << endl;
-		data_in >> str >> NRows;
-		cout << "NRows: " << NRows << " str: " << endl;
-		data_in	>> str >> XMinimum >> str >> YMinimum
-		   		>> str >> DataResolution
-			    >> str >> NoDataValue;
+    data_in >> str >> NRows;
+    cout << "NRows: " << NRows << " str: " << endl;
+    data_in >> str >> XMinimum >> str >> YMinimum
+          >> str >> DataResolution
+          >> str >> NoDataValue;
 
-		cout << "Loading asc file; NCols: " << NCols << " NRows: " << NRows << endl
-		     << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
-		     << "Data Resolution: " << DataResolution << " and No Data Value: "
-		     << NoDataValue << endl;
+    cout << "Loading asc file; NCols: " << NCols << " NRows: " << NRows << endl
+         << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+         << "Data Resolution: " << DataResolution << " and No Data Value: "
+         << NoDataValue << endl;
 
-		// this is the array into which data is fed
-		Array2D<float> data(NRows,NCols,NoDataValue);
+    // this is the array into which data is fed
+    Array2D<float> data(NRows,NCols,NoDataValue);
 
-		// read the data
-		for (int i=0; i<NRows; ++i)
-		{
-			for (int j=0; j<NCols; ++j)
-			{
-				data_in >> data[i][j];
-			}
-		}
-		data_in.close();
+    // read the data
+    for (int i=0; i<NRows; ++i)
+    {
+    	for (int j=0; j<NCols; ++j)
+    	{
+        data_in >> data[i][j];
+    	}
+    }
+    data_in.close();
 
-		// now update the objects raster data
-		RasterData = data.copy();
+    // now update the objects raster data
+    RasterData = data.copy();
 	}
 	else if (extension == "flt")
 	{
-		// float data (a binary format created by ArcMap) has a header file
-		// this file must be opened first
-		string header_filename;
-		string header_extension = "hdr";
-		header_filename = filename+dot+header_extension;
+    // float data (a binary format created by ArcMap) has a header file
+    // this file must be opened first
+    string header_filename;
+    string header_extension = "hdr";
+    header_filename = filename+dot+header_extension;
 
-		ifstream ifs(header_filename.c_str());
-		if( ifs.fail() )
-		{
-			cout << "\nFATAL ERROR: the header file \"" << header_filename
-				 << "\" doesn't exist" << std::endl;
-			exit(EXIT_FAILURE);
-		}
-		else
-		{
+    ifstream ifs(header_filename.c_str());
+    if( ifs.fail() )
+    {
+    	cout << "\nFATAL ERROR: the header file \"" << header_filename
+         << "\" doesn't exist" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    else
+    {
 			string str;
 			ifs >> str >> NCols;
 			//cout << "NCols: " << NCols << " str: " << endl;
@@ -481,37 +480,37 @@ void LSDRaster::read_raster(string filename, string extension)
           if (found!=string::npos)
           {
             //cout << "Found map info on line " << counter << '\n';  
-	    
-	          // now split the line 
-	          size_t start_pos;
-	          size_t end_pos;
-	          string open_curly_bracket = "{";
-	          string closed_curly_bracket = "}";
-	          start_pos = lines[counter].find(open_curly_bracket);
-	          end_pos = lines[counter].find(closed_curly_bracket);
-	          //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
-	          string info_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
-	          //cout << "\nThe map info string is:\n" << info_str << endl;
-	          string mi_key = "ENVI_map_info";
-	          GeoReferencingStrings[mi_key] = info_str;
+      
+            // now split the line 
+            size_t start_pos;
+            size_t end_pos;
+            string open_curly_bracket = "{";
+            string closed_curly_bracket = "}";
+            start_pos = lines[counter].find(open_curly_bracket);
+            end_pos = lines[counter].find(closed_curly_bracket);
+            //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+            string info_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
+            //cout << "\nThe map info string is:\n" << info_str << endl;
+            string mi_key = "ENVI_map_info";
+            GeoReferencingStrings[mi_key] = info_str;
 
-	          // now parse the string
-	          vector<string> mapinfo_strings;
-	          istringstream iss(info_str);
-	          while( iss.good() )
-	          {
-	            string substr;
-	            getline( iss, substr, ',' );
-	            mapinfo_strings.push_back( substr );
-	          }
-	          XMinimum = atof(mapinfo_strings[3].c_str());	          	          
-	          float YMax = atof(mapinfo_strings[4].c_str());
-	          	       	   	          
-	          DataResolution = atof(mapinfo_strings[5].c_str());
+            // now parse the string
+            vector<string> mapinfo_strings;
+            istringstream iss(info_str);
+            while( iss.good() )
+            {
+              string substr;
+              getline( iss, substr, ',' );
+              mapinfo_strings.push_back( substr );
+            }
+            XMinimum = atof(mapinfo_strings[3].c_str());	          	          
+            float YMax = atof(mapinfo_strings[4].c_str());
+            	       	   	          
+            DataResolution = atof(mapinfo_strings[5].c_str());
             
             // get Y minium
             YMinimum = YMax - NRows*DataResolution;	          
-	          
+            
 	          //using a string comparison as float(X) != float(X) in many cases due to floating point math
 	          // http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm  - SWDG	          
 	          if (mapinfo_strings[5] != mapinfo_strings[6]) 
@@ -1012,9 +1011,60 @@ void LSDRaster::get_x_and_y_locations(int row, int col, float& x_loc, float& y_l
     
   // Slightly different logic for y because the DEM starts from the top corner
   y_loc = YMinimum + float(NRows-this_row)*DataResolution - 0.5*DataResolution;
-
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This function gets the UTM zone
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::get_UTM_information(int& UTM_zone, bool& is_North)
+{
+
+  //check to see if there is already a map info string
+  string mi_key = "ENVI_map_info";
+  iter = GeoReferencingStrings.find(mi_key);
+  if (iter != GeoReferencingStrings.end() )
+  {
+    GeoReferencingStrings[mi_key] = info_str;
+
+    // now parse the string
+    vector<string> mapinfo_strings;
+    istringstream iss(info_str);
+    while( iss.good() )
+    {
+      string substr;
+      getline( iss, substr, ',' );
+      mapinfo_strings.push_back( substr );
+    }
+    UTM_zone = atoi(mapinfo_strings[7].c_str());
+    cout << "Line 1041, UTM zone: " << UTM_zone << endl;
+    cout << "LINE 1042 LSDRaster, N or S: " << mapinfo_strings[7] << endl;
+    
+    // find if the zone is in the north
+    string n_str = "n";
+    string N_str = "N";
+    is_North = false;
+    size_t found = str.find(N_str);
+    if (found!=std::string::npos)
+    {
+      is_North = true;
+    }
+    size_t found = str.find(n_str);
+    if (found!=std::string::npos)
+    {
+      is_North = true;
+    }
+    cout << "is_North is: " << is_North << endl;
+        
+  }
+  else
+  {
+    UTM_zone = NoDataValue;
+    is_North = false;
+  }
+  
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
