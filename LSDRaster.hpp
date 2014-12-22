@@ -185,15 +185,6 @@ class LSDRaster
   /// @author SMM
   /// @date 01/01/12
   float get_data_element(int row, int column)  { return RasterData[row][column]; }
-  
-  /// @brief this gets the x and y location of a node at row and column
-  /// @param row the row of the node
-  /// @param col the column of the node
-  /// @param x_loc the x location (Northing) of the node
-  /// @param y_loc the y location (Easting) of the node
-  /// @author SMM
-  /// @date 22/12/2014
-  void get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc);
 
   /// Assignment operator.
   LSDRaster& operator=(const LSDRaster& LSDR);
@@ -278,7 +269,6 @@ class LSDRaster
   /// @date 6/11/14
   int Find_UTM_central_meridian(int UTM_zone);
   
-  
   /// @brief this function gets the UTM_zone and a boolean that is true if
   /// the map is in the northern hemisphere
   /// @param UTM_zone the UTM zone. Replaced in function. 
@@ -287,6 +277,27 @@ class LSDRaster
   /// @author SMM
   /// @date 22/12/2014
   void get_UTM_information(int& UTM_zone, bool& is_North);
+
+  /// @brief this gets the x and y location of a node at row and column
+  /// @param row the row of the node
+  /// @param col the column of the node
+  /// @param x_loc the x location (Northing) of the node
+  /// @param y_loc the y location (Easting) of the node
+  /// @author SMM
+  /// @date 22/12/2014
+  void get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc);
+
+  /// @brief a function to get the lat and long of a node in the raster
+  /// @detail Assumes WGS84 ellipsiod
+  /// @param row the row of the node
+  /// @param col the col of the node
+  /// @param lat the latitude of the node (in decimal degrees, replaced by function)
+  /// @param long the longitude of the node (in decimal degrees, replaced by function)
+  /// @param Converter a converter object (from LSDShapeTools)
+  /// @author SMM
+  /// @date 22/12/2014
+  void get_lat_and_long_locations(int row, int col, float& lat, float& long, 
+                                      LSDCoordinateConverterLLandUTM& Converter);
 
   /// @brief this check to see if a point is within the raster
   /// @param X_coordinate the x location of the point
