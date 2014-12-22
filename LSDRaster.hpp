@@ -277,6 +277,16 @@ class LSDRaster
   /// @author SMM
   /// @date 6/11/14
   int Find_UTM_central_meridian(int UTM_zone);
+  
+  
+  /// @brief this function gets the UTM_zone and a boolean that is true if
+  /// the map is in the northern hemisphere
+  /// @param UTM_zone the UTM zone. Replaced in function. 
+  /// @param is_North a boolean that is true if the DEM is in the northern hemisphere.
+  ///  replaced in function
+  /// @author SMM
+  /// @date 22/12/2014
+  void get_UTM_information(int& UTM_zone, bool& is_North);
 
   /// @brief this check to see if a point is within the raster
   /// @param X_coordinate the x location of the point
