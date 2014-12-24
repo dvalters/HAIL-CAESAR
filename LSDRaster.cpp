@@ -1048,7 +1048,7 @@ void LSDRaster::get_lat_and_long_locations(int row, int col, float& lat,
   
     // use the converter to convert to lat and long
     double Lat,Long;
-    Converter.UTMtoLL(eId, yld, xld, UTM_zone, Lat, Long);
+    Converter.UTMtoLL(eId, yld, xld, UTM_zone, is_North, Lat, Long);
     float Lat_float = float(Lat);
     float Long_float = float(Long);           
   

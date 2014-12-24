@@ -262,13 +262,14 @@ class LSDCoordinateConverterLLandUTM
     /// @param Northing in metres. 
     /// @param Easting in metres. 
     /// @param Zone the UTM zone. 
+    /// @param isNorth is a boolean that states if the map is in the northern hemisphere
     /// @param Lat the latitude in decimal degrees. 
     ///  This argument is replaced by the function
     /// @param Long the longitude in decimal degrees
     ///  This argument is replaced by the function
     /// @author SMM, modified from Chuck Gantz
     /// @date 07/12/2014
-    void UTMtoLL(int eId, double Northing, double Easting, int Zone,  
+    void UTMtoLL(int eId, double Northing, double Easting, int Zone, bool isNorth,  
              double& Lat, double& Long);
 
     /// @brief converts LatLongHt in datum dIn, to LatLongHt in datum dTo;  
@@ -287,7 +288,34 @@ class LSDCoordinateConverterLLandUTM
     
     /// @brief a vectro holding the datums
     vector<LSDDatum> Datums;
-  
+
+    double RADIANS_PER_DEGREE;
+    double DEGREES_PER_RADIAN;
+
+    /** Useful constants **/
+    double TWOPI;
+    double HALFPI;
+
+    // Grid granularity for rounding UTM coordinates to generate MapXY.
+    double grid_size;    // 100 km grid
+
+    // WGS84 Parameters
+    double WGS84_A;                     // major axis
+    double WGS84_B;                     // minor axis
+    double WGS84_F;                     // ellipsoid flattening
+    double WGS84_E;                     // first eccentricity
+    double WGS84_EP;                    // second eccentricity
+
+    // UTM Parameters
+    double UTM_K0;              // scale factor
+    double UTM_FE;              // false easting
+    double UTM_FN_N;            // false northing, northern hemisphere
+    double UTM_FN_S;            // false northing, southern hemisphere
+    double UTM_E2;              // e^2
+    double UTM_E4;              // e^4
+    double UTM_E6;              // e^6
+    double UTM_EP2;             // e'^2
+
   private:
   
     /// @brief This create function sets up the data membeers that hold the
