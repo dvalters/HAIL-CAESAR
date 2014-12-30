@@ -939,6 +939,8 @@ void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,
   Northing = UTMNorthing;
   Easting = UTMEasting;
 /*
+
+
    const double k0 = 0.9996;
    double a = Ellipsoids[eId].EquatorialRadius;
    double ee= Ellipsoids[eId].eccSquared;
@@ -1006,7 +1008,7 @@ void LSDCoordinateConverterLLandUTM::UTMtoLL(int eId, double UTMNorthing, double
   ZoneNumber = UTMZone;
   if(not isNorth)
   {
-    cout << "Line 1010, you are in the Southern hemisphere!"<< endl;
+    //cout << "Line 1010, you are in the Southern hemisphere!"<< endl;
     //remove 10,000,000 meter offset used for southern hemisphere
     y -= 10000000.0;
   }

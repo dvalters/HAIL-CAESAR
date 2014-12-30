@@ -293,12 +293,16 @@ class LSDRaster
   /// @param row the row of the node
   /// @param col the col of the node
   /// @param lat the latitude of the node (in decimal degrees, replaced by function)
+  ///  Note: this is a double, because a float does not have sufficient precision
+  ///  relative to a UTM location (which is in metres)
   /// @param long the longitude of the node (in decimal degrees, replaced by function)
+  ///  Note: this is a double, because a float does not have sufficient precision
+  ///  relative to a UTM location (which is in metres)
   /// @param Converter a converter object (from LSDShapeTools)
   /// @author SMM
   /// @date 22/12/2014
-  void get_lat_and_long_locations(int row, int col, float& lat, 
-                  float& longitude, LSDCoordinateConverterLLandUTM Converter);
+  void get_lat_and_long_locations(int row, int col, double& lat, 
+                  double& longitude, LSDCoordinateConverterLLandUTM Converter);
 
   /// @brief this check to see if a point is within the raster
   /// @param X_coordinate the x location of the point
