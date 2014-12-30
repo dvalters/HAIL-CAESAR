@@ -137,7 +137,7 @@ void LSDRaster::create()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::create(string filename, string extension)
 {
-	read_raster(filename,extension);
+  read_raster(filename,extension);
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -147,25 +147,25 @@ void LSDRaster::create(string filename, string extension)
 void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
             float cellsize, float ndv, Array2D<float> data)
 {
-	NRows = nrows;
-	NCols = ncols;
-	XMinimum = xmin;
-	YMinimum = ymin;
-	DataResolution = cellsize;
-	NoDataValue = ndv;
+  NRows = nrows;
+  NCols = ncols;
+  XMinimum = xmin;
+  YMinimum = ymin;
+  DataResolution = cellsize;
+  NoDataValue = ndv;
 
-	RasterData = data.copy();
+  RasterData = data.copy();
 
-	if (RasterData.dim1() != NRows)
-	{
-		cout << "LSDRaster line 89 dimension of data is not the same as stated in NRows!" << endl;
-		exit(EXIT_FAILURE);
-	}
-	if (RasterData.dim2() != NCols)
-	{
-		cout << "LSDRaster line 94 dimension of data is not the same as stated in NRows!" << endl;
-		exit(EXIT_FAILURE);
-	}
+  if (RasterData.dim1() != NRows)
+  {
+    cout << "LSDRaster line 89 dimension of data is not the same as stated in NRows!" << endl;
+    exit(EXIT_FAILURE);
+  }
+  if (RasterData.dim2() != NCols)
+  {
+    cout << "LSDRaster line 94 dimension of data is not the same as stated in NRows!" << endl;
+    exit(EXIT_FAILURE);
+  }
 
 }
 
@@ -174,28 +174,28 @@ void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
 // SMM 2012
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
-		       float cellsize, float ndv, Array2D<float> data, map<string,string> temp_GRS)
+           float cellsize, float ndv, Array2D<float> data, map<string,string> temp_GRS)
 {
-	NRows = nrows;
-	NCols = ncols;
-	XMinimum = xmin;
-	YMinimum = ymin;
-	DataResolution = cellsize;
-	NoDataValue = ndv;
-	GeoReferencingStrings = temp_GRS;
+  NRows = nrows;
+  NCols = ncols;
+  XMinimum = xmin;
+  YMinimum = ymin;
+  DataResolution = cellsize;
+  NoDataValue = ndv;
+  GeoReferencingStrings = temp_GRS;
 
-	RasterData = data.copy();
+  RasterData = data.copy();
 
-	if (RasterData.dim1() != NRows)
-	{
-		cout << "LSDRaster line 89 dimension of data is not the same as stated in NRows!" << endl;
-		exit(EXIT_FAILURE);
-	}
-	if (RasterData.dim2() != NCols)
-	{
-		cout << "LSDRaster line 94 dimension of data is not the same as stated in NRows!" << endl;
-		exit(EXIT_FAILURE);
-	}
+  if (RasterData.dim1() != NRows)
+  {
+    cout << "LSDRaster line 89 dimension of data is not the same as stated in NRows!" << endl;
+    exit(EXIT_FAILURE);
+  }
+  if (RasterData.dim2() != NCols)
+  {
+    cout << "LSDRaster line 94 dimension of data is not the same as stated in NRows!" << endl;
+    exit(EXIT_FAILURE);
+  }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -261,9 +261,9 @@ void LSDRaster::read_raster(string filename, string extension)
 
     // now update the objects raster data
     RasterData = data.copy();
-	}
-	else if (extension == "flt")
-	{
+  }
+  else if (extension == "flt")
+  {
     // float data (a binary format created by ArcMap) has a header file
     // this file must be opened first
     string header_filename;
@@ -279,74 +279,73 @@ void LSDRaster::read_raster(string filename, string extension)
     }
     else
     {
-			string str;
-			ifs >> str >> NCols;
-			//cout << "NCols: " << NCols << " str: " << endl;
-			ifs >> str >> NRows;
-			//cout << "NRows: " << NRows << " str: " << endl;
-			ifs	>> str >> XMinimum >> str >> YMinimum
-				>> str >> DataResolution
-				>> str >> NoDataValue;
-		}
-		ifs.close();
+      string str;
+      ifs >> str >> NCols;
+      //cout << "NCols: " << NCols << " str: " << endl;
+      ifs >> str >> NRows;
+      //cout << "NRows: " << NRows << " str: " << endl;
+      ifs >> str >> XMinimum >> str >> YMinimum
+          >> str >> DataResolution
+          >> str >> NoDataValue;
+    }
+    ifs.close();
 
-		cout << "Loading flt file; NCols: " << NCols << " NRows: " << NRows << endl
-			 << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
-		     << "Data Resolution: " << DataResolution << " and No Data Value: "
-		     << NoDataValue << endl;
+    cout << "Loading flt file; NCols: " << NCols << " NRows: " << NRows << endl
+         << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+         << "Data Resolution: " << DataResolution << " and No Data Value: "
+         << NoDataValue << endl;
 
-		// this is the array into which data is fed
-		Array2D<float> data(NRows,NCols,NoDataValue);
+    // this is the array into which data is fed
+    Array2D<float> data(NRows,NCols,NoDataValue);
 
-		// now read the DEM, using the binary stream option
-		ifstream ifs_data(string_filename.c_str(), ios::in | ios::binary);
-		if( ifs_data.fail() )
-		{
-			cout << "\nFATAL ERROR: the data file \"" << string_filename
-			     << "\" doesn't exist" << endl;
-			exit(EXIT_FAILURE);
-		}
-		else
-		{
-			float temp;
-			for (int i=0; i<NRows; ++i)
-			{
-				for (int j=0; j<NCols; ++j)
-				{
-					ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
-					data[i][j] = float(temp);
-				}
-			}
-		}
-		ifs_data.close();
+    // now read the DEM, using the binary stream option
+    ifstream ifs_data(string_filename.c_str(), ios::in | ios::binary);
+    if( ifs_data.fail() )
+    {
+      cout << "\nFATAL ERROR: the data file \"" << string_filename
+           << "\" doesn't exist" << endl;
+      exit(EXIT_FAILURE);
+    }
+    else
+    {
+    	float temp;
+    	for (int i=0; i<NRows; ++i)
+    	{
+        for (int j=0; j<NCols; ++j)
+        {
+        	ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+        	data[i][j] = float(temp);
+        }
+    	}
+    }
+    ifs_data.close();
 
-		// now update the objects raster data
-		RasterData = data.copy();
-	}
-	else if (extension == "bil")
-	{
-		// float data (a binary format created by ArcMap) has a header file
-		// this file must be opened first
-		string header_filename;
-		string header_extension = "hdr";
-		header_filename = filename+dot+header_extension;
-		int NoDataExists = 0;
-		int DataType = 4;     // default is float data
+    // now update the objects raster data
+    RasterData = data.copy();
+  }
+  else if (extension == "bil")
+  {
+    // float data (a binary format created by ArcMap) has a header file
+    // this file must be opened first
+    string header_filename;
+    string header_extension = "hdr";
+    header_filename = filename+dot+header_extension;
+    int NoDataExists = 0;
+    int DataType = 4;     // default is float data
 
-		ifstream ifs(header_filename.c_str());
-		if( ifs.fail() )
-		{
-			cout << "\nFATAL ERROR: the header file \"" << header_filename
-				 << "\" doesn't exist" << std::endl;
-			exit(EXIT_FAILURE);
-		}
-		else
-		{
-				  
-			string str;
-			ifs >> str;
-			if (str != "ENVI")
-			{
+    ifstream ifs(header_filename.c_str());
+    if( ifs.fail() )
+    {
+      cout << "\nFATAL ERROR: the header file \"" << header_filename
+           << "\" doesn't exist" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    else
+    {  
+      string str;
+      ifs >> str;
+      if (str != "ENVI")
+      {
         cout << "\nFATAL ERROR: this is not an ENVI header file!, first line is: " 
              << str << endl;
         exit(EXIT_FAILURE);       
@@ -511,14 +510,14 @@ void LSDRaster::read_raster(string filename, string extension)
             // get Y minium
             YMinimum = YMax - NRows*DataResolution;	          
             
-	          //using a string comparison as float(X) != float(X) in many cases due to floating point math
-	          // http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm  - SWDG	          
-	          if (mapinfo_strings[5] != mapinfo_strings[6]) 
-	          {
-	            cout << "Warning! Loading ENVI DEM, but X and Y data spacing are different!" << endl;
-	          }
+            //using a string comparison as float(X) != float(X) in many cases due to floating point math
+            // http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm  - SWDG	          
+            if (mapinfo_strings[5] != mapinfo_strings[6]) 
+            {
+              cout << "Warning! Loading ENVI DEM, but X and Y data spacing are different!" << endl;
+            }
 
-	          //cout << "Xmin: " << XMinimum << " YMin: " << YMinimum << " spacing: " 
+            //cout << "Xmin: " << XMinimum << " YMin: " << YMinimum << " spacing: " 
             //     << DataResolution << endl;
 
             counter = lines.size();
@@ -540,18 +539,18 @@ void LSDRaster::read_raster(string filename, string extension)
           {
             //cout << "Found coordinate system string on line " << counter << '\n';  
 
-	          // now split the line 
-	          size_t start_pos;
-	          size_t end_pos;
-	          string open_curly_bracket = "{";
-	          string closed_curly_bracket = "}";
-	          start_pos = lines[counter].find(open_curly_bracket);
-	          end_pos = lines[counter].find(closed_curly_bracket);
-	          //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
-	          string csys_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
-	          //cout << "\nThe coordinate system string is:\n" << csys_str << endl;
-	          string cs_key = "ENVI_coordinate_system";
-	          GeoReferencingStrings[cs_key] = csys_str;
+            // now split the line 
+            size_t start_pos;
+            size_t end_pos;
+            string open_curly_bracket = "{";
+            string closed_curly_bracket = "}";
+            start_pos = lines[counter].find(open_curly_bracket);
+            end_pos = lines[counter].find(closed_curly_bracket);
+            //cout << "startpos: " << start_pos << " and end pos: " << end_pos << endl;
+            string csys_str = lines[counter].substr(start_pos+1, end_pos-start_pos-1);
+            //cout << "\nThe coordinate system string is:\n" << csys_str << endl;
+            string cs_key = "ENVI_coordinate_system";
+            GeoReferencingStrings[cs_key] = csys_str;
             counter = lines.size();
           }
           else
@@ -560,27 +559,27 @@ void LSDRaster::read_raster(string filename, string extension)
           }
         }          
       }         
-		}
-		ifs.close(); 
+    }
+    ifs.close(); 
      
-		// this is the array into which data is fed
-		if (NoDataExists == 0)
-		{
+    // this is the array into which data is fed
+    if (NoDataExists == 0)
+    {
       NoDataValue = -9999;
     }
-		//bool set_NDV = false;
-		Array2D<float> data(NRows,NCols,NoDataValue);
+    //bool set_NDV = false;
+    Array2D<float> data(NRows,NCols,NoDataValue);
 
-		// now read the DEM, using the binary stream option
-		ifstream ifs_data(string_filename.c_str(), ios::in | ios::binary);
-		if( ifs_data.fail() )
-		{
-			cout << "\nFATAL ERROR: the data file \"" << string_filename
-			     << "\" doesn't exist" << endl;
-			exit(EXIT_FAILURE);
-		}
-		else
-		{
+    // now read the DEM, using the binary stream option
+    ifstream ifs_data(string_filename.c_str(), ios::in | ios::binary);
+    if( ifs_data.fail() )
+    {
+      cout << "\nFATAL ERROR: the data file \"" << string_filename
+           << "\" doesn't exist" << endl;
+      exit(EXIT_FAILURE);
+    }
+    else
+    {
       if (DataType == 2)
       {
         //cout << "Loading raster, recasting data from int to float!" << endl;
@@ -1021,8 +1020,8 @@ void LSDRaster::get_x_and_y_locations(int row, int col, float& x_loc, float& y_l
 // and long coordinate
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDRaster::get_lat_and_long_locations(int row, int col, float& lat, 
-                   float& longitude, LSDCoordinateConverterLLandUTM Converter)
+void LSDRaster::get_lat_and_long_locations(int row, int col, double& lat, 
+                   double& longitude, LSDCoordinateConverterLLandUTM Converter)
 {
   // get the x and y locations of the node
   float x_loc,y_loc;
@@ -1032,6 +1031,8 @@ void LSDRaster::get_lat_and_long_locations(int row, int col, float& lat,
   int UTM_zone;
   bool is_North;
   get_UTM_information(UTM_zone, is_North);
+  //cout << endl << endl << "Line 1034, UTM zone is: " << UTM_zone << endl;
+  
   
   if(UTM_zone == NoDataValue)
   {
@@ -1049,11 +1050,10 @@ void LSDRaster::get_lat_and_long_locations(int row, int col, float& lat,
     // use the converter to convert to lat and long
     double Lat,Long;
     Converter.UTMtoLL(eId, yld, xld, UTM_zone, is_North, Lat, Long);
-    float Lat_float = float(Lat);
-    float Long_float = float(Long);           
+          
   
-    lat = Lat_float;
-    longitude = Long_float;
+    lat = Lat;
+    longitude = Long;
   }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1088,8 +1088,8 @@ void LSDRaster::get_UTM_information(int& UTM_zone, bool& is_North)
       mapinfo_strings.push_back( substr );
     }
     UTM_zone = atoi(mapinfo_strings[7].c_str());
-    cout << "Line 1041, UTM zone: " << UTM_zone << endl;
-    cout << "LINE 1042 LSDRaster, N or S: " << mapinfo_strings[7] << endl;
+    //cout << "Line 1041, UTM zone: " << UTM_zone << endl;
+    //cout << "LINE 1042 LSDRaster, N or S: " << mapinfo_strings[7] << endl;
     
     // find if the zone is in the north
     string n_str = "n";
@@ -1105,7 +1105,7 @@ void LSDRaster::get_UTM_information(int& UTM_zone, bool& is_North)
     {
       is_North = true;
     }
-    cout << "is_North is: " << is_North << endl;
+    //cout << "is_North is: " << is_North << endl;
         
   }
   else
@@ -1889,10 +1889,10 @@ Array2D<float> LSDRaster::Shadow(int theta, int phi)
 // Outputs an LSDRaster
 //
 // SWDG, 11/4/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step){
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step)
+{
   //calculate parameter of scaling calculation
   int phi_factor = 360/phi_step;
 
@@ -1912,10 +1912,12 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step){
   Array2D<float> FinalArray = Shadow(0,90) * Scaler90;
 
   //loop through all the theta, phi pairs and increment the FinalArray with the scaled values
-  for(int theta = 10; theta < 90; theta += theta_step){
-    for(int phi = 0; phi < 360; phi += phi_step){
-
-      cout << flush <<  "\tTheta = " << theta << ", Phi = " << phi << "           \r";
+  for(int theta = 10; theta < 90; theta += theta_step)
+  {
+    for(int phi = 0; phi < 360; phi += phi_step)
+    {
+      cout << flush <<  "\tTheta = " << theta << ", Phi = " 
+           << phi << "           \r";
 
       Array2D<float> TempArray = Shadow(theta,phi);
       Array2D<float> Scaler(NRows, NCols, pow(sin(rad(float(theta))),3.3));
@@ -1930,9 +1932,12 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step){
   Array2D<float> ShFactor = Ones - (FinalArray/MaxFactorArray);
 
   //deal with nodata values on border of dem - more efficient than doing it in the hillshade function 10s of times.
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-      if (ShFactor[i][j] > 10){             //arbitrary number. But don't want to miss any values >1
+  for (int i = 0; i < NRows; ++i)
+  {
+    for (int j = 0; j < NCols; ++j)
+    {
+      if (ShFactor[i][j] > 10)
+      {             //arbitrary number. But don't want to miss any values >1
         ShFactor[i][j] = NoDataValue;       //as they may indicate an error in the above calculations.
       }
     }

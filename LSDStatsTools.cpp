@@ -1071,9 +1071,10 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
       cout << "y is too small for 2D interpolation, defaulting to ndv";
       y_index = ndv_index;
     }
-    else if (y_interp > y_locs[n_xlocs-1])
+    else if (y_interp > y_locs[n_ylocs-1])
     {
       cout << "y is too big for 2D interpolation, defaulting to ndv";
+      cout << "y[0]: " << y_locs[0] << " y_locs[n_ylocs-1]: " << y_locs[n_ylocs-1] << endl;
       y_index = ndv_index;
     }
     else
@@ -1228,9 +1229,10 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
       cout << "y is too small for 2D interpolation, defaulting to ndv";
       y_index = ndv_index;
     }
-    else if (y_interp > y_locs[n_xlocs-1])
+    else if (y_interp > y_locs[n_ylocs-1])
     {
       cout << "y is too big for 2D interpolation, defaulting to ndv";
+      cout << "y[0]: " << y_locs[0] << " y_locs[n_ylocs-1]: " << y_locs[n_ylocs-1] << endl;
       y_index = ndv_index;
     }
     else
