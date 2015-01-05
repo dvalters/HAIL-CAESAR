@@ -4188,8 +4188,8 @@ double rad(double degree)
 // conversion from radians to degrees - SWDG 12/12/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-float deg(float radians
-){
+float deg(float radians)
+{
   float pi = 3.14159265;
   float deg = 180.0;
   return (radians/pi)*deg;

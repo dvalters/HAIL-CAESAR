@@ -127,8 +127,8 @@ LSDRaster& LSDRaster::operator=(const LSDRaster& rhs)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::create()
 {
-	//cout << "LSDRaster line 64 Warning you have an empty LSDRaster!" << endl;
-	//exit(EXIT_FAILURE);
+  //cout << "LSDRaster line 64 Warning you have an empty LSDRaster!" << endl;
+  //exit(EXIT_FAILURE);
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -252,10 +252,10 @@ void LSDRaster::read_raster(string filename, string extension)
     // read the data
     for (int i=0; i<NRows; ++i)
     {
-    	for (int j=0; j<NCols; ++j)
-    	{
+      for (int j=0; j<NCols; ++j)
+      {
         data_in >> data[i][j];
-    	}
+      }
     }
     data_in.close();
 
@@ -273,7 +273,7 @@ void LSDRaster::read_raster(string filename, string extension)
     ifstream ifs(header_filename.c_str());
     if( ifs.fail() )
     {
-    	cout << "\nFATAL ERROR: the header file \"" << header_filename
+      cout << "\nFATAL ERROR: the header file \"" << header_filename
          << "\" doesn't exist" << std::endl;
       exit(EXIT_FAILURE);
     }
@@ -308,15 +308,15 @@ void LSDRaster::read_raster(string filename, string extension)
     }
     else
     {
-    	float temp;
-    	for (int i=0; i<NRows; ++i)
-    	{
+      float temp;
+      for (int i=0; i<NRows; ++i)
+      {
         for (int j=0; j<NCols; ++j)
         {
-        	ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
-        	data[i][j] = float(temp);
+          ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+          data[i][j] = float(temp);
         }
-    	}
+      }
     }
     ifs_data.close();
 
@@ -583,79 +583,79 @@ void LSDRaster::read_raster(string filename, string extension)
       if (DataType == 2)
       {
         //cout << "Loading raster, recasting data from int to float!" << endl;
-			  int temp;
-			  //cout << "Integer size: " << sizeof(temp) << endl;
-			  for (int i=0; i<NRows; ++i)
-			  {
-				  for (int j=0; j<NCols; ++j)
-				  {
-					  ifs_data.read(reinterpret_cast<char*>(&temp), 2);
-					  //cout << temp << " ";
-					  data[i][j] = float(temp);
-					  if (data[i][j]<-1e10)
-					  {
+        int temp;
+        //cout << "Integer size: " << sizeof(temp) << endl;
+        for (int i=0; i<NRows; ++i)
+        {
+          for (int j=0; j<NCols; ++j)
+          {
+            ifs_data.read(reinterpret_cast<char*>(&temp), 2);
+            //cout << temp << " ";
+            data[i][j] = float(temp);
+            if (data[i][j]<-1e10)
+            {
               data[i][j] = NoDataValue;
             }
-				  }
-				  //cout << endl;
-			  }		
-		  }
-		  else if (DataType == 4)
-		  {
-			  float temp;
-			  //cout << "Float size: " << sizeof(temp) << endl;
-			  for (int i=0; i<NRows; ++i)
-			  {
-				  for (int j=0; j<NCols; ++j)
-				  {
-					  ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
-					  
-					  data[i][j] = float(temp);
-					  if (data[i][j]<-1e10)
-					  {
+          }
+          //cout << endl;
+        }		
+      }
+      else if (DataType == 4)
+      {
+        float temp;
+        //cout << "Float size: " << sizeof(temp) << endl;
+        for (int i=0; i<NRows; ++i)
+        {
+          for (int j=0; j<NCols; ++j)
+          {
+            ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+            
+            data[i][j] = float(temp);
+            if (data[i][j]<-1e10)
+            {
               data[i][j] = NoDataValue;
             }
-				  }
-			  }
-			} 
-		  else
-		  {
-		    cout << "WARNING loading ENVI raster with unusual data type. " << endl
-		         << "If you get a crazy DEM go to LINE 625 of LSDRaster.cpp to debug" << endl;
-			  float temp;   // might need to change this
-			  //cout << "Float size: " << sizeof(temp) << endl;
-			  for (int i=0; i<NRows; ++i)
-			  {
-				  for (int j=0; j<NCols; ++j)
-				  {
-					  // Use data type to control the bytes being read for each entry
+          }
+        }
+      } 
+      else
+      {
+        cout << "WARNING loading ENVI raster with unusual data type. " << endl
+             << "If you get a crazy DEM go to LINE 625 of LSDRaster.cpp to debug" << endl;
+        float temp;   // might need to change this
+        //cout << "Float size: " << sizeof(temp) << endl;
+        for (int i=0; i<NRows; ++i)
+        {
+          for (int j=0; j<NCols; ++j)
+          {
+            // Use data type to control the bytes being read for each entry
             ifs_data.read(reinterpret_cast<char*>(&temp), DataType);
-					  
-					  data[i][j] = float(temp);
-					  if (data[i][j]<-1e10)
-					  {
+            
+            data[i][j] = float(temp);
+            if (data[i][j]<-1e10)
+            {
               data[i][j] = NoDataValue;
             }
-				  }
-			  }
-			}       
-		}
-		ifs_data.close();
+          }
+        }
+      }       
+    }
+    ifs_data.close();
 
-		cout << "Loading ENVI bil file; NCols: " << NCols << " NRows: " << NRows << endl
-			 << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
-		     << "Data Resolution: " << DataResolution << " and No Data Value: "
-		     << NoDataValue << endl;
+    cout << "Loading ENVI bil file; NCols: " << NCols << " NRows: " << NRows << endl
+       << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+         << "Data Resolution: " << DataResolution << " and No Data Value: "
+         << NoDataValue << endl;
 
-		// now update the objects raster data
-		RasterData = data.copy();         
+    // now update the objects raster data
+    RasterData = data.copy();         
   }
-	else
-	{
-		cout << "You did not enter and approprate extension!" << endl
-				  << "You entered: " << extension << " options are .flt, .asc and .bil" << endl;
-		exit(EXIT_FAILURE);
-	}
+  else
+  {
+    cout << "You did not enter and approprate extension!" << endl
+          << "You entered: " << extension << " options are .flt, .asc and .bil" << endl;
+    exit(EXIT_FAILURE);
+  }
 
 
 }
@@ -1345,25 +1345,27 @@ float LSDRaster::mean_elevation(void)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 float LSDRaster::max_elevation( void )
 {
-	float max_elevation = 0.0;
-	bool found=false;
-	for (int i=0; i<NRows; ++i)
-	{
-		for (int j=0; j<NCols; ++j)
-		{
-			if (not found)
-			{
-				if (RasterData[i][j] != NoDataValue)
-				{
-					max_elevation = RasterData[i][j];
-					found = true;
-				}
-			}
-			else if (RasterData[i][j] > max_elevation)
-				max_elevation = RasterData[i][j];
-		}
-	}
-	return max_elevation;
+  float max_elevation = 0.0;
+  bool found=false;
+  for (int i=0; i<NRows; ++i)
+  {
+    for (int j=0; j<NCols; ++j)
+    {
+      if (not found)
+      {
+        if (RasterData[i][j] != NoDataValue)
+        {
+          max_elevation = RasterData[i][j];
+          found = true;
+        }
+      }
+      else if (RasterData[i][j] > max_elevation)
+      {
+        max_elevation = RasterData[i][j];
+      }
+    }
+  }
+  return max_elevation;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
