@@ -53,16 +53,457 @@
 
 #include "LSDCatchmentModel.hpp"
 
-
+#include <string>
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <fstream>
 
-// Create some objects from their respective classes
-// A class method must be carried out on an object
-// We can't just issue a function/method call by itself
-//CLhydro water;
-//CLerosion erosion;
+using std::string;
+
+// ingest data tools
+// DAV: I've copied these here for now to make the model self-contained for testing purposes
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Line parser for parameter files - JAJ 08/01/2014
+// This might be better off somewhere else
+//
+// To be used on a parameter file of the format:
+// 	Name: 100		comments etc.
+// Which sets parameter as "Name" and value as "100"
+//
+// This just does one line at a time; you need a wrapper function to get all
+// the information out of the file
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void parse_line(std::ifstream &infile, string &parameter, string &value)
+{
+	char c;
+	char buff[128];
+	int pos = 0;
+	int word = 0;
+
+	while ( infile.get(c) )	
+	{
+		if (pos >= 128)
+		{
+			std::cout << "Buffer overrun, word too long in parameter line: " << std::endl;
+			string line;
+			getline(infile, line);
+			std::cout << "\t" << buff << " ! \n" << line << std::endl;
+			exit(1);
+		}
+		// preceeding whitespace
+		if (c == '#')
+		{
+			if (word == 0)
+			{
+				parameter = "NULL";
+				value = "NULL";
+			}
+			if (word == 1)
+				value = "NULL";
+			word = 2;
+		}
+
+		if ((c == ' ' || c == '\t') && pos == 0)
+			continue;
+		else if ( (c == ':' && word == 0) || ( (c == ' ' || c == '\n' || c == '\t') && word == 1))
+		{
+			while (buff[pos-1] == ' ' || buff[pos-1] == '\t')
+				--pos;		// Trailing whitespace
+			buff[pos] = '\0';	// Append Null char
+			if (word == 0)
+				parameter = buff;	// Assign buffer contents
+			else if (word == 1)
+				value = buff;
+			++word;
+			pos = 0;		// Rewind buffer
+		}
+		else if ( c == '\n' && word == 0 )
+		{
+			parameter = "NULL";
+			buff[pos] = '\0';
+			value = buff;
+			++word;
+		}
+		else if (word < 2)
+		{
+			buff[pos] = c;
+			++pos;
+		}
+
+		if (c == '\n')
+			break;
+	}
+	if (word == 0)
+	{
+		parameter = "NULL";
+		value = "NULL";
+	}
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This function removes control characters from the end of a string
+// These get introduced if you use the DOS format in your parameter file
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+string RemoveControlCharactersFromEndOfString(string toRemove)
+{
+  int len =  toRemove.length();  
+  if(len != 0)  
+  {  
+    if (iscntrl(toRemove[len-1]))  
+    { 
+      //cout << "Bloody hell, here is another control character! Why Microsoft? Why?" << endl; 
+      toRemove.erase(len-1);  
+    }  
+  }  
+  return toRemove;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=
+// CREATE FUCNTIONS
+// This define what happens when an LSDCatchmentModel object is created
+//=-=-=-=-=-=-=-=-=-=-=
+// Not got round to a default value model yet - DAV
+//void LSDCatchmentModel::create()
+//{
+	//// Do you want to maybe initialise some default values?
+	//initialise_model();
+//}
+
+void LSDCatchmentModel::create(string pname, string pfname)
+{
+	// Using the parameter file
+	initialise_model(pname, pfname);
+}
+
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function gets all the data from a parameter file
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::initialise_model(string pname, string pfname)
+{
+  // the full name of the file
+  string full_name = pname+pfname;
+
+  std::ifstream infile;
+  infile.open(full_name.c_str());
+  string parameter, value, lower, lower_val;
+  string bc;
+
+  std::cout << "Parameter filename is: " << full_name << std::endl;
+
+  // now ingest parameters
+  while (infile.good())
+  {
+    parse_line(infile, parameter, value);
+    lower = parameter;
+    if (parameter == "NULL")
+      continue;
+    for (unsigned int i=0; i<parameter.length(); ++i)
+    {
+      lower[i] = std::tolower(parameter[i]);  // converts to lowercase
+    }
+
+    std::cout << "parameter is: " << lower << " and value is: " << value << std::endl;
+
+    // get rid of control characters
+    value = RemoveControlCharactersFromEndOfString(value);
+
+    if (lower == "dem read extension")
+    {
+      dem_read_extension = value;
+      // get rid of any control characters from the end (if param file was made in DOS)
+      dem_read_extension = RemoveControlCharactersFromEndOfString(dem_read_extension);
+    }
+    else if (lower == "dem write extension")
+    {
+      dem_write_extension = value;
+      // get rid of any control characters from the end (if param file was made in DOS)
+      dem_write_extension = RemoveControlCharactersFromEndOfString(dem_write_extension);
+    }
+    else if (lower == "write path")
+    {
+      write_path = value;
+      // get rid of any control characters from the end (if param file was made in DOS)
+      write_path = RemoveControlCharactersFromEndOfString(write_path);
+    }
+    else if (lower == "write fname")
+    {
+      write_fname = value;
+      // get rid of any control characters from the end (if param file was made in DOS)
+      write_fname = RemoveControlCharactersFromEndOfString(write_fname);
+      //std::cout << "Got the write name, it is: "  << write_fname << std::endl;
+    }
+    else if (lower == "read path")
+    {
+      read_path = value;
+      // get rid of any control characters from the end (if param file was made in DOS)
+      read_path = RemoveControlCharactersFromEndOfString(read_path);
+      //std::cout << "Got the write name, it is: "  << write_fname << std::endl;
+    }
+    else if (lower == "read fname")
+    {
+      read_fname = value;
+      // get rid of any control characters from the end (if param file was made in DOS)
+      read_fname = RemoveControlCharactersFromEndOfString(read_fname);
+      //std::cout << "Got the read name, it is: " << read_fname << std::endl;
+    }
+    //=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // parameters for landscape numerical modelling
+    // (LSDCatchmentModel: DAV 2015-01-14)
+    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    
+    // The File Information is read at the start of this method
+    // no need to duplicate it here
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Supplementary Input Files
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "hydroindex_file")
+    {
+      CM_support_file_names["hydroindex_file"] = atof(value.c_str());
+    }
+    else if (lower == "rainfall_data_file")
+    {
+      CM_support_file_names["rainfall_data_file"] = atof(value.c_str());
+    }
+    else if (lower == "grain_data_file")
+    {
+      CM_support_file_names["grain_data_file"] = atof(value.c_str());
+    }
+    else if (lower == "bedrock_data_file")
+    {
+      CM_support_file_names["bedrock_data_file"] = atof(value.c_str());
+    }
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Numerical
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "no_of_iterations")
+    {
+      CM_float_parameters["no_of_iterations"] = atof(value.c_str());
+    }
+    else if (lower == "min_time_step")
+    {
+      CM_float_parameters["min_time_step"] = atof(value.c_str());
+    }
+    else if (lower == "max_time_step")
+    {
+      CM_float_parameters["max_time_step"] = atof(value.c_str());
+    }
+    else if (lower == "run_time_start")
+    {
+      CM_float_parameters["run_time_start"] = atof(value.c_str());
+    }
+    else if (lower == "max_run_duration")
+    {
+      CM_float_parameters["max_run_duration"] = atof(value.c_str());
+    }
+    else if (lower == "memory_limit")
+    {
+      CM_float_parameters["memory_limit"] = atof(value.c_str());
+    }
+    else if (lower == "max_time_step")
+    {
+      CM_float_parameters["max_time_step"] = atof(value.c_str());
+    }
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Output and Save Options
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "save_interval")
+    {
+      CM_int_parameters["save_interval"] = atof(value.c_str());
+    }
+    else if (lower == "time_series_interval")
+    {
+      CM_int_parameters["time_series_interval"] = atof(value.c_str());
+    }
+    else if (lower == "elevation_file")
+    {
+      //bool temp_bool = (value == "true") ? true : false;
+      CM_model_switches["write_elevation_file"] = atof(value.c_str()); //temp_bool;
+    }
+    else if (lower == "grainsize_file")
+    {
+      CM_model_switches["write_grainsize_file"] = atof(value.c_str());
+    }
+    else if (lower == "parameters_file")
+    {
+      CM_model_switches["write_parameters_file"] = atof(value.c_str());
+    }    
+    else if (lower == "flowvelocity_file")
+    {
+      CM_model_switches["write_flowvelocity_file"] = atof(value.c_str());
+    }   
+    else if (lower == "waterdepth_file")
+    {
+      CM_model_switches["write_waterdepth_file"] = atof(value.c_str());
+    }   
+    else if (lower == "timeseries_file")
+    {
+      CM_model_switches["write_timeseries_file"] = atof(value.c_str());
+    }
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Sediment
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "transport_law")
+    {
+      CM_method_map["transport_law"] = atof(value.c_str());
+    }
+    else if (lower == "max_tau_velocity")
+    {
+      CM_float_parameters["max_tau_velocity"] = atof(value.c_str());
+    } 
+    else if (lower == "active_layer_thickness")
+    {
+      CM_float_parameters["active_layer_thickness"] = atof(value.c_str());
+    }     
+    else if (lower == "recirculate_proportion")
+    {
+      CM_float_parameters["recirculate_proportion"] = atof(value.c_str());
+    }     
+    else if (lower == "lateral_erosion_on")
+    {
+      CM_model_switches["lateral_erosion_on"] = atof(value.c_str());
+    }     
+    else if (lower == "lateral_ero_rate")
+    {
+      CM_float_parameters["lateral_ero_rate"] = atof(value.c_str());
+    }     
+    else if (lower == "edge_filter_passes")
+    {
+      CM_float_parameters["edge_filter_passes"] = atof(value.c_str());
+    }     
+    else if (lower == "cells_shift_lat")
+    {
+      CM_float_parameters["cells_shift_lat"] = atof(value.c_str());
+    }     
+    else if (lower == "max_diff_cross_chann")
+    {
+      CM_float_parameters["max_diff_cross_chan"] = atof(value.c_str());
+    }    
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Grain Size Options
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "suspended_sediment_on")
+    {
+      CM_model_switches["suspended_sediment_on"] = atof(value.c_str());
+    }     
+    else if (lower == "fall_velocity")
+    {
+      CM_float_parameters["fall_velocity"] = atof(value.c_str());
+    }    
+    else if (lower == "grain_size_frac_file")
+    {
+      CM_support_file_names["grain_size_frac_file"] = atof(value.c_str());
+    }      
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Hydrology and Flow
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "TOPMODEL_m_value")
+    {
+      CM_float_parameters["TOPMODEL_m_value"] = atof(value.c_str());
+    } 
+    else if (lower == "rain_data_time_step")
+    {
+      CM_int_parameters["rain_data_time_step"] = atof(value.c_str());
+    } 
+    else if (lower == "spatial_var_rain")
+    {
+      CM_model_switches["spatial_var_rain"] = atof(value.c_str());
+    } 
+    else if (lower == "input_output_diff")
+    {
+      CM_float_parameters["input_output_diff"] = atof(value.c_str());
+    }     
+    else if (lower == "min_Q_for_depth_calc")
+    {
+      CM_float_parameters["min_Q_for_depth_calc"] = atof(value.c_str());
+    }     
+    else if (lower == "max_Q_for_depth_calc")
+    {
+      CM_float_parameters["max_Q_for_depth_calc"] = atof(value.c_str());
+    }     
+    else if (lower == "depth_ero_threshold")
+    {
+      CM_float_parameters["depth_ero_threshold"] = atof(value.c_str());
+    } 
+    else if (lower == "slope_on_edge_cell")
+    {
+      CM_float_parameters["slope_on_edge_cell"] = atof(value.c_str());
+    } 
+    else if (lower == "evaporation_rate")
+    {
+      CM_float_parameters["evaporation_rate"] = atof(value.c_str());
+    } 
+    else if (lower == "courant_number")
+    {
+      CM_float_parameters["courant_number"] = atof(value.c_str());
+    } 
+    else if (lower == "hflow_threshold")
+    {
+      CM_float_parameters["hflow_threshold"] = atof(value.c_str());
+    } 
+    else if (lower == "froude_num_limit")
+    {
+      CM_float_parameters["froude_num_limit"] = atof(value.c_str());
+    } 
+    else if (lower == "mannings_n")
+    {
+      CM_int_parameters["mannings_n"] = atof(value.c_str());
+    } 
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Vegetation
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "vegetation_on")
+    {
+      CM_model_switches["vegetation_on"] = atof(value.c_str());
+    }    
+    else if (lower == "grass_grow_rate")
+    {
+      CM_float_parameters["grass_grow_rate"] = atof(value.c_str());
+    }   
+    else if (lower == "vegetation_crit_shear")
+    {
+      CM_float_parameters["vegetation_crit_shear"] = atof(value.c_str());
+    }   
+    else if (lower == "veg_erosion_prop")
+    {
+      CM_float_parameters["veg_erosion_prop"] = atof(value.c_str());
+    } 
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Hillslope
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "creep_rate")
+    {
+      CM_float_parameters["creep_rate"] = atof(value.c_str());
+    } 
+    else if (lower == "slope_failure_thresh")
+    {
+      CM_float_parameters["slope_failure_thresh"] = atof(value.c_str());
+    } 
+    else if (lower == "soil_erosion_rate")
+    {
+      CM_float_parameters["soil_erosion_rate"] = atof(value.c_str());
+    } 
+    else if (lower == "soil_j_mean_depends_on")
+    {
+      CM_model_switches["soil_j_mean_depends_on"] = atof(value.c_str());
+    } 
+    else if (lower == "call_muddpile_model")
+    {
+      CM_model_switches["call_muddpile_model"] = atof(value.c_str());
+    } 
+}
+}
 
 void LSDCatchmentModel::get_area()
 {
