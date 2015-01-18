@@ -10,7 +10,7 @@
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
-
+using std::string;
 
 #ifndef LSDCatchmentModel_H
 #define LSDCatchmentModel_H
@@ -27,6 +27,8 @@ struct sort_pair_second
 	}
 };
 
+
+
 ///@brief This object is used to model the hydrology, sediment transport and evolution
 ///of individual basins.
 ///@details The object is (for now) just a rough and ready translation of the CAESAR-Lisflood model - a hydrologically explicit landscape evolution model. It 
@@ -35,7 +37,45 @@ class LSDCatchmentModel
 {
 public:
 
-		
+	//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    //
+    // Constructors
+    //
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  
+    /// @brief The default constructor. 
+    /// @details this asks for a pathname and a filename of the parameter file
+    /// It then opens the paramter file and ingests the information
+    /// @author DAV
+    /// @date 2015-01-16    
+    //LSDCatchmentModel()
+    //{ 
+	//	create(); 
+	//}
+	
+    /// @brief this constructor just reads the param file given by the path and
+    /// filename. You must give the parameter file extension!
+    /// @param pname the pathname to the parameter file
+    /// @param fname the filename of the parameter file !!INCLUDING EXTENSION!!
+    /// @author DAV
+    /// @date 2015-01-16	
+    LSDCatchmentModel(string pname, string pfname)			
+    { 
+		create(pname, pfname); 
+	}
+	
+	
+	/// @brief Parses lines in an input file for ingestion
+	/// @author Whoever wrote LSDStatsTools - borrowed here by DAV
+	void parse_line(std::ifstream &infile, string &parameter, string &value); 
+	
+	/// @brief Removes the end-of-line weird character mess that you get in Windows
+	/// @author JAJ? SMM? - borrowed here by DAV	
+	string RemoveControlCharactersFromEndOfString(string toRemove);
+	
+	/// @brief reads data values from the parameter file into the relevant maps
+	/// @return 
+	void initialise_model(string pname, string p_fname);	
+	
 	/// @brief Wrapper function that calls the main erosional and depositional methods
 	/// @return 
 	void run_components();
@@ -182,6 +222,13 @@ public:
 	/// This holds names of supporting files, for example files that contain
 	/// node of junction indices to be loaded. 
 	std::map<std::string,std::string> CM_support_file_names;
+	
+	string dem_read_extension;
+	string dem_write_extension;
+	string write_path;
+	string read_path;
+	string write_fname;
+	string read_fname;
 	
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // MASSIVE LIST OF VARIABLES USED IN CL
@@ -463,6 +510,11 @@ public:
 	bool bedrock_lower_opt;
 	bool physical_weather_opt;
 	bool chem_weath_opt;
+	
+	private:
+	//void create();   // Do this one later
+	
+	void create(string pname, string pfname);
 };
 #endif
 
