@@ -8334,6 +8334,34 @@ LSDIndexRaster LSDRaster::Create_Mask(string Condition, float TestValue)
 	return MaskRaster;	
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Extract values by mask
+// This function generates a masked raster from an LSDIndexRaster masks, retaining 
+// values where the Mask == 1
+//
+// MDH, 27/8/14
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+LSDRaster LSDRaster::ExtractByMask(LSDIndexRaster Mask)
+{
+	// declare new array
+	Array2D<float> MaskedArray(NRows,NCols,NoDataValue);
+	Array2D<int> MaskArray = Mask.get_RasterData();
+	
+	for (int i=0; i<NRows; ++i)
+	{
+		for (int j=0; j<NCols; ++j)
+		{
+			if (MaskArray[i][j] == 1)
+			{
+				MaskedArray[i][j] = RasterData[i][j];
+			}
+		}
+	}
+	LSDRaster MaskedRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,MaskedArray);
+	return MaskedRaster;
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
