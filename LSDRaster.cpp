@@ -4954,6 +4954,30 @@ LSDRaster LSDRaster::D_inf_units(){
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
+// Function to multiply D_inf flow accumulation data to drainage area by multiplying through
+// by the data resolution. (This could be a duplicate function but I don't have time to check!).
+//
+// MDH - 27/8/14
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=--=-=-=-=-=--=-
+
+LSDRaster LSDRaster::D_inf_ConvertFlowToArea()
+{
+	float cell_area = DataResolution*DataResolution;
+	Array2D<float> Dinf_area_units = RasterData; 
+	for (int i=0;i<Dinf_area_units.dim1(); ++i)
+	{
+		for (int j=0; j<Dinf_area_units.dim2(); ++j)
+		{
+			if (Dinf_area_units[i][j] != NoDataValue) Dinf_area_units[i][j] = Dinf_area_units[i][j]*cell_area;
+		}
+	}
+			
+	return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Dinf_area_units);
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
 // Function to trace upstream from a pour point and extract watershed associated with
 // D_inf flow routing
 //
