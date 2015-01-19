@@ -4952,6 +4952,106 @@ LSDRaster LSDRaster::D_inf_units(){
   return Dinf_area_units_raster;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+// Function to trace upstream from a pour point and extract watershed associated with
+// D_inf flow routing
+//
+// Uses a priority queue ordered by elevation to collect every pixel that drains to a
+// particular pour point and returns the resultant basin as an LSDIndexRaster mask
+//
+// MDH - 26/8/14
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=--=-=-=-=-=--=-
+LSDIndexRaster LSDRaster::D_inf_watershed(LSDRaster D_inf_FlowDir, int PourRow, int PourCol)
+{
+	//Declare the priority Queue with greater than comparison
+	priority_queue< FillNode, vector<FillNode>, greater<FillNode> > PriorityQueue;
+	//Declare a temporary FillNode structure which we populate before adding to the PQ
+	//Declare a central node or node of interest
+	FillNode TempNode, CentreNode;
+	//Index array to track whether nodes are in queue or have been processed
+	//-9999 = no_data, 0 = data but not processed or in queue,
+	//1 = in queue but not processed, 2 = fully processed and removed from queue
+	
+	// Arrays of indexes of neighbour cells wrt target cell and their
+	//corresponding ranges of angles
+	int dX[] = {1, 1, 1, 0, -1, -1, -1, 0};
+	int dY[] = {-1, 0, 1, 1, 1, 0, -1, -1};
+	float startFD[] = {180, 225, 270, 315, 0, 45, 90, 135};
+	float endFD[] = {270, 315, 360, 45, 90, 135, 180, 225};
+  	float FlowDir;
+  	
+	//Index array for collecting catchment area	
+	Array2D<int> WatershedArray(NRows,NCols,NoDataValue);
+	//Array2D<int> QueueCode(NRows,NCols,NoDataValue);
+
+	//add outlet to priority queue as starting point
+	TempNode.Zeta = RasterData[PourRow][PourCol];
+	TempNode.RowIndex = PourRow;
+	TempNode.ColIndex = PourCol;
+	PriorityQueue.push(TempNode);
+	
+	int row, col;
+		  
+	//Loop through the priority queue from lowest to highest elevations
+	//filling as we go and adding unassessed neighbours to the priority queue
+	while (!PriorityQueue.empty())
+	{
+		//first get the highest priority node and assign it before
+		//removing it from the queue and declaring it processed
+		CentreNode = PriorityQueue.top();
+		row=CentreNode.RowIndex;
+		col=CentreNode.ColIndex;
+		PriorityQueue.pop();
+		
+		//loop through the 8 neighbours of the target cell
+		for (int c = 0; c < 8; ++c)
+		{ 
+      	//handle edges here
+      	if ((row +dY[c] > NRows-1) || (col + dX[c] > NCols-1)) continue;
+      	
+      	FlowDir = D_inf_FlowDir.RasterData[row + dY[c]][col + dX[c]];
+         
+         if (FlowDir >= 0)
+         {
+         	//handles the issue of 0,360 both pointing to North
+            if (c != 3)
+            {
+            	if ((FlowDir > startFD[c]) && (FlowDir < endFD[c]))
+	            {
+   	         	if (WatershedArray[row+dY[c]][col+dX[c]] != 1)
+   	         	{
+   	         		//add contributing node to priority queue
+   	         		TempNode.Zeta = RasterData[row+dY[c]][col+dX[c]];
+							TempNode.RowIndex = row+dY[c];
+							TempNode.ColIndex = col+dX[c];
+							PriorityQueue.push(TempNode);
+							WatershedArray[row+dY[c]][col+dX[c]] = 1;
+   	           	}
+   	         }
+				}
+            else
+            {
+            	if (FlowDir > startFD[c] || FlowDir < endFD[c])
+            	{
+            		if (WatershedArray[row+dY[c]][col+dX[c]] != 1)
+   	         	{
+   	         		//add contributing node to priority queue
+   	         		TempNode.Zeta = RasterData[row+dY[c]][col+dX[c]];
+							TempNode.RowIndex = row+dY[c];
+							TempNode.ColIndex = col+dX[c];
+							PriorityQueue.push(TempNode);
+							WatershedArray[row+dY[c]][col+dX[c]] = 1;
+   	           	}
+   	         }
+            }
+			}
+		}
+	}
+	LSDIndexRaster Watershed(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,WatershedArray);
+	return Watershed;
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
