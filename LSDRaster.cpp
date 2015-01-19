@@ -8294,6 +8294,47 @@ LSDRaster LSDRaster::border_with_nodata(int border_width, int irregular_switch)
                       NoDataValue,Data,GeoReferencingStrings);
   return bordered_DEM;
 }
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Create mask based on threshold value and condition
+// This function generates an index raster comprising a mask where values of an LSDRaster
+// have met a specified condition (e.g. where all values exceed a threshold slope)
+//
+// MDH, 27/8/14
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDRaster::Create_Mask(string Condition, float TestValue)
+{
+	//declare mask array
+	Array2D<int> Mask(NRows,NCols,NoDataValue);
+	
+	cout << "Creating Mask: Condition is " << Condition << endl;
+	for (int i=0; i<NRows; ++i)
+	{
+		for (int j=0; j<NCols; ++j)
+		{
+			if (Condition == "<") {
+				if (RasterData[i][j] < TestValue) Mask[i][j] = 1;
+			}
+			else if (Condition == ">") {
+				if (RasterData[i][j] > TestValue) Mask[i][j] = 1;
+			}
+			else if (Condition == "==") {
+				if (RasterData[i][j] == TestValue) Mask[i][j] = 1;
+			}
+			else
+			{
+				cout << "Condition is " << Condition << endl;
+				cout << "Condition not recognised" << endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+	LSDIndexRaster MaskRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Mask);
+	return MaskRaster;	
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 

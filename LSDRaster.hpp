@@ -1627,6 +1627,14 @@ class LSDRaster
   /// @date 09/12/2014
   LSDRaster alternating_direction_nodata_fill_with_trimmer(int window_width);
   
+  /// @brief Function to create a masked LSDIndexRaster raster based on a conditional statement
+  /// @param string Condition ("<", ">", "==", "!=")
+  /// @param float TestValue The value that the condition is tested against
+  /// @return LSDIndexRaster of the mask
+  /// @author MDH
+  /// @date 27/08/2014
+	LSDIndexRaster Create_Mask(string Condition, float TestValue);
+	
   protected:
 
   ///Number of rows.
