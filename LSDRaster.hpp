@@ -1635,6 +1635,13 @@ class LSDRaster
   /// @date 27/08/2014
 	LSDIndexRaster Create_Mask(string Condition, float TestValue);
 	
+	/// @brief Function to extract an LSDRaster based on a LSDIndexRaster mask
+  /// @param LSDIndexRaster TheMask
+  /// @return masked LSDRaster 
+  /// @author MDH
+  /// @date 27/08/2014
+	LSDRaster ExtractByMask(LSDIndexRaster Mask);
+	
   protected:
 
   ///Number of rows.
