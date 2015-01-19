@@ -387,7 +387,18 @@ void parse_line(ifstream &infile, string &parameter, string &value);
 // Method to get the maximum value in a 2D array - SWDG 12/6/14
 float Get_Maximum(Array2D<float> Input, float NDV);
 float Get_Maximum(Array2D<int> Input, float NDV);
+int Get_Maximum_Index(Array2D<float> Input, int NDV);
+int Get_Maximum_Index(Array2D<int> Input, int NDV);
 
+// Method to get the maximum value in a 2D array - MDH 27/8/14
+float Get_Minimum(Array2D<float> Input, int NDV);
+float Get_Minimum(Array2D<int> Input, int NDV);
+int Get_Minimum_Index(Array2D<float> Input, int NDV);
+int Get_Minimum_Index(Array2D<int> Input, int NDV);
+
+//Routine to count the number of values in an array - MDH 27/8/14
+int Get_Value_Count(Array2D<float> Input, int NDV);
+int Get_Value_Count(Array2D<int> Input, int NDV);
 
 //Method to flatten a 2D array into a 1D vector
 //generates a vector in row major order
