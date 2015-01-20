@@ -4222,7 +4222,7 @@ void get_distribution_stats(vector<float>& y_data, float& mean, float& median, f
     
     // Get other statistics
     // Sort vector
-  vector<long unsigned int> index_map;
+  vector<size_t> index_map;
   matlab_float_sort(y_data,y_data,index_map);
   // Median
   int point50 = n_data_points/2;

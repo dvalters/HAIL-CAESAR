@@ -2115,7 +2115,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 
 	for(int i=0;i<NRows;++i)
 	{
-		cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+		//cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
 		for(int j=0;j<NCols;++j)
 		{
 			// Avoid edges
@@ -5033,7 +5033,7 @@ LSDIndexRaster LSDRaster::D_inf_watershed(LSDRaster D_inf_FlowDir, int PourRow, 
 		for (int c = 0; c < 8; ++c)
 		{ 
       	//handle edges here
-      	if ((row +dY[c] > NRows-1) || (col + dX[c] > NCols-1)) continue;
+      	if ((row +dY[c] > NRows-1) || (col + dX[c] > NCols-1) || (row+dY[c]<0) || (col+dY[c]<0)) continue;
       	
       	FlowDir = D_inf_FlowDir.RasterData[row + dY[c]][col + dX[c]];
          
