@@ -51,15 +51,21 @@
 /// January 2015
 ///
 
-#include "LSDCatchmentModel.hpp"
-
 #include <string>
 #include <cmath>
 #include <vector>
 #include <algorithm>
 #include <fstream>
 
+#include "LSDCatchmentModel.hpp"
+
+// One day, I'd like to integrate this more into the LSDTopoTools,
+// particulalrly the LSDBasin object using it to 'cut out' basins
+// and then perform topo analysis on the model runs...
 using std::string;
+
+#ifndef LSDCatchmentModel_CPP
+#define LSDCatchmentModel_CPP
 
 // ingest data tools
 // DAV: I've copied these here for now to make the model self-contained for testing purposes
@@ -77,7 +83,7 @@ using std::string;
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void parse_line(std::ifstream &infile, string &parameter, string &value)
+void LSDCatchmentModel::parse_line(std::ifstream &infile, string &parameter, string &value)
 {
 	char c;
 	char buff[128];
@@ -148,7 +154,7 @@ void parse_line(std::ifstream &infile, string &parameter, string &value)
 // This function removes control characters from the end of a string
 // These get introduced if you use the DOS format in your parameter file
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
-string RemoveControlCharactersFromEndOfString(string toRemove)
+std::string LSDCatchmentModel::RemoveControlCharactersFromEndOfString(std::string toRemove)
 {
   int len =  toRemove.length();  
   if(len != 0)  
@@ -173,8 +179,9 @@ string RemoveControlCharactersFromEndOfString(string toRemove)
 	//initialise_model();
 //}
 
-void LSDCatchmentModel::create(string pname, string pfname)
+void LSDCatchmentModel::create(std::string pname, std::string pfname)
 {
+	std::cout << "Creating an instance of LSDCatchmentModel.." << std::endl;
 	// Using the parameter file
 	initialise_model(pname, pfname);
 }
@@ -182,12 +189,14 @@ void LSDCatchmentModel::create(string pname, string pfname)
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This function gets all the data from a parameter file
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void LSDCatchmentModel::initialise_model(string pname, string pfname)
+void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
 {
-  // the full name of the file
+  std::cout << "Initialising the model parameters..." << std::endl;
+  // Concatenate the path and paramter file name to get the full file address
   string full_name = pname+pfname;
 
   std::ifstream infile;
+  // Open the parameter file
   infile.open(full_name.c_str());
   string parameter, value, lower, lower_val;
   string bc;
@@ -503,6 +512,9 @@ void LSDCatchmentModel::initialise_model(string pname, string pfname)
       CM_model_switches["call_muddpile_model"] = atof(value.c_str());
     } 
 }
+// set_all_parameter_values();  // We have only read the values into some maps
+// we now need a function (or a load of setter functions) to set each individual
+// parameter.
 }
 
 void LSDCatchmentModel::get_area()
@@ -3627,3 +3639,4 @@ void LSDCatchmentModel::soil_development()
 		}
 	}
 }
+#endif

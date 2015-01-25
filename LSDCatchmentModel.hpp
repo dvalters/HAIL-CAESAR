@@ -7,6 +7,7 @@
 #include <string>
 #include <array>
 #include <map>
+#include <fstream>
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
@@ -16,6 +17,10 @@ using std::string;
 #define LSDCatchmentModel_H
 
 /// @brief Template for sorting a std::pair.
+/// @details This template will perform a sort on the std::pair types. It
+/// will sort ascending based on the second item in the pair. It is intended
+/// to mimic the C# method: sort(Array,Array). Needs further testing, but
+/// should work in principle. 
 /// @author DAV
 template <class T1, class T2, class Pred = std::less<T2> >
 struct sort_pair_second
@@ -58,8 +63,9 @@ public:
     /// @param fname the filename of the parameter file !!INCLUDING EXTENSION!!
     /// @author DAV
     /// @date 2015-01-16	
-    LSDCatchmentModel(string pname, string pfname)			
+    LSDCatchmentModel(std::string pname, std::string pfname)		
     { 
+		std::cout << "The constructor has been called..." << std::endl;
 		create(pname, pfname); 
 	}
 	
@@ -70,11 +76,11 @@ public:
 	
 	/// @brief Removes the end-of-line weird character mess that you get in Windows
 	/// @author JAJ? SMM? - borrowed here by DAV	
-	string RemoveControlCharactersFromEndOfString(string toRemove);
+	std::string RemoveControlCharactersFromEndOfString(std::string toRemove);
 	
 	/// @brief reads data values from the parameter file into the relevant maps
 	/// @return 
-	void initialise_model(string pname, string p_fname);	
+	void initialise_model(std::string pname, std::string pfname);	
 	
 	/// @brief Wrapper function that calls the main erosional and depositional methods
 	/// @return 
@@ -118,9 +124,13 @@ public:
 	/// @return
 	void call_grass_growing();
 	
-	
+	/// @brief Calculates the area, although it also calls
+	/// get_area4(), which is slightly confusing
+	/// @author Translated by DAV
 	void get_area();
 	
+	/// @brief Calculates the area, after being called by get_area()
+	/// @author Translated by DAV	
 	void get_area4();
 	
 	void get_catchment_input_points();
@@ -338,7 +348,7 @@ public:
 	std::vector<double> j, jo, j_mean, old_j_mean, new_j_mean;
 	double M = 0.005;
 	double baseflow = 0.00000005; //end of hyd model variables usually 0.0000005 changed 2/11/05
-	static double cycle; //=0;  // can't initalise static vars in header file!
+	double cycle =0;  // can't initalise static vars in header file!
 	double rain_factor = 1;
 	double sediQ = 0;
 	double grow_grass_time = 0;
@@ -347,7 +357,7 @@ public:
 	double output_file_save_interval = 60;
 	double min_time_step = 0;
 	double vegTauCrit = 100;
-	static int graphics_scale;// = 2; // value that controls the number of bmp pixels per model pixel for the output images.
+	int graphics_scale;// = 2; // value that controls the number of bmp pixels per model pixel for the output images.
 	int max_time_step = 0;
 	int dune_mult = 5;
 	double dune_time = 1;
@@ -514,7 +524,7 @@ public:
 	private:
 	//void create();   // Do this one later
 	
-	void create(string pname, string pfname);
+	void create(std::string pname, std::string pfname);
 };
 #endif
 
