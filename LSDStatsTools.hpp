@@ -455,6 +455,14 @@ string ReadTextFile(ifstream& File);
 // stupidly adds control characters to the end of lines. 
 string RemoveControlCharactersFromEndOfString(string toRemove);
 
+
+// INVERSE ERROR FUNCTIONS AND INVERSE COMPLEMENTARY ERROR FUNCTIONS
+// DTM, Following Press et al.,2007; Numerical Recipes, the Art of Scientific Computing, CUP
+// Inverse Complementary error function.  Returns x such that erfc(x)=p within limits 0<p<2
+float inverfc(float p);
+// Inverse Complementary error function.  Returns x such that erf(x)=p within limits -1<p<1
+float inverf(float p);
+
 #endif
 
 
