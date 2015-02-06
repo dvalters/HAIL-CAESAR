@@ -520,6 +520,52 @@ float get_percentile(vector<float>& data, float percentile)
   return percentile_value;   
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// quantile_quantile_analysis
+// sorts data; produces quartile-quantile comparison against standard normal variate, returning
+// a sorted subsample of N_points, their corresponding normal variate and the reference value 
+// from the standard normal distribution
+// DTM 28/11/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void quantile_quantile_analysis(vector<float>& data, vector<float>& values, vector<float>& standard_normal_variates, vector<float>& mn_values, int N_points)
+{
+  vector<size_t> index_map;   
+  vector<float> data_sorted;
+  matlab_float_sort(data, data_sorted, index_map);
+  float quantile,x;
+  vector<float> snv,vals;
+  
+  for(int i = 0; i < N_points; ++i)
+  {
+    quantile = (1.+ float(i))/(float(N_points)+1.);
+    x = (sqrt(2)*inverf(quantile*2-1));
+    vals.push_back(get_percentile(data_sorted, quantile*100));
+    snv.push_back(x);
+  }
+  // CONSTRUCTING NORMALLY DISTRIBUTED MODEL
+  // Now get upper quartile and lower quartile boundaries
+  float q25x = get_percentile(snv,25);
+  float q75x = get_percentile(snv,75);
+  float q25y = get_percentile(vals,25);
+  float q75y = get_percentile(vals,75);
+  
+  float slope = (q75y-q25y)/(q75x-q25x);
+  cout << "slope = " << slope << endl;
+  float centerx = (q25x + q75x)/2;
+  float centery = (q25y + q75y)/2;
+  float intercept =centery-slope*centerx; 
+  vector<float> mn_vals;
+  
+  for(int i = 0; i < N_points; ++i)
+  {
+    mn_vals.push_back(intercept+slope*snv[i]);
+  }
+  
+  standard_normal_variates=snv;
+  values = vals;
+  mn_values = mn_vals;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function tests for autocorrelation between residuals
