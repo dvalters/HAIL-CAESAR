@@ -88,6 +88,9 @@ float get_percentile(vector<float>& data, float percentile);
 // within the given distribution.  
 void generate_q_q_plot(vector<float>& data, vector<float>& values, vector<float>& standard_normal_variates, vector<float>& mn_values, int N_points);
 
+// declaration of the quantile_quantile analysis
+void quantile_quantile_analysis(vector<float>& data, vector<float>& values, vector<float>& standard_normal_variates, vector<float>& mn_values, int N_points);
+
 // calculates least squares linear regression for two datasets, returning
 // gradient and intercept of regression line, alongside the R-squared value. 
 // DTM 07/10/2014
