@@ -2196,15 +2196,17 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
             else if(d==0 && e<0) aspect_raster[i][j] = 270;
             else
     				{
-    					aspect_raster[i][j] = 180 - 57.29578*atan(e/d) + 90*(d/abs(d));
-    					if(aspect_raster[i][j] < 180.0)
-    					{
-    						aspect_raster[i][j] = 180.0 - aspect_raster[i][j];
-    					}
-    					else
-    					{
-    						aspect_raster[i][j] = 360.0 + (180 - aspect_raster[i][j]);
-    					}
+    					aspect_raster[i][j] = 270. - (180./M_PI)*atan(e/d) + 90.*(d/abs(d));
+    					if(aspect_raster[i][j] > 360.0) aspect_raster[i][j] -= 360;
+//    					aspect_raster[i][j] = 180 - 57.29578*atan(e/d) + 90*(d/abs(d));
+//    					if(aspect_raster[i][j] < 180.0)
+//    					{
+//    						aspect_raster[i][j] = 180.0 - aspect_raster[i][j];
+//    					}
+//    					else
+//    					{
+//    						aspect_raster[i][j] = 360.0 + (180 - aspect_raster[i][j]);
+//    					}
     				}
         	}
         	
