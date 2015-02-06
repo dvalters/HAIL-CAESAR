@@ -8833,6 +8833,95 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
   return nodata_filled;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Isolate channelised portions of the landscape using the method proposed by Lashermes et
+// al. (2007) Lashermes, B., E. Foufoula-Georgiou, and W. E. Dietrich (2007), Channel
+// network extraction from high resolution topography using wavelets, Geophys. Res. Lett.,
+// 34, L23S04, doi:10.1029/2007GL031140.
+// This function (i) filters the DEM using a Gaussian filter; (ii) calculates the
+// tangential curvature; (iii) uses quantile quantile analysis to define a curvature
+// threshold for channel initiation.
+// DTM 06/02/2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// LSDRaster LSDRaster::IsolateChannelsLashermes(int border_width, int irregular_switch)
+// {
+// 
+// 
+// }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This function does part (iii) of the above
+LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
+{
+  
+  vector<float> values;
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if(RasterData[i][j] != NoDataValue)
+      {
+        values.push_back(RasterData[i][j]);
+      }
+    }
+  }
+  
+  vector<float> quantile_values,normal_variates,mn_values;
+  int N_points = 1000;
+  quantile_quantile_analysis(values, quantile_values, normal_variates, mn_values, N_points);
+  ofstream ofs;
+  ofs.open(q_q_filename.c_str());
+  
+  if(ofs.fail())
+  {
+    cout << "\nFATAL ERROR: unable to write output_file" << endl;
+    exit(EXIT_FAILURE);
+  }
+  ofs << "normal_variate value\n";
+  for(int i = 0; i<quantile_values.size();++i)
+  {
+    ofs << normal_variates[i] << " " << quantile_values[i] << " " << mn_values[i] << "\n";
+  }
+  ofs.close();
+  
+  // Find q-q threshold
+  cout << "\t finding deviation from Gaussian distribution to define q-q threshold" << endl;
+  vector<int> indices;
+  int flag = 0;
+  float threshold_condition=0.99;
+  float curvature_threshold = 0.1;
+  for(int i = 0; i<quantile_values.size(); ++i)
+  {
+    if(normal_variates[i] >= 0)
+    {
+      if(mn_values[i]<threshold_condition*quantile_values[i])
+      {
+        if (flag==0)
+        {
+          flag = 1;
+          curvature_threshold = quantile_values[i];
+        }
+      }
+      else flag = 0;
+    }
+  }
+  
+  cout << "\t Creating channel raster based on curvature threshold (threshold = " << curvature_threshold << ")" << endl;
+  Array2D<int> binary_raster(NRows,NCols,NoDataValue);
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if(RasterData[i][j] != NoDataValue)
+      {
+        if(RasterData[i][j] >= curvature_threshold) binary_raster[i][j]=1;
+        else binary_raster[i][j]=0;
+      }
+    }
+  }
+  cout << "DONE" << endl;
+  LSDIndexRaster ChannelMask(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_raster);
+  return ChannelMask;
 
+}
 
 #endif

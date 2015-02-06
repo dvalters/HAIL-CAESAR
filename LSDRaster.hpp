@@ -1647,6 +1647,14 @@ class LSDRaster
   /// @author MDH
   /// @date 27/08/2014
 	LSDRaster ExtractByMask(LSDIndexRaster Mask);
+
+
+  /// @brief uses quantile-quantile analysis to pick departure from gaussian behaviour, then uses this as a threshold to create a binary dataset. 
+  /// @param string q_q_file A text file containing data to produce a q_q_plot.
+  /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
+  /// @author MDH
+  /// @date 27/08/2014 
+	LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
 	
   protected:
 
