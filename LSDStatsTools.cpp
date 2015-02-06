@@ -5040,6 +5040,43 @@ string RemoveControlCharactersFromEndOfString(string toRemove)
   return toRemove;
 }
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// SOME USEFUL MATHEMATICAL FUNCTIONS THAT DON'T APPEAR TO BE IN THE STANDARD MATH.h LIBRARY
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// INVERSE ERROR FUNCTIONS AND INVERSE COMPLEMENTARY ERROR FUNCTIONS
+// DTM, Following Press et al.,2007; Numerical Recipes, the Art of Scientific Computing, CUP
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// Inverse Complementary error function.  Returns x such that erfc(x)=p within limits 0<p<2
+float inverfc(float p)
+{
+  float x,err,t,pp;
+  if (p >= 2.0)
+  {
+    cout << "ERROR - arguement outside permitted range - returning arbitrary value = 100\n";
+    return 100;    
+  }
+  if (p <= 0.0)
+  {
+    cout << "ERROR - arguement outside permitted range - returning arbitrary value = -100\n";
+    return -100;
+  }
+  pp = (p < 1.0)? p : 2. -p;
+  t = sqrt(-2.*log(pp/2.)); // initial guess
+  x = -0.70711*((2.30753+t*0.27061)/(1.+t*(0.99229+t*0.04481))-t);
+  for(int j=0; j<2;++j)
+  {
+    err=erfc(x) - pp;
+    x += err/(1.12837916709551257 * exp(-(x*x)) - x*err); // Halley Method
+  }
+  return (p < 1.0? x : -x);
+}
+// Inverse error function.  Returns x such that erfc(x)=p within limits -1<p<1
+float inverf(float p)
+{
+  return inverfc(1.-p);
+}
+
 #endif
 
 
