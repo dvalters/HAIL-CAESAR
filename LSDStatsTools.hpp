@@ -82,6 +82,12 @@ float get_standard_error(vector<float>& y_data, float standard_deviation);
 vector<float> get_common_statistics(vector<float>& y_data);
 float get_percentile(vector<float>& data, float percentile);
 
+// sorts data; produces quartile-quantile comparison against standard normal variate, returning
+// an (evenly spaced) sorted subsample of N_points, their corresponding normal variate and the
+// reference value  from the standard normal distribution.  Test for departures from normality
+// within the given distribution.  
+void generate_q_q_plot(vector<float>& data, vector<float>& values, vector<float>& standard_normal_variates, vector<float>& mn_values, int N_points);
+
 // calculates least squares linear regression for two datasets, returning
 // gradient and intercept of regression line, alongside the R-squared value. 
 // DTM 07/10/2014
