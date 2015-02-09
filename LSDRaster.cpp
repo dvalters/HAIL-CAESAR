@@ -8924,4 +8924,29 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Simple method to flatten an LSDRaster and place the non NDV values in a file.
+// Each value is placed on its own line, so that it can be read more quickly in python etc.
+// SWDG 9/2/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::FlattenToFile(string FileName){
+
+  //open a file to write
+  ofstream WriteData;                                
+  WriteData.open(FileName.c_str());
+
+  //loop over each cell and if there is a value, write it to the file
+  for(int i = 0; i < NRows; ++i){
+    for(int j = 0; j < NCols; ++j){
+      if (RasterData[i][j] != NoDataValue){
+        WriteData << RasterData[i][j] << endl;
+      }
+    }
+  }
+
+  WriteData.close();
+
+} 
+
+
 #endif
