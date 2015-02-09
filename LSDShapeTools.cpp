@@ -902,7 +902,7 @@ void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,
   LongOriginRad = LongOrigin * RADIANS_PER_DEGREE;
 
   //compute the UTM Zone from the latitude and longitude
-  cout << "Zone is  " << ZoneNumber << endl;
+  //cout << "Zone is  " << ZoneNumber << endl;
   Zone = ZoneNumber;
   
   eccPrimeSquared = (eccSquared)/(1-eccSquared);
