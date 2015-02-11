@@ -8982,6 +8982,25 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesAspect(float sigma, string q_q
   LSDIndexRaster channels = aspect.IsolateChannelsQuantileQuantile(q_q_filename);
   return channels;
 }
+LSDIndexRaster LSDRaster::IsolateChannelsLashermesFull(float sigma, string q_q_filename_prefix)
+{
+  string q_q_filename_aspect = q_q_filename_prefix + "_aspect.txt";
+  string q_q_filename_curvature = q_q_filename_prefix + "_curvature.txt";
+  LSDIndexRaster Channels1 = IsolateChannelsLashermesAspect(sigma, q_q_filename_aspect);
+  LSDIndexRaster Channels2 = IsolateChannelsLashermesCurvature(sigma, q_q_filename_curvature);
+  Array2D<int> binary_array(NRows,NCols,int(NoDataValue));
+  for(int i = 1; i<NRows-1; ++i)
+  {
+    for(int j = 1; j < NCols-1; ++j)
+    {
+      if(Channels1.get_data_element(i,j)==1 && Channels2.get_data_element(i,j)==1) binary_array[i][j] = 1;
+      else if(Channels1.get_data_element(i,j)==0 || Channels2.get_data_element(i,j)==0) binary_array[i][j] = 0;
+    }
+  }
+  
+  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array);
+  return channels;
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function does part (iii) of the above
 LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
