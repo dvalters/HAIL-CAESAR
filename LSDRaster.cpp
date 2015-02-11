@@ -8907,7 +8907,21 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
 // threshold for channel initiation.
 // DTM 06/02/2015
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
+LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvature(float sigma, string q_q_filename)
+{
+  // filter
+  LSDRaster FilteredTopo = GaussianFilter(sigma);
+  // calculate curvature
+  vector<LSDRaster> output_rasters;
+  float window_radius = 1;
+  vector<int> raster_selection(8,0.0);
+  raster_selection[3]=1;
+  output_rasters = calculate_polyfit_surface_metrics(window_radius, raster_selection);
+  LSDRaster curvature = output_rasters[3];
+  // use q-q plot to isolate the channels
+  LSDIndexRaster channels = curvature.IsolateChannelsQuantileQuantile(q_q_filename);
+  return channels;
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function does part (iii) of the above
 LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
