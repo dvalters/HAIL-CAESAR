@@ -2113,91 +2113,90 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
 	int ndv_present = 0;
 
-	for(int i=0;i<NRows;++i)
-	{
-		//cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
-		for(int j=0;j<NCols;++j)
-		{
-			// Avoid edges
-			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
-			{
+  for(int i=0;i<NRows;++i)
+  {
+    //cout << "\tRow = " << i+1 << " / " << NRows << "    \r";
+    for(int j=0;j<NCols;++j)
+    {
+      // Avoid edges
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+      {
         if(raster_selection[0]==1)  elevation_raster[i][j] = NoDataValue;
         if(raster_selection[1]==1)  slope_raster[i][j] = NoDataValue;
-      	if(raster_selection[2]==1)  aspect_raster[i][j] = NoDataValue;
-      	if(raster_selection[3]==1)  curvature_raster[i][j] = NoDataValue;
-      	if(raster_selection[4]==1)  planform_curvature_raster[i][j] = NoDataValue;
-      	if(raster_selection[5]==1)  profile_curvature_raster[i][j] = NoDataValue;
-      	if(raster_selection[6]==1)  tangential_curvature_raster[i][j] = NoDataValue;
-      	if(raster_selection[7]==1)  classification_raster[i][j] = NoDataValue;
-			}
-			else
-			{
-				// clip DEM
-				//zeta_sampler=zeta.copy();
-				for(int i_kernel=0;i_kernel<kw;++i_kernel)
-				{
-			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
-			  	{
-						data_kernel[i_kernel][j_kernel] =
-									RasterData[i-kr+i_kernel][j-kr+j_kernel];
-						// check for nodata values nearby
-						if(data_kernel[i_kernel][j_kernel]==NoDataValue)
-						{
-							ndv_present=1;
-						}
-			  	}
-				}
-				// Fit polynomial surface, avoiding nodata values          ==================> Could change this, as can fit polynomial surface as long as there are 6 data points.
-				if(ndv_present == 0)  // test for nodata values within the selection
-				{
-					Array1D<float> bb(6,0.0);
-					Array1D<float> coeffs(6);
-					for (int krow=0; krow<kw; ++krow)
-					{
-						for (int kcol=0; kcol<kw; ++kcol)
-						{
-							if (mask[krow][kcol] == 1)
+        if(raster_selection[2]==1)  aspect_raster[i][j] = NoDataValue;
+        if(raster_selection[3]==1)  curvature_raster[i][j] = NoDataValue;
+        if(raster_selection[4]==1)  planform_curvature_raster[i][j] = NoDataValue;
+        if(raster_selection[5]==1)  profile_curvature_raster[i][j] = NoDataValue;
+        if(raster_selection[6]==1)  tangential_curvature_raster[i][j] = NoDataValue;
+        if(raster_selection[7]==1)  classification_raster[i][j] = NoDataValue;
+      }
+      else
+      {
+      // clip DEM
+        //zeta_sampler=zeta.copy();
+        for(int i_kernel=0;i_kernel<kw;++i_kernel)
+        {
+          for(int j_kernel=0;j_kernel<kw;++j_kernel)
+          {
+            data_kernel[i_kernel][j_kernel] = RasterData[i-kr+i_kernel][j-kr+j_kernel];
+            // check for nodata values nearby
+            if(data_kernel[i_kernel][j_kernel]==NoDataValue)
+            {
+              ndv_present=1;
+            }
+          }
+        }
+        // Fit polynomial surface, avoiding nodata values          ==================> Could change this, as can fit polynomial surface as long as there are 6 data points.
+        if(ndv_present == 0)  // test for nodata values within the selection
+        {
+          Array1D<float> bb(6,0.0);
+          Array1D<float> coeffs(6);
+          for (int krow=0; krow<kw; ++krow)
+          {
+            for (int kcol=0; kcol<kw; ++kcol)
+            {
+              if (mask[krow][kcol] == 1)
               {
                 x = x_kernel[krow][kcol];
-					      y = y_kernel[krow][kcol];
-					      zeta = data_kernel[krow][kcol];
-					      // Generate vector bb
-					      bb[0] += zeta*x*x;
-					      bb[1] += zeta*y*y;
-					      bb[2] += zeta*x*y;
-					      bb[3] += zeta*x;
-					      bb[4] += zeta*y;
-					      bb[5] += zeta;
-					    }		// end mask
+                y = y_kernel[krow][kcol];
+                zeta = data_kernel[krow][kcol];
+                // Generate vector bb
+                bb[0] += zeta*x*x;
+                bb[1] += zeta*y*y;
+                bb[2] += zeta*x*y;
+                bb[3] += zeta*x;
+                bb[4] += zeta*y;
+                bb[5] += zeta;
+              }		// end mask
             }			// end kernal column
-					}				// end kernal row
-					// Solve matrix equations using LU decomposition using the TNT JAMA
-					// package:
+          }				// end kernal row
+          // Solve matrix equations using LU decomposition using the TNT JAMA
+          // package:
           // A.coefs = b, where coefs is the coefficients vector.
-					LU<float> sol_A(A);  // Create LU object
-					coeffs = sol_A.solve(bb);
+          LU<float> sol_A(A);  // Create LU object
+          coeffs = sol_A.solve(bb);
 
-			  	float a=coeffs[0];
-			  	float b=coeffs[1];
-			  	float c=coeffs[2];
-			  	float d=coeffs[3];
-			  	float e=coeffs[4];
-			  	float f=coeffs[5];
-			  	
-			  	// Now calculate the required topographic metrics
-			  	if(raster_selection[0]==1)  elevation_raster[i][j] = f;
+          float a=coeffs[0];
+          float b=coeffs[1];
+          float c=coeffs[2];
+          float d=coeffs[3];
+          float e=coeffs[4];
+          float f=coeffs[5];
+
+          // Now calculate the required topographic metrics
+          if(raster_selection[0]==1)  elevation_raster[i][j] = f;
           
           if(raster_selection[1]==1)  slope_raster[i][j] = sqrt(d*d+e*e);
 
-        	if(raster_selection[2]==1)
+          if(raster_selection[2]==1)
           {
             if(d==0 && e==0) aspect_raster[i][j] = NoDataValue;
-    				else if(d==0 && e>0) aspect_raster[i][j] = 90;
+            else if(d==0 && e>0) aspect_raster[i][j] = 90;
             else if(d==0 && e<0) aspect_raster[i][j] = 270;
             else
-    				{
-    					aspect_raster[i][j] = 270. - (180./M_PI)*atan(e/d) + 90.*(d/abs(d));
-    					if(aspect_raster[i][j] > 360.0) aspect_raster[i][j] -= 360;
+            {
+              aspect_raster[i][j] = 270. - (180./M_PI)*atan(e/d) + 90.*(d/abs(d));
+              if(aspect_raster[i][j] > 360.0) aspect_raster[i][j] -= 360;
 //    					aspect_raster[i][j] = 180 - 57.29578*atan(e/d) + 90*(d/abs(d));
 //    					if(aspect_raster[i][j] < 180.0)
 //    					{
@@ -2207,36 +2206,36 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 //    					{
 //    						aspect_raster[i][j] = 360.0 + (180 - aspect_raster[i][j]);
 //    					}
-    				}
-        	}
-        	
+            }
+          }
+          
           if(raster_selection[3]==1)  curvature_raster[i][j] = 2*a+2*b;
-        	
+          
           if(raster_selection[4]==1 || raster_selection[5]==1 || raster_selection[6]==1 || raster_selection[7]==1)
           {
             float fx, fy, fxx, fyy, fxy, p, q;
             fx = d;
-          	fy = e;
-          	fxx = 2*a;
-          	fyy = 2*b;
-          	fxy = c;
-          	p = fx*fx + fy*fy;
-          	q = p + 1;
+            fy = e;
+            fxx = 2*a;
+            fyy = 2*b;
+            fxy = c;
+            p = fx*fx + fy*fy;
+            q = p + 1;
           
-          	if (raster_selection[4]==1)
+            if (raster_selection[4]==1)
             {
               if (q > 0)  planform_curvature_raster[i][j] = (fxx*fy*fy - 2*fxy*fx*fy + fyy*fx*fx)/(sqrt(q*q*q));
-            	else        planform_curvature_raster[i][j] = NoDataValue;
+              else        planform_curvature_raster[i][j] = NoDataValue;
             }
             if(raster_selection[5]==1)
             {
               if((q*q*q > 0) && ((p*sqrt(q*q*q)) != 0))    profile_curvature_raster[i][j] = (fxx*fx*fx + 2*fxy*fx*fy + fyy*fy*fy)/(p*sqrt(q*q*q));
-					    else                                         profile_curvature_raster[i][j] = NoDataValue;
+            else                                         profile_curvature_raster[i][j] = NoDataValue;
             }
             if(raster_selection[6]==1)
             {
               if( q>0 && (p*sqrt(q))!=0) tangential_curvature_raster[i][j] = (fxx*fy*fy - 2*fxy*fx*fy + fyy*fx*fx)/(p*sqrt(q));
-			  	  	else                       tangential_curvature_raster[i][j] = NoDataValue;
+              else                       tangential_curvature_raster[i][j] = NoDataValue;
             }
             if(raster_selection[7]==1)
             {
@@ -2244,20 +2243,19 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
               if (slope < 0.1)
               {
                 if (fxx < 0 && fyy < 0 && fxy*fxy < fxx*fxx)      classification_raster[i][j] = 1;// Conditions for peak
-            		else if (fxx > 0 && fyy > 0 && fxy*fxy < fxx*fyy) classification_raster[i][j] = 2;// Conditions for a depression
-            		else if (fxx*fyy < 0 || fxy*fxy > fxx*fyy)        classification_raster[i][j] = 3;// Conditions for a saddle
-            		else classification_raster[i][j] = 0;
+                else if (fxx > 0 && fyy > 0 && fxy*fxy < fxx*fyy) classification_raster[i][j] = 2;// Conditions for a depression
+                else if (fxx*fyy < 0 || fxy*fxy > fxx*fyy)        classification_raster[i][j] = 3;// Conditions for a saddle
+                else classification_raster[i][j] = 0;
               }
             }
-          }	
-				}					// end if statement for no data value
-				ndv_present = 0;
-			}
-		}
-	}
-	
-	// Now create LSDRasters and load into output vector
-	vector<LSDRaster> output_rasters_temp(8,VOID);
+          }
+        }         // end if statement for no data value
+        ndv_present = 0;
+      }
+    }
+  }
+  // Now create LSDRasters and load into output vector
+  vector<LSDRaster> output_rasters_temp(8,VOID);
   vector<LSDRaster> raster_output = output_rasters_temp;
   if(raster_selection[0]==1)
   {
@@ -2283,12 +2281,12 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
   {
     LSDRaster PlCurvature(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,planform_curvature_raster,GeoReferencingStrings);
     raster_output[4] = PlCurvature;
-  }	
+  }
   if(raster_selection[5]==1)
   {
     LSDRaster PrCurvature(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,profile_curvature_raster,GeoReferencingStrings);
     raster_output[5] = PrCurvature;
-  }	
+  }
   if(raster_selection[6]==1)  
   {
     LSDRaster TanCurvature(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,tangential_curvature_raster,GeoReferencingStrings);
@@ -7779,6 +7777,72 @@ void LSDRaster::MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int Simi
   }
 }
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Gaussian Filtering
+//  Filters the raster using a square 2D Gaussian filter.  The filter is applied
+//  using a moving kernel of gaussian weights with a radius of 3*sigma
+//
+//  Equivalent lenghtscale of smoothing (from Lashermes et al., 2007)
+//  original data -> 4*sigma
+//  1st derivative -> 2*pi*sigma
+//  2nd derivative -> sqrt(2)*pi*sigma
+//  David Milodowski, Feb 2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+LSDRaster LSDRaster::GaussianFilter(float sigma)
+{
+  int kr = int(ceil(3*sigma/DataResolution));  // Set radius of kernel
+  int kw=2*kr+1;                                     // width of kernel
+  Array2D<float> filtered = RasterData.copy();
+  Array2D<float> gaussian_kernel_weights(kw,kw,0.0);
+  
+  // gemerate kernel
+  float x,y;
+  for(int i=0;i<kw;++i)
+  {
+    for(int j=0;j<kw;++j)
+    {
+      x = (j-kr)*DataResolution;
+      y = (i-kr)*DataResolution;
+      gaussian_kernel_weights[i][j]= (1/(2*M_PI*sigma*sigma)) * exp(-(x*x+y*y)/(2*sigma*sigma));
+    }
+  }
+  //  Now loop through dem filtering using the gaussian kernel
+  for(int i=0;i<NRows;++i)
+  {
+    for(int j=0;j<NCols;++j)
+    {
+      // Avoid edges
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+      {
+        filtered[i][j] = NoDataValue;
+      }
+      else
+      {
+        float summed_weights = 0;
+        float summed_values = 0; 
+        
+        for(int i_kernel=0;i_kernel<kw;++i_kernel)
+        {
+          for(int j_kernel=0;j_kernel<kw;++j_kernel)
+          {
+            if(RasterData[i-kr+i_kernel][j-kr+j_kernel]!=NoDataValue)
+            {
+              summed_weights += gaussian_kernel_weights[i][j];
+              summed_values += RasterData[i-kr+i_kernel][j-kr+j_kernel]*gaussian_kernel_weights[i][j];
+            } 
+          }
+        }
+        // Get filtered value, ensuring that weights are normalised
+        filtered[i][j] = summed_values/summed_weights;
+      }
+    }
+  }
+  LSDRaster FilteredRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,filtered);
+  return FilteredRaster;
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to turn a point shapefile into an LSDIndexRaster.
 //
@@ -8843,11 +8907,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
 // threshold for channel initiation.
 // DTM 06/02/2015
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// LSDRaster LSDRaster::IsolateChannelsLashermes(int border_width, int irregular_switch)
-// {
-// 
-// 
-// }
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function does part (iii) of the above
 LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
