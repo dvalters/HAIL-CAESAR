@@ -8920,7 +8920,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvature(float sigma, string 
   vector<int> raster_selection(8,0.0);
   raster_selection[3]=1;
   cout << "\t\t Calculate curvature" << endl;
-  output_rasters = calculate_polyfit_surface_metrics(window_radius, raster_selection);
+  output_rasters = FilteredTopo.calculate_polyfit_surface_metrics(window_radius, raster_selection);
   LSDRaster curvature = output_rasters[3];
   // use q-q plot to isolate the channels
   cout << "\t\t Finding threshold using q-q plot" << endl;
@@ -8936,7 +8936,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesAspect(float sigma, string q_q
   float window_radius = 1;
   vector<int> raster_selection(8,0.0);
   raster_selection[2]=1;
-  output_rasters = calculate_polyfit_surface_metrics(window_radius, raster_selection);
+  output_rasters = FilteredTopo.calculate_polyfit_surface_metrics(window_radius, raster_selection);
   LSDRaster aspect = output_rasters[2];
   // calculate variability of slope direction d(pheta) = sqrt(d(pheta)/dy^2 + d(pheta)/dx^2)
   Array2D<float> d_pheta1(NRows,NCols,NoDataValue);
