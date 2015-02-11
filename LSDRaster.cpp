@@ -7805,7 +7805,7 @@ LSDRaster LSDRaster::GaussianFilter(float sigma)
     {
       x = (j-kr)*DataResolution;
       y = (i-kr)*DataResolution;
-      gaussian_kernel_weights[i][j]= (1/(2*M_PI*sigma*sigma)) * exp(-(x*x+y*y)/(2*sigma*sigma));
+      gaussian_kernel_weights[i][j]= (1/(2*M_PI*sigma*sigma)) * exp(-(x*x+y*y)/(2*sigma*sigma));  
     }
   }
   //  Now loop through dem filtering using the gaussian kernel
@@ -7829,8 +7829,8 @@ LSDRaster LSDRaster::GaussianFilter(float sigma)
           {
             if(RasterData[i-kr+i_kernel][j-kr+j_kernel]!=NoDataValue)
             {
-              summed_weights += gaussian_kernel_weights[i][j];
-              summed_values += RasterData[i-kr+i_kernel][j-kr+j_kernel]*gaussian_kernel_weights[i][j];
+              summed_weights += gaussian_kernel_weights[i_kernel][j_kernel];
+              summed_values += RasterData[i-kr+i_kernel][j-kr+j_kernel]*gaussian_kernel_weights[i_kernel][j_kernel];
             } 
           }
         }
@@ -7840,6 +7840,7 @@ LSDRaster LSDRaster::GaussianFilter(float sigma)
     }
   }
   LSDRaster FilteredRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,filtered);
+  FilteredRaster.write_raster("test_gauss","flt");
   return FilteredRaster;
 }
 
@@ -8909,16 +8910,20 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvature(float sigma, string q_q_filename)
 {
+  cout << "\t Isolation of channelised pixels using curvature" << endl;   
   // filter
+  cout << "\t\t Gaussian filter" << endl;
   LSDRaster FilteredTopo = GaussianFilter(sigma);
   // calculate curvature
   vector<LSDRaster> output_rasters;
   float window_radius = 1;
   vector<int> raster_selection(8,0.0);
   raster_selection[3]=1;
+  cout << "\t\t Calculate curvature" << endl;
   output_rasters = calculate_polyfit_surface_metrics(window_radius, raster_selection);
   LSDRaster curvature = output_rasters[3];
   // use q-q plot to isolate the channels
+  cout << "\t\t Finding threshold using q-q plot" << endl;
   LSDIndexRaster channels = curvature.IsolateChannelsQuantileQuantile(q_q_filename);
   return channels;
 }
