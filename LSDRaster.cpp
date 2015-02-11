@@ -8903,7 +8903,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
 // network extraction from high resolution topography using wavelets, Geophys. Res. Lett.,
 // 34, L23S04, doi:10.1029/2007GL031140.
 // This function (i) filters the DEM using a Gaussian filter; (ii) calculates the
-// tangential curvature; (iii) uses quantile quantile analysis to define a curvature
+// curvature and/or aspect; (iii) uses quantile quantile analysis to define a curvature
 // threshold for channel initiation.
 // DTM 06/02/2015
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -8920,6 +8920,21 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvature(float sigma, string 
   LSDRaster curvature = output_rasters[3];
   // use q-q plot to isolate the channels
   LSDIndexRaster channels = curvature.IsolateChannelsQuantileQuantile(q_q_filename);
+  return channels;
+}
+LSDIndexRaster LSDRaster::IsolateChannelsLashermesAspect(float sigma, string q_q_filename)
+{
+  // filter
+  LSDRaster FilteredTopo = GaussianFilter(sigma);
+  // calculate curvature
+  vector<LSDRaster> output_rasters;
+  float window_radius = 1;
+  vector<int> raster_selection(8,0.0);
+  raster_selection[2]=1;
+  output_rasters = calculate_polyfit_surface_metrics(window_radius, raster_selection);
+  LSDRaster aspect = output_rasters[2];
+  // use q-q plot to isolate the channels
+  LSDIndexRaster channels = aspect.IsolateChannelsQuantileQuantile(q_q_filename);
   return channels;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
