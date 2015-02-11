@@ -9017,7 +9017,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
   }
   
   vector<float> quantile_values,normal_variates,mn_values;
-  int N_points = 1000;
+  int N_points = 10000;//values.size();
   quantile_quantile_analysis(values, quantile_values, normal_variates, mn_values, N_points);
   ofstream ofs;
   ofs.open(q_q_filename.c_str());
@@ -9041,6 +9041,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
   int flag = 0;
   float threshold_condition=0.99;
   float curvature_threshold = 0.1;
+  int threshold_index=0;
   for(int i = 0; i<n_values; ++i)
   {
     if(normal_variates[i] >= 0)
@@ -9050,13 +9051,16 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
         if (flag==0)
         {
           flag = 1;
-          curvature_threshold = quantile_values[i];
+//           curvature_threshold = quantile_values[i];
+          threshold_index = i;
         }
       }
       else flag = 0;
     }
   }
-  
+  float mean_curvature = get_mean(values);
+  float sd_curvature = get_standard_deviation(values,mean_curvature);
+  curvature_threshold = mean_curvature+normal_variates[threshold_index]*sd_curvature;
   cout << "\t Creating channel raster based on curvature threshold (threshold = " << curvature_threshold << ")" << endl;
   Array2D<int> binary_raster(NRows,NCols,NoDataValue);
   for(int i = 0; i < NRows; ++i)
