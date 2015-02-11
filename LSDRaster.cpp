@@ -8933,6 +8933,51 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesAspect(float sigma, string q_q
   raster_selection[2]=1;
   output_rasters = calculate_polyfit_surface_metrics(window_radius, raster_selection);
   LSDRaster aspect = output_rasters[2];
+  // calculate variability of slope direction d(pheta) = sqrt(d(pheta)/dy^2 + d(pheta)/dx^2)
+  Array2D<float> d_pheta1(NRows,NCols,NoDataValue);
+  float d_pheta_dx,d_pheta_dy;
+  for(int i = 1; i<NRows-1; ++i)
+  {
+    for(int j = 1; j < NCols-1; ++j)
+    {                                            
+      if (aspect.get_data_element(i,j)!=NoDataValue && aspect.get_data_element(i-1,j)!=NoDataValue
+       && aspect.get_data_element(i+1,j)!=NoDataValue && aspect.get_data_element(i,j+1)!=NoDataValue
+       && aspect.get_data_element(i,j-1)!= NoDataValue)
+      {
+         d_pheta_dx = (aspect.get_data_element(i,j+1)-aspect.get_data_element(i,j-1))/(2*DataResolution);
+         d_pheta_dy = (aspect.get_data_element(i+1,j)-aspect.get_data_element(i-1,j))/(2*DataResolution);
+         d_pheta1=sqrt(d_pheta_dx*d_pheta_dx+d_pheta_dy*d_pheta_dy);
+      }
+    }
+  }
+  // aspect is not a continuous function, so need to repeat with aspect origin rotate by 180 degrees.
+  Array2D<float> aspect_temp = aspect.get_RasterData();
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {                                            
+      if (aspect_temp[i][j]!=NoDataValue)
+      {
+         if(aspect_temp[i][j]<180) aspect_temp[i][j]+=180;
+         else aspect_temp[i][j]-=180;
+      }
+    }
+  }
+  for(int i = 1; i<NRows-1; ++i)
+  {
+    for(int j = 1; j < NCols-1; ++j)
+    {                                            
+      if (aspect_temp[i][j]!=NoDataValue && aspect_temp[i-1][j]!=NoDataValue
+       && aspect_temp[i+1][j]!=NoDataValue && aspect_temp[i][j+1]!=NoDataValue
+       && aspect_temp[i][j-1]!= NoDataValue)
+      {
+         d_pheta_dx = (aspect_temp[i][j+1]-aspect_temp[i][j-1])/(2*DataResolution);
+         d_pheta_dy = (aspect_temp[i+1][j]-aspect_temp[i-1][j])/(2*DataResolution);
+         d_pheta1=sqrt(d_pheta_dx*d_pheta_dx+d_pheta_dy*d_pheta_dy);
+      }
+    }
+  }
+  
   // use q-q plot to isolate the channels
   LSDIndexRaster channels = aspect.IsolateChannelsQuantileQuantile(q_q_filename);
   return channels;
