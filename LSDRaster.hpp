@@ -1370,6 +1370,21 @@ class LSDRaster
   /// @date February 2012
   void MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius);
 
+//  @brief Filters the raster using a square 2D Gaussian filter.  The filter is applied
+//  using a moving kernel of gaussian weights with a radius of 3*sigma
+//
+//  @details Equivalent lenghtscale of smoothing (from Lashermes et al., 2007)
+//  original data -> 4*sigma
+//  1st derivative -> 2*pi*sigma
+//  2nd derivative -> sqrt(2)*pi*sigma
+//  @param sigma
+//  @return a filtered raster
+//  @author David Milodowski
+//  @date Feb 2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+LSDRaster GaussianFilter(float sigma);
+
   //D-infinity tools
 
   /// @brief D-infinity flow direction algorithm after Tarboton (1997).
