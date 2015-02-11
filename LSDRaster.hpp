@@ -1672,6 +1672,7 @@ LSDRaster GaussianFilter(float sigma);
   /// @author DTM
   /// @date 11/02/2015 
   LSDIndexRaster IsolateChannelsLashermesCurvature(float sigma, string q_q_filename);
+  LSDIndexRaster IsolateChannelsLashermesAspect(float sigma, string q_q_filename);
 
   /// @brief uses quantile-quantile analysis to pick departure from gaussian behaviour, then uses this as a threshold to create a binary dataset. 
   /// @param string q_q_file A text file containing data to produce a q_q_plot.
