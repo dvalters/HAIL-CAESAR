@@ -339,6 +339,10 @@ void RemoveSmallBins(vector<float>&  MeanX_output, vector<float>& MeanY_output,
 // that is printed to file containing:
 //    Midpoint LowerLim UpperLim Count ProbabilityDensity                      
 void print_histogram(vector<float> input_values, float bin_width, string filename);
+// improved histogram functions
+void calculate_histogram(vector<float> input_values, float bin_width, vector<float>& Midpoints, vector<float>& LLims, vector<float>& ULims, vector<int>& Count, vector<float>& ProbabilityDensity);
+void calculate_histogram_fixed_limits(vector<float> input_values, float bin_width, float lower_limit, float upper_limit, vector<float>& Midpoints, vector<float>& LLims, vector<float>& ULims, vector<int>& Count, vector<float>& ProbabilityDensity);
+
 
 // This is a much simpler version of the binning software.  It takes two vectors, and
 // sorts the values held within the first vector into bins according to their respective
