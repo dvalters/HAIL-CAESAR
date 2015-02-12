@@ -1674,6 +1674,7 @@ LSDRaster GaussianFilter(float sigma);
   LSDIndexRaster IsolateChannelsLashermesCurvature(float sigma, string q_q_filename);
   LSDIndexRaster IsolateChannelsLashermesAspect(float sigma, string q_q_filename);
   LSDIndexRaster IsolateChannelsLashermesFull(float sigma, string q_q_filename_prefix);
+  LSDIndexRaster IsolateChannelsLashermesCurvatureArea(float sigma, float area_threshold, string q_q_filename);
 
   /// @brief uses quantile-quantile analysis to pick departure from gaussian behaviour, then uses this as a threshold to create a binary dataset. 
   /// @param string q_q_file A text file containing data to produce a q_q_plot.

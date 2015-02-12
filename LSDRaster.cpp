@@ -8999,6 +8999,43 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesFull(float sigma, string q_q_f
   LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array);
   return channels;
 }
+// This version uses curvature and an upstream contributing area threshold
+LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvatureArea(float sigma, float area_threshold, string q_q_filename)
+{
+  cout << "\t Isolation of channelised pixels using curvature" << endl;   
+  // filter
+  cout << "\t\t Gaussian filter" << endl;
+  LSDRaster FilteredTopo = GaussianFilter(sigma);
+  // calculate curvature
+  vector<LSDRaster> output_rasters;
+  float window_radius = 1;
+  vector<int> raster_selection(8,0.0);
+  raster_selection[3]=1;
+  cout << "\t\t Calculate curvature" << endl;
+  output_rasters = FilteredTopo.calculate_polyfit_surface_metrics(window_radius, raster_selection);
+  LSDRaster curvature = output_rasters[3];
+  // use q-q plot to isolate the channels
+  cout << "\t\t Finding threshold using q-q plot" << endl;
+  LSDIndexRaster channels_init = curvature.IsolateChannelsQuantileQuantile(q_q_filename);
+  // Calculate D_inf
+  cout << "\t\t D_inf flow routing" << endl;
+  LSDRaster Area = D_inf();
+  // Reclassification of channel mask based on imposed threshold
+  Array2D<int> binary_array = channels_init.get_RasterData();
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if(channels_init.get_data_element(i,j)!=channels_init.get_NoDataValue())
+      {
+        if(Area.get_data_element(i,j)<=area_threshold) binary_array = 0;
+      }
+    }
+  }
+  
+  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array);
+  return channels;
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function does part (iii) of the above
 LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
