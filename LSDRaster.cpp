@@ -9028,7 +9028,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvatureArea(float sigma, flo
     {
       if(channels_init.get_data_element(i,j)!=channels_init.get_NoDataValue())
       {
-        if(Area.get_data_element(i,j)<=area_threshold) binary_array = 0;
+        if(Area.get_data_element(i,j)<=area_threshold) binary_array[i][j] = 0;
       }
     }
   }
