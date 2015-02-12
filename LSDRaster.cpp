@@ -9019,7 +9019,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvatureArea(float sigma, flo
   LSDIndexRaster channels_init = curvature.IsolateChannelsQuantileQuantile(q_q_filename);
   // Calculate D_inf
   cout << "\t\t D_inf flow routing" << endl;
-  LSDRaster Area = D_inf();
+  LSDRaster Area = FilteredTopo.D_inf();
   // Reclassification of channel mask based on imposed threshold
   Array2D<int> binary_array = channels_init.get_RasterData();
   for(int i = 0; i<NRows; ++i)
