@@ -3773,6 +3773,7 @@ void RemoveSmallBins(vector<float>& MeanX_output, vector<float>& MeanY_output, v
 // // calculate_histogram
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Takes a raster and condenses it into a histogram
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // DTM 20/11/2013
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void print_histogram(vector<float> input_values, float bin_width, string filename)
@@ -3862,6 +3863,140 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
   ofs.close();
 
 }
+
+                                
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Improved histogram functions
+// DTM 12/02/2015
+void calculate_histogram(vector<float> input_values, float bin_width, vector<float>& Midpoints, vector<float>& LLims, vector<float>& ULims, vector<int>& Count, vector<float>& ProbabilityDensity)
+{
+	// Finding max contributing area to use as upper limit for the bins
+  int n_data = input_values.size();
+  float max_X = input_values[0];
+	float min_X = input_values[0];
+
+  // Loop through to find the min and max of the dataset
+  for (int i = 0; i < n_data; ++i)
+	{
+    if (input_values[i] > max_X)
+    {
+      max_X = input_values[i];
+    }
+    if (input_values[i] < min_X)    
+    {
+      min_X = input_values[i];
+    }
+  }
+  // Defining the upper limit, lower limit and the bin width.
+  // Extend range by one bin at each end so that the histogram is bounded by 
+  // zeros for plotting
+  float upper_limit = (ceil(max_X/bin_width)+1)*bin_width;
+  float lower_limit = (floor(min_X/bin_width)-1)*bin_width;
+  int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
+
+  // Looping through all the rows and columns and calculating which bin the
+  // contributing area is in, and putting the slope in this bin
+  vector<int> number_observations(NBins,0);
+  vector<float> bin_midpoints(NBins,0.0);
+  vector<float> bin_lower_lim(NBins,0.0);
+  vector<float> bin_upper_lim(NBins,0.0);
+  vector<float> probability_density(NBins,0);
+
+	// create the vector of vectors.  Nested vectors will store data within that
+  // bin.
+  vector<float> empty_vector;
+  float midpoint_value, lower_lim_value, upper_lim_value;
+
+  // Bin Data
+  int n_nan=0;
+  for (int i = 0; i < n_data; ++i)
+  {
+    float X = input_values[i];
+    // Get bin_id for this particular value of X
+    int bin_id = int((X-lower_limit)/bin_width);
+    if(input_values[i]!=input_values[i])
+    {
+      cout << "FOUND NAN - skipping" << endl;
+      ++n_nan;
+    }
+    else ++number_observations[bin_id];
+  }
+  for(int i = 0; i<NBins; i++)
+  {
+    midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
+    lower_lim_value = lower_limit + float(i)*bin_width;
+    upper_lim_value = float(i+1)*bin_width;  
+    
+    bin_midpoints[i]= midpoint_value;
+    bin_lower_lim[i]= lower_lim_value;
+    bin_upper_lim[i]= upper_lim_value;
+    
+    probability_density[i] = number_observations[i]/float(n_data-n_nan);    
+  }
+  // Copy vectors to output
+  Midpoints=bin_midpoints;
+  LLims=bin_lower_lim;
+  ULims=bin_upper_lim;
+  Count=number_observations;
+  ProbabilityDensity=probability_density;
+}
+void calculate_histogram_fixed_limits(vector<float> input_values, float bin_width, float lower_limit, float upper_limit, vector<float>& Midpoints, vector<float>& LLims, vector<float>& ULims, vector<int>& Count, vector<float>& ProbabilityDensity)
+{
+  int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
+  int n_data = input_values.size();
+  // Looping through all the rows and columns and calculating which bin the
+  // contributing area is in, and putting the slope in this bin
+  vector<int> number_observations(NBins,0);
+  vector<float> bin_midpoints(NBins,0.0);
+  vector<float> bin_lower_lim(NBins,0.0);
+  vector<float> bin_upper_lim(NBins,0.0);
+  vector<float> probability_density(NBins,0);
+
+  // create the vector of vectors.  Nested vectors will store data within that
+  // bin.
+  vector<float> empty_vector;
+  float midpoint_value, lower_lim_value, upper_lim_value;
+
+  // Bin Data
+  int n_nan=0;
+  for (int i = 0; i < n_data; ++i)
+  {
+    float X = input_values[i];
+    // Get bin_id for this particular value of X
+    int bin_id = int((X-lower_limit)/bin_width);
+    if(bin_id>0||bin_id<NBins-1)
+    {
+      if(input_values[i]!=input_values[i])
+      {
+        cout << "FOUND NAN - skipping" << endl;
+        ++n_nan;
+      }
+      else ++number_observations[bin_id];
+    }
+  }
+  for(int i = 0; i<NBins; i++)
+  { 
+    midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
+    lower_lim_value = lower_limit + float(i)*bin_width;
+    upper_lim_value = float(i+1)*bin_width;  
+    
+    bin_midpoints[i]= midpoint_value;
+    bin_lower_lim[i]= lower_lim_value;
+    bin_upper_lim[i]= upper_lim_value;
+    
+    probability_density[i] = number_observations[i]/float(n_data-n_nan);
+  
+  }
+  // Copy vectors to output
+  Midpoints=bin_midpoints;
+  LLims=bin_lower_lim;
+  ULims=bin_upper_lim;
+  Count=number_observations;
+  ProbabilityDensity=probability_density;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+         
  
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // bin_data
