@@ -1721,7 +1721,7 @@ LSDRaster LSDRaster::LSDRasterTemplate(Array2D<float> InputData){
 // This function generates a hillshade raster using the algorithm outlined in
 // Burrough and McDonnell Principles of GIS 1990 and in the ArcMap web help
 // http://edndoc.esri.com/arcobjects/9.2/net/shared/geoprocessing/
-// spatial_analyst_tools/how_hillshade_works.htm
+// spatial_analyst_tools/how_hillshade_works.htm. Does not allow for drop shadows.
 //
 // Takes 3 floats, representing the altitude of the illumination source in
 // degrees, the azimuth of the illumination source in degrees and the z factor.
@@ -1792,8 +1792,6 @@ LSDRaster LSDRaster::hillshade(float altitude, float azimuth, float z_factor)
     return hillshade_raster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1956,6 +1954,173 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
+/*=======================================================================================
+
+	This function generates a shadows raster containing drop shadows using the algorithm outlined 
+	in Codilean (2006), identifying areas in shadow as 1 and all other values as 0. It includes
+	the coordinate transformation in order to look for shadow casting.
+
+	Is interfaced through LSDRaster::TopoShield and LSDRaster::Hillshade, and should not 
+	be called directly,	to generate a hillshade use LSDRaster::Hillshade.
+
+	Takes 2 ints, the zenith angle of the illumination source in degrees
+	and the azimuth angle, of the illumination source in degrees.
+
+	Outputs an LSDIndexRaster showing areas in the shadow of other topography.
+
+	Martin Hurst
+	February 2015
+	
+========================================================================================*/
+
+LSDIndexRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
+{
+	//Drop Shadows
+	Array2D<float> XCoords(NRows,NCols,NoDataValue);
+	Array2D<float> YCoords(NRows,NCols,NoDataValue);
+	Array2D<float> XCoords_Transform(NRows,NCols,NoDataValue);
+	Array2D<float> YCoords_Transform1(NRows,NCols,NoDataValue);
+	Array2D<float> YCoords_Transform2(NRows,NCols,NoDataValue);
+	Array2D<float> ZCoords_Transform(NRows,NCols,NoDataValue);
+	Array2D<int> Shadows(NRows,NCols,0);
+
+	//Convert Azimuth and Zenith to radians
+  float ZenithRadians = (M_PI/180.)*(90.-ZenithAngle);
+	float AzimuthRadians = (M_PI/180.)*(180.-(Azimuth+90.));
+	if (AzimuthRadians<0) AzimuthRadians += 2.*M_PI;
+
+	for (int i=0; i<NRows; ++i)
+	{
+		for (int j=0; j<NCols; ++j)
+		{
+			XCoords[i][j] = i*DataResolution;
+			YCoords[i][j] = j*DataResolution;
+			XCoords_Transform[i][j] = XCoords[i][j]*sin(AzimuthRadians)+YCoords[i][j]*cos(AzimuthRadians);
+//			YCoords_Transform1[i][j] = YCoords[i][j]*sin(AzimuthRadians) + XCoords[i][j]*cos(AzimuthRadians);
+//			YCoords_Transform2[i][j] = YCoords_Transform1[i][j]*cos(ZenithRadians)+RasterData[i][j]*sin(ZenithRadians);
+//			ZCoords_Transform2[i][j] = RasterData[i][j]*cos(ZenithRadians) + YCoords_Transform1[i][j]+sin(ZenithRadians);
+//			
+			ZCoords_Transform[i][j] = 	RasterData[i][j]*cos(ZenithRadians)
+																	+ (XCoords[i][j]*cos(AzimuthRadians)
+																	- YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians);
+		}
+	}
+	
+	//could then send a line and see if anything falls above?
+	for (int i=1; i<NRows-1; ++i)
+	{
+		for (int j=1; j<NCols-1; ++j)
+		{
+			//pull out vector of indices for searching the line in direction of azimuth
+			int a = i;
+			int b = j;
+			vector<int> as, bs;
+			
+			//Check direction to start looking and generate search indices for looking in each quadrant
+			int NSearch = 3;
+			if (Azimuth > 0 && Azimuth <= 90)
+			{
+				as.push_back(-1);	as.push_back(-1);	as.push_back(0);
+				bs.push_back(0);	bs.push_back(1);	bs.push_back(1);
+			}
+			else if (Azimuth > 90 && Azimuth <= 180)
+			{
+				as.push_back(0);	as.push_back(1);	as.push_back(1);
+				bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
+			}
+			else if (Azimuth > 180 && Azimuth <= 270)
+			{
+				as.push_back(1);	as.push_back(1);	as.push_back(0);
+				bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
+			}
+			else if (Azimuth > 270 && Azimuth <= 360)
+			{
+				as.push_back(0);	as.push_back(-1);	as.push_back(-1);
+				bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
+			}
+			else 
+			{
+				//critical error, Azimuth outside range
+				printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
+				exit(EXIT_FAILURE);
+			}
+			
+			//push indices to vectors for line trace until reaching the edges
+			//infinite loop, conditions inside should catch breaks
+			int ShadowFlag = 0;
+			while (true)
+			{
+				float MinX = 2;
+				int a_temp, b_temp, i_temp, j_temp;
+				
+				//check the three search cells for a minumum X value in rotated coordinate mode
+				for (int k=0;k<NSearch;++k)
+				{
+					//assign temporary indices
+					i_temp = a+as[k];
+					j_temp = b+bs[k];
+					
+					//minimise X
+					if (XCoords_Transform[i_temp][j_temp] < MinX)
+					{
+						a_temp = i_temp;
+						b_temp = j_temp;
+					}
+				}
+				
+				//update a and b
+				a = a_temp;
+				b = b_temp;
+
+				//Check if transformed elevation a,b greater than at i,j 
+				if (ZCoords_Transform[a][b] > ZCoords_Transform[i][j]) 
+				{
+					ShadowFlag = true;
+					break;
+				}
+				else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
+				else continue; //kinda redundant but for completeness sake...
+			}
+			
+			if (ShadowFlag == true) Shadows[i][j] = 1;
+		}
+	}
+	
+	//write LSDRaster
+  return LSDIndexRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
+                      
+//  //Array2D<int> Shadows(NRows, NCols, 0);
+//	//Array2D<float> Hillshade(NRows, NCols, 0);
+
+//	int ShadowingFlag;
+
+//	//get max and min zeta
+
+
+//	for (int i=1; i<NRows-1; ++i)
+//	{
+//		for (int j=1; j<NCols-1; ++j)
+//		{
+//			//extract vector of elevations in direction theta (could skip some pixels to speed up)
+//			ShadowingFlag = 0;
+//			while (ShadowingFlag == 0)
+//			{
+//				//extract vector of elevations by phi
+//				
+//				//check as we go if zeta > elevations(phi) we're in shadow, break
+//				if ()	Shadows[i][j] = 1; ShadowingFlag = 1;
+//		
+//				if (elevations(phi) > maxzeta) ShadowingFlag = 1;
+//			}		
+//			
+//			//compute slope shading
+//			if (Shadows[i][j] == 0)
+//			{
+//				//slope shading code here
+//			}
+//		}
+//	}
+}		
 
 
 
