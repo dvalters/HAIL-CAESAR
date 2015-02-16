@@ -496,6 +496,9 @@ class LSDRaster
   /// @date 11/4/13
   Array2D<float> Shadow(int theta, int phi);
 
+
+	LSDIndexRaster CastShadows(int Azimuth, int ZenithAngle);
+
   /// @brief This function generates a topographic shielding raster using the algorithm outlined in Codilean (2006).
   ///
   /// @details Creating a raster of values between 0 and 1 which can be used as a
