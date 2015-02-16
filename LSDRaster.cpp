@@ -92,6 +92,7 @@
 #include <map>
 #include <math.h>
 #include <string.h>
+#include <omp.h>
 #include "TNT/tnt.h"
 #include "TNT/jama_lu.h"
 #include "TNT/jama_eig.h"
@@ -1959,6 +1960,10 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step)
 	This function generates a shadows raster containing drop shadows using the algorithm outlined 
 	in Codilean (2006), identifying areas in shadow as 1 and all other values as 0. It includes
 	the coordinate transformation in order to look for shadow casting.
+	
+	Algorithm works by adjusting the coordiantes of the DEM to be relative to the azimuth and zenith
+	i.e. X-coordinates should be equal along the Azimuth direction and the DEM itself is tilted by
+	the angle Zenith toward Azimuth.
 
 	Is interfaced through LSDRaster::TopoShield and LSDRaster::Hillshade, and should not 
 	be called directly,	to generate a hillshade use LSDRaster::Hillshade.
@@ -1975,15 +1980,18 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step)
 
 LSDIndexRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 {
-	//Drop Shadows
+	//Declare coordinate and transform arrays
 	Array2D<float> XCoords(NRows,NCols,NoDataValue);
 	Array2D<float> YCoords(NRows,NCols,NoDataValue);
-	Array2D<float> XCoords_Transform(NRows,NCols,NoDataValue);
-	Array2D<float> YCoords_Transform1(NRows,NCols,NoDataValue);
-	Array2D<float> YCoords_Transform2(NRows,NCols,NoDataValue);
+	Array2D<float> YCoords_Transform(NRows,NCols,NoDataValue);
 	Array2D<float> ZCoords_Transform(NRows,NCols,NoDataValue);
 	Array2D<int> Shadows(NRows,NCols,0);
 
+	//Declare some other parameters
+	float MaxElevation = 0;			//Sea Level
+	float MinElevation = 8848;	//Everest!
+	float MaxRelief = fabs(MaxElevation-MinElevation);
+		
 	//Convert Azimuth and Zenith to radians
   float ZenithRadians = (M_PI/180.)*(90.-ZenithAngle);
 	float AzimuthRadians = (M_PI/180.)*(180.-(Azimuth+90.));
@@ -1993,29 +2001,66 @@ LSDIndexRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 	{
 		for (int j=0; j<NCols; ++j)
 		{
-			XCoords[i][j] = i*DataResolution;
+			XCoords[i][j] = (NCols-i)*DataResolution;
 			YCoords[i][j] = j*DataResolution;
-			XCoords_Transform[i][j] = XCoords[i][j]*sin(AzimuthRadians)+YCoords[i][j]*cos(AzimuthRadians);
-//			YCoords_Transform1[i][j] = YCoords[i][j]*sin(AzimuthRadians) + XCoords[i][j]*cos(AzimuthRadians);
-//			YCoords_Transform2[i][j] = YCoords_Transform1[i][j]*cos(ZenithRadians)+RasterData[i][j]*sin(ZenithRadians);
-//			ZCoords_Transform2[i][j] = RasterData[i][j]*cos(ZenithRadians) + YCoords_Transform1[i][j]+sin(ZenithRadians);
-//			
-			ZCoords_Transform[i][j] = 	RasterData[i][j]*cos(ZenithRadians)
+			YCoords_Transform[i][j] = YCoords[i][j]*sin(AzimuthRadians)+XCoords[i][j]*cos(AzimuthRadians);
+			ZCoords_Transform[i][j] = 	(RasterData[i][j]*cos(ZenithRadians)
 																	+ (XCoords[i][j]*cos(AzimuthRadians)
-																	- YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians);
+																	+ YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
+																	
+			//Find min and max elevations as we go
+			if (RasterData[i][j] > MaxElevation) MaxElevation = RasterData[i][j];
+			if (RasterData[i][j] < MinElevation) MinElevation = RasterData[i][j];
 		}
 	}
 	
-	//could then send a line and see if anything falls above?
-	for (int i=1; i<NRows-1; ++i)
+	//update max relief
+	MaxRelief = fabs(MaxElevation-MinElevation);
+	
+	LSDRaster Ytrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords_Transform);
+	Ytrans.write_raster("or_clip_Ycoords","flt");
+	
+	LSDRaster Ztrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ZCoords_Transform);
+	Ztrans.write_raster("or_clip_Zcoords","flt");
+	
+	//variables for screen printing
+	int PrintStep = (int)(NCols*(NRows/100));
+	int Print = 0;
+
+	
+	// *** start of parallel loop ***
+	//#pragma omp parallel for
+	for (int ij = 0; ij < NRows*NCols; ++ij) 
 	{
-		for (int j=1; j<NCols-1; ++j)
-		{
-			//pull out vector of indices for searching the line in direction of azimuth
+    int i = ij / NCols;
+    int j = ij % NCols;
+    
+    if (i==0 || i==NRows-1 || j==0 || j==NCols-1) continue;
+    
+//    if (i > Print) 
+//    {
+//    	cout << "i is " << i << endl;
+//    	Print += 10;
+//    }
+//    
+//    cout << i << " " << j << endl;
+	
+//		if (omp_get_thread_num() == 0)
+//		{
+			if (ij > Print)
+			{
+				float Percentage = (100.*i/NRows);
+				fflush(stdout);
+				printf("\t%3.0f %% Complete \r",Percentage);
+				Print += PrintStep;
+			}
+//		}
+		
+		//pull out vector of indices for searching the line in direction of azimuth
 			int a = i;
 			int b = j;
 			vector<int> as, bs;
-			
+		
 			//Check direction to start looking and generate search indices for looking in each quadrant
 			int NSearch = 3;
 			if (Azimuth > 0 && Azimuth <= 90)
@@ -2044,48 +2089,56 @@ LSDIndexRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 				printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
 				exit(EXIT_FAILURE);
 			}
-			
+		
 			//push indices to vectors for line trace until reaching the edges
 			//infinite loop, conditions inside should catch breaks
 			int ShadowFlag = 0;
 			while (true)
 			{
-				float MinX = 2;
+				float MinY = 2;
+				float DiffY, DiffZ;
 				int a_temp, b_temp, i_temp, j_temp;
-				
+			
 				//check the three search cells for a minumum X value in rotated coordinate mode
 				for (int k=0;k<NSearch;++k)
 				{
 					//assign temporary indices
 					i_temp = a+as[k];
 					j_temp = b+bs[k];
-					
-					//minimise X
-					if (XCoords_Transform[i_temp][j_temp] < MinX)
+				
+					//minimise Y along X direction
+					DiffY = YCoords_Transform[i_temp][j_temp]-YCoords_Transform[i][j];
+					if (DiffY < MinY)
 					{
+						MinY = DiffY;
 						a_temp = i_temp;
 						b_temp = j_temp;
 					}
 				}
-				
+			
 				//update a and b
 				a = a_temp;
 				b = b_temp;
 
-				//Check if transformed elevation a,b greater than at i,j 
-				if (ZCoords_Transform[a][b] > ZCoords_Transform[i][j]) 
+				//Check if transformed elevation a,b greater than at i,j
+				DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
+				if (DiffZ > 0) 
 				{
 					ShadowFlag = true;
 					break;
 				}
+				//if diff is greater than landscape relief there can be no more shadows so break out, no shadows
+				else if (fabs(DiffZ) > MaxRelief) break;	
+				//if we reach the edge of the array time to break out, no shadows				
 				else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
 				else continue; //kinda redundant but for completeness sake...
 			}
-			
+		
 			if (ShadowFlag == true) Shadows[i][j] = 1;
-		}
+
 	}
-	
+	// *** end of pragma omp parallel for ***
+	cout << endl;	
 	//write LSDRaster
   return LSDIndexRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
                       
