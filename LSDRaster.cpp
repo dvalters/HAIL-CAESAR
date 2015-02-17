@@ -1734,10 +1734,22 @@ LSDRaster LSDRaster::LSDRasterTemplate(Array2D<float> InputData){
 // SWDG, February 2013
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+// Default version if no arguments given
+// MDH, Feb 2015
+//=======================================================================================
+
+LSDRaster LSDRaster::hillshade()
+{
+	float Zenith = 45;
+	float Azimuth = 315;
+	float ZFactor = 1;
+	LSDRaster Hillshade = this->hillshade(Zenith, Azimuth,ZFactor);
+	return Hillshade;
+}
+
 LSDRaster LSDRaster::hillshade(float altitude, float azimuth, float z_factor)
 {
-    float PI = 3.14159265;
-
     //print parameters to screen
     cout << "Hillshading with altitude: " << altitude
     << ", azimuth: " << azimuth << " and z-factor: " << z_factor << endl;
@@ -1746,10 +1758,10 @@ LSDRaster LSDRaster::hillshade(float altitude, float azimuth, float z_factor)
     Array2D<float> hillshade(NRows,NCols,NoDataValue);
 
     //convert zenith and azimuth into radians for calculation
-    float zenith_rad = (90 - altitude) * PI / 180.0;
+    float zenith_rad = (90 - altitude) * M_PI / 180.0;
     float azimuth_math = 360-azimuth + 90;
     if (azimuth_math >= 360.0) azimuth_math = azimuth_math - 360;
-    float azimuth_rad = azimuth_math * PI /180.0;
+    float azimuth_rad = azimuth_math * M_PI /180.0;
 
     //calculate hillshade value for every non nodata value in the input raster
     for (int i = 1; i < NRows-1; ++i){
@@ -1771,11 +1783,11 @@ LSDRaster LSDRaster::hillshade(float altitude, float azimuth, float z_factor)
 
                 if (dzdx != 0){
                     aspect_rad = atan2(dzdy, (dzdx*-1));
-                    if (aspect_rad < 0) aspect_rad = 2*PI + aspect_rad;
+                    if (aspect_rad < 0) aspect_rad = 2*M_PI + aspect_rad;
                 }
                 else{
-                    if (dzdy > 0) aspect_rad = PI/2;
-                    else if (dzdy < 0) aspect_rad = 2 * PI - PI/2;
+                    if (dzdy > 0) aspect_rad = M_PI/2;
+                    else if (dzdy < 0) aspect_rad = 2 * M_PI - M_PI/2;
                     else aspect_rad = aspect_rad;
                 }
                 hillshade[i][j] = 255.0 * ((cos(zenith_rad) * cos(slope_rad)) +
@@ -1797,7 +1809,8 @@ LSDRaster LSDRaster::hillshade(float altitude, float azimuth, float z_factor)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This function generates a hillshade derivative raster using the algorithm outlined in
-// Codilean (2006), identifying areas in shadow as 1 and all other values as 0.
+// Codilean (2006) (excluding cast shadows), identifying areas in shadow as 1 and all 
+// other values as 0. This is now obselete since we have the CastShadows algorithm.
 //
 // Is interfaced through LSDRaster::TopoShield and should not be called directly,
 // to generate a hillshade use LSDRaster::hillshade instead.
@@ -1812,17 +1825,15 @@ LSDRaster LSDRaster::hillshade(float altitude, float azimuth, float z_factor)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 Array2D<float> LSDRaster::Shadow(int theta, int phi)
 {
-    float PI = 3.14159265;
-
     //create array of input data and an output array of same dimensions
     Array2D<float> data = RasterData;
     Array2D<float> hillshade(NRows,NCols,NoDataValue);
 
     //convert zenith and azimuth into radians for calculation
-    float zenith_rad = (90 - theta) * PI / 180.0;
+    float zenith_rad = (90 - theta) * M_PI / 180.0;
     float azimuth_math = 360-phi + 90;
     if (azimuth_math >= 360.0) azimuth_math = azimuth_math - 360;
-    float azimuth_rad = azimuth_math * PI /180.0;
+    float azimuth_rad = azimuth_math * M_PI /180.0;
 
     //calculate hillshade value for every non nodata value in the input raster
     for (int i = 1; i < NRows-1; ++i){
@@ -1844,17 +1855,17 @@ Array2D<float> LSDRaster::Shadow(int theta, int phi)
 
                 if (dzdx != 0){
                     aspect_rad = atan2(dzdy, (dzdx*-1));
-                    if (aspect_rad < 0) aspect_rad = 2*PI + aspect_rad;
+                    if (aspect_rad < 0) aspect_rad = 2*M_PI + aspect_rad;
                 }
                 else{
-                    if (dzdy > 0) aspect_rad = PI/2;
-                    else if (dzdy < 0) aspect_rad = 2 * PI - PI/2;
+                    if (dzdy > 0) aspect_rad = M_PI/2;
+                    else if (dzdy < 0) aspect_rad = 2 * M_PI - M_PI/2;
                     else aspect_rad = aspect_rad;
                 }
 
                 hillshade[i][j] = acos(((sin(zenith_rad) * cos(slope_rad)) +
                                   (sin(zenith_rad) * sin(slope_rad) *
-                                  cos(azimuth_rad - aspect_rad))))*180/PI;
+                                  cos(azimuth_rad - aspect_rad))))*180/M_PI;
 
                 if (hillshade[i][j] > 90) hillshade[i][j] = 1;
                 else hillshade[i][j] = 0;
@@ -1892,7 +1903,7 @@ Array2D<float> LSDRaster::Shadow(int theta, int phi)
 // SWDG, 11/4/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step)
+LSDRaster LSDRaster::TopographicShielding(int theta_step, int phi_step)
 {
   //calculate parameter of scaling calculation
   int phi_factor = 360/phi_step;
@@ -1920,7 +1931,7 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step)
       cout << flush <<  "\tTheta = " << theta << ", Phi = " 
            << phi << "           \r";
 
-      Array2D<float> TempArray = Shadow(theta,phi);
+      Array2D<float> TempArray = this->Shadows(phi,theta);
       Array2D<float> Scaler(NRows, NCols, pow(sin(rad(float(theta))),3.3));
       FinalArray += TempArray * Scaler;
     }
@@ -1978,14 +1989,19 @@ LSDRaster LSDRaster::TopoShield(int theta_step, int phi_step)
 	
 ========================================================================================*/
 
-LSDIndexRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
+LSDRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
+{
+	Array2D<float> Shadows = this->Shadows(Azimuth,ZenithAngle);
+	return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
+}
+Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 {
 	//Declare coordinate and transform arrays
 	Array2D<float> XCoords(NRows,NCols,NoDataValue);
 	Array2D<float> YCoords(NRows,NCols,NoDataValue);
 	Array2D<float> YCoords_Transform(NRows,NCols,NoDataValue);
 	Array2D<float> ZCoords_Transform(NRows,NCols,NoDataValue);
-	Array2D<int> Shadows(NRows,NCols,0);
+	Array2D<float> Shadows(NRows,NCols,0.);
 
 	//Declare some other parameters
 	float MaxElevation = 0;			//Sea Level
@@ -2027,6 +2043,15 @@ LSDIndexRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 	int PrintStep = (int)(NCols*(NRows/100));
 	int Print = 0;
 
+	/* 	NOTE this whole section could be made significantly more efficient if we think about the problem
+			in reverse, i.e. Check to see wether cells cast a shadow and label up all with z<Z as in shadow
+			in the shadow look direction. Would allow processing multiple cells for each individual trace. 
+			Could also vary the start position of the sweep through the DEM in order to be most efficient
+			e.g. if 0< Azimuth < 90 start loops at [0][NCols], if 180 < Azimuth < 270 start loops at [NRows][0].
+			
+			I don't have time to implement this right now. 
+			MDH, Feb 2015.
+	*/
 	
 	// *** start of parallel loop ***
 	//#pragma omp parallel for
@@ -2036,143 +2061,96 @@ LSDIndexRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
     int j = ij % NCols;
     
     if (i==0 || i==NRows-1 || j==0 || j==NCols-1) continue;
-    
-//    if (i > Print) 
-//    {
-//    	cout << "i is " << i << endl;
-//    	Print += 10;
-//    }
-//    
-//    cout << i << " " << j << endl;
+  	if (ij > Print)
+		{
+			float Percentage = (100.*i/NRows);
+			fflush(stdout);
+			printf("\t%3.0f %% Complete \r",Percentage);
+			Print += PrintStep;
+		}
+
 	
-//		if (omp_get_thread_num() == 0)
-//		{
-			if (ij > Print)
-			{
-				float Percentage = (100.*i/NRows);
-				fflush(stdout);
-				printf("\t%3.0f %% Complete \r",Percentage);
-				Print += PrintStep;
-			}
-//		}
+	//pull out vector of indices for searching the line in direction of azimuth
+		int a = i;
+		int b = j;
+		vector<int> as, bs;
+	
+		//Check direction to start looking and generate search indices for looking in each quadrant
+		int NSearch = 3;
+		if (Azimuth > 0 && Azimuth <= 90)
+		{
+			as.push_back(-1);	as.push_back(-1);	as.push_back(0);
+			bs.push_back(0);	bs.push_back(1);	bs.push_back(1);
+		}
+		else if (Azimuth > 90 && Azimuth <= 180)
+		{
+			as.push_back(0);	as.push_back(1);	as.push_back(1);
+			bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
+		}
+		else if (Azimuth > 180 && Azimuth <= 270)
+		{
+			as.push_back(1);	as.push_back(1);	as.push_back(0);
+			bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
+		}
+		else if (Azimuth > 270 && Azimuth <= 360)
+		{
+			as.push_back(0);	as.push_back(-1);	as.push_back(-1);
+			bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
+		}
+		else 
+		{
+			//critical error, Azimuth outside range
+			printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
+			exit(EXIT_FAILURE);
+		}
+	
+		//push indices to vectors for line trace until reaching the edges
+		//infinite loop, conditions inside should catch breaks
+		int ShadowFlag = 0;
+		while (true)
+		{
+			float MinY = 2;
+			float DiffY, DiffZ;
+			int a_temp, b_temp, i_temp, j_temp;
 		
-		//pull out vector of indices for searching the line in direction of azimuth
-			int a = i;
-			int b = j;
-			vector<int> as, bs;
-		
-			//Check direction to start looking and generate search indices for looking in each quadrant
-			int NSearch = 3;
-			if (Azimuth > 0 && Azimuth <= 90)
+			//check the three search cells for a minumum X value in rotated coordinate mode
+			for (int k=0;k<NSearch;++k)
 			{
-				as.push_back(-1);	as.push_back(-1);	as.push_back(0);
-				bs.push_back(0);	bs.push_back(1);	bs.push_back(1);
-			}
-			else if (Azimuth > 90 && Azimuth <= 180)
-			{
-				as.push_back(0);	as.push_back(1);	as.push_back(1);
-				bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
-			}
-			else if (Azimuth > 180 && Azimuth <= 270)
-			{
-				as.push_back(1);	as.push_back(1);	as.push_back(0);
-				bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
-			}
-			else if (Azimuth > 270 && Azimuth <= 360)
-			{
-				as.push_back(0);	as.push_back(-1);	as.push_back(-1);
-				bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
-			}
-			else 
-			{
-				//critical error, Azimuth outside range
-				printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
-				exit(EXIT_FAILURE);
-			}
-		
-			//push indices to vectors for line trace until reaching the edges
-			//infinite loop, conditions inside should catch breaks
-			int ShadowFlag = 0;
-			while (true)
-			{
-				float MinY = 2;
-				float DiffY, DiffZ;
-				int a_temp, b_temp, i_temp, j_temp;
+				//assign temporary indices
+				i_temp = a+as[k];
+				j_temp = b+bs[k];
 			
-				//check the three search cells for a minumum X value in rotated coordinate mode
-				for (int k=0;k<NSearch;++k)
+				//minimise Y along X direction
+				DiffY = YCoords_Transform[i_temp][j_temp]-YCoords_Transform[i][j];
+				if (DiffY < MinY)
 				{
-					//assign temporary indices
-					i_temp = a+as[k];
-					j_temp = b+bs[k];
-				
-					//minimise Y along X direction
-					DiffY = YCoords_Transform[i_temp][j_temp]-YCoords_Transform[i][j];
-					if (DiffY < MinY)
-					{
-						MinY = DiffY;
-						a_temp = i_temp;
-						b_temp = j_temp;
-					}
+					MinY = DiffY;
+					a_temp = i_temp;
+					b_temp = j_temp;
 				}
-			
-				//update a and b
-				a = a_temp;
-				b = b_temp;
-
-				//Check if transformed elevation a,b greater than at i,j
-				DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
-				if (DiffZ > 0) 
-				{
-					ShadowFlag = true;
-					break;
-				}
-				//if diff is greater than landscape relief there can be no more shadows so break out, no shadows
-				else if (fabs(DiffZ) > MaxRelief) break;	
-				//if we reach the edge of the array time to break out, no shadows				
-				else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
-				else continue; //kinda redundant but for completeness sake...
 			}
 		
-			if (ShadowFlag == true) Shadows[i][j] = 1;
+			//update a and b
+			a = a_temp;
+			b = b_temp;
 
+			//Check if transformed elevation a,b greater than at i,j
+			DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
+			if (DiffZ > 0) 
+			{
+				ShadowFlag = true;
+				break;
+			}
+			//if diff is greater than landscape relief there can be no more shadows so break out, no shadows
+			else if (fabs(DiffZ) > MaxRelief) break;	
+			//if we reach the edge of the array time to break out, no shadows				
+			else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
+			else continue; //kinda redundant but for completeness sake...
+		}
+		if (ShadowFlag == true) Shadows[i][j] = 1;
 	}
 	// *** end of pragma omp parallel for ***
-	cout << endl;	
-	//write LSDRaster
-  return LSDIndexRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
-                      
-//  //Array2D<int> Shadows(NRows, NCols, 0);
-//	//Array2D<float> Hillshade(NRows, NCols, 0);
-
-//	int ShadowingFlag;
-
-//	//get max and min zeta
-
-
-//	for (int i=1; i<NRows-1; ++i)
-//	{
-//		for (int j=1; j<NCols-1; ++j)
-//		{
-//			//extract vector of elevations in direction theta (could skip some pixels to speed up)
-//			ShadowingFlag = 0;
-//			while (ShadowingFlag == 0)
-//			{
-//				//extract vector of elevations by phi
-//				
-//				//check as we go if zeta > elevations(phi) we're in shadow, break
-//				if ()	Shadows[i][j] = 1; ShadowingFlag = 1;
-//		
-//				if (elevations(phi) > maxzeta) ShadowingFlag = 1;
-//			}		
-//			
-//			//compute slope shading
-//			if (Shadows[i][j] == 0)
-//			{
-//				//slope shading code here
-//			}
-//		}
-//	}
+  return Shadows;
 }		
 
 
@@ -5016,8 +4994,6 @@ Array2D<float> LSDRaster::D_inf_FlowDir(){
   float maxSlope; //maxiumum slope
   float flowDir = 0; //temp variable to hold flowdirections while looping thru the 8 facets
 
-  float pi = 3.14159265;
-
   //components of the triangular facets as outlined in Tarboton (1997) fig 3
   //& equations 1-5
   float e0;
@@ -5084,7 +5060,7 @@ Array2D<float> LSDRaster::D_inf_FlowDir(){
               }
               if (s >= maxSlope && s != 0.00001){
                 maxSlope = s;
-                flowDir = afVals[a] * r + acVals[a] * (pi / 2);
+                flowDir = afVals[a] * r + acVals[a] * (M_PI / 2);
               }
             }
             //calculate slope (s) and bearing (r) along edges
@@ -5100,7 +5076,7 @@ Array2D<float> LSDRaster::D_inf_FlowDir(){
               }
               if (s >= maxSlope && s != 0.00001){
                 maxSlope = s;
-                flowDir = afVals[a] * r + acVals[a] * (pi / 2);
+                flowDir = afVals[a] * r + acVals[a] * (M_PI / 2);
               }
             }
           }
@@ -5110,7 +5086,7 @@ Array2D<float> LSDRaster::D_inf_FlowDir(){
           FlowDir_Array[i][j] = -1;  //unresolved - Tarboton uses D8 to fill these pits - we have a better fill algorithm
         }
         else{
-          flowDir = round((flowDir * (180 / pi)) * 10) / 10;
+          flowDir = round((flowDir * (180 / M_PI)) * 10) / 10;
           flowDir = 360 - flowDir + 90;
           if (flowDir > 360){
             flowDir = flowDir - 360;
@@ -7963,9 +7939,7 @@ void LSDRaster::PadRasterSymmetric(Array2D<float>& PaddedRasterData, int& Simila
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius)
 {
-
-  float pi = 3.1415926536;
-  float left_side = 1/(2*pi*sigma*sigma);
+  float left_side = 1/(2*M_PI*sigma*sigma);
   float twosigma2 = 2.0*sigma*sigma;
   float right_side;
   float wgt = 0;
