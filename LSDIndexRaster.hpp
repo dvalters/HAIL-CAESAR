@@ -78,6 +78,8 @@
 #include <vector>
 #include <map>
 #include "TNT/tnt.h"
+//#include "LSDRaster.hpp"
+
 using namespace std;
 using namespace TNT;
 
@@ -134,6 +136,14 @@ class LSDIndexRaster
 								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data, GRS_map); }
 
 
+	/// @brief Create an LSDIndexRaster from an LSDRaster object, rounding to nearest int
+  /// @return LSDIndexRaster
+  /// @param NonIntLSDRaster an LSDRaster object containing flaoting point data
+ 	/// @author MDH
+  /// @date 17/02/15
+	//	LSDIndexRaster(LSDRaster NonIntLSDRaster)
+	//	{	create(NonIntLSDRaster); }
+	
 	// Get functions
 
 	/// @return Number of rows as an integer.
@@ -321,7 +331,8 @@ class LSDIndexRaster
 	            float cellsize, int ndv, Array2D<int> data);
 	void create(int ncols, int nrows, float xmin, float ymin,
 	            float cellsize, int ndv, Array2D<int> data, 
-              map<string,string> GRS_map);	            
+              map<string,string> GRS_map);
+  //void create(LSDRaster NonIntLSDRaster);	            
 
 };
 

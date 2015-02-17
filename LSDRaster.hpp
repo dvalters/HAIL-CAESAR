@@ -475,12 +475,13 @@ class LSDRaster
   /// spatial_analyst_tools/how_hillshade_works.htm
   ///
   /// Default values are altitude = 45, azimuth = 315, z_factor = 1
-  /// @param altitude of the illumination source in degrees.
-  /// @param azimuth of the illumination source in degrees
-  /// @param z_factor Scaling factor between vertical and horizontal.
+  /// @param altitude (float) of the illumination source in degrees.
+  /// @param azimuth (float) of the illumination source in degrees
+  /// @param z_factor (float) Scaling factor between vertical and horizontal.
   /// @return Hillshaded LSDRaster object
   /// @author SWDG
   /// @date February 2013
+  LSDRaster hillshade();
   LSDRaster hillshade(float altitude, float azimuth, float z_factor);
 
   /// @brief This function generates a hillshade derivative raster using the
@@ -496,18 +497,49 @@ class LSDRaster
   /// @date 11/4/13
   Array2D<float> Shadow(int theta, int phi);
 
-
-	LSDIndexRaster CastShadows(int Azimuth, int ZenithAngle);
-
-  /// @brief This function generates a topographic shielding raster using the algorithm outlined in Codilean (2006).
+	/// @brief Function to determine areas of a DEM that are in shadow from a 
+	/// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
+	///
+	/// @details Performs a coordinate transformation, rotating the x,y,z coordinates about the
+	/// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith. 
+	/// Shaded cells are then found by tracking in the direction of the radiation source and 
+	/// looking for transformed z values greater than that at the cell of interest which would
+	/// therefore cast a shadow.
   ///
-  /// @details Creating a raster of values between 0 and 1 which can be used as a
-  /// scaling factor in Cosmo analysis.
+  /// @param Azimuth of the illumination source in degrees.
+  /// @param ZenithAngle of the illumination source in degrees
+  /// @return Hillshaded LSDIndexRaster 
+  /// @author MDH
+  /// @date Feb 2015
+	LSDRaster CastShadows(int Azimuth, int ZenithAngle);
+	
+	/// @brief Function to determine areas of a DEM that are in shadow from a 
+	/// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
+	///
+	/// @details Performs a coordinate transformation, rotating the x,y,z coordinates about the
+	/// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith. 
+	/// Shaded cells are then found by tracking in the direction of the radiation source and 
+	/// looking for transformed z values greater than that at the cell of interest which would
+	/// therefore cast a shadow.
+  ///
+  /// @param Azimuth of the illumination source in degrees.
+  /// @param ZenithAngle of the illumination source in degrees
+  /// @return Hillshaded 2D Array of ints
+  /// @author MDH
+  /// @date Feb 2015
+	Array2D<float> Shadows(int Azimuth, int ZenithAngle);
+	
+  /// @brief This function generates a topographic shielding raster using the algorithm 
+  /// outlined in Codilean (2006).
+  ///
+  /// @details Creating a raster of values between 0 and 1 of shadowed cells which can 
+  /// be used as a scaling factor in Cosmo analysis.
   ///
   /// Goes further than the original algorithm allowing a theoretical theta,
   /// phi pair of 1,1 to be supplied and although this will increase the
   /// computation time significantly, it is much faster than the original
-  /// Avenue and VBScript implementations.
+  /// Avenue and VBScript implementations (This is probably no longer true
+  /// now that we incorporate drop shadows (MDH, Feb 2015)).
   ///
   /// Takes 2 ints, representing the theta, phi paring required.
   /// Codilean (2006) used 5,5 as the standard values, but in reality values of
@@ -517,7 +549,7 @@ class LSDRaster
   /// @pre phi_step must be a factor of 360.
   /// @author SWDG
   /// @date 11/4/13
-  LSDRaster TopoShield(int theta_step, int phi_step);
+  LSDRaster TopographicShielding(int theta_step, int phi_step);
 
   /// @brief Surface polynomial fitting and extraction of topographic metrics
   /// 

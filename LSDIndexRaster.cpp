@@ -89,7 +89,9 @@
 #include <map>
 #include "TNT/tnt.h"
 #include "LSDIndexRaster.hpp"
+//#include "LSDRaster.hpp"
 #include "LSDStatsTools.hpp"
+
 using namespace std;
 using namespace TNT;
 
@@ -177,8 +179,36 @@ void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
 		cout << "dimesntion of data is not the same as stated in NRows!" << endl;
 		exit(EXIT_FAILURE);
 	}
-
 }
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Creates an LSDIndexRaster from an LSDRaster by rounding floats to ints
+// Doesn't work yet
+// MDH, Feb 2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//void LSDIndexRaster::create(LSDRaster NonIntLSDRaster)
+//{
+//	//Declarations
+//	Array2D<int> RasterDataInt(NRows,NCols,(int)NonIntRaster.get_NoDataValue());
+//	Array2D<float> RasterDataFloat = NonIntLSDRaster.get_RasterData();
+//	
+//	for (int i=0; i<NRows; ++i)
+//	{
+//		for (int j=0; j<NCols; ++j)
+//		{
+//			RasterDataInt[i][j] = (int)(RasterDataFloat[i][j]+0.5)
+//		}
+//	}
+//	NRows = NonIntLSDRaster.get_NRows();
+//	NCols = NonIntLSDRaster.get_NCols();
+//	XMinimum = NonIntLSDRaster.get_XMinimum();
+//	YMinimum = NonIntLSDRaster.get_YMinimum();
+//	DataResolution = NonIntLSDRaster.get_DataResolution();
+//	NoDataValue = NonIntLSDRaster.get_NoDataValue();
+//	GeoReferencingStrings = NonIntLSDRaster.get_GeoReferencingStrings();
+//	RasterData = RasterDataInt.copy();
+//}
+	
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
