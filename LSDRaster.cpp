@@ -1931,6 +1931,8 @@ LSDRaster LSDRaster::TopographicShielding(int theta_step, int phi_step)
       cout << flush <<  "\tTheta = " << theta << ", Phi = " 
            << phi << "           \r";
 
+
+      // ARE THE THETA AND PHI BACKWARDS??
       Array2D<float> TempArray = this->Shadows(phi,theta);
       Array2D<float> Scaler(NRows, NCols, pow(sin(rad(float(theta))),3.3));
       FinalArray += TempArray * Scaler;
