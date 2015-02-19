@@ -1991,108 +1991,116 @@ LSDRaster LSDRaster::TopographicShielding(int theta_step, int phi_step)
 
 LSDRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 {
-	Array2D<float> Shadows = this->Shadows(Azimuth,ZenithAngle);
-	return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
+  Array2D<float> Shadows = this->Shadows(Azimuth,ZenithAngle);
+  return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
 }
 Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 {
-	//Declare coordinate and transform arrays
-	Array2D<float> XCoords(NRows,NCols,NoDataValue);
-	Array2D<float> YCoords(NRows,NCols,NoDataValue);
-	Array2D<float> YCoords_Transform(NRows,NCols,NoDataValue);
-	Array2D<float> ZCoords_Transform(NRows,NCols,NoDataValue);
-	Array2D<float> Shadows(NRows,NCols,0.);
+  //Declare coordinate and transform arrays
+  Array2D<float> XCoords(NRows,NCols,NoDataValue);
+  Array2D<float> YCoords(NRows,NCols,NoDataValue);
+  Array2D<float> YCoords_Transform(NRows,NCols,NoDataValue);
+  Array2D<float> ZCoords_Transform(NRows,NCols,NoDataValue);
+  Array2D<float> Shadows(NRows,NCols,0.);
 
-	//Declare some other parameters
-	float MaxElevation = 0;			//Sea Level
-	float MinElevation = 8848;	//Everest!
-	float MaxRelief = fabs(MaxElevation-MinElevation);
-		
-	//Convert Azimuth and Zenith to radians
+  //Declare some other parameters
+  float MaxElevation = 0;			//Sea Level
+  float MinElevation = 8848;	//Everest!
+  float MaxRelief = fabs(MaxElevation-MinElevation);
+
+  // convert azimuth if it is zero to 360
+  if (Azimuth == 360)
+  {
+    Azimuth = 0;
+  }
+
+  //Convert Azimuth and Zenith to radians
   float ZenithRadians = (M_PI/180.)*(90.-ZenithAngle);
-	float AzimuthRadians = (M_PI/180.)*(180.-(Azimuth+90.));
-	if (AzimuthRadians<0) AzimuthRadians += 2.*M_PI;
+  float AzimuthRadians = (M_PI/180.)*(180.-(Azimuth+90.));
+  if (AzimuthRadians<0) AzimuthRadians += 2.*M_PI;
+  
+  cout << "LINE 2016 Azimuth is: " << Azimuth << " and in radians: " << AzimuthRadians << endl;  
 
-	for (int i=0; i<NRows; ++i)
-	{
-		for (int j=0; j<NCols; ++j)
-		{
-			XCoords[i][j] = (NCols-i)*DataResolution;
-			YCoords[i][j] = j*DataResolution;
-			YCoords_Transform[i][j] = YCoords[i][j]*sin(AzimuthRadians)+XCoords[i][j]*cos(AzimuthRadians);
-			ZCoords_Transform[i][j] = 	(RasterData[i][j]*cos(ZenithRadians)
+  for (int i=0; i<NRows; ++i)
+  {
+    for (int j=0; j<NCols; ++j)
+    {
+      XCoords[i][j] = (NCols-i)*DataResolution;
+      YCoords[i][j] = j*DataResolution;
+      YCoords_Transform[i][j] = YCoords[i][j]*sin(AzimuthRadians)+XCoords[i][j]*cos(AzimuthRadians);
+      ZCoords_Transform[i][j] = 	(RasterData[i][j]*cos(ZenithRadians)
 																	+ (XCoords[i][j]*cos(AzimuthRadians)
 																	+ YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
 																	
-			//Find min and max elevations as we go
-			if (RasterData[i][j] > MaxElevation) MaxElevation = RasterData[i][j];
-			if (RasterData[i][j] < MinElevation) MinElevation = RasterData[i][j];
-		}
-	}
-	
-	//update max relief
-	MaxRelief = fabs(MaxElevation-MinElevation);
-	
-	LSDRaster Ytrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords_Transform);
-	Ytrans.write_raster("or_clip_Ycoords","flt");
-	
-	LSDRaster Ztrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ZCoords_Transform);
-	Ztrans.write_raster("or_clip_Zcoords","flt");
-	
-	//variables for screen printing
-	int PrintStep = (int)(NCols*(NRows/100));
-	int Print = 0;
+      //Find min and max elevations as we go
+      if (RasterData[i][j] > MaxElevation) MaxElevation = RasterData[i][j];
+      if (RasterData[i][j] < MinElevation) MinElevation = RasterData[i][j];
+    }
+  }
+  
+  //update max relief
+  MaxRelief = fabs(MaxElevation-MinElevation);
+  
+  LSDRaster Ytrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords_Transform);
+  Ytrans.write_raster("or_clip_Ycoords","flt");
+  
+  LSDRaster Ztrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ZCoords_Transform);
+  Ztrans.write_raster("or_clip_Zcoords","flt");
+  
+  //variables for screen printing
+  int PrintStep = (int)(NCols*(NRows/100));
+  int Print = 0;
 
-	/* 	NOTE this whole section could be made significantly more efficient if we think about the problem
-			in reverse, i.e. Check to see wether cells cast a shadow and label up all with z<Z as in shadow
-			in the shadow look direction. Would allow processing multiple cells for each individual trace. 
-			Could also vary the start position of the sweep through the DEM in order to be most efficient
-			e.g. if 0< Azimuth < 90 start loops at [0][NCols], if 180 < Azimuth < 270 start loops at [NRows][0].
-			
-			I don't have time to implement this right now. 
-			MDH, Feb 2015.
-	*/
+  // NOTE this whole section could be made significantly more efficient if we think about the problem
+  // in reverse, i.e. Check to see wether cells cast a shadow and label up all with z<Z as in shadow
+  // in the shadow look direction. Would allow processing multiple cells for each individual trace. 
+  // Could also vary the start position of the sweep through the DEM in order to be most efficient
+  // e.g. if 0< Azimuth < 90 start loops at [0][NCols], if 180 < Azimuth < 270 start loops at [NRows][0].
+  // 
+  // I don't have time to implement this right now. 
+  // MDH, Feb 2015.
+
 	
-	// *** start of parallel loop ***
-	//#pragma omp parallel for
-	for (int ij = 0; ij < NRows*NCols; ++ij) 
-	{
+  // *** start of parallel loop ***
+  //#pragma omp parallel for
+  for (int ij = 0; ij < NRows*NCols; ++ij) 
+  {
     int i = ij / NCols;
     int j = ij % NCols;
     
     if (i==0 || i==NRows-1 || j==0 || j==NCols-1) continue;
-  	if (ij > Print)
-		{
-			float Percentage = (100.*i/NRows);
-			fflush(stdout);
-			printf("\t%3.0f %% Complete \r",Percentage);
-			Print += PrintStep;
-		}
+   if (ij > Print)
+    {
+      float Percentage = (100.*i/NRows);
+      fflush(stdout);
+      printf("\t%3.0f %% Complete \r",Percentage);
+      Print += PrintStep;
+    }
 
+
+    //pull out vector of indices for searching the line in direction of azimuth
+    int a = i;
+    int b = j;
+    vector<int> as, bs;
 	
-	//pull out vector of indices for searching the line in direction of azimuth
-		int a = i;
-		int b = j;
-		vector<int> as, bs;
-	
-		//Check direction to start looking and generate search indices for looking in each quadrant
-		int NSearch = 3;
-		if (Azimuth > 0 && Azimuth <= 90)
-		{
+    //Check direction to start looking and generate search indices for looking in each quadrant
+    int NSearch = 3;
+    if (Azimuth >= 0 && Azimuth < 90)
+    {
 			as.push_back(-1);	as.push_back(-1);	as.push_back(0);
 			bs.push_back(0);	bs.push_back(1);	bs.push_back(1);
 		}
-		else if (Azimuth > 90 && Azimuth <= 180)
+		else if (Azimuth >= 90 && Azimuth < 180)
 		{
 			as.push_back(0);	as.push_back(1);	as.push_back(1);
 			bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
 		}
-		else if (Azimuth > 180 && Azimuth <= 270)
+		else if (Azimuth >= 180 && Azimuth < 270)
 		{
 			as.push_back(1);	as.push_back(1);	as.push_back(0);
 			bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
 		}
-		else if (Azimuth > 270 && Azimuth <= 360)
+		else if (Azimuth >= 270 && Azimuth < 360)
 		{
 			as.push_back(0);	as.push_back(-1);	as.push_back(-1);
 			bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
@@ -2145,12 +2153,14 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 			else if (fabs(DiffZ) > MaxRelief) break;	
 			//if we reach the edge of the array time to break out, no shadows				
 			else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
-			else continue; //kinda redundant but for completeness sake...
-		}
-		if (ShadowFlag == true) Shadows[i][j] = 1;
-	}
-	// *** end of pragma omp parallel for ***
+      else continue; //kinda redundant but for completeness sake...
+    }
+    if (ShadowFlag == true) Shadows[i][j] = 1;
+  }
+  // *** end of pragma omp parallel for ***
   return Shadows;
+  cout << "LINE 2162 Finished shadows" << endl;
+  
 }		
 
 
