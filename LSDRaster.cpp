@@ -1924,15 +1924,16 @@ LSDRaster LSDRaster::TopographicShielding(int theta_step, int phi_step)
   Array2D<float> FinalArray = Shadow(0,90) * Scaler90;
 
   //loop through all the theta, phi pairs and increment the FinalArray with the scaled values
+  cout << "Starting toposhield loop" << endl;
   for(int theta = 10; theta < 90; theta += theta_step)
   {
     for(int phi = 0; phi < 360; phi += phi_step)
     {
+      //cout << "Theta: " << theta << " and phi: " << phi << endl;
+      
       cout << flush <<  "\tTheta = " << theta << ", Phi = " 
            << phi << "           \r";
 
-
-      // ARE THE THETA AND PHI BACKWARDS??
       Array2D<float> TempArray = this->Shadows(phi,theta);
       Array2D<float> Scaler(NRows, NCols, pow(sin(rad(float(theta))),3.3));
       FinalArray += TempArray * Scaler;
@@ -2030,10 +2031,10 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
       XCoords[i][j] = (NCols-i)*DataResolution;
       YCoords[i][j] = j*DataResolution;
       YCoords_Transform[i][j] = YCoords[i][j]*sin(AzimuthRadians)+XCoords[i][j]*cos(AzimuthRadians);
-      ZCoords_Transform[i][j] = 	(RasterData[i][j]*cos(ZenithRadians)
-																	+ (XCoords[i][j]*cos(AzimuthRadians)
-																	+ YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
-																	
+      ZCoords_Transform[i][j] = (RasterData[i][j]*cos(ZenithRadians)
+                                + (XCoords[i][j]*cos(AzimuthRadians)
+                                + YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
+
       //Find min and max elevations as we go
       if (RasterData[i][j] > MaxElevation) MaxElevation = RasterData[i][j];
       if (RasterData[i][j] < MinElevation) MinElevation = RasterData[i][j];
@@ -2043,11 +2044,12 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
   //update max relief
   MaxRelief = fabs(MaxElevation-MinElevation);
   
-  LSDRaster Ytrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords_Transform);
-  Ytrans.write_raster("or_clip_Ycoords","flt");
+  // These appear to only be for bug checking
+  //LSDRaster Ytrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords_Transform);
+  //Ytrans.write_raster("or_clip_Ycoords","flt");
   
-  LSDRaster Ztrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ZCoords_Transform);
-  Ztrans.write_raster("or_clip_Zcoords","flt");
+  //LSDRaster Ztrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ZCoords_Transform);
+  //Ztrans.write_raster("or_clip_Zcoords","flt");
   
   //variables for screen printing
   int PrintStep = (int)(NCols*(NRows/100));
@@ -2062,7 +2064,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
   // I don't have time to implement this right now. 
   // MDH, Feb 2015.
 
-	
+
   // *** start of parallel loop ***
   //#pragma omp parallel for
   for (int ij = 0; ij < NRows*NCols; ++ij) 
@@ -2084,52 +2086,56 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
     int a = i;
     int b = j;
     vector<int> as, bs;
-	
+
     //Check direction to start looking and generate search indices for looking in each quadrant
     int NSearch = 3;
     if (Azimuth >= 0 && Azimuth < 90)
     {
-			as.push_back(-1);	as.push_back(-1);	as.push_back(0);
-			bs.push_back(0);	bs.push_back(1);	bs.push_back(1);
-		}
-		else if (Azimuth >= 90 && Azimuth < 180)
-		{
-			as.push_back(0);	as.push_back(1);	as.push_back(1);
-			bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
-		}
-		else if (Azimuth >= 180 && Azimuth < 270)
-		{
-			as.push_back(1);	as.push_back(1);	as.push_back(0);
-			bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
-		}
-		else if (Azimuth >= 270 && Azimuth < 360)
-		{
-			as.push_back(0);	as.push_back(-1);	as.push_back(-1);
-			bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
-		}
-		else 
-		{
-			//critical error, Azimuth outside range
-			printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
-			exit(EXIT_FAILURE);
-		}
-	
-		//push indices to vectors for line trace until reaching the edges
-		//infinite loop, conditions inside should catch breaks
-		int ShadowFlag = 0;
-		while (true)
-		{
-			float MinY = 2;
-			float DiffY, DiffZ;
-			int a_temp, b_temp, i_temp, j_temp;
-		
-			//check the three search cells for a minumum X value in rotated coordinate mode
-			for (int k=0;k<NSearch;++k)
-			{
+      as.push_back(-1);
+      as.push_back(-1);
+      as.push_back(0);
+      bs.push_back(0);
+      bs.push_back(1);
+      bs.push_back(1);
+    }
+    else if (Azimuth >= 90 && Azimuth < 180)
+    {
+      as.push_back(0);	as.push_back(1);	as.push_back(1);
+      bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
+    }
+    else if (Azimuth >= 180 && Azimuth < 270)
+    {
+      as.push_back(1);	as.push_back(1);	as.push_back(0);
+      bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
+    }
+    else if (Azimuth >= 270 && Azimuth < 360)
+    {
+      as.push_back(0);	as.push_back(-1);	as.push_back(-1);
+      bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
+    }
+    else 
+    {
+      //critical error, Azimuth outside range
+      printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
+      exit(EXIT_FAILURE);
+    }
+
+    //push indices to vectors for line trace until reaching the edges
+    //infinite loop, conditions inside should catch breaks
+    int ShadowFlag = 0;
+    while (true)
+    {
+      float MinY = 2;
+      float DiffY, DiffZ;
+      int a_temp, b_temp, i_temp, j_temp;
+
+      //check the three search cells for a minumum X value in rotated coordinate mode
+      for (int k=0;k<NSearch;++k)
+      {
 				//assign temporary indices
 				i_temp = a+as[k];
 				j_temp = b+bs[k];
-			
+
 				//minimise Y along X direction
 				DiffY = YCoords_Transform[i_temp][j_temp]-YCoords_Transform[i][j];
 				if (DiffY < MinY)
@@ -2138,23 +2144,23 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 					a_temp = i_temp;
 					b_temp = j_temp;
 				}
-			}
+      }
 		
-			//update a and b
-			a = a_temp;
-			b = b_temp;
+      //update a and b
+      a = a_temp;
+      b = b_temp;
 
-			//Check if transformed elevation a,b greater than at i,j
-			DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
-			if (DiffZ > 0) 
-			{
+      //Check if transformed elevation a,b greater than at i,j
+      DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
+      if (DiffZ > 0) 
+      {
 				ShadowFlag = true;
 				break;
-			}
-			//if diff is greater than landscape relief there can be no more shadows so break out, no shadows
-			else if (fabs(DiffZ) > MaxRelief) break;	
-			//if we reach the edge of the array time to break out, no shadows				
-			else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
+      }
+      //if diff is greater than landscape relief there can be no more shadows so break out, no shadows
+      else if (fabs(DiffZ) > MaxRelief) break;	
+      //if we reach the edge of the array time to break out, no shadows				
+      else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
       else continue; //kinda redundant but for completeness sake...
     }
     if (ShadowFlag == true) Shadows[i][j] = 1;
@@ -2163,7 +2169,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
   return Shadows;
   cout << "LINE 2162 Finished shadows" << endl;
   
-}		
+}
 
 
 
