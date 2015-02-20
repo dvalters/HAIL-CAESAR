@@ -2073,7 +2073,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
     int j = ij % NCols;
     
     if (i==0 || i==NRows-1 || j==0 || j==NCols-1) continue;
-   if (ij > Print)
+    if (ij > Print)
     {
       float Percentage = (100.*i/NRows);
       fflush(stdout);
@@ -2091,6 +2091,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
     int NSearch = 3;
     if (Azimuth >= 0 && Azimuth < 90)
     {
+      cout << "PB1" << endl;
       as.push_back(-1);
       as.push_back(-1);
       as.push_back(0);
@@ -2100,16 +2101,19 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
     }
     else if (Azimuth >= 90 && Azimuth < 180)
     {
+      cout << "PB2" << endl;
       as.push_back(0);	as.push_back(1);	as.push_back(1);
       bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
     }
     else if (Azimuth >= 180 && Azimuth < 270)
     {
+      cout << "PB3" << endl;
       as.push_back(1);	as.push_back(1);	as.push_back(0);
       bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
     }
     else if (Azimuth >= 270 && Azimuth < 360)
     {
+      cout << "PB4" << endl;
       as.push_back(0);	as.push_back(-1);	as.push_back(-1);
       bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
     }
@@ -2132,20 +2136,24 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
       //check the three search cells for a minumum X value in rotated coordinate mode
       for (int k=0;k<NSearch;++k)
       {
-				//assign temporary indices
-				i_temp = a+as[k];
-				j_temp = b+bs[k];
+        //assign temporary indices
+        i_temp = a+as[k];
+        j_temp = b+bs[k];
 
-				//minimise Y along X direction
-				DiffY = YCoords_Transform[i_temp][j_temp]-YCoords_Transform[i][j];
-				if (DiffY < MinY)
-				{
-					MinY = DiffY;
-					a_temp = i_temp;
-					b_temp = j_temp;
-				}
+        //minimise Y along X direction
+        DiffY = YCoords_Transform[i_temp][j_temp]-YCoords_Transform[i][j];
+        if (DiffY < MinY)
+        {
+          MinY = DiffY;
+          a_temp = i_temp;
+          b_temp = j_temp;
+        }
+        else
+        {
+          cout << "MARTIN LOOK AT LINE 2153 IN LSDRASTER, something is wrong here" << endl;
+        }
       }
-		
+
       //update a and b
       a = a_temp;
       b = b_temp;
@@ -2154,14 +2162,15 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
       DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
       if (DiffZ > 0) 
       {
-				ShadowFlag = true;
-				break;
+        ShadowFlag = true;
+        break;
       }
       //if diff is greater than landscape relief there can be no more shadows so break out, no shadows
       else if (fabs(DiffZ) > MaxRelief) break;	
       //if we reach the edge of the array time to break out, no shadows				
       else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
       else continue; //kinda redundant but for completeness sake...
+      //cout << "Did transform" << endl;
     }
     if (ShadowFlag == true) Shadows[i][j] = 1;
   }
