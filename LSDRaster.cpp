@@ -2022,7 +2022,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
   float AzimuthRadians = (M_PI/180.)*(180.-(Azimuth+90.));
   if (AzimuthRadians<0) AzimuthRadians += 2.*M_PI;
   
-  cout << "LINE 2016 Azimuth is: " << Azimuth << " and in radians: " << AzimuthRadians << endl;  
+  //cout << "LINE 2016 Azimuth is: " << Azimuth << " and in radians: " << AzimuthRadians << endl;  
 
   for (int i=0; i<NRows; ++i)
   {
@@ -2077,7 +2077,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
     {
       float Percentage = (100.*i/NRows);
       fflush(stdout);
-      printf("\t%3.0f %% Complete \r",Percentage);
+      printf("\t%3.0f %% Complete, \t%i Azimuth \t%i ZenithAngle \r",Percentage,Azimuth,ZenithAngle);
       Print += PrintStep;
     }
 
@@ -2091,7 +2091,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
     int NSearch = 3;
     if (Azimuth >= 0 && Azimuth < 90)
     {
-      cout << "PB1" << endl;
+      //cout << "PB1" << endl;
       as.push_back(-1);
       as.push_back(-1);
       as.push_back(0);
@@ -2101,19 +2101,19 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
     }
     else if (Azimuth >= 90 && Azimuth < 180)
     {
-      cout << "PB2" << endl;
+      //cout << "PB2" << endl;
       as.push_back(0);	as.push_back(1);	as.push_back(1);
       bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
     }
     else if (Azimuth >= 180 && Azimuth < 270)
     {
-      cout << "PB3" << endl;
+      //cout << "PB3" << endl;
       as.push_back(1);	as.push_back(1);	as.push_back(0);
       bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
     }
     else if (Azimuth >= 270 && Azimuth < 360)
     {
-      cout << "PB4" << endl;
+      //cout << "PB4" << endl;
       as.push_back(0);	as.push_back(-1);	as.push_back(-1);
       bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
     }
@@ -2148,9 +2148,11 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
           a_temp = i_temp;
           b_temp = j_temp;
         }
+        // TEMPORARY BUG FIX MARTIN LOOK HERE
         else
         {
-          cout << "MARTIN LOOK AT LINE 2153 IN LSDRASTER, something is wrong here" << endl;
+          a_temp = 0;  // THESE ARE PLACEHOLDERS. WHAT SHOULD THEY BE IF 
+          b_temp = 0;  // NOT 0??????????????????????????
         }
       }
 
