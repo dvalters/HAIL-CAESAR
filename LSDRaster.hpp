@@ -511,7 +511,7 @@ class LSDRaster
   /// @return Hillshaded LSDIndexRaster 
   /// @author MDH
   /// @date Feb 2015
-	LSDRaster CastShadows(int Azimuth, int ZenithAngle);
+	LSDIndexRaster CastShadows(int Azimuth, int ZenithAngle);
 	
 	/// @brief Function to determine areas of a DEM that are in shadow from a 
 	/// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 

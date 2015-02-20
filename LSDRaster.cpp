@@ -1934,7 +1934,7 @@ LSDRaster LSDRaster::TopographicShielding(int theta_step, int phi_step)
       cout << flush <<  "\tTheta = " << theta << ", Phi = " 
            << phi << "           \r";
 
-      Array2D<float> TempArray = this->Shadows(phi,theta);
+      Array2D<float> TempArray = this->Shadow(phi,theta);
       Array2D<float> Scaler(NRows, NCols, pow(sin(rad(float(theta))),3.3));
       FinalArray += TempArray * Scaler;
     }
@@ -1992,195 +1992,384 @@ LSDRaster LSDRaster::TopographicShielding(int theta_step, int phi_step)
 	
 ========================================================================================*/
 
-LSDRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
-{
-  Array2D<float> Shadows = this->Shadows(Azimuth,ZenithAngle);
-  return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
-}
-Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
+LSDIndexRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 {
   //Declare coordinate and transform arrays
   Array2D<float> XCoords(NRows,NCols,NoDataValue);
   Array2D<float> YCoords(NRows,NCols,NoDataValue);
+  Array2D<float> XCoords_Transform(NRows,NCols,NoDataValue);
   Array2D<float> YCoords_Transform(NRows,NCols,NoDataValue);
   Array2D<float> ZCoords_Transform(NRows,NCols,NoDataValue);
-  Array2D<float> Shadows(NRows,NCols,0.);
+  Array2D<int> Shadows(NRows,NCols,NoDataValue);
 
   //Declare some other parameters
   float MaxElevation = 0;			//Sea Level
   float MinElevation = 8848;	//Everest!
   float MaxRelief = fabs(MaxElevation-MinElevation);
-
-  // convert azimuth if it is zero to 360
-  if (Azimuth == 360)
-  {
-    Azimuth = 0;
-  }
-
+	
   //Convert Azimuth and Zenith to radians
   float ZenithRadians = (M_PI/180.)*(90.-ZenithAngle);
   float AzimuthRadians = (M_PI/180.)*(180.-(Azimuth+90.));
   if (AzimuthRadians<0) AzimuthRadians += 2.*M_PI;
-  
-  //cout << "LINE 2016 Azimuth is: " << Azimuth << " and in radians: " << AzimuthRadians << endl;  
 
   for (int i=0; i<NRows; ++i)
   {
     for (int j=0; j<NCols; ++j)
     {
-      XCoords[i][j] = (NCols-i)*DataResolution;
-      YCoords[i][j] = j*DataResolution;
-      YCoords_Transform[i][j] = YCoords[i][j]*sin(AzimuthRadians)+XCoords[i][j]*cos(AzimuthRadians);
-      ZCoords_Transform[i][j] = (RasterData[i][j]*cos(ZenithRadians)
-                                + (XCoords[i][j]*cos(AzimuthRadians)
-                                + YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
-
-      //Find min and max elevations as we go
-      if (RasterData[i][j] > MaxElevation) MaxElevation = RasterData[i][j];
-      if (RasterData[i][j] < MinElevation) MinElevation = RasterData[i][j];
+			if (RasterData[i][j] != NoDataValue)
+			{
+        YCoords[i][j] = (NRows-i)*DataResolution;
+        XCoords[i][j] = j*DataResolution;
+        
+        //Modified from Codilean 2006 whose equation 6 appears to be wrong (may be due to differrent origins?)
+        XCoords_Transform[i][j] = XCoords[i][j]*sin(AzimuthRadians)-YCoords[i][j]*cos(AzimuthRadians);
+        YCoords_Transform[i][j] = XCoords[i][j]*cos(AzimuthRadians)+YCoords[i][j]*sin(AzimuthRadians);
+        
+        //Modified from Codilean 2006 whose equation 8 is missing a + sign and needs rederiving following the new equation 6
+        ZCoords_Transform[i][j] = 	(RasterData[i][j]*cos(ZenithRadians)
+														        - (XCoords[i][j]*cos(AzimuthRadians)
+														        + YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
+														
+        //Find min and max elevations as we go
+        if (RasterData[i][j] > MaxElevation) MaxElevation = RasterData[i][j];
+        if (RasterData[i][j] < MinElevation) MinElevation = RasterData[i][j];
+      }
     }
   }
-  
-  //update max relief
-  MaxRelief = fabs(MaxElevation-MinElevation);
-  
-  // These appear to only be for bug checking
-  //LSDRaster Ytrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords_Transform);
-  //Ytrans.write_raster("or_clip_Ycoords","flt");
-  
-  //LSDRaster Ztrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ZCoords_Transform);
-  //Ztrans.write_raster("or_clip_Zcoords","flt");
-  
-  //variables for screen printing
-  int PrintStep = (int)(NCols*(NRows/100));
-  int Print = 0;
-
-  // NOTE this whole section could be made significantly more efficient if we think about the problem
-  // in reverse, i.e. Check to see wether cells cast a shadow and label up all with z<Z as in shadow
-  // in the shadow look direction. Would allow processing multiple cells for each individual trace. 
-  // Could also vary the start position of the sweep through the DEM in order to be most efficient
-  // e.g. if 0< Azimuth < 90 start loops at [0][NCols], if 180 < Azimuth < 270 start loops at [NRows][0].
-  // 
-  // I don't have time to implement this right now. 
-  // MDH, Feb 2015.
-
-
-  // *** start of parallel loop ***
-  //#pragma omp parallel for
-  for (int ij = 0; ij < NRows*NCols; ++ij) 
-  {
+	
+	//update max relief
+	MaxRelief = fabs(MaxElevation-MinElevation);
+	
+	stringstream ss1;
+	ss1 << Azimuth;
+	string AzimuthString = ss1.str();
+	
+	stringstream ss2;
+	ss2 << ZenithAngle;
+	string ZenithString = ss2.str();
+   
+  LSDRaster Xcoord(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, XCoords);
+	Xcoord.write_raster("bh_Xcoords_"+AzimuthString+"_"+ZenithString,"flt");
+	
+	LSDRaster Ycoord(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords);
+	Ycoord.write_raster("bh_Ycoords_"+AzimuthString+"_"+ZenithString,"flt");
+	
+	LSDRaster Xtrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, XCoords_Transform);
+	Xtrans.write_raster("bh_XcoordsTrans_"+AzimuthString+"_"+ZenithString,"flt");
+	
+	LSDRaster Ytrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords_Transform);
+	Ytrans.write_raster("bh_YcoordsTrans_"+AzimuthString+"_"+ZenithString,"flt");
+	
+	LSDRaster Ztrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ZCoords_Transform);
+	Ztrans.write_raster("bh_ZcoordsTrans_"+AzimuthString+"_"+ZenithString,"flt");
+	
+	//variables for screen printing
+	int PrintStep = (int)(NCols*(NRows/100));
+	int Print = 0;
+	
+	// *** start of parallel loop ***
+	//#pragma omp parallel for
+	for (int ij = 0; ij < NRows*NCols; ++ij) 
+	{
     int i = ij / NCols;
     int j = ij % NCols;
     
-    if (i==0 || i==NRows-1 || j==0 || j==NCols-1) continue;
     if (ij > Print)
-    {
-      float Percentage = (100.*i/NRows);
-      fflush(stdout);
-      printf("\t%3.0f %% Complete, \t%i Azimuth \t%i ZenithAngle \r",Percentage,Azimuth,ZenithAngle);
-      Print += PrintStep;
-    }
+			{
+			float Percentage = (100.*i/NRows);
+			fflush(stdout);
+			printf("\t%3.0f %% Complete \r",Percentage);
+			Print += PrintStep;
+		}
+			
+    if (i==0 || i==NRows-1 || j==0 || j==NCols-1) continue;
+    else if (RasterData[i][j] == NoDataValue) continue;
+		
+		//pull out vector of indices for searching the line in direction of azimuth
+			int a = i;
+			int b = j;
+			vector<int> as, bs;
+		
+			//Check direction to start looking and generate search indices for looking in each quadrant
+			int NSearch = 3;
+			if (Azimuth > 0 && Azimuth <= 90)
+			{
+				as.push_back(-1);	as.push_back(-1);	as.push_back(0);
+				bs.push_back(0);	bs.push_back(1);	bs.push_back(1);
+			}
+			else if (Azimuth > 90 && Azimuth <= 180)
+			{
+				as.push_back(0);	as.push_back(1);	as.push_back(1);
+				bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
+			}
+			else if (Azimuth > 180 && Azimuth <= 270)
+			{
+				as.push_back(1);	as.push_back(1);	as.push_back(0);
+				bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
+			}
+			else if (Azimuth > 270 && Azimuth <= 360)
+			{
+				as.push_back(0);	as.push_back(-1);	as.push_back(-1);
+				bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
+			}
+			else 
+			{
+				//critical error, Azimuth outside range
+				printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
+				exit(EXIT_FAILURE);
+			}
+		
+			//push indices to vectors for line trace until reaching the edges
+			//infinite loop, conditions inside should catch breaks
+			int ShadowFlag = 0;
+			int NDVFlag = 0;
+			float MinX = 2*DataResolution;
+			float DiffX, DiffZ;
+			int a_temp, b_temp, i_temp, j_temp;
+				
+			while (true)
+			{
+				//check the three search cells for a minumum X value in rotated coordinate mode
+				MinX = 2*DataResolution;
+				
+				for (int k=0;k<NSearch;++k)
+				{
+					//assign temporary indices
+					i_temp = a+as[k];
+					j_temp = b+bs[k];
+					
+					if (RasterData[i_temp][j_temp] == NoDataValue) NDVFlag = 1;
+				  				  
+					//minimise Y along X direction
+					DiffX = fabs(XCoords_Transform[i_temp][j_temp]-XCoords_Transform[i][j]);
+					if (DiffX < MinX)
+					{
+						MinX = DiffX;
+						a_temp = i_temp;
+						b_temp = j_temp;
+					}
+				}
+        		  
+				//update a and b
+				a = a_temp;
+				b = b_temp;
 
+				//Check if transformed elevation a,b greater than at i,j
+				DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
+				if (DiffZ > 0) 
+				{
+					ShadowFlag = true;
+					break;
+				}
+				else if (NDVFlag == true) break;
+				//if diff is greater than landscape relief there can be no more shadows so break out, no shadows
+				else if (fabs(DiffZ) > MaxRelief) break;	
+				//if we reach the edge of the array time to break out, no shadows				
+				else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1 || RasterData[a][b]==NoDataValue) break;
+				else continue; //kinda redundant but for completeness sake...
+			}
+		
+			if (ShadowFlag == true) Shadows[i][j] = 1;
+			else Shadows[i][j] = 0;
 
-    //pull out vector of indices for searching the line in direction of azimuth
-    int a = i;
-    int b = j;
-    vector<int> as, bs;
-
-    //Check direction to start looking and generate search indices for looking in each quadrant
-    int NSearch = 3;
-    if (Azimuth >= 0 && Azimuth < 90)
-    {
-      //cout << "PB1" << endl;
-      as.push_back(-1);
-      as.push_back(-1);
-      as.push_back(0);
-      bs.push_back(0);
-      bs.push_back(1);
-      bs.push_back(1);
-    }
-    else if (Azimuth >= 90 && Azimuth < 180)
-    {
-      //cout << "PB2" << endl;
-      as.push_back(0);	as.push_back(1);	as.push_back(1);
-      bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
-    }
-    else if (Azimuth >= 180 && Azimuth < 270)
-    {
-      //cout << "PB3" << endl;
-      as.push_back(1);	as.push_back(1);	as.push_back(0);
-      bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
-    }
-    else if (Azimuth >= 270 && Azimuth < 360)
-    {
-      //cout << "PB4" << endl;
-      as.push_back(0);	as.push_back(-1);	as.push_back(-1);
-      bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
-    }
-    else 
-    {
-      //critical error, Azimuth outside range
-      printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
-      exit(EXIT_FAILURE);
-    }
-
-    //push indices to vectors for line trace until reaching the edges
-    //infinite loop, conditions inside should catch breaks
-    int ShadowFlag = 0;
-    while (true)
-    {
-      float MinY = 2;
-      float DiffY, DiffZ;
-      int a_temp, b_temp, i_temp, j_temp;
-
-      //check the three search cells for a minumum X value in rotated coordinate mode
-      for (int k=0;k<NSearch;++k)
-      {
-        //assign temporary indices
-        i_temp = a+as[k];
-        j_temp = b+bs[k];
-
-        //minimise Y along X direction
-        DiffY = YCoords_Transform[i_temp][j_temp]-YCoords_Transform[i][j];
-        if (DiffY < MinY)
-        {
-          MinY = DiffY;
-          a_temp = i_temp;
-          b_temp = j_temp;
-        }
-        // TEMPORARY BUG FIX MARTIN LOOK HERE
-        else
-        {
-          a_temp = 0;  // THESE ARE PLACEHOLDERS. WHAT SHOULD THEY BE IF 
-          b_temp = 0;  // NOT 0??????????????????????????
-        }
-      }
-
-      //update a and b
-      a = a_temp;
-      b = b_temp;
-
-      //Check if transformed elevation a,b greater than at i,j
-      DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
-      if (DiffZ > 0) 
-      {
-        ShadowFlag = true;
-        break;
-      }
-      //if diff is greater than landscape relief there can be no more shadows so break out, no shadows
-      else if (fabs(DiffZ) > MaxRelief) break;	
-      //if we reach the edge of the array time to break out, no shadows				
-      else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
-      else continue; //kinda redundant but for completeness sake...
-      //cout << "Did transform" << endl;
-    }
-    if (ShadowFlag == true) Shadows[i][j] = 1;
-  }
-  // *** end of pragma omp parallel for ***
-  return Shadows;
-  cout << "LINE 2162 Finished shadows" << endl;
-  
+	}
+	// *** end of pragma omp parallel for ***
+	
+	cout << endl;	
+	
+	//write LSDRaster
+  return LSDIndexRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
+     
 }
+//  LSDRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
+//{
+//  Array2D<float> Shadows = this->Shadows(Azimuth,ZenithAngle);
+//  return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
+//}
+//Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
+//{
+//  //Declare coordinate and transform arrays
+//  Array2D<float> XCoords(NRows,NCols,NoDataValue);
+//  Array2D<float> YCoords(NRows,NCols,NoDataValue);
+//  Array2D<float> YCoords_Transform(NRows,NCols,NoDataValue);
+//  Array2D<float> ZCoords_Transform(NRows,NCols,NoDataValue);
+//  Array2D<float> Shadows(NRows,NCols,0.);
+
+//  //Declare some other parameters
+//  float MaxElevation = 0;			//Sea Level
+//  float MinElevation = 8848;	//Everest!
+//  float MaxRelief = fabs(MaxElevation-MinElevation);
+
+//  // convert azimuth if it is zero to 360
+//  if (Azimuth == 360)
+//  {
+//    Azimuth = 0;
+//  }
+
+//  //Convert Azimuth and Zenith to radians
+//  float ZenithRadians = (M_PI/180.)*(90.-ZenithAngle);
+//  float AzimuthRadians = (M_PI/180.)*(180.-(Azimuth+90.));
+//  if (AzimuthRadians<0) AzimuthRadians += 2.*M_PI;
+//  
+//  //cout << "LINE 2016 Azimuth is: " << Azimuth << " and in radians: " << AzimuthRadians << endl;  
+
+//  for (int i=0; i<NRows; ++i)
+//  {
+//    for (int j=0; j<NCols; ++j)
+//    {
+//      XCoords[i][j] = (NCols-i)*DataResolution;
+//      YCoords[i][j] = j*DataResolution;
+//      YCoords_Transform[i][j] = YCoords[i][j]*sin(AzimuthRadians)+XCoords[i][j]*cos(AzimuthRadians);
+//      ZCoords_Transform[i][j] = (RasterData[i][j]*cos(ZenithRadians)
+//                                + (XCoords[i][j]*cos(AzimuthRadians)
+//                                + YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
+
+//      //Find min and max elevations as we go
+//      if (RasterData[i][j] > MaxElevation) MaxElevation = RasterData[i][j];
+//      if (RasterData[i][j] < MinElevation) MinElevation = RasterData[i][j];
+//    }
+//  }
+//  
+//  //update max relief
+//  MaxRelief = fabs(MaxElevation-MinElevation);
+//  
+//  // These appear to only be for bug checking
+//  //LSDRaster Ytrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, YCoords_Transform);
+//  //Ytrans.write_raster("or_clip_Ycoords","flt");
+//  
+//  //LSDRaster Ztrans(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ZCoords_Transform);
+//  //Ztrans.write_raster("or_clip_Zcoords","flt");
+//  
+//  //variables for screen printing
+//  int PrintStep = (int)(NCols*(NRows/100));
+//  int Print = 0;
+
+//  // NOTE this whole section could be made significantly more efficient if we think about the problem
+//  // in reverse, i.e. Check to see wether cells cast a shadow and label up all with z<Z as in shadow
+//  // in the shadow look direction. Would allow processing multiple cells for each individual trace. 
+//  // Could also vary the start position of the sweep through the DEM in order to be most efficient
+//  // e.g. if 0< Azimuth < 90 start loops at [0][NCols], if 180 < Azimuth < 270 start loops at [NRows][0].
+//  // 
+//  // I don't have time to implement this right now. 
+//  // MDH, Feb 2015.
+
+
+//  // *** start of parallel loop ***
+//  //#pragma omp parallel for
+//  for (int ij = 0; ij < NRows*NCols; ++ij) 
+//  {
+//    int i = ij / NCols;
+//    int j = ij % NCols;
+//    
+//    if (i==0 || i==NRows-1 || j==0 || j==NCols-1) continue;
+//    if (ij > Print)
+//    {
+//      float Percentage = (100.*i/NRows);
+//      fflush(stdout);
+//      printf("\t%3.0f %% Complete, \t%i Azimuth \t%i ZenithAngle \r",Percentage,Azimuth,ZenithAngle);
+//      Print += PrintStep;
+//    }
+
+
+//    //pull out vector of indices for searching the line in direction of azimuth
+//    int a = i;
+//    int b = j;
+//    vector<int> as, bs;
+
+//    //Check direction to start looking and generate search indices for looking in each quadrant
+//    int NSearch = 3;
+//    if (Azimuth >= 0 && Azimuth < 90)
+//    {
+//      //cout << "PB1" << endl;
+//      as.push_back(-1);
+//      as.push_back(-1);
+//      as.push_back(0);
+//      bs.push_back(0);
+//      bs.push_back(1);
+//      bs.push_back(1);
+//    }
+//    else if (Azimuth >= 90 && Azimuth < 180)
+//    {
+//      //cout << "PB2" << endl;
+//      as.push_back(0);	as.push_back(1);	as.push_back(1);
+//      bs.push_back(1);	bs.push_back(1);	bs.push_back(0);
+//    }
+//    else if (Azimuth >= 180 && Azimuth < 270)
+//    {
+//      //cout << "PB3" << endl;
+//      as.push_back(1);	as.push_back(1);	as.push_back(0);
+//      bs.push_back(0);	bs.push_back(-1);	bs.push_back(-1);
+//    }
+//    else if (Azimuth >= 270 && Azimuth < 360)
+//    {
+//      //cout << "PB4" << endl;
+//      as.push_back(0);	as.push_back(-1);	as.push_back(-1);
+//      bs.push_back(-1);	bs.push_back(-1);	bs.push_back(0);
+//    }
+//    else 
+//    {
+//      //critical error, Azimuth outside range
+//      printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
+//      exit(EXIT_FAILURE);
+//    }
+
+//    //push indices to vectors for line trace until reaching the edges
+//    //infinite loop, conditions inside should catch breaks
+//    int ShadowFlag = 0;
+//    while (true)
+//    {
+//      float MinY = 2;
+//      float DiffY, DiffZ;
+//      int a_temp, b_temp, i_temp, j_temp;
+
+//      //check the three search cells for a minumum X value in rotated coordinate mode
+//      for (int k=0;k<NSearch;++k)
+//      {
+//        //assign temporary indices
+//        i_temp = a+as[k];
+//        j_temp = b+bs[k];
+
+//        //minimise Y along X direction
+//        DiffY = YCoords_Transform[i_temp][j_temp]-YCoords_Transform[i][j];
+//        if (DiffY < MinY)
+//        {
+//          MinY = DiffY;
+//          a_temp = i_temp;
+//          b_temp = j_temp;
+//        }
+//        // TEMPORARY BUG FIX MARTIN LOOK HERE
+//        else
+//        {
+//          a_temp = 0;  // THESE ARE PLACEHOLDERS. WHAT SHOULD THEY BE IF 
+//          b_temp = 0;  // NOT 0??????????????????????????
+//        }
+//      }
+
+//      //update a and b
+//      a = a_temp;
+//      b = b_temp;
+
+//      //Check if transformed elevation a,b greater than at i,j
+//      DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
+//      if (DiffZ > 0) 
+//      {
+//        ShadowFlag = true;
+//        break;
+//      }
+//      //if diff is greater than landscape relief there can be no more shadows so break out, no shadows
+//      else if (fabs(DiffZ) > MaxRelief) break;	
+//      //if we reach the edge of the array time to break out, no shadows				
+//      else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1) break;
+//      else continue; //kinda redundant but for completeness sake...
+//      //cout << "Did transform" << endl;
+//    }
+//    if (ShadowFlag == true) Shadows[i][j] = 1;
+//  }
+//  // *** end of pragma omp parallel for ***
+//  return Shadows;
+//  cout << "LINE 2162 Finished shadows" << endl;
+//  
+//}
 
 
 
