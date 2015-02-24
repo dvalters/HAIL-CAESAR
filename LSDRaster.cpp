@@ -2174,7 +2174,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 	{
 	  //check which direction to loop in
 	  int i,j;
-	  if (Reversei==1) i == NRows-ii-1;
+	  if (Reversei==1) i = NRows-ii-1;
 	  else i=ii;
 	  
 		for (int jj=0; jj < NCols; ++jj)
