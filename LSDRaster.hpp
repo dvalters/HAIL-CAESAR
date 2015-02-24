@@ -511,7 +511,7 @@ class LSDRaster
   /// @return Hillshaded LSDIndexRaster 
   /// @author MDH
   /// @date Feb 2015
-	LSDIndexRaster CastShadows(int Azimuth, int ZenithAngle);
+	LSDRaster CastShadows(int Azimuth, int ZenithAngle);
 	
 	/// @brief Function to determine areas of a DEM that are in shadow from a 
 	/// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
@@ -550,7 +550,8 @@ class LSDRaster
   /// @author SWDG
   /// @date 11/4/13
   LSDRaster TopographicShielding(int theta_step, int phi_step);
-
+  LSDRaster TopographicShielding();
+  
   /// @brief Surface polynomial fitting and extraction of topographic metrics
   /// 
   /// @detail A six term polynomial surface is fitted to all the points that lie
