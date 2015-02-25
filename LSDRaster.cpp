@@ -2180,7 +2180,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 		for (int jj=0; jj < NCols; ++jj)
 	  {
       //check which direction to loop in
-	    if (Reversej==1) j = NRows-jj-1;
+	    if (Reversej==1) j = NCols-jj-1;
 	    else j=jj;
 	    
 	  //print progress to screen (turn this off if parallel?)
@@ -2243,7 +2243,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
         
         //Check if edge of shadow, edge of DEM or NDVs reached
 		    if (ShadowFlag > 10) break;
-		    else if (a == 0 || b == 0 || a == NRows-1 || b == NCols-1 || RasterData[a][b]==NoDataValue) break;
+		    else if (a <= 0 || b == 0 || a == NRows-1 || b == NCols-1 || RasterData[a][b]==NoDataValue) break;
 		    else if (NDVFlag == true) break;
 		    else 
 		    {
