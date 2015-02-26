@@ -468,6 +468,11 @@ string ReadTextFile(ifstream& File);
 // stupidly adds control characters to the end of lines. 
 string RemoveControlCharactersFromEndOfString(string toRemove);
 
+// removes all control characters
+string RemoveControlCharacters(string toRemove);
+
+// removes spaces
+string RemoveControlCharacters(string toRemove);
 
 // INVERSE ERROR FUNCTIONS AND INVERSE COMPLEMENTARY ERROR FUNCTIONS
 // DTM, Following Press et al.,2007; Numerical Recipes, the Art of Scientific Computing, CUP

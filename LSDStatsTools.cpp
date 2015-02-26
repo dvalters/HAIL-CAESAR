@@ -5189,16 +5189,19 @@ string ReadTextFile(ifstream& File){
 
   string Lines = "";        //All lines
     
-  if (File){                      //Check if everything is good  
-	  while (File.good ()){
-	    string TempLine;                  //Temp line
-	    getline(File, TempLine);        //Get temp line
-	    TempLine += "\n";                      //Add newline character
-	    Lines += TempLine;                     //Add newline
-	  }
-	  return Lines;
+  if (File)
+  {                      //Check if everything is good  
+    while (File.good ())
+    {
+      string TempLine;                  //Temp line
+      getline(File, TempLine);        //Get temp line
+      TempLine += "\n";                      //Add newline character
+      Lines += TempLine;                     //Add newline
     }
-  else{
+    return Lines;
+  }
+  else
+  {
     return "";
   }  
 } 
@@ -5221,6 +5224,34 @@ string RemoveControlCharactersFromEndOfString(string toRemove)
   return toRemove;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This function removes control characters 
+// These get introduced if you use the DOS format in your parameter file
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+string RemoveControlCharacters(string toRemove)
+{
+  string substr = toRemove; 
+      
+  // remove constrol characters
+  substr.erase(remove_if(substr.begin(), substr.end(), ::iscntrl), substr.end());
+  
+  return substr;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This function removes spaces
+// These get introduced if you use the DOS format in your parameter file
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+string RemoveSpaces(string toRemove)
+{
+  string substr = toRemove; 
+      
+  // remove constrol characters
+  substr.erase(remove_if(substr.begin(), substr.end(), ::isspace), substr.end());
+  
+  return substr;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 // SOME USEFUL MATHEMATICAL FUNCTIONS THAT DON'T APPEAR TO BE IN THE STANDARD MATH.h LIBRARY
