@@ -79,30 +79,31 @@
 #include <map>
 #include "TNT/tnt.h"
 //#include "LSDRaster.hpp"
-
 using namespace std;
 using namespace TNT;
 
+class LSDRaster;        // do not include since it wouldn't compile since there
+                        // would be a looped dependency
 
 /// @brief Object to handle integer rasters.
 class LSDIndexRaster
 {
-	public:
-	/// @brief  The create function. This is default and throws an error.
-	/// @author SMM
+  public:
+  /// @brief  The create function. This is default and throws an error.
+  /// @author SMM
   /// @date 01/01/12
-	LSDIndexRaster()										{ create(); }
+  LSDIndexRaster()              { create(); }
 
-	/// @brief Create an LSDIndexRaster from a file.
+  /// @brief Create an LSDIndexRaster from a file.
   /// Uses a filename and file extension
   /// @return LSDIndexRaster
   /// @param filename A String, the file to be loaded.
   /// @param extension A String, the file extension to be loaded.
-	/// @author SMM
+  /// @author SMM
   /// @date 01/01/12
-	LSDIndexRaster(string filename, string extension)	{ create(filename, extension); }
+  LSDIndexRaster(string filename, string extension)  { create(filename, extension); }
 
-	/// @brief Create an LSDIndexRaster from memory.
+  /// @brief Create an LSDIndexRaster from memory.
   /// @return LSDIndexRaster
   /// @param nrows An integer of the number of rows.
   /// @param ncols An integer of the number of columns.
@@ -112,13 +113,13 @@ class LSDIndexRaster
   /// @param ndv An integer of the no data value.
   /// @param data An Array2D of integers in the shape nrows*ncols,
   ///containing the data to be written.
- 	/// @author SMM
+  /// @author SMM
   /// @date 01/01/12
-	LSDIndexRaster(int nrows, int ncols, float xmin, float ymin,
-	          float cellsize, int ndv, Array2D<int> data)
-								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
+  LSDIndexRaster(int nrows, int ncols, float xmin, float ymin,
+            float cellsize, int ndv, Array2D<int> data)
+                  { create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
 
-	/// @brief Create an LSDIndexRaster from memory.
+  /// @brief Create an LSDIndexRaster from memory.
   /// @return LSDIndexRaster
   /// @param nrows An integer of the number of rows.
   /// @param ncols An integer of the number of columns.
@@ -129,59 +130,58 @@ class LSDIndexRaster
   /// @param data An Array2D of integers in the shape nrows*ncols,
   /// @param GRS_map a map containing information about the georeferencing
   /// containing the data to be written.
- 	/// @author SMM
+  /// @author SMM
   /// @date 09/09/14
-	LSDIndexRaster(int nrows, int ncols, float xmin, float ymin,
-	          float cellsize, int ndv, Array2D<int> data, map<string,string> GRS_map)
-								{ create(nrows, ncols, xmin, ymin, cellsize, ndv, data, GRS_map); }
+  LSDIndexRaster(int nrows, int ncols, float xmin, float ymin,
+            float cellsize, int ndv, Array2D<int> data, map<string,string> GRS_map)
+             { create(nrows, ncols, xmin, ymin, cellsize, ndv, data, GRS_map); }
 
 
-	/// @brief Create an LSDIndexRaster from an LSDRaster object, rounding to nearest int
+  /// @brief Create an LSDIndexRaster from an LSDRaster object, rounding to nearest int
   /// @return LSDIndexRaster
   /// @param NonIntLSDRaster an LSDRaster object containing flaoting point data
- 	/// @author MDH
+  /// @author MDH
   /// @date 17/02/15
-	//	LSDIndexRaster(LSDRaster NonIntLSDRaster)
-	//	{	create(NonIntLSDRaster); }
-	
-	// Get functions
+  LSDIndexRaster(LSDRaster& NonIntLSDRaster)   {create(NonIntLSDRaster); }
+  
+  // Get functions
 
-	/// @return Number of rows as an integer.
-	int get_NRows() const				{ return NRows; }
-	/// @return Number of columns as an integer.
-  int get_NCols() const				{ return NCols; }
+  /// @return Number of rows as an integer.
+  int get_NRows() const           { return NRows; }
+  /// @return Number of columns as an integer.
+  int get_NCols() const           { return NCols; }
   /// @return Minimum X coordinate as an integer.
-	float get_XMinimum() const			{ return XMinimum; }
-	/// @return Minimum Y coordinate as an integer.
-	float get_YMinimum() const			{ return YMinimum; }
-	/// @return Data resolution as an integer.
-	float get_DataResolution() const	{ return DataResolution; }
-	/// @return No Data Value as an integer.
-	int get_NoDataValue() const			{ return NoDataValue; }
-	/// @return Raster values as a 2D Array.
-	Array2D<int> get_RasterData() const { return RasterData; }
-	/// @return Map of strings containing georeferencing information
-	map<string,string> get_GeoReferencingStrings() const { return GeoReferencingStrings; }
+  float get_XMinimum() const           { return XMinimum; }
+  /// @return Minimum Y coordinate as an integer.
+  float get_YMinimum() const           { return YMinimum; }
+  /// @return Data resolution as an integer.
+  float get_DataResolution() const           { return DataResolution; }
+  /// @return No Data Value as an integer.
+  int get_NoDataValue() const           { return NoDataValue; }
+  /// @return Raster values as a 2D Array.
+  Array2D<int> get_RasterData() const { return RasterData; }
+  /// @return Map of strings containing georeferencing information
+  map<string,string> get_GeoReferencingStrings() const { return GeoReferencingStrings; }
 
-	/// Assignment operator.
-	LSDIndexRaster& operator=(const LSDIndexRaster& LSDIR);
+  /// Assignment operator.
+  LSDIndexRaster& operator=(const LSDIndexRaster& LSDIR);
 
   /// @brief Read a raster into memory from a file.
   ///
   /// The supported formats are .asc and .flt which are
   /// both exported and imported by arcmap.
-	///
-	/// The filename is the string of characters before the '.' in the extension
-	/// and the extension is the characters after the '.'.
-	///
-	/// If the full filename is my_dem.01.asc then:
+  ///
+  /// The filename is the string of characters before the '.' in the extension
+  /// and the extension is the characters after the '.'.
+  ///
+  /// If the full filename is my_dem.01.asc then:
   /// filename = "my_dem.01" and extension = "asc".
   ///
-	///
-	/// For float files both a data file and a header are read
-	/// the header file must have the same filename, before extention, of
-	/// the raster data, and the extension must be .hdr.
-	/// @author SMM
+  ///
+  /// For float files both a data file and a header are read
+  /// the header file must have the same filename, before extention, of
+  /// the raster data, and the extension must be .hdr.
+  /// @author SMM
   /// @date 01/01/12
   void read_raster(string filename, string extension);
 
@@ -189,11 +189,11 @@ class LSDIndexRaster
   ///
   /// The supported formats are .asc and .flt which are
   /// both exported and imported by arcmap.
-	///
-	/// The filename is the string of characters before the '.' in the extension
-	/// and the extension is the characters after the '.'.
-	///
-	/// If the full filename is my_dem.01.asc then:
+  ///
+  /// The filename is the string of characters before the '.' in the extension
+  /// and the extension is the characters after the '.'.
+  ///
+  /// If the full filename is my_dem.01.asc then:
   /// filename = "my_dem.01" and extension = "asc".
   ///
   /// For float files both a data file and a header are written
@@ -209,7 +209,19 @@ class LSDIndexRaster
   /// @return The raster value at the position (row, column).
   /// @author SMM
   /// @date 01/01/12
-  int get_data_element(int row, int column)	{ return RasterData[row][column]; }
+  int get_data_element(int row, int column)  { return RasterData[row][column]; }
+
+  /// @brief Checks to see if two rasters have the same georeferencing
+  /// @param Compare_raster: the raster to compare 
+  /// @author SMM
+  /// @date 02/03/2015
+  bool does_raster_have_same_dimensions_and_georeferencing(LSDRaster& Compare_raster);
+
+  /// @brief Checks to see if two rasters have the same georeferencing
+  /// @param Compare_raster: the raster to compare 
+  /// @author SMM
+  /// @date 02/03/2015
+  bool does_raster_have_same_dimensions_and_georeferencing(LSDIndexRaster& Compare_raster);
 
   /// @brief Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
   /// map_info line to contain these new values.
@@ -303,36 +315,36 @@ class LSDIndexRaster
   /// @date 17/6/14
   LSDIndexRaster CombineBinaryNetwork(LSDIndexRaster& Network1, LSDIndexRaster& Network2);
 
-	protected:
-	///Number of rows.
+  protected:
+  ///Number of rows.
   int NRows;
   ///Number of columns.
-	int NCols;
-	///Minimum X coordinate.
+  int NCols;
+  ///Minimum X coordinate.
   float XMinimum;
-	///Minimum Y coordinate.
-	float YMinimum;
+  ///Minimum Y coordinate.
+  float YMinimum;
 
-	///Data resolution.
-	float DataResolution;
-	///No data value.
-	int NoDataValue;
+  ///Data resolution.
+  float DataResolution;
+  ///No data value.
+  int NoDataValue;
 
   ///A map of strings for holding georeferencing information
   map<string,string> GeoReferencingStrings;
 
-	/// Raster data.
-	Array2D<int> RasterData;
+  /// Raster data.
+  Array2D<int> RasterData;
 
-	private:
-	void create();
-	void create(string filename, string extension);
-	void create(int ncols, int nrows, float xmin, float ymin,
-	            float cellsize, int ndv, Array2D<int> data);
-	void create(int ncols, int nrows, float xmin, float ymin,
-	            float cellsize, int ndv, Array2D<int> data, 
+  private:
+  void create();
+  void create(string filename, string extension);
+  void create(int ncols, int nrows, float xmin, float ymin,
+              float cellsize, int ndv, Array2D<int> data);
+  void create(int ncols, int nrows, float xmin, float ymin,
+              float cellsize, int ndv, Array2D<int> data, 
               map<string,string> GRS_map);
-  //void create(LSDRaster NonIntLSDRaster);	            
+  void create(LSDRaster& NonIntLSDRaster);            
 
 };
 

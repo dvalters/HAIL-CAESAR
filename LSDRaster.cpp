@@ -80,6 +80,11 @@
 //DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
 //-----------------------------------------------------------------
 
+
+
+#ifndef LSDRaster_CPP
+#define LSDRaster_CPP
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -103,9 +108,6 @@
 using namespace std;
 using namespace TNT;
 using namespace JAMA;
-
-#ifndef LSDRaster_CPP
-#define LSDRaster_CPP
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // operators
@@ -824,7 +826,76 @@ void LSDRaster::write_raster(string filename, string extension)
     exit(EXIT_FAILURE);
    }
 }
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This function checks to see if two rasters have the same dimesions and
+// Georeferencing
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+bool LSDRaster::does_raster_have_same_dimensions_and_georeferencing(LSDRaster& Compare_raster)
+{
+  map<string,string> DRS = Compare_raster.get_GeoReferencingStrings();
+  string mi_str_key = "ENVI_map_info";
+  string cs_str_key = "ENVI_coordinate_system";
+  
+  bool is_georef_and_dimensions_same;
+
+  if (NRows == Compare_raster.get_NRows() &&
+      NCols == Compare_raster.get_NCols() &&
+      XMinimum == Compare_raster.get_XMinimum() &&
+      YMinimum == Compare_raster.get_YMinimum() &&
+      DataResolution == Compare_raster.get_DataResolution() &&
+      NoDataValue == Compare_raster.get_NoDataValue() &&
+      GeoReferencingStrings[mi_str_key] == DRS[mi_str_key] &&
+      GeoReferencingStrings[cs_str_key] == DRS[cs_str_key])
+  {
+    is_georef_and_dimensions_same = true;
+  }
+  else
+  {
+    is_georef_and_dimensions_same = false;
+  }
+
+  return is_georef_and_dimensions_same;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This function checks to see if two rasters have the same dimesions and
+// Georeferencing. Uses an index raster to check
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+bool LSDRaster::does_raster_have_same_dimensions_and_georeferencing(LSDIndexRaster& Compare_raster)
+{
+  map<string,string> DRS = Compare_raster.get_GeoReferencingStrings();
+  string mi_str_key = "ENVI_map_info";
+  string cs_str_key = "ENVI_coordinate_system";
+  
+  bool is_georef_and_dimensions_same;
+
+  if (NRows == Compare_raster.get_NRows() &&
+      NCols == Compare_raster.get_NCols() &&
+      XMinimum == Compare_raster.get_XMinimum() &&
+      YMinimum == Compare_raster.get_YMinimum() &&
+      DataResolution == Compare_raster.get_DataResolution() &&
+      NoDataValue == Compare_raster.get_NoDataValue() &&
+      GeoReferencingStrings[mi_str_key] == DRS[mi_str_key] &&
+      GeoReferencingStrings[cs_str_key] == DRS[cs_str_key])
+  {
+    is_georef_and_dimensions_same = true;
+  }
+  else
+  {
+    is_georef_and_dimensions_same = false;
+  }
+
+  return is_georef_and_dimensions_same;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
 // Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings

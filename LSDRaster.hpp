@@ -97,6 +97,11 @@ Tools are included to:
 //DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
 //-----------------------------------------------------------------
 
+
+
+#ifndef LSDRaster_H
+#define LSDRaster_H
+
 #include <string>
 #include <vector>
 #include <map>
@@ -105,9 +110,6 @@ Tools are included to:
 #include "LSDShapeTools.hpp"
 using namespace std;
 using namespace TNT;
-
-#ifndef LSDRaster_H
-#define LSDRaster_H
 
 ///@brief Main analysis object to interface with other LSD objects.
 class LSDRaster
@@ -230,6 +232,19 @@ class LSDRaster
   /// @author SMM
   /// @date 01/01/12
   void write_raster(string filename, string extension);
+
+  /// @brief Checks to see if two rasters have the same georeferencing
+  /// @param Compare_raster: the raster to compare 
+  /// @author SMM
+  /// @date 02/03/2015
+  bool does_raster_have_same_dimensions_and_georeferencing(LSDRaster& Compare_raster);
+
+  /// @brief Checks to see if two rasters have the same georeferencing
+  /// @param Compare_raster: the raster to compare 
+  /// @author SMM
+  /// @date 02/03/2015
+  bool does_raster_have_same_dimensions_and_georeferencing(LSDIndexRaster& Compare_raster);
+
 
   /// @brief Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
   /// map_info line to contain these new values.
