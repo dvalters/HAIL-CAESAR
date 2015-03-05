@@ -314,6 +314,17 @@ class LSDIndexRaster
   /// @author SWDG
   /// @date 17/6/14
   LSDIndexRaster CombineBinaryNetwork(LSDIndexRaster& Network1, LSDIndexRaster& Network2);
+    
+  /// @brief Method to merge a floodplain raster with a channel raster. 
+  ///
+  /// @details Creates an output LSDIndexRaster which is coded coded 
+  /// channel == input channel index, floodplain == 500, NDV == hillslopes.
+  /// This allows the preservation of the stream order in addition to the floodplain geometry.
+  /// @param FloodPlain an LSDIndexRaster of the floodplains coded with any integer value.
+  /// @return An LSDIndexRaster of the merged channels and floodplains.     
+  /// @author SWDG
+  /// @date 05/03/15
+  LSDIndexRaster MergeChannelWithFloodplain(LSDIndexRaster FloodPlain);
 
   protected:
   ///Number of rows.

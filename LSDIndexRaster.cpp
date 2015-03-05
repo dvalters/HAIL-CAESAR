@@ -1674,6 +1674,34 @@ LSDIndexRaster LSDIndexRaster::CombineBinaryNetwork(LSDIndexRaster& Network1, LS
 }
 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
+// Method to merge a floodplain raster with a channel raster. Creates an output 
+// LSDIndexRaster which is coded channel == input channel index, floodplain == 500, NDV == hillslopes.   
+// SWDG 05/03/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
+LSDIndexRaster LSDIndexRaster::MergeChannelWithFloodplain(LSDIndexRaster FloodPlain){
+
+  //get the Channel network data as an array
+  Array2D<int> ChannelArray = RasterData;
+  
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+    
+      if (ChannelArray[i][j] != NoDataValue && FloodPlain.get_data_element(i,j) != NoDataValue){
+          ChannelArray[i][j] = 1;
+      }
+      else if (ChannelArray[i][j] == NoDataValue && FloodPlain.get_data_element(i,j) != NoDataValue){
+          ChannelArray[i][j] = 500;
+      }        
+    
+    }
+  }
+
+  LSDIndexRaster CombinedOutput(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, ChannelArray, GeoReferencingStrings);
+  return CombinedOutput;
+
+
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 #endif
