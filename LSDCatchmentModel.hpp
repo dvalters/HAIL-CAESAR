@@ -78,7 +78,8 @@ public:
 	/// @author DAV
 	/// @return Returns a Array2D of floats representing the raster data.
 	/// @details This is a modified version of the method in the LSDRaster object.
-	TNT::Array2D<float> read_ascii_raster(string FILENAME);
+	//TNT::Array2D<float> read_ascii_raster(string FILENAME);
+	void read_ascii_raster(string FILENAME, LSDRaster RASTER);
 	
 	/// @brief Calls the various save functions depending on the data types to be saved
 	/// @author DAV
@@ -447,6 +448,9 @@ public:
 	// end gez
 
 	// toms global arrays 
+	
+	// DAV: Move towards using the LSD Objects such as LSDRaster for reading/storing DEMs and LSDBasin
+	LSDRaster elevR;
 	/*static*/ TNT::Array2D<double> elev, bedrock, init_elevs, water_depth, area, tempcreep, Tau, Vel, qx, qy, qxs, qys,
 		/* dune arrays */ area_depth, sand, elev2, sand2, grain, elev_diff;
 	TNT::Array2D<int> index, cross_scan,down_scan, rfarea;

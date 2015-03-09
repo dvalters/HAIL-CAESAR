@@ -187,11 +187,15 @@ void LSDCatchmentModel::create(std::string pname, std::string pfname)
 }
 
 
-//-=-=-=-=-=-=-=-
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Load the data from the text file
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::load_data()
 {
+	std::string FILENAME = read_fname;
+	// Read in the raster data from file, setting the elevation LSDRaster object, 'elevR'
+	elevR.read_ascii_raster(FILENAME);
+	//elevR = read_ascii_raster(FILENAME, RASTER)// Doesn't work. Trying to return an array.
 }
 
 
@@ -986,6 +990,7 @@ void LSDCatchmentModel::save_data(int typeflag, double tempcycle)
 	if (typeflag == 17 && tempcycle == 0) FILENAME = "velocity_vectors.txt";	// <JOE 20050605>
 
 	// convert the tempcycle to an int, then to a string
+	// DAV: Need to uncomment these at somepoint for the unique filename option to work.
 	//if(typeflag==1&&tempcycle>0) FILENAME = "waterdepth"+Convert.ToString(Convert.ToInt64(tempcycle))+".txt";
 	//if (typeflag == 2 && tempcycle > 0) FILENAME = "elevdiff" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
 	//if (typeflag == 3 && tempcycle > 0) FILENAME = "elev.dat" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
