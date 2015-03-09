@@ -667,7 +667,8 @@ void LSDRaster::read_raster(string filename, string extension)
 
 // Generic function for reading rasters in ascii format
 // This is used by the LSDCatchmentModel.
-TNT::Array2D<float> LSDRaster::read_ascii_raster(string FILENAME)
+void LSDRaster::read_ascii_raster(string FILENAME)
+//TNT::Array2D<double> LSDRaster::read_ascii_raster(string FILENAME)
 {
   //string string_filename;
   //string dot = ".";
@@ -697,7 +698,7 @@ TNT::Array2D<float> LSDRaster::read_ascii_raster(string FILENAME)
 		<< NoDataValue << std::endl;
 
 	// this is the array into which data is fed
-	TNT::Array2D<float> asciidata(NRows,NCols,NoDataValue);
+	TNT::Array2D<double> asciidata(NRows,NCols,NoDataValue);
 
 	// read the data
 	for (int i=0; i<NRows; ++i)
@@ -708,10 +709,12 @@ TNT::Array2D<float> LSDRaster::read_ascii_raster(string FILENAME)
 	  }
 	}
 	data_in.close();
+	RasterData_dbl = asciidata.copy();
+	//RasterData_dbl = asciidata.copy();
 
 	// now update the objects raster data
 	//RasterData = data.copy();
-	return asciidata;
+	//return RasterData_dbl;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // write_raster

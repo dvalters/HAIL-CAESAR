@@ -212,10 +212,21 @@ class LSDRaster
   /// @date 01/01/12
   void read_raster(string filename, string extension);
 
-  /// @brief reads a raster from an ascii file for use in LSDCatchmentModel
+  /// @brief Reads a raster from an ascii file for use in LSDCatchmentModel
+  /// @bug You can't return a TNT::Array properly in a function. See google for details.
   /// @author DAV
-  /// @return Returns a 2D Array of the raster file
-  TNT::Array2D<float> read_ascii_raster(string FILENAME);
+  /// @return Returns a 2D Array of the raster file. 
+  TNT::Array2D<double> get_ascii_raster(string FILENAME);
+  
+  /// @brief reads a raster from an ascii file, populates an LSDRaster object array
+  /// @author DAV
+  /// @details This method takes a filename (the .asc file).
+  /// It reads in the ascii file and fills in the array (and header) part of the LSDRaster object
+  /// with double precision values in the array. You must have declared an instance of an LSDRaster object.
+  /// @example myLSDRasterobject.read_ascii_raster("elevations.asc")
+  /// @result The myLSDRasterobject.RasterData_dbl data member is now populated with an array of
+  /// the DEM data. The data members for NCols, NRows, etc. are also updated.
+  void read_ascii_raster(string FILENAME);
 
   /// @brief Read a raster from memory to a file.
   ///
@@ -1766,6 +1777,7 @@ LSDRaster GaussianFilter(float sigma);
 
   /// Raster data.
   Array2D<float> RasterData;
+  Array2D<double> RasterData_dbl;
 
 
 
