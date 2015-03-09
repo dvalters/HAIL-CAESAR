@@ -212,6 +212,11 @@ class LSDRaster
   /// @date 01/01/12
   void read_raster(string filename, string extension);
 
+  /// @brief reads a raster from an ascii file for use in LSDCatchmentModel
+  /// @author DAV
+  /// @return Returns a 2D Array of the raster file
+  TNT::Array2D<float> read_ascii_raster(string FILENAME);
+
   /// @brief Read a raster from memory to a file.
   ///
   /// The supported formats are .asc and .flt which are

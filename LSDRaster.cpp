@@ -665,6 +665,54 @@ void LSDRaster::read_raster(string filename, string extension)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
+// Generic function for reading rasters in ascii format
+// This is used by the LSDCatchmentModel.
+TNT::Array2D<float> LSDRaster::read_ascii_raster(string FILENAME)
+{
+  //string string_filename;
+  //string dot = ".";
+  //string_filename = filename+dot+extension;
+  std::cout << "\n\nLoading DEM, the filename is " << FILENAME << std::endl;
+
+	// open the data file
+	std::ifstream data_in(FILENAME.c_str());
+
+	//Read in raster data
+	std::string str;			// a temporary string for discarding text
+
+	// read the georeferencing data and metadata
+	data_in >> str >> NCols;
+		std::cout << "NCols: " << NCols << " str: " << std::endl;
+	data_in >> str >> NRows;
+		std::cout << "NRows: " << NRows << " str: " << std::endl;
+	data_in >> str >> XMinimum
+					>> str >> YMinimum
+					>> str >> DataResolution
+					>> str >> NoDataValue;
+
+	std::cout << "Loading asc file; NCols: " << NCols 
+		<< " NRows: " << NRows << std::endl
+		<< "X minimum: " << XMinimum << " YMinimum: " << YMinimum << std::endl
+		<< "Data Resolution: " << DataResolution << " and No Data Value: "
+		<< NoDataValue << std::endl;
+
+	// this is the array into which data is fed
+	TNT::Array2D<float> asciidata(NRows,NCols,NoDataValue);
+
+	// read the data
+	for (int i=0; i<NRows; ++i)
+	{
+	  for (int j=0; j<NCols; ++j)
+	  {
+		data_in >> asciidata[i][j];
+	  }
+	}
+	data_in.close();
+
+	// now update the objects raster data
+	//RasterData = data.copy();
+	return asciidata;
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // write_raster
 // this function writes a raster. One has to give the filename and extension
@@ -827,6 +875,8 @@ void LSDRaster::write_raster(string filename, string extension)
    }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //

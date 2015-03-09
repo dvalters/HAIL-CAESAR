@@ -9,6 +9,8 @@
 #include <map>
 #include <fstream>
 
+#include "LSDRaster.hpp"
+
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
 using std::string;
@@ -69,6 +71,19 @@ public:
 		create(pname, pfname); 
 	}
 	
+	/// @brief Loads the required data files based on the parameters set in the parameter file 
+	void load_data();
+	
+	/// @brief Reads in an ASCII raster file given a full filename
+	/// @author DAV
+	/// @return Returns a Array2D of floats representing the raster data.
+	/// @details This is a modified version of the method in the LSDRaster object.
+	TNT::Array2D<float> read_ascii_raster(string FILENAME);
+	
+	/// @brief Calls the various save functions depending on the data types to be saved
+	/// @author DAV
+	/// @details dependent on the LSDRaster class calling the overloaded write_raster func
+	void save_data(int typeflag, double tempcycle);
 	
 	/// @brief Parses lines in an input file for ingestion
 	/// @author Whoever wrote LSDStatsTools - borrowed here by DAV
@@ -288,6 +303,8 @@ public:
    
 	// toms global variables
 	// DAV: Note: You are only allowed to initialize non-static variables in C++11.
+	bool uniquefilecheck = false;
+	
 	double gravity = 9.81;
 	const float g = 9.81F;
 	const float kappa = 0.4F;
