@@ -183,6 +183,10 @@ class LSDRaster
   /// @author DAV  
   Array2D<double> get_RasterData_dbl() const { return RasterData_dbl.copy(); }
   
+  /// @brief Get the raw raster data, integer format
+  /// @author DAV  
+  Array2D<int> get_RasterData_int() const { return RasterData_int.copy(); }
+  
   /// @return map containing the georeferencing strings
   map<string,string> get_GeoReferencingStrings() const { return GeoReferencingStrings; }
 
@@ -1782,7 +1786,10 @@ LSDRaster GaussianFilter(float sigma);
 
   /// Raster data.
   Array2D<float> RasterData;
+  
+  /// These are used primarily by LSDCatchmentModel
   Array2D<double> RasterData_dbl;
+  Array2D<int> RasterData_int;
 
 
 
