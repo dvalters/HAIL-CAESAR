@@ -178,6 +178,11 @@ class LSDRaster
   int get_NoDataValue() const			{ return NoDataValue; }
   /// @return Raster values as a 2D Array.
   Array2D<float> get_RasterData() const { return RasterData.copy(); }
+  
+  /// @brief Get the raw raster data, double format
+  /// @author DAV  
+  Array2D<double> get_RasterData_dbl() const { return RasterData_dbl.copy(); }
+  
   /// @return map containing the georeferencing strings
   map<string,string> get_GeoReferencingStrings() const { return GeoReferencingStrings; }
 
