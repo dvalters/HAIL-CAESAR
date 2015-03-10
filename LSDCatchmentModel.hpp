@@ -8,6 +8,7 @@
 #include <array>
 #include <map>
 #include <fstream>
+#include <sys/stat.h>
 
 #include "LSDRaster.hpp"
 
@@ -72,19 +73,22 @@ public:
 	}
 	
 	/// @brief Loads the required data files based on the parameters set in the parameter file 
+	/// @author dav
 	void load_data();
-	
-	/// @brief Reads in an ASCII raster file given a full filename
-	/// @author DAV
-	/// @return Returns a Array2D of floats representing the raster data.
-	/// @details This is a modified version of the method in the LSDRaster object.
-	//TNT::Array2D<float> read_ascii_raster(string FILENAME);
-	void read_ascii_raster(string FILENAME, LSDRaster RASTER);
 	
 	/// @brief Calls the various save functions depending on the data types to be saved
 	/// @author DAV
 	/// @details dependent on the LSDRaster class calling the overloaded write_raster func
 	void save_data(int typeflag, double tempcycle);
+	
+	/// @brief Checks to see if a file exists
+	/// @author DAV (Thanks to StackOverflow)
+	/// @return Returns a bool value
+	/// @details Uses the <sys/stat.h> include. May not work on Windows? Need to test.
+	/// Checks to see if a file exists using the stat function.
+	/// @param const std::string &name, where name is the full filename.
+	/// @return Returns a true bool value if the file exists.
+	inline bool does_file_exist(const std::string &filename);
 	
 	/// @brief Parses lines in an input file for ingestion
 	/// @author Whoever wrote LSDStatsTools - borrowed here by DAV

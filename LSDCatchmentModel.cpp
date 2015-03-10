@@ -179,6 +179,14 @@ std::string LSDCatchmentModel::RemoveControlCharactersFromEndOfString(std::strin
 	//initialise_model();
 //}
 
+// Wee function to check if file exists
+// Not sure if this works in Windows...must test sometime
+inline bool LSDCatchmentModel::does_file_exist(const std::string &filename)
+{
+	struct stat buffer;
+	return (stat(filename.c_str(), &buffer) ==0);
+}
+
 void LSDCatchmentModel::create(std::string pname, std::string pfname)
 {
 	std::cout << "Creating an instance of LSDCatchmentModel.." << std::endl;
@@ -193,9 +201,17 @@ void LSDCatchmentModel::create(std::string pname, std::string pfname)
 void LSDCatchmentModel::load_data()
 {
 	std::string FILENAME = read_fname;
-	// Read in the raster data from file, setting the elevation LSDRaster object, 'elevR'
+	
+	if (!does_file_exist(FILENAME))
+	{
+		std::cout << "No terrain DEM found by name of: " << FILENAME << std::endl
+					<< "You must supply a correct path and filename in the input parameter file" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	// Read in the elevation raster data from file, setting the elevation LSDRaster
+	// object, 'elevR'
 	elevR.read_ascii_raster(FILENAME);
-	//elevR = read_ascii_raster(FILENAME, RASTER)// Doesn't work. Trying to return an array.
+	
 }
 
 
