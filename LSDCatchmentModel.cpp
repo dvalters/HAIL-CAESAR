@@ -168,23 +168,22 @@ std::string LSDCatchmentModel::RemoveControlCharactersFromEndOfString(std::strin
   return toRemove;
 }
 
-//=-=-=-=-=-=-=-=-=-=-=
-// CREATE FUCNTIONS
-// This define what happens when an LSDCatchmentModel object is created
-//=-=-=-=-=-=-=-=-=-=-=
-// Not got round to a default value model yet - DAV
-//void LSDCatchmentModel::create()
-//{
-	//// Do you want to maybe initialise some default values?
-	//initialise_model();
-//}
-
 // Wee function to check if file exists
 // Not sure if this works in Windows...must test sometime
 inline bool LSDCatchmentModel::does_file_exist(const std::string &filename)
 {
 	struct stat buffer;
 	return (stat(filename.c_str(), &buffer) ==0);
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// CREATE FUCNTIONS
+// These define what happens when an LSDCatchmentModel object is created
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::create()
+{
+	std::cout << "You are trying to create an LSDCatchmentModel object with no supplied files or parameters." << std::endl << "Exiting..." << std::endl;
+	exit(EXIT_FAILURE);
 }
 
 void LSDCatchmentModel::create(std::string pname, std::string pfname)
@@ -208,9 +207,14 @@ void LSDCatchmentModel::load_data()
 					<< "You must supply a correct path and filename in the input parameter file" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	
 	// Read in the elevation raster data from file, setting the elevation LSDRaster
 	// object, 'elevR'
 	elevR.read_ascii_raster(FILENAME);
+	// You have now read in all the headers and the raster data
+	// Headers are accessed by elevR.get_Ncols(), elevR.get_NRows() etc
+	// Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
+	init_elevs = elevR.get_RasterData_dbl();
 	
 }
 

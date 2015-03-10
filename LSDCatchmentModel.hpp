@@ -41,7 +41,7 @@ struct sort_pair_second
 ///of individual basins.
 ///@details The object is (for now) just a rough and ready translation of the CAESAR-Lisflood model - a hydrologically explicit landscape evolution model. It 
 /// models landscape evolution and hydro-geomorphic processes at the basin scale.
-class LSDCatchmentModel
+class LSDCatchmentModel: public LSDRaster
 {
 public:
 
@@ -55,10 +55,10 @@ public:
     /// It then opens the paramter file and ingests the information
     /// @author DAV
     /// @date 2015-01-16    
-    //LSDCatchmentModel()
-    //{ 
-	//	create(); 
-	//}
+    LSDCatchmentModel()
+    { 
+		create(); 
+	}
 	
     /// @brief this constructor just reads the param file given by the path and
     /// filename. You must give the parameter file extension!
@@ -71,6 +71,13 @@ public:
 		std::cout << "The constructor has been called..." << std::endl;
 		create(pname, pfname); 
 	}
+	
+	//-------------------------------------
+	//MPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPM
+	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	// The Meat and Potatoes of the Class
+	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	//MPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPM
 	
 	/// @brief Loads the required data files based on the parameters set in the parameter file 
 	/// @author dav
@@ -92,6 +99,7 @@ public:
 	
 	/// @brief Parses lines in an input file for ingestion
 	/// @author Whoever wrote LSDStatsTools - borrowed here by DAV
+	/// @note Would fit better in some generic class for file functions etc? LSDFileTools?
 	void parse_line(std::ifstream &infile, string &parameter, string &value); 
 	
 	/// @brief Removes the end-of-line weird character mess that you get in Windows
@@ -546,9 +554,10 @@ public:
 	bool physical_weather_opt;
 	bool chem_weath_opt;
 	
+	// Mainly just the definitions of the create() functions go here:
+	// The implementations are in the .cpp file.
 	private:
-	//void create();   // Do this one later
-	
+	void create();  
 	void create(std::string pname, std::string pfname);
 };
 #endif
