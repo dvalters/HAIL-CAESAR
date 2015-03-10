@@ -463,6 +463,10 @@ public:
 	
 	// DAV: Move towards using the LSD Objects such as LSDRaster for reading/storing DEMs and LSDBasin
 	LSDRaster elevR;
+	LSDRaster hydroindexR;
+	LSDRaster bedrockR;
+	LSDRaster water_depthR;
+
 	/*static*/ TNT::Array2D<double> elev, bedrock, init_elevs, water_depth, area, tempcreep, Tau, Vel, qx, qy, qxs, qys,
 		/* dune arrays */ area_depth, sand, elev2, sand2, grain, elev_diff;
 	TNT::Array2D<int> index, cross_scan,down_scan, rfarea;

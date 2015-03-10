@@ -197,6 +197,42 @@ void LSDCatchmentModel::create(std::string pname, std::string pfname)
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Load the data from the text file
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Generic function for reading rasters in ascii format
+// This is used by the LSDCatchmentModel.
+// Need to think avout this...the number of rows and cols are not known beforehand
+//~ void LSDCatchmentModel::read_rainfalldata(string FILENAME)
+//~ {
+  //~ //string string_filename;
+  //~ //string dot = ".";
+  //~ //string_filename = filename+dot+extension;
+  //~ std::cout << "\n\n Loading Rainfall File, the filename is " << FILENAME << std::endl;
+//~ 
+	//~ // open the data file
+	//~ std::ifstream data_in(FILENAME.c_str());
+//~ 
+	//~ //Read in raster data
+	//~ std::string str;			// a temporary string for discarding text
+//~ 
+	//~ // this is the array into which data is fed
+	//~ TNT::Array2D<double> rainfalldata(NRows, NCols, NoDataValue);
+//~ 
+	//~ // read the data
+	//~ for (int i=0; i<NRows; ++i)
+	//~ {
+	  //~ for (int j=0; j<NCols; ++j)
+	  //~ {
+		//~ data_in >> rainfalldata[i][j];
+	  //~ }
+	//~ }
+	//~ data_in.close();
+	//~ RasterData_dbl = rainfalldata.copy();
+	//~ //RasterData_dbl = asciidata.copy();
+//~ 
+	//~ // now update the objects raster data
+	//~ //RasterData = data.copy();
+	//~ //return RasterData_dbl;
+//~ }
+
 void LSDCatchmentModel::load_data()
 {
 	std::string FILENAME = read_fname;
@@ -215,6 +251,101 @@ void LSDCatchmentModel::load_data()
 	// Headers are accessed by elevR.get_Ncols(), elevR.get_NRows() etc
 	// Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
 	init_elevs = elevR.get_RasterData_dbl();
+	
+	// Load the HYDROINDEX DEM
+	if (CM_model_switches["spatially_var_rainfall"] == true)
+	{
+		FILENAME = CM_support_file_names["hydroindex_file"];
+		// Check for the file first of all
+		if (!does_file_exist(FILENAME))
+		{
+			std::cout << "No hydroindex DEM found by name of: " << FILENAME << std::endl << "You specified the spatially variable rainfall option, \
+					 \n but no matching file was found. Try again." << std::endl;
+			exit(EXIT_FAILURE);		
+		}	
+		try
+		{
+			hydroindexR.read_ascii_raster(FILENAME);
+			rfarea = hydroindexR.get_RasterData_int();
+			std::cout << "The hydroindex: " << FILENAME << " was successfully read." << std::endl;
+		}
+		catch (...)
+		{
+			std::cout << "Something is wrong with your hydroindex file." << std::endl
+			<< "Common causes are: " << std::endl << "1) Data type is not integer" <<
+			std::endl << "2) Non standard ASCII data format" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	}
+	
+	// Load the BEDROCK DEM
+	if (CM_model_switches["bedrock_layer_on"] == true)
+	{
+		FILENAME = CM_support_file_names["bedrock_data_file"];
+		// Check for the file first of all
+		if (!does_file_exist(FILENAME))
+		{
+			std::cout << "No bedrock DEM found by name of: " << FILENAME << std::endl << "You specified to use a separate bedrock layer option, \
+					 \n but no matching file was found. Try again." << std::endl;
+			exit(EXIT_FAILURE);		
+		}	
+		try
+		{
+			bedrockR.read_ascii_raster(FILENAME);
+			bedrock = bedrockR.get_RasterData_dbl();
+			std::cout << "The bedrock file: " << FILENAME << " was successfully read." << std::endl;
+		}
+		catch (...)
+		{
+			std::cout << "Something is wrong with your bedrock file." << std::endl
+			<< "Common causes are: " << std::endl << "1) Data type is not correct" <<
+			std::endl << "2) Non standard ASCII data format" << std::endl;
+			exit(EXIT_FAILURE);
+		}	
+	}
+	
+	// Load the RAINDATA file
+	// Remember the format is not the same as a standard ASCII DEM...
+	if (CM_model_switches["rainfall_data_on"]==true)
+	{
+		FILENAME = CM_support_file_names["rainfall_data_file"];
+		// Check for the file first of all
+		if (!does_file_exist(FILENAME))
+		{
+			std::cout << "No rainfall data file found by name of: " << FILENAME << std::endl << "You specified to use a rainfall input file, \
+					 \n but no matching file was found. Try again." << std::endl;
+			exit(EXIT_FAILURE);		
+		}	
+	} 
+	// INCOMPLETE! See the read_rainfalldata() method...
+
+	// DAV: The grainsize file is slightly more complicated...
+	// This needs some more thought...
+	// Load the GRAINSIZE DEM
+	//~ if (CM_support_file_names["grain_data_file"] == true)
+	//~ {
+		//~ FILENAME = CM_support_file_names["grain_data_file"];
+		//~ // Check for the file first of all
+		//~ if (!does_file_exist(FILENAME))
+		//~ {
+			//~ std::cout << "No grain data DEM found by name of: " << FILENAME << std::endl << "You specified to use a grain data option, \
+					 //~ \n but no matching file was found. Try again." << std::endl;
+			//~ exit(EXIT_FAILURE);		
+		//~ }	
+		//~ try
+		//~ {
+			//~ grainR.read_ascii_raster(FILENAME);
+			//~ bedrock = grainR.get_RasterData_dbl();
+			//~ std::cout << "The grainsize file: " << FILENAME << " was successfully read." << std::endl;
+		//~ }
+		//~ catch (...)
+		//~ {
+			//~ std::cout << "Something is wrong with your grainsize file." << std::endl
+			//~ << "Common causes are: " << std::endl << "1) Data type is not correct" <<
+			//~ std::endl << "2) Non standard ASCII data format" << std::endl;
+			//~ exit(EXIT_FAILURE);
+		//~ }	
+	//~ }	
 	
 }
 
@@ -393,6 +524,10 @@ void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Sediment
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "bedrock_layer_on")
+    {
+      CM_model_switches["bedrock_layer_on"] = atof(value.c_str());
+    }
     else if (lower == "transport_law")
     {
       CM_method_map["transport_law"] = atof(value.c_str());
@@ -449,6 +584,10 @@ void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Hydrology and Flow
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "rainfall_data_on")
+    {
+      CM_model_switches["rainfall_data_on"] = atof(value.c_str());
+    } 
     else if (lower == "TOPMODEL_m_value")
     {
       CM_float_parameters["TOPMODEL_m_value"] = atof(value.c_str());
