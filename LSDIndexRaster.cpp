@@ -1682,7 +1682,7 @@ LSDIndexRaster LSDIndexRaster::CombineBinaryNetwork(LSDIndexRaster& Network1, LS
 LSDIndexRaster LSDIndexRaster::MergeChannelWithFloodplain(LSDIndexRaster FloodPlain){
 
   //get the Channel network data as an array
-  Array2D<int> ChannelArray = RasterData;
+  Array2D<int> ChannelArray = RasterData.copy();
   
   for (int i = 0; i < NRows; ++i){
     for (int j = 0; j < NCols; ++j){
