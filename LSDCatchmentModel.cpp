@@ -197,41 +197,35 @@ void LSDCatchmentModel::create(std::string pname, std::string pfname)
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Load the data from the text file
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Generic function for reading rasters in ascii format
+// Generic function for reading rainfal data
 // This is used by the LSDCatchmentModel.
-// Need to think avout this...the number of rows and cols are not known beforehand
-//~ void LSDCatchmentModel::read_rainfalldata(string FILENAME)
-//~ {
-  //~ //string string_filename;
-  //~ //string dot = ".";
-  //~ //string_filename = filename+dot+extension;
-  //~ std::cout << "\n\n Loading Rainfall File, the filename is " << FILENAME << std::endl;
-//~ 
-	//~ // open the data file
-	//~ std::ifstream data_in(FILENAME.c_str());
-//~ 
-	//~ //Read in raster data
-	//~ std::string str;			// a temporary string for discarding text
-//~ 
-	//~ // this is the array into which data is fed
-	//~ TNT::Array2D<double> rainfalldata(NRows, NCols, NoDataValue);
-//~ 
-	//~ // read the data
-	//~ for (int i=0; i<NRows; ++i)
-	//~ {
-	  //~ for (int j=0; j<NCols; ++j)
-	  //~ {
-		//~ data_in >> rainfalldata[i][j];
-	  //~ }
-	//~ }
-	//~ data_in.close();
-	//~ RasterData_dbl = rainfalldata.copy();
-	//~ //RasterData_dbl = asciidata.copy();
-//~ 
-	//~ // now update the objects raster data
-	//~ //RasterData = data.copy();
-	//~ //return RasterData_dbl;
-//~ }
+// Need to think about this...the number of rows and cols are not known beforehand
+std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(string FILENAME)
+{
+	std::cout << "\n\n Loading Rainfall File, the filename is " << FILENAME << std::endl;
+
+	// open the data file
+	std::fstream infile(FILENAME.c_str());
+	
+	std::string line;
+	//std::vector< std::vector<float> > raingrid; //declared in .hpp now
+	int i = 0;
+	
+	while (std::getline(infile, line))
+	{
+		float value;
+		std::stringstream ss(line);
+		
+		raingrid.push_back(std::vector<float>());
+		
+		while (ss >> value)
+		{
+			raingrid[i].push_back(value);
+		}
+		++i;
+	}
+	return raingrid;
+}
 
 void LSDCatchmentModel::load_data()
 {
@@ -315,7 +309,9 @@ void LSDCatchmentModel::load_data()
 			std::cout << "No rainfall data file found by name of: " << FILENAME << std::endl << "You specified to use a rainfall input file, \
 					 \n but no matching file was found. Try again." << std::endl;
 			exit(EXIT_FAILURE);		
-		}	
+		}
+		hourly_rain_data = read_rainfalldata(FILENAME);
+		
 	} 
 	// INCOMPLETE! See the read_rainfalldata() method...
 
@@ -592,6 +588,10 @@ void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
     {
       CM_float_parameters["TOPMODEL_m_value"] = atof(value.c_str());
     } 
+    else if (lower == "num_unique_rain_cells")  // not needed now - DV
+    {
+      CM_int_parameters["num_unique_rain_cells"] = atof(value.c_str());
+    }     
     else if (lower == "rain_data_time_step")
     {
       CM_int_parameters["rain_data_time_step"] = atof(value.c_str());

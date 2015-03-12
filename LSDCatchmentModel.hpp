@@ -79,9 +79,22 @@ public:
 	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	//MPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPM
 	
+	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	// Stuff for loading and manipulating files
+	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	
 	/// @brief Loads the required data files based on the parameters set in the parameter file 
 	/// @author dav
 	void load_data();
+	
+	/// @brief Loads the rainfall data file which is in a special format (headerless text file)
+	/// @author DAV
+	/// @details Rainfall data file is not too big, so think it's okay to use the vector<vector> 
+	/// method instead of TNT array. Easier to dynamically resize as the rainfall data contains
+	/// no header and can vary in size. Saves the user having to count the rows and cols. Reads
+	/// in the rainfall data file specified in the parameter list file as floats.
+	/// @return Returns a vector of vector<float>. (A 2D-like vector). 
+	std::vector< std::vector<float> > read_rainfalldata(std::string FILENAME);
 	
 	/// @brief Calls the various save functions depending on the data types to be saved
 	/// @author DAV
@@ -476,7 +489,8 @@ public:
 	TNT::Array3D<double> vel_dir;
 	TNT::Array3D<double> strata;
 	std::vector<double> hourly_m_value, temp_grain;
-	TNT::Array2D<double> hydrograph, dischargeinput, hourly_rain_data;
+	TNT::Array2D<double> hydrograph, dischargeinput;  //, hourly_rain_data; // made this vector below, see if it causes problems?
+	std::vector< std::vector<float> > hourly_rain_data;
 	TNT::Array3D<double> inputfile;
 	TNT::Array2D<int> inpoints;
 	TNT::Array3D<double> veg;
@@ -557,6 +571,9 @@ public:
 	bool bedrock_lower_opt;
 	bool physical_weather_opt;
 	bool chem_weath_opt;
+	
+	protected:
+	std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
 	
 	// Mainly just the definitions of the create() functions go here:
 	// The implementations are in the .cpp file.
