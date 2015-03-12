@@ -98,6 +98,7 @@
 #include <math.h>
 #include <string.h>
 #include <omp.h>
+#include <ctime>
 #include "TNT/tnt.h"
 #include "TNT/jama_lu.h"
 #include "TNT/jama_eig.h"
@@ -2051,27 +2052,31 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
   //float f90 = 90.0;
   
   //Max Production Factor following Codilean Eq2
-  MaxFactor = (2.*M_PI*I0)/((m+1.));
-  Array2D<float> MaxFactorArray(NRows,NCols,MaxFactor);
+  //MaxFactor = (2.*M_PI*I0)/((m+1.));
+  //Array2D<float> MaxFactorArray(NRows,NCols,MaxFactor);
   float MaxWeight = 0;
     
   //Calculate first shadow with theta value of 90 and scale it
-  Array2D<float> FinalArray(NRows,NCols,0.); // = Shadow(0,90) * Scaler90;
+  Array2D<float> Empty(NRows,NCols,0.);
+  Array2D<float> FinalArray = Empty; // = Shadow(0,90) * Scaler90;
 
   //loop through all the theta, phi pairs and increment the FinalArray with the scaled values
   //start at ZenithStep and AzimuthStep and continue up to Max
-  for(int ZenithAngle = ZenithStep; ZenithAngle <= 90; ZenithAngle += ZenithStep)
+    
+  for (int ZenithAngle = ZenithStep; ZenithAngle <= 90; ZenithAngle += ZenithStep)
   {
     for(int AzimuthAngle = AzimuthStep; AzimuthAngle <= 360; AzimuthAngle += AzimuthStep)
     {
       fflush(stdout);
-			printf("\r\tAzimuth: %d, Zenith: %d - ",AzimuthAngle,ZenithAngle);
-			
+			printf("\nAzimuth: %d, Zenith: %d - ",AzimuthAngle,ZenithAngle);
+
 			//Find cells in shadow (1s and 0s)
-      Array2D<float> ShadowsArray = Shadows(AzimuthAngle,ZenithAngle);
+      Array2D<float> ShadowsArray;
+      if (ZenithAngle < 90) ShadowsArray = Shadows(AzimuthAngle,ZenithAngle);
+      else ShadowsArray = Empty;
 			                
 			//Calculate Weighting
-      float Weighting = (AzimuthStep*(M_PI/180.))*(ZenithStep*(M_PI/180.))*cos(ZenithAngle*(M_PI/180.))*pow(sin(ZenithAngle*(M_PI/180.)),2.3);
+      float Weighting = (AzimuthStep*(M_PI/180.))*(ZenithStep*(M_PI/180.))*cos(ZenithAngle*(M_PI/180.))*pow(sin(ZenithAngle*(M_PI/180.)),m);
       Array2D<float> WeightsArray(NRows,NCols,Weighting);
       
       //calculate Weight
@@ -2079,6 +2084,7 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
       MaxWeight += Weighting;
     }
   }
+  
   Array2D<float> ShieldingFactor(NRows,NCols,1);
 	Array2D<float> MaxWeightArray(NRows,NCols,MaxWeight);
 	ShieldingFactor -= FinalArray/MaxWeightArray;
@@ -2292,8 +2298,6 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 	fflush(stdout);
 	printf("%3.0f %% Complete\b\b\b\b\b\b\b\b\b\b\b\b\b\b",Percentage);
 			  
-	// *** start of parallel loop ***
-	//#pragma omp parallel for
 	for (int ii=0; ii < NRows; ++ii) 
 	{
 	  //check which direction to loop in
@@ -2379,8 +2383,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 	    }
 	  }
 	}
-	// *** end of pragma omp parallel for ***
-
+	
   //Print completion to screen
 	fflush(stdout);
 	printf("100 %% Complete\r");
@@ -2627,15 +2630,6 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
             {
               aspect_raster[i][j] = 270. - (180./M_PI)*atan(e/d) + 90.*(d/abs(d));
               if(aspect_raster[i][j] > 360.0) aspect_raster[i][j] -= 360;
-//    					aspect_raster[i][j] = 180 - 57.29578*atan(e/d) + 90*(d/abs(d));
-//    					if(aspect_raster[i][j] < 180.0)
-//    					{
-//    						aspect_raster[i][j] = 180.0 - aspect_raster[i][j];
-//    					}
-//    					else
-//    					{
-//    						aspect_raster[i][j] = 360.0 + (180 - aspect_raster[i][j]);
-//    					}
             }
           }
           
