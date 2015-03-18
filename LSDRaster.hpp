@@ -374,6 +374,20 @@ class LSDRaster
   /// @date 22/08/13
   LSDRaster RasterTrimmer();
 
+  /// @brief Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
+  /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
+  ///  Similar to RasterTrimmer but has a pixel buffer. Useful for CRN data since
+  ///   sometimes the channel in the DEM does not correspond exactly with the 
+  ///   data point. 
+  /// @details Ideal for use with chi analysis tools which output basin and chi m value rasters
+  /// which can be predominantly no data. As an example, a 253 Mb file can be reduced to
+  /// ~5 Mb with no loss or resampling of data.\n
+  /// @param padded_pixels the number of pixels to pad the DEM with
+  /// @return A trimmed LSDRaster object.
+  /// @author SMM
+  /// @date 18/03/15
+  LSDRaster RasterTrimmerPadded(int padded_pixels);
+
   /// @brief Takes a raster and trims nodata from around the edges to 
   /// result in a rectangular LSDRaster
   /// @return A trimmed LSDRaster object.
