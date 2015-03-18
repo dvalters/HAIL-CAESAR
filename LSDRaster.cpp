@@ -7675,7 +7675,8 @@ LSDRaster LSDRaster::RasterTrimmer(){
     }
   }
 
-  if (min_row == 0 && min_col == 0 && max_row == (NRows - 1) && max_col == (NCols - 1)){
+  if (min_row == 0 && min_col == 0 && max_row == (NRows - 1) && max_col == (NCols - 1))
+  {
     cout << "Raster cannot be trimmed! \nReturning original raster.\n" << endl;
         
     LSDRaster Output(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, 
@@ -7714,6 +7715,147 @@ LSDRaster LSDRaster::RasterTrimmer(){
   
   //Check if the file is in *.bil format and if it is update the GeoReferencingStrings
   if (!GeoReferencingStrings.empty()){
+    float YMax = new_YLL + (new_row_dimension* DataResolution);
+    GeoReferencingStrings = Update_GeoReferencingStrings(new_XLL,YMax);
+  }
+    
+  LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
+                          new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);
+
+  return TrimmedRaster;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
+// all the surrounding NoDataValues to reduce the size and load times of output
+// rasters.
+// 
+// This is like the other raster trimmer but you can put a padding of pixels
+// around the trimmed raster. Useful for cosmogenic analysis since the valid
+// cosmo point may be a few pixels away from the actual stream
+//
+// Ideal for use with chi analysis tools which output basin and chi m value rasters
+// which can be predominantly no data. As an example, a 253 Mb file can be reduced to
+// ~5 Mb with no loss or resampling of data.
+//
+// Modded 6/11/14 to cope with bil files and to catch cases where some or all of the
+// edges cannot be trimmed - SWDG
+//
+// Returns A trimmed LSDRaster object.
+//
+// SMM 18/03/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::RasterTrimmerPadded(int padding_pixels)
+{
+
+  //minimum index value in a column
+  int a = 0;
+  int min_col = 100000; //a big number
+
+  for (int row = 0; row < NRows; ++row){
+    a = 0;
+    while (RasterData[row][a] == NoDataValue && a < NCols-1){
+      ++a;
+    }
+    if (min_col > a){
+      min_col = a;
+    }
+  }
+
+  //maximum index value in a column
+  a = NCols - 1;
+  int max_col = 0; //a small number
+
+  for (int row = 0; row < NRows; ++row){
+    a = NCols - 1;
+    while (RasterData[row][a] == NoDataValue && a > 0){
+      --a;
+    }
+    if (max_col < a){
+      max_col = a;
+    }
+  }
+
+
+  //minimum index value in a row
+  a = 0;
+  int min_row = 100000; //a big number
+
+  for (int col = 0; col < NCols; ++col){
+    a = 0;
+    while (RasterData[a][col] == NoDataValue && a < NRows - 1){
+      ++a;
+    }
+    if (min_row > a){
+      min_row = a;
+    }
+  }
+
+  //maximum index value in a row
+  a = NRows - 1;
+  int max_row = 0; //a small number
+
+  for (int col = 0; col < NCols; ++col){
+    a = NRows - 1;
+    while (RasterData[a][col] == NoDataValue && a > 0){
+      --a;
+    }
+    if (max_row < a){
+      max_row = a;
+    }
+  }
+
+  // pad the rows and columms
+  min_row = min_row-padding_pixels;
+  min_col = min_col-padding_pixels;
+  max_row = max_row+padding_pixels;
+  max_col = max_col+padding_pixels;
+
+
+  if (min_row == 0 && min_col == 0 && max_row == (NRows - 1) && max_col == (NCols - 1))
+  {
+    cout << "Raster cannot be trimmed! \nReturning original raster.\n" << endl;
+        
+    LSDRaster Output(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, 
+                     RasterData, GeoReferencingStrings);
+                     
+    return Output;
+  }
+   
+  // create new row and col sizes taking account of zero indexing
+  int new_row_dimension = (max_row-min_row) + 1;
+  int new_col_dimension = (max_col-min_col) + 1;
+
+  Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
+
+  //loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
+  int TrimmedRow = 0;
+  int TrimmedCol = 0;
+  
+  //check if the north or west edges cannot be trimmed and stop an out of bounds error
+  if (min_row == 0){ min_row = 1; }
+  if (min_col == 0){ min_col = 1; }
+  
+  for (int row = min_row - 1; row < max_row; ++row){
+    for(int col = min_col - 1; col < max_col; ++col){
+      
+      TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
+      ++TrimmedCol;
+    }
+    ++TrimmedRow;
+    TrimmedCol = 0;
+  }
+
+  //calculate lower left corner coordinates of new array
+  float new_XLL = ((min_col - 1) * DataResolution) + XMinimum;
+  float new_YLL = YMinimum + ((NRows - (max_row + 0)) * DataResolution);
+  
+  //Check if the file is in *.bil format and if it is update the GeoReferencingStrings
+  if (!GeoReferencingStrings.empty())
+  {
     float YMax = new_YLL + (new_row_dimension* DataResolution);
     GeoReferencingStrings = Update_GeoReferencingStrings(new_XLL,YMax);
   }
