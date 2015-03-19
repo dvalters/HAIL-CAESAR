@@ -211,6 +211,17 @@ class LSDIndexRaster
   /// @date 01/01/12
   int get_data_element(int row, int column)  { return RasterData[row][column]; }
 
+  /// @brief Sets the raster data at a specified location.
+  /// @param row An integer, the X coordinate of the target cell.
+  /// @param column An integer, the Y coordinate of the target cell.
+  /// @param value the vaule of the data element at the give row and column
+  /// @return The raster value at the position (row, column).
+  /// @author SMM
+  /// @date 18/03/15
+  void set_data_element(int row, int column, int data) 
+                                   { RasterData[row][column] = data; }
+
+
   /// @brief Checks to see if two rasters have the same georeferencing
   /// @param Compare_raster: the raster to compare 
   /// @author SMM
