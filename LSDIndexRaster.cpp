@@ -230,7 +230,7 @@ void LSDIndexRaster::read_raster(string filename, string extension)
   string dot = ".";
   string_filename = filename+dot+extension;
   cout << "The filename is " << string_filename << endl;
-
+  int DataType;
 
   if (extension == "asc")
   {
@@ -394,6 +394,29 @@ void LSDIndexRaster::read_raster(string filename, string extension)
           }
         }
 
+        // get data type
+        counter = 0;
+        str_find = "data type";
+        while (counter < NLines)
+        {
+          found = lines[counter].find(str_find); 
+          if (found!=string::npos)
+          {
+            // get the data using a stringstream
+            istringstream iss(lines[counter]);
+            iss >> str >> str >> str >> str >> str;
+            DataType = atoi(str.c_str());
+            cout << "Data Type = " << DataType << endl;
+                     
+            // advance to the end so you move on to the new loop            
+            counter = lines.size();    
+          }
+          else
+          {
+            counter++;
+          }
+        }
+
         // get the number of columns
         counter = 0;
         int this_NCols = 0;
@@ -539,9 +562,6 @@ void LSDIndexRaster::read_raster(string filename, string extension)
     }
     ifs.close(); 
 
-
-
-     
     // this is the array into which data is fed
     if (NoDataExists == 0)
     {
@@ -560,17 +580,62 @@ void LSDIndexRaster::read_raster(string filename, string extension)
     }
     else
     {
-      float temp;
-      for (int i=0; i<NRows; ++i)
+      if (DataType == 2)
       {
-        for (int j=0; j<NCols; ++j)
+        //cout << "Loading raster, recasting data from int to float!" << endl;
+        int temp;
+        //cout << "Integer size: " << sizeof(temp) << endl;
+        for (int i=0; i<NRows; ++i)
         {
-          ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
-          
-          data[i][j] = int(temp);
-          if (data[i][j]<-1e10)
+          for (int j=0; j<NCols; ++j)
           {
-            data[i][j] = NoDataValue;
+            ifs_data.read(reinterpret_cast<char*>(&temp), 2);
+            //cout << temp << " ";
+            data[i][j] = int(temp);
+            if (data[i][j]<-1e10)
+            {
+              data[i][j] = NoDataValue;
+            }
+          }
+          //cout << endl;
+        }
+      }
+            else if (DataType == 4)
+      {
+        float temp;
+        //cout << "Float size: " << sizeof(temp) << endl;
+        for (int i=0; i<NRows; ++i)
+        {
+          for (int j=0; j<NCols; ++j)
+          {
+            ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+            
+            data[i][j] = float(temp);
+            if (data[i][j]<-1e10)
+            {
+              data[i][j] = NoDataValue;
+            }
+          }
+        }
+      } 
+      else
+      {
+        cout << "WARNING loading ENVI raster with unusual data type. " << endl
+             << "If you get a crazy DEM go to LINE 604 of LSDIndexRaster.cpp to debug" << endl;
+        int temp;   // might need to change this
+        //cout << "Float size: " << sizeof(temp) << endl;
+        for (int i=0; i<NRows; ++i)
+        {
+          for (int j=0; j<NCols; ++j)
+          {
+            // Use data type to control the bytes being read for each entry
+            ifs_data.read(reinterpret_cast<char*>(&temp), DataType);
+            
+            data[i][j] = int(temp);
+            if (data[i][j]<-1e10)
+            {
+              data[i][j] = NoDataValue;
+            }
           }
         }
       }
@@ -698,7 +763,7 @@ void LSDIndexRaster::write_raster(string filename, string extension)
     header_ofs <<  "bands = 1" << endl;
     header_ofs <<  "header offset = 0" << endl;
     header_ofs <<  "file type = ENVI Standard" << endl;
-    header_ofs <<  "data type = 4" << endl;
+    header_ofs <<  "data type = 2" << endl;
     header_ofs <<  "interleave = bsq" << endl;
     header_ofs <<  "byte order = 0" << endl;
     
@@ -737,13 +802,14 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 
     // now do the main data
     ofstream data_ofs(string_filename.c_str(), ios::out | ios::binary);
-    float temp;
+    int data_type = 2;
+    int temp;
     for (int i=0; i<NRows; ++i)
     {
       for (int j=0; j<NCols; ++j)
       {
-        temp = float(RasterData[i][j]);
-        data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
+        temp = RasterData[i][j];
+        data_ofs.write(reinterpret_cast<char *>(&temp),data_type);
       }
     }
     data_ofs.close();
@@ -751,7 +817,7 @@ void LSDIndexRaster::write_raster(string filename, string extension)
   else
   {
     cout << "You did not enter and approprate extension!" << endl
-         << "You entered: " << extension << " options are .flt and .asc" << endl;
+         << "You entered: " << extension << " options are .flt, .bil and .asc" << endl;
     exit(EXIT_FAILURE);
   }
 

@@ -451,7 +451,6 @@ void LSDRaster::read_raster(string filename, string extension)
 
         // get data type
         counter = 0;
-
         str_find = "data type";
         while (counter < NLines)
         {
@@ -471,7 +470,7 @@ void LSDRaster::read_raster(string filename, string extension)
           {
             counter++;
           }
-        }  
+        }
         
         // get the map info
         counter = 0;
@@ -602,7 +601,7 @@ void LSDRaster::read_raster(string filename, string extension)
             }
           }
           //cout << endl;
-        }		
+        }
       }
       else if (DataType == 4)
       {
