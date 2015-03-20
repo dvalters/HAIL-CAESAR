@@ -395,8 +395,21 @@ class LSDRaster
   /// @date 5/11/14
   LSDRaster RasterTrimmerSpiral();
   
+  /// @brief This returns a clipped raster that has the same dimensions as the
+  ///  smaller raster
+  /// @param smaller_raster the raster to which the bigger raster should be
+  ///  clipped
+  /// @author SMM
+  /// @date 20/03/2015
+  LSDRaster clip_to_smaller_raster(LSDRaster& smaller_raster);
 
-
+  /// @brief This returns a clipped raster that has the same dimensions as the
+  ///  smaller raster
+  /// @param smaller_raster the raster to which the bigger raster should be
+  ///  clipped
+  /// @author SMM
+  /// @date 20/03/2015
+  LSDRaster clip_to_smaller_raster(LSDIndexRaster& smaller_raster);
 
   /// @brief Make LSDRaster object using a 'template' raster and an Array2D of data.
   /// @param InputData 2DArray of floats to be written to LSDRaster.
@@ -1771,14 +1784,14 @@ LSDRaster GaussianFilter(float sigma);
   /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
   /// @author DTM
   /// @date 10/02/2015 
-	LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
-	
-	/// @brief Simple method to flatten an LSDRaster to a text file, with a sigle value on each line. 
+  LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
+
+  /// @brief Simple method to flatten an LSDRaster to a text file, with a sigle value on each line. 
   /// @param FileName The name of the file to write, if no path is included it will write to the current directory. 
   /// @author SWDG
   /// @date 9/2/15
-	void FlattenToFile(string FileName);
-	
+  void FlattenToFile(string FileName);
+
   protected:
 
   ///Number of rows.

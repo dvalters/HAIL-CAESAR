@@ -893,6 +893,181 @@ bool LSDIndexRaster::does_raster_have_same_dimensions_and_georeferencing(LSDInde
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// THis clips to a smaller raster. The smaller raster does not need
+// to have the same data resolution as the old raster
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDIndexRaster::clip_to_smaller_raster(LSDIndexRaster& smaller_raster)
+{
+  // Get the MinX, MaxX, MinY, MaxY from the rasters
+  //float XMaximum = XMinimum + (NCols * DataResolution -1);
+  //float YMaximum = YMinimum + (NRows * DataResolution -1);
+  
+  float SR_XMinimum = smaller_raster.get_XMinimum();
+  float SR_YMinimum = smaller_raster.get_YMinimum();
+  
+  float SR_NRows = smaller_raster.get_NRows();
+  float SR_NCols = smaller_raster.get_NCols();
+  float SR_DataR = smaller_raster.get_DataResolution();
+  
+  float SR_XMaximum = SR_XMinimum+(SR_NCols)*SR_DataR;
+  float SR_YMaximum = SR_YMinimum+(SR_NRows)*SR_DataR;
+  
+  cout << "Small Xmin: " << SR_XMinimum << " YMin: " << SR_YMinimum << " Xmax: "
+       << SR_XMaximum << " YMax: " << SR_YMaximum << endl;
+  
+  
+  // find the col of old raster that has the same Xlocations as the XLL of smaller raster
+  // the 0.5*DataResolution is in case of rounding errors
+  int XLL_col = int((SR_XMinimum-XMinimum+0.5*DataResolution)/DataResolution);
+  int XUL_col = int((SR_XMaximum-XMinimum+0.5*DataResolution)/DataResolution);
+  
+  // check these columns
+  if (XLL_col < 0)
+  {
+    XLL_col = 0;
+  }
+  if (XUL_col >= NCols)
+  {
+    XUL_col = NCols-1;
+  }
+  
+  // find the row of old raster that has the same Xlocations as the XLL of smaller raster
+  // the 0.5*DataResolution is in case of rounding errors  
+  // Slightly different logic for y because the DEM starts from the top corner
+  int YLL_row = NRows - int((SR_YMinimum-YMinimum+0.5*DataResolution)/DataResolution);
+  int YUL_row = NRows - int((SR_YMaximum-YMinimum+0.5*DataResolution)/DataResolution);
+  
+  // check these rows
+  if (YLL_row < 0)
+  {
+    YLL_row = 0;
+  }
+  if (YUL_row >= NRows)
+  {
+    YUL_row = NRows-1;
+  }
+  
+  cout << "Small XLLCol: " << XLL_col << " XLR_col: " << XUL_col << " XLLrow: "
+       << YLL_row << " YUL_row: " << YUL_row << endl;
+
+
+  // get the new number of rows and columns:
+  int New_NRows = YLL_row-YUL_row;
+  int New_NCols = XUL_col-XLL_col;
+  
+  cout << "New NRows: " << New_NRows  << " New_NCols: " << New_NCols << endl;
+  
+  // now extract the data for the new raster
+  float NewR_XMinimum = XMinimum+float(XLL_col)*DataResolution;
+  float NewR_YMinimum = YMinimum + ((NRows - YLL_row ) * DataResolution);
+  
+  Array2D<int> NewData(New_NRows,New_NCols, NoDataValue);
+  
+  for(int row = 0; row< New_NRows; row++)
+  {
+    for(int col = 0; col<=New_NCols; col++)
+    {
+       NewData[row][col] = RasterData[row+YUL_row][col+XLL_col];
+    }
+  }
+  
+  LSDIndexRaster TrimmedRaster(New_NRows, New_NCols, NewR_XMinimum,
+                          NewR_YMinimum, DataResolution, NoDataValue, NewData, 
+                          GeoReferencingStrings);  
+
+  TrimmedRaster.Update_GeoReferencingStrings();
+  
+  return TrimmedRaster;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// THis clips to a smaller raster. The smaller raster does not need
+// to have the same data resolution as the old raster
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDIndexRaster::clip_to_smaller_raster(LSDRaster& smaller_raster)
+{
+  // Get the MinX, MaxX, MinY, MaxY from the rasters
+  //float XMaximum = XMinimum + (NCols * DataResolution -1);
+  //float YMaximum = YMinimum + (NRows * DataResolution -1);
+  
+  float SR_XMinimum = smaller_raster.get_XMinimum();
+  float SR_YMinimum = smaller_raster.get_YMinimum();
+  
+  float SR_NRows = smaller_raster.get_NRows();
+  float SR_NCols = smaller_raster.get_NCols();
+  float SR_DataR = smaller_raster.get_DataResolution();
+  
+  float SR_XMaximum = SR_XMinimum+(SR_NCols)*SR_DataR;
+  float SR_YMaximum = SR_YMinimum+(SR_NRows)*SR_DataR;
+  
+  cout << "Small Xmin: " << SR_XMinimum << " YMin: " << SR_YMinimum << " Xmax: "
+       << SR_XMaximum << " YMax: " << SR_YMaximum << endl;
+  
+  
+  // find the col of old raster that has the same Xlocations as the XLL of smaller raster
+  // the 0.5*DataResolution is in case of rounding errors
+  int XLL_col = int((SR_XMinimum-XMinimum+0.5*DataResolution)/DataResolution);
+  int XUL_col = int((SR_XMaximum-XMinimum+0.5*DataResolution)/DataResolution);
+  
+  // check these columns
+  if (XLL_col < 0)
+  {
+    XLL_col = 0;
+  }
+  if (XUL_col >= NCols)
+  {
+    XUL_col = NCols-1;
+  }
+  
+  // find the row of old raster that has the same Xlocations as the XLL of smaller raster
+  // the 0.5*DataResolution is in case of rounding errors  
+  // Slightly different logic for y because the DEM starts from the top corner
+  int YLL_row = NRows - int((SR_YMinimum-YMinimum+0.5*DataResolution)/DataResolution);
+  int YUL_row = NRows - int((SR_YMaximum-YMinimum+0.5*DataResolution)/DataResolution);
+  
+  // check these rows
+  if (YLL_row < 0)
+  {
+    YLL_row = 0;
+  }
+  if (YUL_row >= NRows)
+  {
+    YUL_row = NRows-1;
+  }
+  
+  cout << "Small XLLCol: " << XLL_col << " XLR_col: " << XUL_col << " XLLrow: "
+       << YLL_row << " YUL_row: " << YUL_row << endl;
+
+
+  // get the new number of rows and columns:
+  int New_NRows = YLL_row-YUL_row;
+  int New_NCols = XUL_col-XLL_col;
+  
+  cout << "New NRows: " << New_NRows  << " New_NCols: " << New_NCols << endl;
+  
+  // now extract the data for the new raster
+  float NewR_XMinimum = XMinimum+float(XLL_col)*DataResolution;
+  float NewR_YMinimum = YMinimum + ((NRows - YLL_row ) * DataResolution);
+  
+  Array2D<int> NewData(New_NRows,New_NCols, NoDataValue);
+  
+  for(int row = 0; row< New_NRows; row++)
+  {
+    for(int col = 0; col<=New_NCols; col++)
+    {
+       NewData[row][col] = RasterData[row+YUL_row][col+XLL_col];
+    }
+  }
+  
+  LSDIndexRaster TrimmedRaster(New_NRows, New_NCols, NewR_XMinimum,
+                          NewR_YMinimum, DataResolution, NoDataValue, NewData, 
+                          GeoReferencingStrings);  
+
+  TrimmedRaster.Update_GeoReferencingStrings();
+  
+  return TrimmedRaster;
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
 // Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
