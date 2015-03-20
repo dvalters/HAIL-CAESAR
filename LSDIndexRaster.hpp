@@ -234,6 +234,23 @@ class LSDIndexRaster
   /// @date 02/03/2015
   bool does_raster_have_same_dimensions_and_georeferencing(LSDIndexRaster& Compare_raster);
 
+  /// @brief This returns a clipped raster that has the same dimensions as the
+  ///  smaller raster
+  /// @param smaller_raster the raster to which the bigger raster should be
+  ///  clipped
+  /// @author SMM
+  /// @date 20/03/2015
+  LSDIndexRaster clip_to_smaller_raster(LSDRaster& smaller_raster);
+
+  /// @brief This returns a clipped raster that has the same dimensions as the
+  ///  smaller raster
+  /// @param smaller_raster the raster to which the bigger raster should be
+  ///  clipped
+  /// @author SMM
+  /// @date 20/03/2015
+  LSDIndexRaster clip_to_smaller_raster(LSDIndexRaster& smaller_raster);
+
+
   /// @brief Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
   /// map_info line to contain these new values.
   ///
