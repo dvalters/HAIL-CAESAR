@@ -2429,9 +2429,9 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
   // set it to equal the data resolution - SWDG
   if (window_radius < DataResolution)
   {
-    cout << "Supplied window radius: " << window_radius << " is less than the data resolution: " <<
-    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
-    window_radius = DataResolution;
+    cout << "Supplied window radius: " << window_radius << " is less than the data resolution * sqrt(2), i.e. the diagonal of a single grid cell: " <<
+    sqrt(2)*DataResolution << ".\nWindow radius has been set to sqrt(2) * data resolution." << endl;
+    window_radius = sqrt(2)*DataResolution;
   }
   // this fits a polynomial surface over a kernel window. First, perpare the
   // kernel
@@ -2473,7 +2473,8 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
       // distance from centre to this point.
       radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
 
-      if (floor(radial_dist) <= window_radius)
+//       if (floor(radial_dist) <= window_radius)
+      if (radial_dist <= window_radius)
       {
         mask[i][j] = 1;
       }
@@ -2757,17 +2758,17 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
   
   // catch if the supplied window radius is less than the data resolution and
 	// set it to equal the data resolution - SWDG
-  if (window_radius1 < DataResolution)
+  if (window_radius1 < sqrt(2)*DataResolution)
   {
-    cout << "Supplied window radius: " << window_radius1 << " is less than the data resolution: " <<
-    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
-    window_radius1 = DataResolution;
+    cout << "Supplied window radius: " << window_radius1 << " is less than sqrt(2) * data resolution: " <<
+    sqrt(2)*DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius1 = sqrt(2)*DataResolution;
   }
-  if (window_radius2 < DataResolution)
+  if (window_radius2 < sqrt(2)*DataResolution)
   {
-    cout << "Supplied window radius: " << window_radius2 << " is less than the data resolution: " <<
-    DataResolution << ".\nWindow radius has been set to data resolution." << endl;
-    window_radius2 = DataResolution;
+    cout << "Supplied window radius: " << sqrt(2)*window_radius2 << " is less than the data resolution: " <<
+    sqrt(2)*DataResolution << ".\nWindow radius has been set to data resolution." << endl;
+    window_radius2 = sqrt(2)*DataResolution;
   }
   // this fits a polynomial surface over a kernel window. First, perpare the
   // kernel
@@ -2803,7 +2804,8 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
 			// distance from centre to this point.
 			radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
 
-      if (floor(radial_dist) <= window_radius1)
+//       if (floor(radial_dist) <= window_radius1)
+      if (radial_dist <= window_radius1)
       {
 				mask[i][j] = 1;
 			}
@@ -2970,7 +2972,8 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
   		x_kernel_ref=(i-kr)*DataResolution;
      	y_kernel_ref=(j-kr)*DataResolution;
      	radial_dist = sqrt(y_kernel_ref*y_kernel_ref + x_kernel_ref*x_kernel_ref); // distance from centre to this point.
-     	if (floor(radial_dist) <= window_radius2)
+//      	if (floor(radial_dist) <= window_radius2)
+     	if (radial_dist <= window_radius2)
      	{
         mask2[i][j] = 1;
   		}
@@ -9875,6 +9878,5 @@ void LSDRaster::FlattenToFile(string FileName){
   WriteData.close();
 
 } 
-
 
 #endif
