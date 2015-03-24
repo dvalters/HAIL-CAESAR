@@ -1283,6 +1283,13 @@ class LSDRaster
   /// @date 04/2013
   LSDRaster BasinAverager(LSDIndexRaster& Basins);
 
+  /// @brief Module calculates an average value to each for a given raster from within a basin.
+  /// @param Basins LSDIndexRaster of a Drainage basin
+  /// @return Float of the averaged value
+  /// @author SWDG
+  /// @date 24/3/2015
+  float SingleBasinAverager(LSDIndexRaster& Basin);
+
   /// @brief Write the area(in spatial units) of each basin to the basin's pixels.
   ///
   /// @details Big optimisation following the Drainage density's design pattern.

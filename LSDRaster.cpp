@@ -6115,6 +6115,39 @@ LSDRaster LSDRaster::BasinAverager(LSDIndexRaster& Basins){
 }
 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Module calculates an average value to each for a given raster from within a basin.
+// Returns a Float of the averaged value.
+// SWDG 24/3/2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+float LSDRaster::SingleBasinAverager(LSDIndexRaster& Basin){
+
+  Array2D<int> basin_ids = Basin.get_RasterData();
+  Array2D<float> Averaged(NRows,NCols,NoDataValue);
+  
+  //Get unique basin index
+  vector<int> basin_index = Unique(basin_ids, NoDataValue);
+  int single_basin_index = basin_index[0];
+
+  int counter = 0;
+  float sum = 0;
+
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+
+      if (RasterData[i][j] != NoDataValue && basin_ids[i][j] == single_basin_index ){
+        sum += RasterData[i][j];
+        ++counter;
+        
+      }
+    }
+  }
+
+  float Average = sum/counter;
+
+  return Average;
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 // Write the area(in spatial units of area) of each basin to the basin's pixels.
 // Refactored to follow the drainage density calculations design pattern.
