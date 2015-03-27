@@ -6412,6 +6412,42 @@ LSDRaster LSDRaster::DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRast
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// this function gets the total drainage density of the DEM.  
+// FJC 27/03/15
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float LSDRaster::get_drainage_density_of_raster(LSDIndexRaster& StreamNetwork, Array2D<int> FlowDir)
+{
+  //Declare all the variables needed in this method
+  float two_times_root2 = 2.828427;
+  float stream_length = 0.0;
+  
+  //Loop over every pixel and record its stream length 
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){        
+        if (StreamNetwork.get_data_element(i,j) != NoDataValue){
+          if ((FlowDir[i][j] % 2) != 0 && (FlowDir[i][j] != -1 )){ //is odd but not -1
+            stream_length = stream_length+(DataResolution * two_times_root2); //diagonal
+          }
+          else if (FlowDir[i][j] % 2 == 0){  //is even
+            stream_length = stream_length + DataResolution; //cardinal      
+          }
+        }
+        else{
+          stream_length = stream_length + 0.0;
+        }    
+    }
+  } 
+  
+  // Get the drainage density (flow length/area)
+  float raster_area = NRows*NCols*DataResolution*DataResolution;
+  float drainage_density = stream_length/raster_area;
+  
+  return drainage_density;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Simple method to convert a drainage density raster into a hillslope length raster. 
 // Returns a Raster of basin average hillslope lengths. The LH value is calculated using 
 // LH = 1/2*DD [Tucker et al 2001]. 
