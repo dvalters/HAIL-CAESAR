@@ -842,6 +842,18 @@ class LSDRaster
   /// @author FJC
   /// @date 24/03/14 
   LSDRaster remove_positive_hilltop_curvature(LSDRaster& hilltop_curvature);
+  
+  /// @brief Gets the percentage of bedrock ridges
+  /// @details Uses the hilltop curvature raster and the roughness raster. If the
+  /// roughness value is greater than the threshold (set to 0.015) then the pixel
+  /// is designated bedrock.
+  /// @param roughness roughness input raster
+  /// @param hilltop_curvature hilltop curvature input raster
+  /// @param threshold threshold value to be designated bedrock
+  /// @return float with percentage bedrock pixels
+  /// @author FJC
+  /// @date 01/04/15  
+  float get_percentage_bedrock_ridgetops(LSDRaster&roughness, LSDRaster& hilltop_curvature, float threshold);
 
   /// @brief Calculates slope angle in radians. Needs the slope raster
   /// @return LSDRaster containing the slope angle in radians. For use in trigonometric
