@@ -3998,7 +3998,42 @@ LSDRaster LSDRaster::remove_positive_hilltop_curvature(LSDRaster& hilltop_curvat
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-
+	//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= 
+  // 
+  // GET THE PERCENTAGE OF RIDGE PIXELS THAT ARE BEDROCK 
+  // This function gets the percentage of pixels that are bedrock from the hilltop curvature 
+  // raster 
+  // FJC 01/04/15 
+  // 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= 
+  float LSDRaster::get_percentage_bedrock_ridgetops(LSDRaster&roughness, LSDRaster& hilltop_curvature, float threshold) 
+  { 
+    float bedrock_pixels = 0; 
+    float total_pixels = 0; 
+    for (int row = 0; row < NRows; row++) 
+    { 
+      for (int col = 0; col < NCols; col++) 
+      { 
+        float CHT = hilltop_curvature.get_data_element(row, col); 
+        if (CHT != NoDataValue) 
+        { 
+          total_pixels++; 
+          float rough_value = roughness.get_data_element(row, col); 
+          if (rough_value > threshold) 
+          { 
+            bedrock_pixels++;   
+          }  
+        }  
+      } 
+    } 
+    cout << "Bedrock threshold is " << threshold << endl; 
+    cout << "There are " << bedrock_pixels << " bedrock pixels, out of " << total_pixels << " total" << endl; 
+    float percentage_bedrock = (bedrock_pixels/total_pixels)*100; 
+     
+    return percentage_bedrock; 
+  } 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -8623,8 +8658,7 @@ LSDRaster LSDRaster::GaussianFilter(float sigma, int kr)
     {
       // Avoid edges
 //       if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
-      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols)
-      if RasterData[i][j]==NoDataValue)
+      if(RasterData[i][j]==NoDataValue)
       {
         filtered[i][j] = NoDataValue;
       }
