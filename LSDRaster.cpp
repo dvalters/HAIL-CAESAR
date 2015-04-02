@@ -3998,42 +3998,6 @@ LSDRaster LSDRaster::remove_positive_hilltop_curvature(LSDRaster& hilltop_curvat
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//
-// GET THE PERCENTAGE OF RIDGE PIXELS THAT ARE BEDROCK
-// This function gets the percentage of pixels that are bedrock from the hilltop curvature
-// raster
-// FJC 01/04/15
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-float LSDRaster::get_percentage_bedrock_ridgetops(LSDRaster&roughness, LSDRaster& hilltop_curvature, float threshold)
-{
-  float bedrock_pixels = 0;
-  float total_pixels = 0;
-  for (int row = 0; row < NRows; row++)
-  {
-    for (int col = 0; col < NCols; col++)
-    {
-      float CHT = hilltop_curvature.get_data_element(row, col);
-      if (CHT != NoDataValue)
-      {
-        total_pixels++;
-        float rough_value = roughness.get_data_element(row, col);
-        if (rough_value > threshold)
-        {
-          bedrock_pixels++;  
-        } 
-      } 
-    }
-  }
-  cout << "Bedrock threshold is " << threshold << endl;
-  cout << "There are " << bedrock_pixels << " bedrock pixels, out of " << total_pixels << " total" << endl;
-  float percentage_bedrock = (bedrock_pixels/total_pixels)*100;
-  
-  return percentage_bedrock;
-}
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -8633,9 +8597,10 @@ void LSDRaster::MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int Simi
 //  David Milodowski, Feb 2015
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-LSDRaster LSDRaster::GaussianFilter(float sigma)
+LSDRaster LSDRaster::GaussianFilter(float sigma, int kr)
 {
-  int kr = int(ceil(3*sigma/DataResolution));  // Set radius of kernel
+  // This is the default setting
+  if(kr==0) kr = int(ceil(3*sigma/DataResolution));  // Set radius of kernel (default if not specified)
   int kw=2*kr+1;                                     // width of kernel
   Array2D<float> filtered = RasterData.copy();
   Array2D<float> gaussian_kernel_weights(kw,kw,0.0);
@@ -8657,7 +8622,9 @@ LSDRaster LSDRaster::GaussianFilter(float sigma)
     for(int j=0;j<NCols;++j)
     {
       // Avoid edges
-      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+//       if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols)
+      if RasterData[i][j]==NoDataValue)
       {
         filtered[i][j] = NoDataValue;
       }
@@ -8670,10 +8637,13 @@ LSDRaster LSDRaster::GaussianFilter(float sigma)
         {
           for(int j_kernel=0;j_kernel<kw;++j_kernel)
           {
-            if(RasterData[i-kr+i_kernel][j-kr+j_kernel]!=NoDataValue)
+            if(i-kr+i_kernel>=0 && i-kr+i_kernel<NRows && j-kr+j_kernel>=0 && j-kr+j_kernel<NCols)
             {
-              summed_weights += gaussian_kernel_weights[i_kernel][j_kernel];
-              summed_values += RasterData[i-kr+i_kernel][j-kr+j_kernel]*gaussian_kernel_weights[i_kernel][j_kernel];
+              if(RasterData[i-kr+i_kernel][j-kr+j_kernel]!=NoDataValue)                   // at edges, this takes the one sided gaussian
+              {
+                summed_weights += gaussian_kernel_weights[i_kernel][j_kernel];
+                summed_values += RasterData[i-kr+i_kernel][j-kr+j_kernel]*gaussian_kernel_weights[i_kernel][j_kernel];
+              }
             } 
           }
         }
@@ -8686,6 +8656,7 @@ LSDRaster LSDRaster::GaussianFilter(float sigma)
   FilteredRaster.write_raster("test_gauss","flt");
   return FilteredRaster;
 }
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to turn a point shapefile into an LSDIndexRaster.
