@@ -8728,13 +8728,14 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
     }
   }
   int N_slopes = finite_difference_slopes.size();
+  float lambda2;
   if(N_slopes>0)
   {
     vector<size_t> index_map;
-    matlab_float_sort_descending(finite_difference_slopes,finite_difference_slopes,index_map);
+    matlab_float_sort(finite_difference_slopes,finite_difference_slopes,index_map);
     lambda =  get_percentile(finite_difference_slopes, percentile_for_lambda);
   }
-  lambda = 0.9;
+//   lambda = 0.9;
   cout << "lambda " << lambda << endl;
   // Now do the nonlinear filtering
   Array2D<float> Topography = get_RasterData();
