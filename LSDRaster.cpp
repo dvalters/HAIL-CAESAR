@@ -8803,7 +8803,7 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
     cout << count << " " << bad_count << endl;
     
     // Now update the LSDRaster
-    PM_FilteredTopo = PM_FilteredTopo.LSDRasterTemplate(Topography);
+    PM_FilteredTopo = PM_FilteredTopo.LSDRasterTemplate(Topography.copy());
   }
   cout << endl;
   PM_FilteredTopo.write_raster("test_pm","flt");
