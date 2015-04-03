@@ -8691,6 +8691,108 @@ LSDRaster LSDRaster::GaussianFilter(float sigma, int kr)
   return FilteredRaster;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Perona Malik Filtering
+//  Filters the raster using the nonlineaer Perona-Malik filter.
+//  This follows the algorithm descibed in Passalacqua et al. (2010), A
+//  geometric framework for channel network extraction from lidar: Nonlinear
+//  diffusion and geodesic paths, J. Geophys. Res., 115(F1), F01002,
+// doi:10.1029/2009JF001254.
+//  See also  Catté et al. (1992), Image Selective
+//  Smoothing and Edge Detection by Nonlinear Diffusion, SIAM J. Numer. Anal.,
+//  29(1), 182–193, doi:10.1137/0729012.
+//
+//  David Milodowski, Feb 2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambda)
+{
+  float sigma = 0.05;
+  // Calculating lambda
+  float lambda = 1;
+  vector<float> finite_difference_slopes;
+  float slope_NS,slope_EW;
+  for (int i=0; i<NRows;++i)
+  {
+    for (int j=0; i<NCols;++j)
+    {
+      if(i-1>=0 || i+1<=NRows || j-1>=0 || j+1<=NCols)
+      {
+        if(RasterData[i][j]!=NoDataValue && RasterData[i+1][j]!=NoDataValue && RasterData[i+1][j]!=NoDataValue && RasterData[i][j+1]!=NoDataValue && RasterData[i][j-1]!=NoDataValue)
+        {
+          slope_NS = (RasterData[i+1][j]-RasterData[i-1][j])/(2*DataResolution);
+          slope_EW = (RasterData[i][j+1]-RasterData[i][j-1])/(2*DataResolution);
+          finite_difference_slopes.push_back(sqrt(slope_NS*slope_NS + slope_EW*slope_EW));
+        }
+      }
+    }
+  }
+  int N_slopes = finite_difference_slopes.size();
+  if(N_slopes>0)
+  {
+    vector<size_t> index_map;
+    matlab_float_sort_descending(finite_difference_slopes,finite_difference_slopes,index_map);
+    lambda =  get_percentile(finite_difference_slopes, percentile_for_lambda);
+  }
+  
+  // Now do the nonlinear filtering
+  LSDRaster PM_FilteredTopo(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,RasterData.copy());
+  Array2D<float> PM_Array = get_RasterData();
+  
+  for(int t = 0; t<timesteps; ++t)
+  {
+    cout << flush << "\t\t\t Perona-Malik Filter; timestep " << t+1 << " of " << timesteps << "\r";
+    // Gaussian filter
+    int kr = 2;
+    LSDRaster GaussianFilteredTopo = PM_FilteredTopo.GaussianFilter(sigma,kr);
+    Array2D<float> Topography = PM_FilteredTopo.get_RasterData();
+    
+    // Now get slopes and diffusion coefficients
+    float p_n, p_s, p_e, p_w;
+    float dh;
+    float slope_n, slope_s, slope_e, slope_w;
+    float slope_n_g, slope_s_g, slope_e_g, slope_w_g;
+    for (int i=0; i<NRows;++i)
+    {
+      for (int j=0; i<NCols;++j)
+      {
+        if(i-1>=0 || i+1<=NRows || j-1>=0 || j+1<=NCols)
+        {
+          if(Topography[i][j]!=NoDataValue && Topography[i+1][j]!=NoDataValue && Topography[i+1][j]!=NoDataValue && Topography[i][j+1]!=NoDataValue && Topography[i][j-1]!=NoDataValue)
+          {
+            // Calculate the diffusion coefficient
+            slope_n_g = (GaussianFilteredTopo.get_data_element(i-1,j)-GaussianFilteredTopo.get_data_element(i,j))/DataResolution;
+            slope_s_g = (GaussianFilteredTopo.get_data_element(i+1,j)-GaussianFilteredTopo.get_data_element(i,j))/DataResolution;
+            slope_e_g = (GaussianFilteredTopo.get_data_element(i,j+1)-GaussianFilteredTopo.get_data_element(i,j))/DataResolution;
+            slope_w_g = (GaussianFilteredTopo.get_data_element(i,j-1)-GaussianFilteredTopo.get_data_element(i,j))/DataResolution;
+            
+            p_n = 1/( 1 + ( abs(slope_n_g)/lambda )*( abs(slope_n_g)/lambda ) );
+            p_s = 1/( 1 + ( abs(slope_s_g)/lambda )*( abs(slope_s_g)/lambda ) );
+            p_e = 1/( 1 + ( abs(slope_e_g)/lambda )*( abs(slope_e_g)/lambda ) );
+            p_w = 1/( 1 + ( abs(slope_w_g)/lambda )*( abs(slope_w_g)/lambda ) );
+            
+            slope_n = (PM_FilteredTopo.get_data_element(i-1,j)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
+            slope_s = (PM_FilteredTopo.get_data_element(i+1,j)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
+            slope_e = (PM_FilteredTopo.get_data_element(i,j+1)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
+            slope_w = (PM_FilteredTopo.get_data_element(i,j-1)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
+            
+            dh = p_n*slope_n + p_s*slope_s + p_e*slope_e + p_w*slope_w;
+            Topography[i][j]+=dh;
+          }
+          else Topography[i][j] = NoDataValue;
+        }
+      }
+    }
+    
+    // Now update the LSDRaster
+    PM_FilteredTopo = PM_FilteredTopo.LSDRasterTemplate(Topography);
+  }
+  cout << endl;
+  PM_FilteredTopo.write_raster("test_gauss","flt");
+  return PM_FilteredTopo;
+}
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to turn a point shapefile into an LSDIndexRaster.

@@ -1475,7 +1475,7 @@ class LSDRaster
   /// @date February 2012
   LSDRaster NonLocalMeansFilter(int WindowRadius=2, int SimilarityRadius=2, 
                                 int DegreeFiltering=2, float Sigma=1.25);
-  
+   
   /// @brief Creates a buffer around an array (of size SimilarityRadius) and
   /// gives the new border mirror symmetric values of the original array reflected
   /// across the boundary.
@@ -1501,20 +1501,34 @@ class LSDRaster
   /// @date February 2012
   void MakeGaussianKernel(Array2D<float>& Kernel, float sigma, int SimilarityRadius);
 
-//  @brief Filters the raster using a square 2D Gaussian filter.  The filter is applied
-//  using a moving kernel of gaussian weights with a radius of 3*sigma
-//
-//  @details Equivalent lenghtscale of smoothing (from Lashermes et al., 2007)
-//  original data -> 4*sigma
-//  1st derivative -> 2*pi*sigma
-//  2nd derivative -> sqrt(2)*pi*sigma
-//  @param sigma
-//  @param kr (an optional integer halfwidth for the smoothing window.  If not supplied then the window is set to cover at least three*sigma)
-//  @return a filtered raster
-//  @author David Milodowski
-//  @date Feb 2015
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster GaussianFilter(float sigma, int kr = 0);
+  ///  @brief Filters the raster using a square 2D Gaussian filter.  The filter is applied
+  ///  using a moving kernel of gaussian weights with a radius of 3*sigma
+  ///
+  ///  @details Equivalent lenghtscale of smoothing (from Lashermes et al., 2007)
+  ///  original data -> 4*sigma
+  ///  1st derivative -> 2*pi*sigma
+  ///  2nd derivative -> sqrt(2)*pi*sigma
+  ///  @param sigma
+  ///  @param kr (an optional integer halfwidth for the smoothing window.  If not supplied then the window is set to cover at least three*sigma)
+  ///  @return a filtered raster
+  ///  @author David Milodowski
+  ///  @date Feb 2015
+  LSDRaster GaussianFilter(float sigma, int kr = 0);
+  
+  ///  @brief Filters the raster using a Perona-Malik non-linear diffusion filter
+  /// 
+  ///  @details This follows the algorithm descibed in Passalacqua et al. (2010), A
+  ///  geometric framework for channel network extraction from lidar: Nonlinear diffusion
+  ///  and geodesic paths, J. Geophys. Res., 115(F1), F01002, doi:10.1029/2009JF001254.
+  ///  See also  Catté et al. (1992), Image Selective Smoothing and Edge Detection by
+  ///  Nonlinear Diffusion, SIAM J. Numer. Anal., 29(1), 182–193, doi:10.1137/0729012.
+  ///  @param timesteps the number of diffusion timesteps.  Suggest ~50 for 1m LiDAR
+  ///  @param lambda percentile (an optional arguement that selects the gradient percentile that is used to define lambda.  Default is the 90th percentile)
+  ///  @return a filtered raster
+  ///  @author David Milodowski
+  ///  @date Feb 2015
+  LSDRaster PeronaMalikFilter(int timesteps, float percentile_for_lambda = 90);
+
 
   //D-infinity tools
 
