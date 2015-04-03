@@ -8747,7 +8747,6 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
     // Gaussian filter
     int kr = 2;
     LSDRaster GaussianFilteredTopo = PM_FilteredTopo.GaussianFilter(sigma,kr);
-//     Topography = PM_FilteredTopo.get_RasterData();
     
     // Now get slopes and diffusion coefficients
     float p_n, p_s, p_e, p_w;
@@ -8762,7 +8761,6 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
       {
         if(i-1>=0 && i+1<NRows && j-1>=0 && j+1<NCols)
         { 
-//           cout << i << " " << j << " " << Topography[i][j] << endl;
           if(PM_FilteredTopo.get_data_element(i,j)==NoDataValue || PM_FilteredTopo.get_data_element(i+1,j)==NoDataValue
            || PM_FilteredTopo.get_data_element(i-1,j)==NoDataValue || PM_FilteredTopo.get_data_element(i,j+1)==NoDataValue
            || PM_FilteredTopo.get_data_element(i,j-1)==NoDataValue)
@@ -8787,7 +8785,6 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
 //             p_s = exp(-((abs(slope_s_g)/lambda )*(abs(slope_s_g)/lambda)));
 //             p_e = exp(-((abs(slope_e_g)/lambda )*(abs(slope_e_g)/lambda)));
 //             p_w = exp(-((abs(slope_w_g)/lambda )*(abs(slope_w_g)/lambda)));
-//             cout << p_n << endl;
             
             slope_n = (PM_FilteredTopo.get_data_element(i-1,j)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
             slope_s = (PM_FilteredTopo.get_data_element(i+1,j)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
