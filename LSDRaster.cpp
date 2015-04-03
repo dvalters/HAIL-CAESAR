@@ -8687,7 +8687,7 @@ LSDRaster LSDRaster::GaussianFilter(float sigma, int kr)
     }
   }
   LSDRaster FilteredRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,filtered);
-  FilteredRaster.write_raster("test_gauss","flt");
+//   FilteredRaster.write_raster("test_gauss","flt");
   return FilteredRaster;
 }
 
@@ -8714,9 +8714,9 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
   float slope_NS,slope_EW;
   for (int i=0; i<NRows;++i)
   {
-    for (int j=0; i<NCols;++j)
+    for (int j=0; j<NCols;++j)
     {
-      if(i-1>=0 || i+1<=NRows || j-1>=0 || j+1<=NCols)
+      if(i-1>=0 && i+1<NRows && j-1>=0 && j+1<NCols)
       {
         if(RasterData[i][j]!=NoDataValue && RasterData[i+1][j]!=NoDataValue && RasterData[i+1][j]!=NoDataValue && RasterData[i][j+1]!=NoDataValue && RasterData[i][j-1]!=NoDataValue)
         {
@@ -8754,9 +8754,9 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
     float slope_n_g, slope_s_g, slope_e_g, slope_w_g;
     for (int i=0; i<NRows;++i)
     {
-      for (int j=0; i<NCols;++j)
+      for (int j=0; j<NCols;++j)
       {
-        if(i-1>=0 || i+1<=NRows || j-1>=0 || j+1<=NCols)
+        if(i-1>=0 && i+1<NRows && j-1>=0 && j+1<NCols)
         {
           if(Topography[i][j]!=NoDataValue && Topography[i+1][j]!=NoDataValue && Topography[i+1][j]!=NoDataValue && Topography[i][j+1]!=NoDataValue && Topography[i][j-1]!=NoDataValue)
           {
@@ -8788,7 +8788,7 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
     PM_FilteredTopo = PM_FilteredTopo.LSDRasterTemplate(Topography);
   }
   cout << endl;
-  PM_FilteredTopo.write_raster("test_gauss","flt");
+  PM_FilteredTopo.write_raster("test_pm","flt");
   return PM_FilteredTopo;
 }
 
