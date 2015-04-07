@@ -8648,7 +8648,8 @@ LSDRaster LSDRaster::GaussianFilter(float sigma, int kr)
     {
       x = (j-kr)*DataResolution;
       y = (i-kr)*DataResolution;
-      gaussian_kernel_weights[i][j]= (1/(2*M_PI*sigma*sigma)) * exp(-(x*x+y*y)/(2*sigma*sigma));  
+//       gaussian_kernel_weights[i][j]= (1/(2*M_PI*sigma*sigma)) * exp(-(x*x+y*y)/(2*sigma*sigma));  
+      gaussian_kernel_weights[i][j]= exp(-(x*x+y*y)/(2*sigma*sigma));  
     }
   }
   //  Now loop through dem filtering using the gaussian kernel
@@ -8705,7 +8706,7 @@ LSDRaster LSDRaster::GaussianFilter(float sigma, int kr)
 //  David Milodowski, Feb 2015
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambda)
+LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambda, float dt)
 {
   float sigma = 0.05;
   // Calculating lambda
@@ -8728,14 +8729,13 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
     }
   }
   int N_slopes = finite_difference_slopes.size();
-  float lambda2;
   if(N_slopes>0)
   {
     vector<size_t> index_map;
     matlab_float_sort(finite_difference_slopes,finite_difference_slopes,index_map);
     lambda =  get_percentile(finite_difference_slopes, percentile_for_lambda);
   }
-//   lambda = 0.9;
+   lambda = 0.9;
   cout << "lambda " << lambda << endl;
   // Now do the nonlinear filtering
   Array2D<float> Topography = get_RasterData();
@@ -8746,7 +8746,7 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
     cout << flush << "\t\t\t Perona-Malik Filter; timestep " << t+1 << " of " << timesteps << "\r";
     // Gaussian filter
     int kr = 2;
-    LSDRaster GaussianFilteredTopo = PM_FilteredTopo.GaussianFilter(sigma,kr);
+    LSDRaster GaussianFilteredTopo = PM_FilteredTopo.GaussianFilter(sqrt(sigma),kr);
     
     // Now get slopes and diffusion coefficients
     float p_n, p_s, p_e, p_w;
@@ -8791,8 +8791,17 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
             slope_e = (PM_FilteredTopo.get_data_element(i,j+1)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
             slope_w = (PM_FilteredTopo.get_data_element(i,j-1)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
             
-            dh = p_n*slope_n + p_s*slope_s + p_e*slope_e + p_w*slope_w;
+            dh = dt*(p_n*slope_n_g + p_s*slope_s_g + p_e*slope_e_g + p_w*slope_w_g);
             Topography[i][j]+=dh;
+            
+            
+            if(i+1==100 && j+1==100)
+            {
+              cout << "\n" << slope_n_g << "\t" << p_n << "\t" << slope_n << "\t" << dh << endl;
+              cout << slope_s_g << "\t" << p_s << "\t" << slope_s << "\t" << dh << endl;
+              cout << slope_e_g << "\t" << p_e << "\t" << slope_e << "\t" << dh << endl;
+              cout << slope_w_g << "\t" << p_w << "\t" << slope_w << "\t" << dh << endl;
+            }
           }
         }
         else Topography[i][j] = NoDataValue;
