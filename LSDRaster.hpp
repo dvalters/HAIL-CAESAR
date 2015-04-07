@@ -1527,7 +1527,7 @@ class LSDRaster
   ///  @return a filtered raster
   ///  @author David Milodowski
   ///  @date Feb 2015
-  LSDRaster PeronaMalikFilter(int timesteps, float percentile_for_lambda = 90);
+  LSDRaster PeronaMalikFilter(int timesteps, float percentile_for_lambda, float dt);
 
 
   //D-infinity tools
