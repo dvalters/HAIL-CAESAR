@@ -1523,7 +1523,8 @@ class LSDRaster
   ///  See also  Catté et al. (1992), Image Selective Smoothing and Edge Detection by
   ///  Nonlinear Diffusion, SIAM J. Numer. Anal., 29(1), 182–193, doi:10.1137/0729012.
   ///  @param timesteps the number of diffusion timesteps.  Suggest ~50 for 1m LiDAR
-  ///  @param lambda percentile (an optional arguement that selects the gradient percentile that is used to define lambda.  Default is the 90th percentile)
+  ///  @param lambda percentile (selects the gradient percentile that is used to define lambda.  Suggest 90th percentile)
+  ///  @param dt The timestep for each round of diffusion.  Suggest that this is 0.1 to avoid stability issues (same as Passalacqua et al. 2010)
   ///  @return a filtered raster
   ///  @author David Milodowski
   ///  @date Feb 2015
