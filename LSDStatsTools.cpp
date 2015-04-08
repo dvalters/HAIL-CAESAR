@@ -1047,6 +1047,7 @@ vector<double> interp1D_spline_unordered(vector<double> x_data, vector<double> y
 //
 // Now a bilinear interpolation routine
 // SMM 03/12/2014
+// see equations here: http://en.wikipedia.org/wiki/Bilinear_interpolation
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D<double> data, 
                         double x_interp, double y_interp)
