@@ -8794,20 +8794,11 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
             dh = dt*(p_n*slope_n_g + p_s*slope_s_g + p_e*slope_e_g + p_w*slope_w_g);
             Topography[i][j]+=dh;
             
-            
-            if(i+1==100 && j+1==100)
-            {
-              cout << "\n" << slope_n_g << "\t" << p_n << "\t" << slope_n << "\t" << dh << endl;
-              cout << slope_s_g << "\t" << p_s << "\t" << slope_s << "\t" << dh << endl;
-              cout << slope_e_g << "\t" << p_e << "\t" << slope_e << "\t" << dh << endl;
-              cout << slope_w_g << "\t" << p_w << "\t" << slope_w << "\t" << dh << endl;
-            }
           }
         }
         else Topography[i][j] = NoDataValue;
       }
     }
-    cout << count << " " << bad_count << endl;
     
     // Now update the LSDRaster
     PM_FilteredTopo = PM_FilteredTopo.LSDRasterTemplate(Topography.copy());
