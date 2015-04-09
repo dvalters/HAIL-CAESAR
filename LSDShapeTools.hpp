@@ -52,6 +52,15 @@
 //-----------------------------------------------------------------
 
 using namespace std;
+#include <vector>
+#include <cstdlib> 
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <cstring>
+#include <vector>
+#include <fstream>
+#include <cmath>
 
 #ifndef ShapeTools_H
 #define ShapeTools_H
@@ -129,10 +138,10 @@ vector<PointData> LoadPolyline(string Filename);
 // 
 // Returns a vector of points.
 //
-// multistem_option -> 0 = mainstem only, 1 = all tributaries
+// multistem_option -> 0 = mainstem only, 1 = all tributaries, 2 specify tributary number (DAV 09/04/2015)
 // DTM 11/07/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-PointData LoadChannelTree(string Filename, int multistem_option = 0);
+PointData LoadChannelTree(string Filename, int multistem_option = 0, int trib_number = 0);
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to get the size of the binary file being loaded.
