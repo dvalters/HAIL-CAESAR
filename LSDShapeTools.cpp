@@ -552,11 +552,11 @@ vector<PointData> LoadPolyline(string Filename){
 // Returns a vector of points.
 // DTM 11/07/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-PointData LoadChannelTree(string Filename, int multistem_option)
+PointData LoadChannelTree(string Filename, int multistem_option, int trib_number)
 {
-	if((multistem_option != 0) && (multistem_option != 1))
+	if((multistem_option != 0) && (multistem_option != 1) && (multistem_option !=2))
   {
-    cout << "multistem_option must be 0 (mainstem only) or 1 (all tributaries).  Setting mainstem only default" << endl;
+    cout << "multistem_option must be 0 (mainstem only), 1 (all tributaries) or 2 (specify channel number).  Setting mainstem only default" << endl;
     multistem_option = 0;
   }
   
@@ -616,9 +616,19 @@ PointData LoadChannelTree(string Filename, int multistem_option)
     else if(multistem_option == 1)
     {
       x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
-  		y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
+      y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
       Points.X.push_back(x);
       Points.Y.push_back(y); 	
+		}
+    else if(multistem_option == 2)
+    {
+      if(channel_number == trib_number)
+      {
+        x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
+        y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
+        Points.X.push_back(x);
+        Points.Y.push_back(y); 	
+      }
 		}
     else
     {
