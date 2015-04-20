@@ -1,0 +1,13 @@
+DEM_ID id
+RASTER_NAME id_mrh
+input_path /home/s1143956/DTMDataStore/data/SurfaceRoughness/Idaho/
+output_path /home/s1143956/DTMDataStore/data/SurfaceRoughness/Idaho/
+junction_number 141
+Minimum_Slope 0.005
+HalfWidth 350
+BinWidth 100
+NormaliseTransProfile 0
+NormaliseLongProfile 0
+FilterTopo 0
+histogram_bin_width 0.0005
+KP_position 4800

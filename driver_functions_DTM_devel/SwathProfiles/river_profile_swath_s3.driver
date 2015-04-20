@@ -1,0 +1,13 @@
+DEM_ID br
+RASTER_NAME br_s3_1_3_hillslope_only
+input_path /home/s1143956/DTMDataStore/data/SurfaceRoughness/BaldRock/
+output_path /home/s1143956/DTMDataStore/data/SurfaceRoughness/BaldRock/
+junction_number 39
+Minimum_Slope 0.005
+HalfWidth 250
+BinWidth 20
+NormaliseTransProfile 0
+NormaliseLongProfile 0
+FilterTopo 1
+histogram_bin_width 0.0005
+knickpoint_position 970
