@@ -2427,7 +2427,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
   
   // catch if the supplied window radius is less than the data resolution and
   // set it to equal the data resolution - SWDG
-  if (window_radius < DataResolution)
+  if (window_radius < sqrt(2)*DataResolution)
   {
     cout << "Supplied window radius: " << window_radius << " is less than the data resolution * sqrt(2), i.e. the diagonal of a single grid cell: " <<
     sqrt(2)*DataResolution << ".\nWindow radius has been set to sqrt(2) * data resolution." << endl;
