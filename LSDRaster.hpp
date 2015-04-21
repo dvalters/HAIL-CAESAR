@@ -1821,10 +1821,22 @@ class LSDRaster
   LSDIndexRaster IsolateChannelsLashermesAspect(float sigma, string q_q_filename);
   LSDIndexRaster IsolateChannelsLashermesFull(float sigma, string q_q_filename_prefix);
   LSDIndexRaster IsolateChannelsLashermesCurvatureArea(float sigma, float area_threshold, string q_q_filename);
-
+  /// @brief method to locate channel pixels outlined by Passalacqua et al. (2010).
+  /// 
+  /// @detail Isolate channelised portions of the landscape using the method proposed by Passalacqua
+  /// et al. (2010) A geometric framework for channel network extraction from lidar: Nonlinear
+  /// diffusion and geodesic paths, J. Geophys. Res., 115(F1), F01002, doi:10.1029/2009JF001254.
+  ///
+  /// @param number of timesteps for non-linear filtering steps - suggest 20 in complex terrain
+  /// @param a catchment area threshold for pruning
+  /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
+  /// @author DTM
+  /// @date 21/04/2015
+  LSDIndexRaster IsolateChannelsGeonet(float timesteps, float area_threshold, string q_q_filename);
   /// @brief uses quantile-quantile analysis to pick departure from gaussian behaviour, then uses this as a threshold to create a binary dataset. 
   /// @param string q_q_file A text file containing data to produce a q_q_plot.
   /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
+  /// @author DTM     /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
   /// @author DTM
   /// @date 10/02/2015 
   LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
