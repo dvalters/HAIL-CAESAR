@@ -10001,6 +10001,56 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvatureArea(float sigma, flo
   LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array);
   return channels;
 }
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Isolate channelised portions of the landscape using the method proposed by Passalacqua
+// et al. (2010) A geometric framework for channel network extraction from lidar: Nonlinear
+// diffusion and geodesic paths, J. Geophys. Res., 115(F1), F01002, doi:10.1029/2009JF001254.
+//
+// This function (i) filters the DEM using a Perona Malik filter; (ii) calculates the
+// curvature; (iii) uses quantile quantile analysis to define a curvature threshold
+// for channel initiation.
+//
+// DTM 21/04/2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- =-=-=-=-=
+LSDIndexRaster LSDRaster::IsolateChannelsGeonet(float timesteps, float area_threshold, string q_q_filename)
+{
+  cout << "\t Isolation of channelised pixels using curvature" << endl;   
+  // filter
+  cout << "\t\t Gaussian filter" << endl;
+  float slope_percentile = 90;
+  float dt = 0.1;
+  LSDRaster FilteredTopo = PeronaMalikFilter(timesteps,slope_percentile,dt);
+  // calculate curvature
+  vector<LSDRaster> output_rasters;
+  float window_radius = 1;
+  vector<int> raster_selection(8,0.0);
+  raster_selection[3]=1;
+  cout << "\t\t Calculate curvature" << endl;
+  output_rasters = FilteredTopo.calculate_polyfit_surface_metrics(window_radius, raster_selection);
+  LSDRaster curvature = output_rasters[3];
+  // use q-q plot to isolate the channels
+  cout << "\t\t Finding threshold using q-q plot" << endl;
+  LSDIndexRaster channels_init = curvature.IsolateChannelsQuantileQuantile(q_q_filename);
+  // Calculate D_inf
+  cout << "\t\t D_inf flow routing" << endl;
+  LSDRaster Area = FilteredTopo.D_inf();
+  // Reclassification of channel mask based on imposed threshold
+  Array2D<int> binary_array = channels_init.get_RasterData();
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if(channels_init.get_data_element(i,j)!=channels_init.get_NoDataValue())
+      {
+        if(Area.get_data_element(i,j)<=area_threshold) binary_array[i][j] = 0;
+      }
+    }
+  }
+  
+  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array);
+  return channels;
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function does part (iii) of the above
 LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
