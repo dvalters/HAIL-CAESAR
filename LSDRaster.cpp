@@ -10016,7 +10016,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsGeonet(float timesteps, float area_thre
 {
   cout << "\t Isolation of channelised pixels using curvature" << endl;   
   // filter
-  cout << "\t\t Gaussian filter" << endl;
+  cout << "\t\t Perona Malik filter" << endl;
   float slope_percentile = 90;
   float dt = 0.1;
   LSDRaster FilteredTopo = PeronaMalikFilter(timesteps,slope_percentile,dt);
