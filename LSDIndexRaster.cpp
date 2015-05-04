@@ -827,6 +827,69 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
+// This function checks to see if two rasters have the same dimesions 
+// It DOES NOT check georeferencingand
+// Georeferencing
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+bool LSDIndexRaster::does_raster_have_same_dimensions(LSDRaster& Compare_raster)
+{
+
+  // me check with bad grammar
+  bool is_dimensions_same;
+
+  if (NRows == Compare_raster.get_NRows() &&
+      NCols == Compare_raster.get_NCols() &&
+      XMinimum == Compare_raster.get_XMinimum() &&
+      YMinimum == Compare_raster.get_YMinimum() &&
+      DataResolution == Compare_raster.get_DataResolution() &&
+      NoDataValue == Compare_raster.get_NoDataValue())
+  {
+    is_dimensions_same = true;
+  }
+  else
+  {
+    is_dimensions_same = false;
+  }
+
+  return is_dimensions_same;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This function checks to see if two rasters have the same dimesions 
+// It DOES NOT check georeferencingand
+// Georeferencing
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+bool LSDIndexRaster::does_raster_have_same_dimensions(LSDIndexRaster& Compare_raster)
+{
+
+  // me check with bad grammar
+  bool is_dimensions_same;
+
+  if (NRows == Compare_raster.get_NRows() &&
+      NCols == Compare_raster.get_NCols() &&
+      XMinimum == Compare_raster.get_XMinimum() &&
+      YMinimum == Compare_raster.get_YMinimum() &&
+      DataResolution == Compare_raster.get_DataResolution() &&
+      NoDataValue == Compare_raster.get_NoDataValue())
+  {
+    is_dimensions_same = true;
+  }
+  else
+  {
+    is_dimensions_same = false;
+  }
+
+  return is_dimensions_same;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
 // This function checks to see if two rasters have the same dimesions and
 // Georeferencing
 //
