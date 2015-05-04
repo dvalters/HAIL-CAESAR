@@ -468,6 +468,13 @@ class LSDRaster
   /// @date 01/02/2014 	modified 09/06/2014 by SMM
   float mean_relief(float kernelsize);
 
+  /// @brief Calculates the mean difference between two rasters
+  /// @details checks raster dimensions  but not georeferencing since it
+  ///  is used to compare asc format model results
+  /// @author SMM
+  /// @date 04/05/2015
+  float difference_rasters(LSDRaster& compare_raster);
+
   // Functions for the Diamond Square algorithm
 
   /// @brief This returns a value from the array data element but wraps around
