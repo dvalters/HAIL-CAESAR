@@ -1567,25 +1567,63 @@ float LSDRaster::max_elevation( void )
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 float LSDRaster::mean_relief(float kernelWidth)
 {
-	LSDRaster relief = calculate_relief(kernelWidth, 1);
-	float relief_val, sum_relief = 0;
-	int n = 0;
+  LSDRaster relief = calculate_relief(kernelWidth, 1);
+  float relief_val, sum_relief = 0;
+  int n = 0;
 
-	for (int i=0; i<NRows; ++i)
-	{
-		for (int j=0; j<NCols; ++j)
-		{
-			relief_val = relief.get_data_element(i, j);
-			if (relief_val != NoDataValue)
-			{
-				sum_relief += relief_val;
-				++n;
-			}
-		}
-	}
-	return float(sum_relief/float(n));
+  for (int i=0; i<NRows; ++i)
+  {
+    for (int j=0; j<NCols; ++j)
+    {
+      relief_val = relief.get_data_element(i, j);
+      if (relief_val != NoDataValue)
+      {
+        sum_relief += relief_val;
+        ++n;
+      }
+    }
+  }
+  return float(sum_relief/float(n));
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Return the average difference between two rasters.
+// Check to see if the rasters are the correct dimension, but does not
+// check georeferencing (since it is used with asc model results, mostly)
+// SMM 03/04/2015
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float LSDRaster::difference_rasters(LSDRaster& compare_raster)
+{
+  float total_difference = 0;
+  int n = 0;
+  float raster_val1, raster_val2;
+  
+  float average_difference = NoDataValue;
+  // first, compare the raster dimensions
+  if(does_raster_have_same_dimensions(compare_raster))
+  {
+    for (int i=0; i<NRows; ++i)
+    {
+      for (int j=0; j<NCols; ++j)
+      {
+        raster_val1 = RasterData[i][j];
+        raster_val2 = compare_raster.get_data_element(i, j);
+        if (raster_val1 != NoDataValue && raster_val2 != NoDataValue)
+        {
+          total_difference += raster_val2-raster_val1;
+          ++n;
+        }
+      }
+    }
+  }
+
+  return float(total_difference/float(n));
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
