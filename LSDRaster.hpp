@@ -258,6 +258,21 @@ class LSDRaster
   /// @date 01/01/12
   void write_raster(string filename, string extension);
 
+  /// @brief Checks to see if two rasters have the same dimensions
+  /// @detail Does NOT check georeferencing
+  /// @param Compare_raster: the raster to compare 
+  /// @author SMM
+  /// @date 04/05/2015
+  bool does_raster_have_same_dimensions(LSDRaster& Compare_raster);
+
+  /// @brief Checks to see if two rasters have the same dimensions
+  /// @detail Does NOT check georeferencing
+  /// @param Compare_raster: the raster to compare 
+  /// @author SMM
+  /// @date 04/05/2015
+  bool does_raster_have_same_dimensions(LSDIndexRaster& Compare_raster);
+
+
   /// @brief Checks to see if two rasters have the same georeferencing
   /// @param Compare_raster: the raster to compare 
   /// @author SMM
