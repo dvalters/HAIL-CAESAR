@@ -475,6 +475,12 @@ class LSDRaster
   /// @date 04/05/2015
   float difference_rasters(LSDRaster& compare_raster);
 
+  /// @brief This multiplies the raster data by a multiplier
+  /// @detail Note that values are replaced
+  /// @author SMM
+  /// @date 06/05/2015
+  void raster_multiplier(float multiplier);
+
   // Functions for the Diamond Square algorithm
 
   /// @brief This returns a value from the array data element but wraps around
