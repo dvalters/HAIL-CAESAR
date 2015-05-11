@@ -1,0 +1,11 @@
+path /home/s1143956/DTMDataStore/data/FR/test_catchment/
+elevation_raster pompeys_dem
+channel_heads_file fr_CH_dreich_nodeindices_for_Arc
+output_identifier pompeys_h_c
+basin_junction 99
+pruning_threshold 30000
+A0 1000
+m_ov_n 0.3
+PeronaMalikFilterTimesteps 20
+n_metrics 3
+metrics_rasters pompeys_slope pompeys_bio pompeys_s3_1_5
