@@ -10274,7 +10274,17 @@ void LSDRaster::FlattenToFile(string FileName){
   WriteData.close();
 
 } 
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to convert an LSDRaster hilltop file into a series of contigiuous hilltop patches.
+//
+//Connects all contiguous patches of hilltop via a unique ID, allowing hilltop patches
+//to be generated in a manner similar to the methodology employed by Hurst et al. (2012) and (2013)
+//to spatially average data for E*R* calculations. Currently has no method to limit the maximum size
+//of segments.
+//Requires an integer minimum_patch_size, the minimum number of pixels required for a patch to be created
+//SWDG
+//5/6/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDRaster::CreateHilltopPatches(int minimum_patch_size){
   
   //create array to hold patch IDs

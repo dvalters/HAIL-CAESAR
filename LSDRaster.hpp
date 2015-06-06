@@ -1869,6 +1869,16 @@ class LSDRaster
   /// @date 10/02/2015 
   LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
 
+  /// @brief Method to convert an LSDRaster hilltop file into a series of contigiuous hilltop patches.
+  ///
+  /// @details Connects all contiguous patches of hilltop via a unique ID, allowing hilltop patches
+  /// to be generated in a manner similar to the methodology employed by Hurst et al. (2012) and (2013)
+  /// to spatially average data for E*R* calculations. Currently has no method to limit the maximum size
+  /// of segments.
+  /// @param minimum_patch_size Integer of the minimum number of pixels required for a patch to be created
+  /// @return An LSDIndexRaster of hilltop patches.
+  /// @author SWDG
+  /// @date 5/6/15
   LSDIndexRaster CreateHilltopPatches(int minimum_patch_size);
 
   /// @brief Simple method to flatten an LSDRaster to a text file, with a sigle value on each line. 
