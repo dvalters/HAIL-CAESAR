@@ -51,6 +51,7 @@
 //-----------------------------------------------------------------
 
 #include <vector>
+#include <map>
 #include "TNT/tnt.h"
 using namespace std;
 using namespace TNT;
@@ -462,6 +463,7 @@ void rank_vector_with_groups(vector<float> sorted_data,
 // SWDG 16/07/14
 string ReadTextFile(ifstream& File);
 
+void Count_Instances(vector<int> Data, vector<int> Key_Values, map<int,int>& DataMap);
 
 // removes control characters from the end of strings. 
 // This is necessary when people use a DOS file format, which 
