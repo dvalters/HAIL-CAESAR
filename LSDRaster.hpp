@@ -1869,6 +1869,8 @@ class LSDRaster
   /// @date 10/02/2015 
   LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
 
+  LSDIndexRaster CreateHilltopSegments(int minimum_segment_size);
+
   /// @brief Simple method to flatten an LSDRaster to a text file, with a sigle value on each line. 
   /// @param FileName The name of the file to write, if no path is included it will write to the current directory. 
   /// @author SWDG
