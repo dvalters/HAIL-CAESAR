@@ -5180,20 +5180,24 @@ void rank_vector_with_groups(vector<float> sorted_data,
 }                             
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//Takes an integer vector of data and an integer vector of key values and 
+//returns a map of the counts of each value tied to its key.
+//
+//Assumes that key_values contains all of the values in Data.
+//eg Data should be flattened with NoDataValues excluded and 
+//Key_Values should be created using Unique(Data)
+//SWDG 5/6/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void Count_Instances(vector<int> Data, vector<int> Key_Values, map<int,int>& DataMap){
 
-  //make map to contain the keys and the counts for each, with a 0 value to begin with.
-  //may not need to initialize the map like this: http://stackoverflow.com/questions/5616421/increment-mapstring-int-using-operator
-  //map<int,int> DataMap;
+  //update empty map passed in to contain the contain the keys and 0 value to begin with.
   for (int q = 0; q < int(Key_Values.size());++q){
     DataMap[Key_Values[q]] = 0;
   }
 
-  //assumes that key_values contains all of the values in Data.
-  //eg Data should be flattened with NoDataExcluded and 
-  // Key_Values should be created using Unique(Data)
-
-  //loop over the data and check if each value is in the Key Values array
+  //loop over the data and increment each value for the corresponding key
   for (int q = 0; q < int(Data.size());++q){
     ++DataMap[Data[q]]; 
   }

@@ -463,6 +463,13 @@ void rank_vector_with_groups(vector<float> sorted_data,
 // SWDG 16/07/14
 string ReadTextFile(ifstream& File);
 
+//Takes an integer vector of data and an integer vector of key values and 
+//returns a map of the counts of each value tied to its key.
+//
+//Assumes that key_values contains all of the values in Data.
+//eg Data should be flattened with NoDataValues excluded and 
+//Key_Values should be created using Unique(Data)
+//SWDG 5/6/15
 void Count_Instances(vector<int> Data, vector<int> Key_Values, map<int,int>& DataMap);
 
 // removes control characters from the end of strings. 
