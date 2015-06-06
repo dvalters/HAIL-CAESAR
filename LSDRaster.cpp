@@ -10275,7 +10275,7 @@ void LSDRaster::FlattenToFile(string FileName){
 
 } 
 
-LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
+LSDIndexRaster LSDRaster::CreateHilltopPatches(int minimum_patch_size){
   
   //create array to hold patch IDs
   Array2D<int> PatchIDs(NRows,NCols,NoDataValue);
@@ -10421,8 +10421,7 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
                                            
               if (PatchIDs[q][w] == value_to_replace){
                 PatchIDs[q][w] = center_value; 
-              }
-            
+              }            
             }
           }
         
@@ -10431,14 +10430,12 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
         j = 0;
                
         }
-    
       }
-    
     }
   }
 
   //Strip out any values that only occur below the minimum_segment_size param value  
-  cout << "\tRemoving patches that have an area smaller than " << minimum_segment_size << " pixels." << endl;
+  cout << "\tRemoving patches that have an area smaller than " << minimum_patch_size << " pixels." << endl;
   
   //flatten the array to make the counting easier
   vector<int> Flat_Patches = Flatten_Without_Nodata(PatchIDs, NoDataValue);
@@ -10455,7 +10452,7 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
   
   for (int w = 0; w< int(Unique_Patches.size());++w){
   
-    if (Counts[Unique_Patches[w]] < minimum_segment_size){
+    if (Counts[Unique_Patches[w]] < minimum_patch_size){
       PatchesToRemove.push_back(Unique_Patches[w]);
     }
   }
@@ -10486,8 +10483,8 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
   }
   
   //create the final LSDIndexRaster and return it
-  LSDIndexRaster Segments(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,PatchIDs);
-  return Segments;  
+  LSDIndexRaster Patches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,PatchIDs);
+  return Patches;  
 }
 
 
