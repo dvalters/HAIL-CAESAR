@@ -10276,47 +10276,49 @@ void LSDRaster::FlattenToFile(string FileName){
 } 
 
 LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
-
-  cout << minimum_segment_size << endl;
   
   //create array to hold patch IDs
   Array2D<int> PatchIDs(NRows,NCols,NoDataValue);
   
+  //define some variables we will use
   bool Neighbours = true;
   int ID = 0;
-  
   int a;
   int b;
+  bool clashes = false;
+  int center_value;
+  int value_to_replace;
+    
+  cout << "\n\tAssigning Unique Patch IDs to all hilltop pixels." << endl;  
     
   //cycle over every cell and find connected patches, giving each patch a unique ID
   for(int i = 1; i < NRows-1; ++i){
     for(int j = 1; j < NCols-1; ++j){
       
-      //if the raster pixel has data it is a hilltop and if it has not been assigned a patchID
-      //we must visit it      
+      //if the pixel has data it is a hilltop and if it has not been assigned a patchID we must visit it      
       if (RasterData[i][j] != NoDataValue && PatchIDs[i][j] == NoDataValue){
-        ++ID;
         
+        //increment the ID value, to make sure each patch has a unique ID
+        ++ID;
         
         //we have our first px
         a = i;
         b = j;
         
+        //need this set to true to start the loop, does not matter if the initial cell has no 
+        //neighbours, this will be caught on the first iteration of the loop
         Neighbours = true;
         
-        //this does no edge checking and will seg fault if we go near an edge.
         // edge checking now in every initial neighbour search.
         // if the index is not changing eg i-1,j do we need to check if j is at an edge?
-        // i dont think so in this case, but will need tested.
         
         //now use a while loop to scan thru it's neighbours
         while (Neighbours == true && PatchIDs[a][b] == NoDataValue){
-          PatchIDs[a][b] = ID; //dont like this.
+          PatchIDs[a][b] = ID;
           //perform check to find neighbours clockwise from NW
           if (RasterData[a-1][b-1] != NoDataValue && PatchIDs[a-1][b-1] == NoDataValue && (((a-1) != (NRows-1) || (a-1) != 0) || (b-1) != (NCols-1) || (b-1) != 0)){
             --a;
             --b;
-            cout << "pass NW" << endl;
           }
           else if (RasterData[a][b-1] != NoDataValue && PatchIDs[a][b-1] == NoDataValue && (((a) != (NRows-1) || (a) != 0) || (b-1) != (NCols-1) || (b-1) != 0)){
             --b;
@@ -10345,10 +10347,8 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
           else{
           //no neighbours
           Neighbours = false; //ends while loop
-          cout << "no neighbours" << endl;
+          
           }
-        
-          //PatchIDs[a][b] = ID;
             
         }
         
@@ -10357,83 +10357,69 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
   }
 
   //first pass over dem is complete, now need to merge any patches which have 
-  //different IDs but are spatially contiguous
+  //different IDs but are spatially contiguous, "Clashes"
   
-  bool clashes = false;
-  int center_value;
-  int value_to_replace;
+  cout << "\tLooking for contiguous patches that do not share an ID." << endl;
+  cout << "\t\tThis may take several minutes in complex terrain..." << endl;
 
-  cout << "looking for clashes" << endl;
-//LSDIndexRaster Segments(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,PatchIDs);
-//  return Segments;
-
-  //start scanning DEM to find clashes
+  //start scanning PatchIDs array to find clashes
   for(int i = 1; i < NRows-1; ++i){
-    for(int j = 1; j < NCols-1; ++j){
-      //cout << i << " " << NRows << " " << j << " " << NCols << endl;  
+    for(int j = 1; j < NCols-1; ++j){  
       if (PatchIDs[i][j] != NoDataValue){
       
         center_value = PatchIDs[i][j]; 
         
         //again cycle from NW clockwise round neighbours
-        //firing in some ropey edge checking again here, think this is ott
-        //but will hopefully allow the code to run and be tested.
+        //edge detection is very explicit. Will rewrite to make more implicit
+        //but this will have little impact on peformance as I think this will
+        //already be optimised at compile time.
         
         //check all neighbour's values to see if they match the central cell
         if (PatchIDs[i-1][j-1] != center_value && PatchIDs[i-1][j-1] != NoDataValue && (((i-1) != (NRows-1) || (i-1) != 0) || (j-1) != (NCols-1) || (j-1) != 0)){
          value_to_replace = PatchIDs[i-1][j-1];    
          clashes = true;
-         //cout << "value_to_replace1 "<< value_to_replace << endl;
         }
         else if (PatchIDs[i][j-1] != center_value && PatchIDs[i][j-1] != NoDataValue && (((i) != (NRows-1) || (i) != 0) || (j-1) != (NCols-1) || (j-1) != 0)){
          value_to_replace = PatchIDs[i][j-1];
          clashes = true;
-         //cout << "value_to_replace2 "<< value_to_replace << endl;
         }
         else if (PatchIDs[i+1][j-1] != center_value && PatchIDs[i+1][j-1] != NoDataValue && (((i+1) != (NRows-1) || (i+1) != 0) || (j-1) != (NCols-1) || (j-1) != 0)){
          value_to_replace = PatchIDs[i+1][j-1];
          clashes = true;
-         //cout << "value_to_replace3 "<< value_to_replace << endl;
         }
         else if (PatchIDs[i+1][j] != center_value && PatchIDs[i+1][j] != NoDataValue && (((i+1) != (NRows-1) || (i+1) != 0) || (j) != (NCols-1) || (j) != 0)){
          value_to_replace = PatchIDs[i+1][j];
          clashes = true;
-         //cout << "value_to_replace4 "<< value_to_replace << endl;
         }
         else if (PatchIDs[i+1][j+1] != center_value && PatchIDs[i+1][j+1] != NoDataValue && (((i+1) != (NRows-1) || (i+1) != 0) || (j+1) != (NCols-1) || (j+1) != 0)){
          value_to_replace = PatchIDs[i+1][j+1];
          clashes = true;
-         //cout << "value_to_replace5 "<< value_to_replace << endl;
         }
         else if (PatchIDs[i][j+1] != center_value && PatchIDs[i][j+1] != NoDataValue && (((i) != (NRows-1) || (i) != 0) || (j+1) != (NCols-1) || (j+1) != 0)){
          value_to_replace = PatchIDs[i][j+1];
          clashes = true;
-         //cout << "value_to_replace6 "<< value_to_replace << endl;
         }
         else if (PatchIDs[i-1][j+1] != center_value && PatchIDs[i-1][j+1] != NoDataValue && (((i-1) != (NRows-1) || (i-1) != 0) || (j+1) != (NCols-1) || (j+1) != 0)){
          value_to_replace = PatchIDs[i-1][j+1];
          clashes = true;
-         //cout << "value_to_replace7 "<< value_to_replace << endl;
         }
         else if (PatchIDs[i-1][j] != center_value && PatchIDs[i-1][j] != NoDataValue && (((i-1) != (NRows-1) || (i-1) != 0) || (j) != (NCols-1) || (j) != 0)){
          value_to_replace = PatchIDs[i-1][j];
-         //cout << "value_to_replace8 "<< value_to_replace << endl;
          clashes = true;
         }             
         else{
          //no clashes!
          clashes = false;
-         //cout << "no clashes" << endl;
         }
     
+        //if clashes are present, loop over PatchIDs and fix the clash by updataing the
+        //IDs of the clashing patches to match.
         if (clashes == true){
           
           for(int q = 1; q < NRows-1; ++q){
             for(int w = 1; w < NCols-1; ++w){
                                            
               if (PatchIDs[q][w] == value_to_replace){
-               //    cout << PatchIDs[q][w] << " " << value_to_replace << endl; 
-              //cout << q << " " << NRows << " " << w << " " << NCols << endl;
                 PatchIDs[q][w] = center_value; 
               }
             
@@ -10451,7 +10437,8 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
     }
   }
 
-  //Strip out any values that only occur below the minimum_segment_size param value
+  //Strip out any values that only occur below the minimum_segment_size param value  
+  cout << "\tRemoving patches that have an area smaller than " << minimum_segment_size << " pixels." << endl;
   
   //flatten the array to make the counting easier
   vector<int> Flat_Patches = Flatten_Without_Nodata(PatchIDs, NoDataValue);
@@ -10459,7 +10446,7 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
   //get unique patch IDs
   vector<int> Unique_Patches = Unique(PatchIDs, NoDataValue);
   
-  //get number of instances of each value in the vector
+  //get number of instances of each value in the vector as a map
   map<int,int> Counts; 
   Count_Instances(Flat_Patches,Unique_Patches,Counts);
   
@@ -10494,7 +10481,11 @@ LSDIndexRaster LSDRaster::CreateHilltopSegments(int minimum_segment_size){
     
     
   }
+  else{
+    cout << "\t\tNo patches below the threshold." << endl;
+  }
   
+  //create the final LSDIndexRaster and return it
   LSDIndexRaster Segments(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,PatchIDs);
   return Segments;  
 }
