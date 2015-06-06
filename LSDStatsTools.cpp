@@ -58,6 +58,7 @@
 #include <cassert>
 #include <cmath>
 #include <time.h>
+#include <map>
 #include "TNT/tnt.h"
 #include "TNT/jama_lu.h"
 #include "LSDStatsTools.hpp"
@@ -5178,6 +5179,26 @@ void rank_vector_with_groups(vector<float> sorted_data,
 
 }                             
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+void Count_Instances(vector<int> Data, vector<int> Key_Values, map<int,int>& DataMap){
+
+  //make map to contain the keys and the counts for each, with a 0 value to begin with.
+  //may not need to initialize the map like this: http://stackoverflow.com/questions/5616421/increment-mapstring-int-using-operator
+  //map<int,int> DataMap;
+  for (int q = 0; q < int(Key_Values.size());++q){
+    DataMap[Key_Values[q]] = 0;
+  }
+
+  //assumes that key_values contains all of the values in Data.
+  //eg Data should be flattened with NoDataExcluded and 
+  // Key_Values should be created using Unique(Data)
+
+  //loop over the data and check if each value is in the Key Values array
+  for (int q = 0; q < int(Data.size());++q){
+    ++DataMap[Data[q]]; 
+  }
+
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
