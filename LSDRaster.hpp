@@ -1887,6 +1887,11 @@ class LSDRaster
   /// @date 9/2/15
   void FlattenToFile(string FileName);
 
+  /// @brief Simple method to remove any values below a user supplied value from an LSDRaster. 
+  /// @param Value float of the threshold below which values will be removed. 
+  /// @author SWDG
+  /// @date 22/6/15
+  LSDRaster RemoveBelow(float Value);
   protected:
 
   ///Number of rows.
