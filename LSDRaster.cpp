@@ -2161,7 +2161,7 @@ LSDRaster LSDRaster::TopographicShielding()
 LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
 {
   //Function print to screen
-  printf("\nLSDRaster::%s: AzimuthStep: %d, ZenithStep: %d\n",__func__,AzimuthStep,ZenithStep);
+  //printf("\nLSDRaster::%s: AzimuthStep: %d, ZenithStep: %d\n",__func__,AzimuthStep,ZenithStep);
   
   //declare constants
   float m = 2.3;	//shielding constant
@@ -2185,8 +2185,8 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
   {
     for(int AzimuthAngle = AzimuthStep; AzimuthAngle <= 360; AzimuthAngle += AzimuthStep)
     {
-      fflush(stdout);
-			printf("\nAzimuth: %d, Zenith: %d - ",AzimuthAngle,ZenithAngle);
+      //fflush(stdout);
+			//printf("\nAzimuth: %d, Zenith: %d - ",AzimuthAngle,ZenithAngle);
 
 			//Find cells in shadow (1s and 0s)
       Array2D<float> ShadowsArray;
@@ -2302,7 +2302,7 @@ LSDRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 
 Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 {
-  printf("LSDRaster::%s: ",__func__);
+ // printf("LSDRaster::%s: ",__func__);
   
   //Declare coordinate and transform arrays
   Array2D<float> XCoords(NRows,NCols,NoDataValue);
@@ -2413,8 +2413,8 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 	
 	//print to screen
 	float Percentage = (100.*PrintCounter/(NRows*NCols));
-	fflush(stdout);
-	printf("%3.0f %% Complete\b\b\b\b\b\b\b\b\b\b\b\b\b\b",Percentage);
+//	fflush(stdout);
+//	printf("%3.0f %% Complete\b\b\b\b\b\b\b\b\b\b\b\b\b\b",Percentage);
 			  
 	for (int ii=0; ii < NRows; ++ii) 
 	{
@@ -2434,8 +2434,8 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
       if (PrintCounter > Print)
 			{
 			  float Percentage = (100.*PrintCounter/(NRows*NCols));
-			  fflush(stdout);
-			  printf("%3.0f\b\b\b",Percentage);
+			//  fflush(stdout);
+			//  printf("%3.0f\b\b\b",Percentage);
 			  Print += PrintStep;
 		  }
 			
@@ -2504,7 +2504,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 	
   //Print completion to screen
 	fflush(stdout);
-	printf("100 %% Complete\r");
+	//printf("100 %% Complete\r");
 	
 	//write LSDRaster and return
   return Shadows;
@@ -10275,7 +10275,7 @@ void LSDRaster::FlattenToFile(string FileName){
 
 } 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Method to convert an LSDRaster hilltop file into a series of contigiuous hilltop patches.
+// Method to convert an LSDRaster hilltop file into a series of contiguous hilltop patches.
 //
 //Connects all contiguous patches of hilltop via a unique ID, allowing hilltop patches
 //to be generated in a manner similar to the methodology employed by Hurst et al. (2012) and (2013)
@@ -10357,11 +10357,8 @@ LSDIndexRaster LSDRaster::CreateHilltopPatches(int minimum_patch_size){
           else{
           //no neighbours
           Neighbours = false; //ends while loop
-          
           }
-            
         }
-        
       }
     }
   }
@@ -10459,6 +10456,7 @@ LSDIndexRaster LSDRaster::CreateHilltopPatches(int minimum_patch_size){
   
   //loop over map, get vector of keys where value < user defined limit and store patchIDs to be removed as vector  
   vector<int> PatchesToRemove;
+  vector<int> PatchesToShorten;
   
   for (int w = 0; w< int(Unique_Patches.size());++w){
   
@@ -10480,11 +10478,9 @@ LSDIndexRaster LSDRaster::CreateHilltopPatches(int minimum_patch_size){
             //the PatchID has been marked for removal, so change it to NDV
             PatchIDs[i][j] = NoDataValue;  
           }
-        }
-        
-        }
-        
-      }
+        }        
+      }        
+    }
     
     
   }
@@ -10497,5 +10493,30 @@ LSDIndexRaster LSDRaster::CreateHilltopPatches(int minimum_patch_size){
   return Patches;  
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Simple method to remove any values below a user supplied value from an LSDRaster. 
+//
+// Value is a float of the threshold below which values will be removed. 
+// SWDG 22/6/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::RemoveBelow(float Value){
+
+  Array2D<float> Data = RasterData.copy();
+
+    for(int i = 1; i < NRows-1; ++i){
+      for(int j = 1; j < NCols-1; ++j){
+      
+        if (Data[i][j] != NoDataValue && Data[i][j] < Value){
+        
+          Data[i][j] = NoDataValue;
+        
+        }
+      }
+    }
+
+  LSDRaster Removed(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Data);
+  return Removed;  
+
+} 
 
 #endif
