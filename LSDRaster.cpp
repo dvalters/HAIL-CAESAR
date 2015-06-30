@@ -10251,11 +10251,11 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
 
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Simple method to flatten an LSDRaster and place the non NDV values in a file.
 // Each value is placed on its own line, so that it can be read more quickly in python etc.
 // SWDG 9/2/15
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::FlattenToFile(string FileName){
 
   //open a file to write
@@ -10274,6 +10274,47 @@ void LSDRaster::FlattenToFile(string FileName){
   WriteData.close();
 
 } 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Method to flatten an LSDRaster and place the non NDV values in a csv file.
+// Each value is placed on its own line, so that it can be read more quickly in python etc.
+// It includes the x and y locations so it can be read by GIS software
+// SMM 29/6/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::FlattenToCSV(string FileName_prefix)
+{
+
+  // append csv to the filename
+  string FileName = FileName_prefix+".csv";
+  
+  //open a file to write
+  ofstream WriteData;                                
+  WriteData.open(FileName.c_str());
+  
+  WriteData << "x,y,value" << endl;
+  
+  // the x and y locations
+  float x_loc, y_loc;
+
+  //loop over each cell and if there is a value, write it to the file
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if (RasterData[i][j] != NoDataValue)
+      {
+        get_x_and_y_locations(i,j,x_loc,y_loc);
+        WriteData << x_loc << "," << y_loc << "," << RasterData[i][j] << endl;
+      }
+    }
+  }
+
+  WriteData.close();
+
+} 
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to convert an LSDRaster hilltop file into a series of contiguous hilltop patches.
 //

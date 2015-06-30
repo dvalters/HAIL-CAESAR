@@ -1887,6 +1887,16 @@ class LSDRaster
   /// @date 9/2/15
   void FlattenToFile(string FileName);
 
+  /// @brief Method to flatten an LSDRaster to a text file, with a sigle value on each line. 
+  /// @brief Method to flatten an LSDRaster and place the non NDV values in a csv file.
+  /// @detail Each value is placed on its own line, so that it can be read more quickly in python etc.
+  ///   It includes the x and y locations so it can be read by GIS software
+  /// @param FileName_prefix The prefix of the file to write, if no path is included it will write to the current directory. 
+  ///  The csv extension is added automatically. 
+  /// @author SMM
+  /// @date 29/6/15
+  void FlattenToCSV(string FileName);
+
   /// @brief Simple method to remove any values below a user supplied value from an LSDRaster. 
   /// @param Value float of the threshold below which values will be removed. 
   /// @author SWDG
