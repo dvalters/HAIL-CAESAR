@@ -515,7 +515,7 @@ float get_percentile(vector<float>& data, float percentile)
 	int k = int(floor(n));                                             
 	float d = n - floor(n);                                            
 	float percentile_value;                                            
-  if(k>=N-1) percentile_value = data[k-1];                             
+  if(k>=N-1) percentile_value = data[N-1];                             
   else if (k < 0) percentile_value = data[0];                       
   else percentile_value = data[k] + d*(data[k+1]-data[k]);         
   return percentile_value;   
@@ -551,7 +551,7 @@ void quantile_quantile_analysis(vector<float>& data, vector<float>& values, vect
   float q75y = get_percentile(vals,75);
   
   float slope = (q75y-q25y)/(q75x-q25x);
-  cout << "slope = " << slope << endl;
+//   cout << "slope = " << slope << endl;
   float centerx = (q25x + q75x)/2;
   float centery = (q25y + q75y)/2;
   float intercept =centery-slope*centerx; 
