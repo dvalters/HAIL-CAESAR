@@ -1857,10 +1857,11 @@ class LSDRaster
   ///
   /// @param number of timesteps for non-linear filtering steps - suggest 20 in complex terrain
   /// @param a catchment area threshold for pruning
+  /// @param a window radius for surface fitting from which curvature calculation is performed
   /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
   /// @author DTM
   /// @date 21/04/2015
-  LSDIndexRaster IsolateChannelsGeonet(float timesteps, float area_threshold, string q_q_filename);
+  LSDIndexRaster IsolateChannelsGeonet(float timesteps, float area_threshold, float window_radius, string q_q_filename);
   /// @brief uses quantile-quantile analysis to pick departure from gaussian behaviour, then uses this as a threshold to create a binary dataset. 
   /// @param string q_q_file A text file containing data to produce a q_q_plot.
   /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
