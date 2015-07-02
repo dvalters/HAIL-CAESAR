@@ -4345,7 +4345,7 @@ void LSDRaster::calculate_plane_coefficient_matrices(float window_radius,
 	// to compute this once, since the window size does not change.
 	// For 1st order surface fitting, there are 3 coefficients, therefore A is a
 	// 3x3 matrix
-	Array2D<float> A(3,3);
+	Array2D<float> A(3,3,0.0);
 	for (int i=0; i<kw; ++i)
 	{
 		for (int j=0; j<kw; ++j)
@@ -4390,8 +4390,6 @@ void LSDRaster::calculate_plane_coefficient_matrices(float window_radius,
 			}
 			else
 			{
-				// clip DEM
-				//zeta_sampler=zeta.copy();
 				for(int i_kernel=0;i_kernel<kw;++i_kernel)
 				{
 			  		for(int j_kernel=0;j_kernel<kw;++j_kernel)
