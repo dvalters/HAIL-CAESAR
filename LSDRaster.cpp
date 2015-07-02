@@ -10129,7 +10129,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvatureArea(float sigma, flo
 //
 // DTM 21/04/2015
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- =-=-=-=-=
-LSDIndexRaster LSDRaster::IsolateChannelsGeonet(float timesteps, float area_threshold, string q_q_filename)
+LSDIndexRaster LSDRaster::IsolateChannelsGeonet(float timesteps, float area_threshold, float window_radius, string q_q_filename)
 {
   cout << "\t Isolation of channelised pixels using curvature" << endl;   
   // filter
@@ -10139,7 +10139,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsGeonet(float timesteps, float area_thre
   LSDRaster FilteredTopo = PeronaMalikFilter(timesteps,slope_percentile,dt);
   // calculate curvature
   vector<LSDRaster> output_rasters;
-  float window_radius = 1;
+//  float window_radius = 1;
   vector<int> raster_selection(8,0.0);
   raster_selection[3]=1;
   cout << "\t\t Calculate curvature" << endl;
