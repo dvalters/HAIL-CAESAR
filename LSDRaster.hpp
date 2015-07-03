@@ -341,6 +341,15 @@ class LSDRaster
   /// @param y_loc the y location (Easting) of the node
   /// @author SMM
   /// @date 22/12/2014
+  void get_x_and_y_locations(int row, int col, double& x_loc, double& y_loc);
+
+  /// @brief this gets the x and y location of a node at row and column
+  /// @param row the row of the node
+  /// @param col the column of the node
+  /// @param x_loc the x location (Northing) of the node
+  /// @param y_loc the y location (Easting) of the node
+  /// @author SMM
+  /// @date 22/12/2014
   void get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc);
 
   /// @brief a function to get the lat and long of a node in the raster
