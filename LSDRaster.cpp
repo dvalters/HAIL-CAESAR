@@ -1191,6 +1191,22 @@ void LSDRaster::impose_georeferencing_UTM(int zone, string NorS)
 // This function returns the x and y location of a row and column
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::get_x_and_y_locations(int row, int col, double& x_loc, double& y_loc)
+{
+  
+  x_loc = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
+    
+  // Slightly different logic for y because the DEM starts from the top corner
+  y_loc = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This function returns the x and y location of a row and column
+// Same as above but with floats
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDRaster::get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc)
 {
   
@@ -1212,7 +1228,7 @@ void LSDRaster::get_lat_and_long_locations(int row, int col, double& lat,
                    double& longitude, LSDCoordinateConverterLLandUTM Converter)
 {
   // get the x and y locations of the node
-  float x_loc,y_loc;
+  double x_loc,y_loc;
   get_x_and_y_locations(row, col, x_loc, y_loc);
   
   // get the UTM zone of the node
@@ -10289,6 +10305,7 @@ void LSDRaster::FlattenToCSV(string FileName_prefix)
   ofstream WriteData;                                
   WriteData.open(FileName.c_str());
   
+  WriteData.precision(8);
   WriteData << "x,y,value" << endl;
   
   // the x and y locations
