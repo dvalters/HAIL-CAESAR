@@ -376,6 +376,17 @@ class LSDRaster
   /// @date 13/11/2014
   bool check_if_point_is_in_raster(float X_coordinate,float Y_coordinate);
   
+  /// @brief This function returns a vector with the X adn Y minimum and max
+  ///   values
+  /// @return XYMinMax a vector with four elements
+  ///   XYMinMax[0] = XMinimum
+  ///   XYMinMax[1] = YMinimum
+  ///   XYMinMax[2] = XMaximum
+  ///   XYMinMax[3] = XMaximum
+  /// @author SMM
+  /// @date 3/7/2015
+  vector<float> get_XY_MinMax();
+  
   /// @brief rewrite all the data array values with random numbers (with a 
   /// uniform distribution). 
   /// @param range is the range of values.
