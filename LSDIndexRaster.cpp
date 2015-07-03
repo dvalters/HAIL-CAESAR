@@ -515,7 +515,7 @@ void LSDIndexRaster::read_raster(string filename, string extension)
             // get Y minimum
             // IMPORTANT THIS USES CONVENTION THAT THE MINIMUM AND MAXIMUM VALUES
             // ARE AT THE PIXEL EDGES AS IN QGIS!!! 
-            YMinimum = YMax - (NRows+1)*DataResolution;
+            YMinimum = YMax - (NRows)*DataResolution;
 
             //using a string comparison as float(X) != float(X) in many cases due to floating point math
             // http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm  - SWDG	          
@@ -830,6 +830,62 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This function returns the x and y location of a row and column
+// Same as above but with floats
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc)
+{
+  
+  x_loc = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
+    
+  // Slightly different logic for y because the DEM starts from the top corner
+  y_loc = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Method to flatten an LSDRaster and place the non NDV values in a csv file.
+// Each value is placed on its own line, so that it can be read more quickly in python etc.
+// It includes the x and y locations so it can be read by GIS software
+// SMM 29/6/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::FlattenToCSV(string FileName_prefix)
+{
+
+  // append csv to the filename
+  string FileName = FileName_prefix+".csv";
+  
+  //open a file to write
+  ofstream WriteData;                                
+  WriteData.open(FileName.c_str());
+  
+  WriteData.precision(8);
+  WriteData << "x,y,value" << endl;
+  
+  // the x and y locations
+  float x_loc, y_loc;
+
+  //loop over each cell and if there is a value, write it to the file
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if (RasterData[i][j] != NoDataValue)
+      {
+        get_x_and_y_locations(i,j,x_loc,y_loc);
+        WriteData << x_loc << "," << y_loc << "," << RasterData[i][j] << endl;
+      }
+    }
+  }
+
+  WriteData.close();
+
+} 
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
