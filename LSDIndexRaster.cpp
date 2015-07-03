@@ -1468,8 +1468,8 @@ bool LSDIndexRaster::check_if_point_is_in_raster(float X_coordinate, float Y_coo
   bool is_in_raster = true;
   
   // Shift origin to that of dataset
-  float X_coordinate_shifted_origin = X_coordinate - XMinimum;
-  float Y_coordinate_shifted_origin = Y_coordinate - YMinimum;
+  float X_coordinate_shifted_origin = X_coordinate - XMinimum - DataResolution*0.5; 
+  float Y_coordinate_shifted_origin = Y_coordinate - YMinimum - DataResolution*0.5; 
 
   // Get row and column of point
   int col_point = int(X_coordinate_shifted_origin/DataResolution);
