@@ -513,7 +513,7 @@ void LSDRaster::read_raster(string filename, string extension)
             // get Y minimum
             // IMPORTANT THIS USES CONVENTION THAT THE MINIMUM AND MAXIMUM VALUES
             // ARE AT THE PIXEL EDGES AS IN QGIS!!! 
-            YMinimum = YMax - (NRows+1)*DataResolution;
+            YMinimum = YMax - (NRows)*DataResolution;
             
             //using a string comparison as float(X) != float(X) in many cases due to floating point math
             // http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm  - SWDG	          

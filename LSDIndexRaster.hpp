@@ -221,6 +221,25 @@ class LSDIndexRaster
   void set_data_element(int row, int column, int data) 
                                    { RasterData[row][column] = data; }
 
+  /// @brief this gets the x and y location of a node at row and column
+  /// @param row the row of the node
+  /// @param col the column of the node
+  /// @param x_loc the x location (Northing) of the node
+  /// @param y_loc the y location (Easting) of the node
+  /// @author SMM
+  /// @date 22/12/2014
+  void get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc);
+
+  /// @brief Method to flatten an LSDRaster to a text file, with a sigle value on each line. 
+  /// @brief Method to flatten an LSDRaster and place the non NDV values in a csv file.
+  /// @detail Each value is placed on its own line, so that it can be read more quickly in python etc.
+  ///   It includes the x and y locations so it can be read by GIS software
+  /// @param FileName_prefix The prefix of the file to write, if no path is included it will write to the current directory. 
+  ///  The csv extension is added automatically. 
+  /// @author SMM
+  /// @date 29/6/15
+  void FlattenToCSV(string FileName);
+
 
   /// @brief Checks to see if two rasters have the same dimensions
   /// @detail Does NOT check georeferencing
