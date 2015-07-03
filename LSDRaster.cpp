@@ -662,7 +662,7 @@ void LSDRaster::read_raster(string filename, string extension)
 
 
 }
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 // Generic function for reading rasters in ascii format
@@ -675,46 +675,46 @@ void LSDRaster::read_ascii_raster(string FILENAME)
   //string_filename = filename+dot+extension;
   std::cout << "\n\nLoading DEM, the filename is " << FILENAME << std::endl;
 
-	// open the data file
-	std::ifstream data_in(FILENAME.c_str());
+  // open the data file
+  std::ifstream data_in(FILENAME.c_str());
 
-	//Read in raster data
-	std::string str;			// a temporary string for discarding text
+  //Read in raster data
+  std::string str;			// a temporary string for discarding text
 
-	// read the georeferencing data and metadata
-	data_in >> str >> NCols;
-		std::cout << "NCols: " << NCols << " str: " << std::endl;
-	data_in >> str >> NRows;
-		std::cout << "NRows: " << NRows << " str: " << std::endl;
-	data_in >> str >> XMinimum
-					>> str >> YMinimum
-					>> str >> DataResolution
-					>> str >> NoDataValue;
+  // read the georeferencing data and metadata
+  data_in >> str >> NCols;
+  std::cout << "NCols: " << NCols << " str: " << std::endl;
+  data_in >> str >> NRows;
+  std::cout << "NRows: " << NRows << " str: " << std::endl;
+  data_in >> str >> XMinimum
+          >> str >> YMinimum
+          >> str >> DataResolution
+          >> str >> NoDataValue;
 
-	std::cout << "Loading asc file; NCols: " << NCols 
-		<< " NRows: " << NRows << std::endl
-		<< "X minimum: " << XMinimum << " YMinimum: " << YMinimum << std::endl
-		<< "Data Resolution: " << DataResolution << " and No Data Value: "
-		<< NoDataValue << std::endl;
+  std::cout << "Loading asc file; NCols: " << NCols 
+            << " NRows: " << NRows << std::endl
+            << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << std::endl
+            << "Data Resolution: " << DataResolution << " and No Data Value: "
+            << NoDataValue << std::endl;
 
-	// this is the array into which data is fed
-	TNT::Array2D<double> asciidata(NRows,NCols,NoDataValue);
+  // this is the array into which data is fed
+  TNT::Array2D<double> asciidata(NRows,NCols,NoDataValue);
 
-	// read the data
-	for (int i=0; i<NRows; ++i)
-	{
-	  for (int j=0; j<NCols; ++j)
-	  {
-		data_in >> asciidata[i][j];
-	  }
-	}
-	data_in.close();
-	RasterData_dbl = asciidata.copy();
-	//RasterData_dbl = asciidata.copy();
+  // read the data
+  for (int i=0; i<NRows; ++i)
+  {
+    for (int j=0; j<NCols; ++j)
+    {
+      data_in >> asciidata[i][j];
+    }
+  }
+  data_in.close();
+  RasterData_dbl = asciidata.copy();
+  //RasterData_dbl = asciidata.copy();
 
-	// now update the objects raster data
-	//RasterData = data.copy();
-	//return RasterData_dbl;
+  // now update the objects raster data
+  //RasterData = data.copy();
+  //return RasterData_dbl;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // write_raster
@@ -8373,6 +8373,25 @@ LSDRaster LSDRaster::clip_to_smaller_raster(LSDRaster& smaller_raster)
   TrimmedRaster.Update_GeoReferencingStrings();
   
   return TrimmedRaster;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This gets the minimum and maximum values and returns them as a vector
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<float> LSDRaster::get_XY_MinMax()
+{
+
+  vector<float> XYMaxMin(4,0);
+  
+  XYMaxMin[0] = XMinimum;
+  XYMaxMin[1] = YMinimum;
+  XYMaxMin[2] = XMinimum+(NCols)*DataResolution;
+  XYMaxMin[3] = YMinimum+(NRows)*DataResolution;
+  
+  return XYMaxMin;
+  
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

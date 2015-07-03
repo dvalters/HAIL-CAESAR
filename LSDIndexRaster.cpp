@@ -100,6 +100,7 @@ using namespace TNT;
 // SMM 2012
 LSDIndexRaster& LSDIndexRaster::operator=(const LSDIndexRaster& rhs)
  {
+  
   if (&rhs != this)
    {
     create(rhs.get_NRows(),rhs.get_NCols(),rhs.get_XMinimum(),rhs.get_YMinimum(),
@@ -113,8 +114,8 @@ LSDIndexRaster& LSDIndexRaster::operator=(const LSDIndexRaster& rhs)
 // SMM 2012
 void LSDIndexRaster::create()
 {
-	//cout << "You need to initialize with a filename!" << endl;
-	//exit(EXIT_FAILURE);
+  //cout << "You need to initialize with a filename!" << endl;
+  //exit(EXIT_FAILURE);
 }
 
 // this creates a raster using an infile
@@ -129,6 +130,7 @@ void LSDIndexRaster::create(string filename, string extension)
 void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
             float cellsize, int ndv, Array2D<int> data)
 {
+  
   NRows = nrows;
   NCols = ncols;
   XMinimum = xmin;
@@ -140,12 +142,12 @@ void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
 
   if (RasterData.dim1() != NRows)
   {
-    cout << "dimesntion of data is not the same as stated in NRows!" << endl;
+    cout << "LSDIndexRaster create::dimension of data is not the same as stated in NRows!" << endl;
     exit(EXIT_FAILURE);
   }
   if (RasterData.dim2() != NCols)
   {
-    cout << "dimesntion of data is not the same as stated in NRows!" << endl;
+    cout << "LSDIndexRaster create::dimension of data is not the same as stated in NRows!" << endl;
     exit(EXIT_FAILURE);
   }
 
@@ -159,6 +161,9 @@ void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
 void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
             float cellsize, int ndv, Array2D<int> data, map<string,string> GRS_map)
 {
+  //cout << "YOYOYOYOY" << endl;
+  //cout << "NR: " << NRows << " NC: " << NCols << endl;
+
   NRows = nrows;
   NCols = ncols;
   XMinimum = xmin;
@@ -171,12 +176,12 @@ void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
 
   if (RasterData.dim1() != NRows)
   {
-    cout << "dimesntion of data is not the same as stated in NRows!" << endl;
+    cout << "LSDIndexRaster create::dimension of data is not the same as stated in NRows!" << endl;
     exit(EXIT_FAILURE);
   }
   if (RasterData.dim2() != NCols)
   {
-    cout << "dimesntion of data is not the same as stated in NRows!" << endl;
+    cout << "LSDIndexRaster create::dimension of data is not the same as stated in NRows!" << endl;
     exit(EXIT_FAILURE);
   }
 }
