@@ -1387,6 +1387,16 @@ class LSDRaster
   /// @date 27/8/13
   vector<LSDRaster> BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray);
 
+
+  /// @brief Cookie cut a raster using a smaller raster.
+  ///
+  /// @details Requires that both rasters share a spatial extent.
+  /// @param Cutter an LSDRaster to be used as the template.
+  /// @return LSDRaster of the data cut to the other ratser's shape. 
+  /// @author SWDG
+  /// @date 06/07/15
+  LSDRaster CookieCutRaster(LSDRaster Cutter);
+
   /// @brief Collect all basin average metrics into a single file.
   ///
   /// @details File is written with the format: \n\n
