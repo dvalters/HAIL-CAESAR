@@ -5832,6 +5832,33 @@ vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster 
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Cookie cut a raster using a smaller raster.
+//
+// Requires that both rasters share a spatial extent.
+// Returns an LSDRaster of the data cut to the other ratser's shape.
+// 
+// SWDG 06/07/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::CookieCutRaster(LSDRaster Cutter){
+
+  Array2D<float> CutterData = Cutter.get_RasterData();
+  Array2D<float> cookie(NRows, NCols, NoDataValue);
+
+  for (int i=0; i<NRows; ++i){
+	  for (int j=0; j<NCols; ++j){
+	    if(CutterData[i][j] != NoDataValue){
+        cookie[i][j] = RasterData[i][j];
+      }
+	  }
+	}
+
+  LSDRaster Cookie(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,
+                  cookie,GeoReferencingStrings);
+                  
+  return Cookie;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Collect all basin average metrics into a single file.
 //
 // File is written with the format:
