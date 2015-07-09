@@ -2179,7 +2179,7 @@ LSDRaster LSDRaster::TopographicShielding()
 LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
 {
   //Function print to screen
-  //printf("\nLSDRaster::%s: AzimuthStep: %d, ZenithStep: %d\n",__func__,AzimuthStep,ZenithStep);
+  printf("\nLSDRaster::%s: AzimuthStep: %d, ZenithStep: %d\n",__func__,AzimuthStep,ZenithStep);
   
   //declare constants
   float m = 2.3;	//shielding constant
@@ -2203,8 +2203,8 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
   {
     for(int AzimuthAngle = AzimuthStep; AzimuthAngle <= 360; AzimuthAngle += AzimuthStep)
     {
-      //fflush(stdout);
-			//printf("\nAzimuth: %d, Zenith: %d - ",AzimuthAngle,ZenithAngle);
+      fflush(stdout);
+			printf("\nAzimuth: %d, Zenith: %d - ",AzimuthAngle,ZenithAngle);
 
 			//Find cells in shadow (1s and 0s)
       Array2D<float> ShadowsArray;
@@ -2225,9 +2225,20 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
 	Array2D<float> MaxWeightArray(NRows,NCols,MaxWeight);
 	ShieldingFactor -= FinalArray/MaxWeightArray;
 	
+	//make sure there is no shielding value for NDV cells
+	Array2D<float> FinalShieldingFactor(NRows,NCols,NoDataValue);
+	for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+      if (RasterData[i][j] != NoDataValue){
+        FinalShieldingFactor[i][j] = ShieldingFactor[i][j]; 
+      }
+    }
+  }
+	
+	
   //write LSDRaster
   LSDRaster Shielding(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue,
-                      ShieldingFactor,GeoReferencingStrings);
+                      FinalShieldingFactor,GeoReferencingStrings);
   return Shielding;
 }
 
@@ -2320,7 +2331,7 @@ LSDRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 
 Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 {
- // printf("LSDRaster::%s: ",__func__);
+  printf("LSDRaster::%s: ",__func__);
   
   //Declare coordinate and transform arrays
   Array2D<float> XCoords(NRows,NCols,NoDataValue);
@@ -2431,8 +2442,8 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 	
 	//print to screen
 	float Percentage = (100.*PrintCounter/(NRows*NCols));
-//	fflush(stdout);
-//	printf("%3.0f %% Complete\b\b\b\b\b\b\b\b\b\b\b\b\b\b",Percentage);
+	fflush(stdout);
+	printf("%3.0f %% Complete\b\b\b\b\b\b\b\b\b\b\b\b\b\b",Percentage);
 			  
 	for (int ii=0; ii < NRows; ++ii) 
 	{
@@ -2452,8 +2463,8 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
       if (PrintCounter > Print)
 			{
 			  float Percentage = (100.*PrintCounter/(NRows*NCols));
-			//  fflush(stdout);
-			//  printf("%3.0f\b\b\b",Percentage);
+			  fflush(stdout);
+			  printf("%3.0f\b\b\b",Percentage);
 			  Print += PrintStep;
 		  }
 			
@@ -2472,13 +2483,15 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 		  int NDVFlag = 0;
 		  float MinX = 2*DataResolution;
 		  float DiffX, DiffZ;
-		  int a_temp, b_temp, i_temp, j_temp;
+		  int a_temp = 0; //assigned meaningless value to stop compiler warnings, value will always be updated. 
+      int b_temp = 0; 
+      int i_temp, j_temp;
 				
 		  while (true)
 		  {
 			  //check the three search cells for a minumum X value in rotated coordinate mode
 			  MinX = 2*DataResolution;
-			
+			  bool Initialized = false; //this flag tests if a_temp and b_temp have a real value.
 			  for (int k=0;k<NSearch;++k)
 			  {
 				  //assign temporary indices
@@ -2496,14 +2509,18 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 			    if (DiffX < MinX)
 			    {
 				    MinX = DiffX;
+				    Initialized = true;
 				    a_temp = i_temp;
 				    b_temp = j_temp;
 				  }
 			  }
 			
-		    //update a and b
-		    a = a_temp;
-		    b = b_temp;
+			  if (Initialized == true){  //without this condition a and b can be assigned values from unallocated memory, causing crashes.
+		      //update a and b
+		      a = a_temp;
+		      b = b_temp;
+        }
+        else break;
         
         //Check if edge of shadow, edge of DEM or NDVs reached
 		    if (ShadowFlag > 10) break;
@@ -2522,7 +2539,7 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
 	
   //Print completion to screen
 	fflush(stdout);
-	//printf("100 %% Complete\r");
+	printf("100 %% Complete\r");
 	
 	//write LSDRaster and return
   return Shadows;
