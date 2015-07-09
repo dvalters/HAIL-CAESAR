@@ -2183,8 +2183,8 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
   
   //declare constants
   float m = 2.3;	//shielding constant
-  float I0 = 1.;	//Max intensity (=1 for shielding factors)
-  float MaxFactor = 0;	//Maximum Production Factor
+  //float I0 = 1.;	//Max intensity (=1 for shielding factors)
+  //float MaxFactor = 0;	//Maximum Production Factor
   //float f90 = 90.0;
   
   //Max Production Factor following Codilean Eq2
