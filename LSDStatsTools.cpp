@@ -53,6 +53,7 @@
 
 #include <vector>
 #include <fstream>
+#include <string>
 #include <algorithm>
 #include <cstdio>
 #include <cassert>
@@ -5278,6 +5279,18 @@ string RemoveSpaces(string toRemove)
   return substr;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Unix format path
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+string ReformatPath(string old_path)
+{
+  string path = old_path;
+  path.replace( path.begin(), path.end(), "\\", "/"); // replace all '\\' to '/'
+  path.replace( path.begin(), path.end(), "//", "/"); // replace all '//' to '/'
+  return path;
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 // SOME USEFUL MATHEMATICAL FUNCTIONS THAT DON'T APPEAR TO BE IN THE STANDARD MATH.h LIBRARY
