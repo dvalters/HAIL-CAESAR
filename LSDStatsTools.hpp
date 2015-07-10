@@ -283,9 +283,9 @@ void permute_partitioned_integer_vector(vector<int> permute_vector);
 
 // this generates random segments for use in testing the segment finding algorithm
 void generate_random_segments(float sigma, int minimum_n_nodes, int mean_segment_length, int segment_range,
-							  float dx, float offset_range, float m_range,
-							 vector<float>& x_data, vector<float>& y_data,
-							 vector<int>& segment_length, vector<float>& slope, vector<float>& intercept);
+                    float dx, float offset_range, float m_range,
+                    vector<float>& x_data, vector<float>& y_data,
+                    vector<int>& segment_length, vector<float>& slope, vector<float>& intercept);
 
 
 // maxiumum likihood estimators
@@ -482,6 +482,9 @@ string RemoveControlCharacters(string toRemove);
 
 // removes spaces
 string RemoveControlCharacters(string toRemove);
+
+// Unix format path
+string ReformatPath(string old_path);
 
 // INVERSE ERROR FUNCTIONS AND INVERSE COMPLEMENTARY ERROR FUNCTIONS
 // DTM, Following Press et al.,2007; Numerical Recipes, the Art of Scientific Computing, CUP
