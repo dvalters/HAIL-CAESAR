@@ -7916,7 +7916,8 @@ LSDRaster LSDRaster::RasterTrimmer(){
       min_col = a;
     }
   }
-
+  ++min_col;
+  
   //maximum index value in a column
   a = NCols - 1;
   int max_col = 0; //a small number
@@ -7930,7 +7931,7 @@ LSDRaster LSDRaster::RasterTrimmer(){
       max_col = a;
     }
   }
-
+  ++max_col;
 
   //minimum index value in a row
   a = 0;
@@ -7945,7 +7946,8 @@ LSDRaster LSDRaster::RasterTrimmer(){
       min_row = a;
     }
   }
-
+  ++min_row;
+  
   //maximum index value in a row
   a = NRows - 1;
   int max_row = 0; //a small number
@@ -7959,7 +7961,8 @@ LSDRaster LSDRaster::RasterTrimmer(){
       max_row = a;
     }
   }
-
+  ++max_row;
+    
   if (min_row == 0 && min_col == 0 && max_row == (NRows - 1) && max_col == (NCols - 1))
   {
     cout << "Raster cannot be trimmed! \nReturning original raster.\n" << endl;
