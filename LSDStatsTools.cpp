@@ -5286,9 +5286,16 @@ string RemoveSpaces(string toRemove)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 string ReformatPath(string old_path)
 {
+  
+  cout << "The old path was: " << old_path << endl;
   string path = old_path;
-  path.replace( path.begin(), path.end(), "\\", "/"); // replace all '\\' to '/'
-  path.replace( path.begin(), path.end(), "//", "/"); // replace all '//' to '/'
+  //path.replace( path.begin(), path.end(), "\\", "/"); // replace all '//' to '/'
+  //path.replace( path.begin(), path.end(), "\\", "/"); // replace all '\\' to '/'
+  cout << "The new path is: " << path << endl;
+  
+  cout << "THIS DOES NOT WORK!!!!!!!! LINE 5296 LSDStatstools" << endl;
+  
+  
   return path;
 }
 
