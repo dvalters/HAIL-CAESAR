@@ -2071,4 +2071,133 @@ LSDIndexRaster LSDIndexRaster::MergeChannelWithFloodplain(LSDIndexRaster FloodPl
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Identify connected components from binary array using a two-pass approach.
+// Closely follows the algorithm described by He et al. (2008), "A Run-Based Two-Scan Labeling
+// Algorithm," Image Processing, IEEE Transactions on , vol.17, no.5, pp.749,756,
+// doi: 10.1109/TIP.2008.919369
+// Components must be identified by the number 1.
+// DTM 13/07/2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDIndexRaster::ConnectedComponents()
+{
+  cout << "\t\t Connected Components" << endl;
+  Array2D<int> LabelledComponents(NRows,NCols,NoDataValue);
+  vector<int> equivalences; 
+  int next_label = 0;
+  bool flag = false;
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j<NCols; ++j)
+    {
+      // Iterate through the array
+      if(RasterData[i][j] == 1)
+      {
+        if(flag == false)
+	{
+          LabelledComponents[i][j] = next_label;
+          equivalences[next_label] = next_label;
+	  ++next_label;
+          flag = true; 
+        }
+        // Check neighbours
+        else
+	{
+          // first row is easy
+          if(i == 0)
+	  {
+            if(LabelledComponents[i][j-1] != NoDataValue) LabelledComponents[i][j] = LabelledComponents[i][j-1];
+            else
+	    {
+              LabelledComponents[i][j] = next_label;
+              equivalences.push_back(next_label);
+	      ++next_label;
+            }
+          }
+          // for first column, need to check above and above right
+          else if(j==0)
+          { 
+            int minimum_label = next_label;
+            vector<int> neighbourhood_labels;
+            if(LabelledComponents[i-1][j] != NoDataValue)
+	    {
+              neighbourhood_labels.push_back(LabelledComponents[i-1][j]);
+	      if(LabelledComponents[i-1][j] < minimum_label) minimum_label = LabelledComponents[i-1][j];
+	    }
+            else if(LabelledComponents[i-1][j+1] != NoDataValue)
+	    {
+              neighbourhood_labels.push_back(LabelledComponents[i-1][j+1]);
+              if(LabelledComponents[i-1][j+1] < minimum_label) minimum_label = LabelledComponents[i-1][j+1];
+            }
+            else
+	    {
+              equivalences.push_back(next_label);
+              ++next_label;
+            }
+            LabelledComponents[i][j] = minimum_label;
+            // loop through neighbours, assigning equivalences
+            int N = neighbourhood_labels.size();
+            for(int i_neighbour = 0; i_neighbour<N; ++ i_neighbour)
+	    {
+              if(minimum_label < equivalences[neighbourhood_labels[i_neighbour]]) equivalences[neighbourhood_labels[i_neighbour]] = minimum_label;
+            }
+          }
+          // for other cells, check above left, above, above right and left.
+          else
+	  { 
+            int minimum_label = next_label;
+            vector<int> neighbourhood_labels;
+            if(LabelledComponents[i-1][j-1] != NoDataValue)
+	    {
+              neighbourhood_labels.push_back(LabelledComponents[i-1][j-1]);
+              if(LabelledComponents[i-1][j-1] < minimum_label) minimum_label = LabelledComponents[i-1][j-1];
+            }  
+            else if(LabelledComponents[i-1][j] != NoDataValue)
+	    {
+              neighbourhood_labels.push_back(LabelledComponents[i-1][j]);
+	      if(LabelledComponents[i-1][j] < minimum_label) minimum_label = LabelledComponents[i-1][j];
+	    }
+            else if(LabelledComponents[i-1][j+1] != NoDataValue)
+	    {
+              neighbourhood_labels.push_back(LabelledComponents[i-1][j+1]);
+              if(LabelledComponents[i-1][j+1] < minimum_label) minimum_label = LabelledComponents[i-1][j+1];
+            }
+            else if(LabelledComponents[i][j-1] != NoDataValue)
+	    {
+              neighbourhood_labels.push_back(LabelledComponents[i][j-1]);
+              if(LabelledComponents[i][j-1] < minimum_label) minimum_label = LabelledComponents[i][j-1];
+            }
+            else
+	    {
+              equivalences.push_back(next_label);
+              ++next_label;
+            }
+            LabelledComponents[i][j] = minimum_label;
+            // loop through neighbours, assigning equivalences
+            int N = neighbourhood_labels.size();
+            for(int i_neighbour = 0; i_neighbour<N; ++ i_neighbour)
+	    {
+              if(minimum_label < equivalences[neighbourhood_labels[i_neighbour]]) equivalences[neighbourhood_labels[i_neighbour]] = minimum_label;
+            }
+          }
+	}
+      }
+    }
+  }
+  // Second pass, assign equivalences 
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j<NCols; ++j)
+    {
+      if(LabelledComponents[i][j] != NoDataValue)
+      {
+        LabelledComponents[i][j] = equivalences[LabelledComponents[i][j]];
+      }
+    }
+  } 
+  LSDIndexRaster ConnectedComponentsRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,LabelledComponents);
+  return ConnectedComponentsRaster;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #endif

@@ -387,6 +387,19 @@ class LSDIndexRaster
   /// @date 05/03/15
   LSDIndexRaster MergeChannelWithFloodplain(LSDIndexRaster FloodPlain);
 
+
+  /// @brief Method to identify connected components using a two pass method
+  ///
+  /// @details Takes a binary array, where components parts are identifed by 1
+  /// and separates into connected components according to a two-pass algorithm
+  /// based on that described in He et al. (2008), "A Run-Based Two-Scan
+  /// Labeling Algorithm," Image Processing, IEEE Transactions on , vol.17, no.5,
+  /// pp.749,756, doi: 10.1109/TIP.2008.919369
+  /// @return an LSDRaster with labelled connected components
+  /// @author DTM
+  /// @date 13/07/2015
+  LSDIndexRaster ConnectedComponents();
+
   protected:
   ///Number of rows.
   int NRows;
