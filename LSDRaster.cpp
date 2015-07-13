@@ -587,14 +587,14 @@ void LSDRaster::read_raster(string filename, string extension)
     {
       if (DataType == 2)
       {
-        //cout << "Loading raster, recasting data from int to float!" << endl;
-        int temp;
-        //cout << "Integer size: " << sizeof(temp) << endl;
+        cout << "Loading raster, recasting data from int to float!" << endl;
+        short int temp;
+        cout << "Integer size: " << sizeof(temp) << endl;
         for (int i=0; i<NRows; ++i)
         {
           for (int j=0; j<NCols; ++j)
           {
-            ifs_data.read(reinterpret_cast<char*>(&temp), 2);
+            ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
             //cout << temp << " ";
             data[i][j] = float(temp);
             if (data[i][j]<-1e10)
