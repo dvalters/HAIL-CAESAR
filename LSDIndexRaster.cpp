@@ -2084,7 +2084,10 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 {
   cout << "\t\t Connected Components" << endl;
   Array2D<int> LabelledComponents(NRows,NCols,NoDataValue);
-  vector<int> equivalences; 
+  vector < vector<int> > equivalences; 
+  vector <int> empty_vector;
+  equivalences.push_back(empty_vector);
+  equivalences.push_back(empty_vector);
   int next_label = 0;
   bool flag = false;
   for(int i = 0; i<NRows; ++i)
@@ -2097,7 +2100,8 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
         if(flag == false)
 	{
           LabelledComponents[i][j] = next_label;
-          equivalences.push_back(next_label);
+          equivalences[0].push_back(next_label);
+          equivalences[1].push_back(next_label);
 	  ++next_label;
           flag = true; 
         }
@@ -2111,7 +2115,8 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
             else
 	    {
               LabelledComponents[i][j] = next_label;
-              equivalences.push_back(next_label);
+              equivalences[0].push_back(next_label);
+              equivalences[1].push_back(next_label);
 	      ++next_label;
             }
           }
@@ -2119,67 +2124,67 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
           else if(j==0)
           { 
             int minimum_label = next_label;
+            int above = LabelledComponents[i-1][j];
+            int above_right = LabelledComponents[i-1][j+1];
             vector<int> neighbourhood_labels;
-            if(LabelledComponents[i-1][j] != NoDataValue)
+            if((above != NoDataValue) || (above_right != NoDataValue))
 	    {
-              neighbourhood_labels.push_back(LabelledComponents[i-1][j]);
-	      if(LabelledComponents[i-1][j] < minimum_label) minimum_label = LabelledComponents[i-1][j];
-	    }
-            else if(LabelledComponents[i-1][j+1] != NoDataValue)
-	    {
-              neighbourhood_labels.push_back(LabelledComponents[i-1][j+1]);
-              if(LabelledComponents[i-1][j+1] < minimum_label) minimum_label = LabelledComponents[i-1][j+1];
+              if(above != NoDataValue)
+	      {
+	        if(above < minimum_label) minimum_label = above;
+	      }
+              if(above_right != NoDataValue)
+	      {
+                if(above_right < minimum_label) minimum_label = above_right;
+	      }
+              // above
+              if(above != NoDataValue) if((above > minimum_label) && (equivalences[1][above] > minimum_label)) equivalences[1][above] = minimum_label;
+	      // above right
+              if(above_right != NoDataValue) if((above_right > minimum_label) && (equivalences[1][above_right]) > minimum_label) equivalences[1][above_right] = minimum_label;
             }
             else
 	    {
-              equivalences.push_back(next_label);
+              equivalences[0].push_back(next_label);
+              equivalences[1].push_back(next_label);
               ++next_label;
             }
             LabelledComponents[i][j] = minimum_label;
-            // loop through neighbours, assigning equivalences
-            int N = neighbourhood_labels.size();
-            for(int i_neighbour = 0; i_neighbour<N; ++ i_neighbour)
-	    {
-              if(minimum_label < equivalences[neighbourhood_labels[i_neighbour]]) equivalences[neighbourhood_labels[i_neighbour]] = minimum_label;
-            }
           }
           // for other cells, check above left, above, above right and left.
           else
 	  { 
             int minimum_label = next_label;
-            vector<int> neighbourhood_labels;
-            if(LabelledComponents[i-1][j-1] != NoDataValue)
+            int above_left = LabelledComponents[i-1][j-1];
+            int above = LabelledComponents[i-1][j];
+            int above_right = LabelledComponents[i-1][j+1];
+            int left = LabelledComponents[i][j-1];
+	    if((above_left!= NoDataValue) || (above != NoDataValue) || (above_right != NoDataValue) || (left != NoDataValue))
 	    {
-              neighbourhood_labels.push_back(LabelledComponents[i-1][j-1]);
-              if(LabelledComponents[i-1][j-1] < minimum_label) minimum_label = LabelledComponents[i-1][j-1];
-            }  
-            else if(LabelledComponents[i-1][j] != NoDataValue)
-	    {
-              neighbourhood_labels.push_back(LabelledComponents[i-1][j]);
-	      if(LabelledComponents[i-1][j] < minimum_label) minimum_label = LabelledComponents[i-1][j];
-	    }
-            else if(LabelledComponents[i-1][j+1] != NoDataValue)
-	    {
-              neighbourhood_labels.push_back(LabelledComponents[i-1][j+1]);
-              if(LabelledComponents[i-1][j+1] < minimum_label) minimum_label = LabelledComponents[i-1][j+1];
-            }
-            else if(LabelledComponents[i][j-1] != NoDataValue)
-	    {
-              neighbourhood_labels.push_back(LabelledComponents[i][j-1]);
-              if(LabelledComponents[i][j-1] < minimum_label) minimum_label = LabelledComponents[i][j-1];
+              // above left
+              if(above_left != NoDataValue) if(above_left < minimum_label) minimum_label = above_left;
+	      // above
+              if(above != NoDataValue) if(above < minimum_label) minimum_label = above;
+	      // above right
+              if(above_right != NoDataValue) if(above_right < minimum_label) minimum_label = above_right;
+	      // left
+              if(left != NoDataValue) if(left < minimum_label) minimum_label = left;
+
+              // above left
+              if(above_left != NoDataValue) if(equivalences[1][above_left] > minimum_label) equivalences[1][above_left] = minimum_label;  
+	      // above
+              if(above != NoDataValue) if(equivalences[1][above] > minimum_label) equivalences[1][above] = minimum_label;
+	      // above right
+              if(above_right != NoDataValue) if(equivalences[1][above_right] > minimum_label) equivalences[1][above_right] = minimum_label;
+	      // left
+              if(left != NoDataValue) if(equivalences[1][left] > minimum_label) equivalences[1][left] = minimum_label;
             }
             else
 	    {
-              equivalences.push_back(next_label);
+              equivalences[0].push_back(next_label);
+              equivalences[1].push_back(next_label); 
               ++next_label;
             }
             LabelledComponents[i][j] = minimum_label;
-            // loop through neighbours, assigning equivalences
-            int N = neighbourhood_labels.size();
-            for(int i_neighbour = 0; i_neighbour<N; ++ i_neighbour)
-	    {
-              if(minimum_label < equivalences[neighbourhood_labels[i_neighbour]]) equivalences[neighbourhood_labels[i_neighbour]] = minimum_label;
-            }
           }
 	}
       }
@@ -2192,10 +2197,22 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
     {
       if(LabelledComponents[i][j] != NoDataValue)
       {
-        LabelledComponents[i][j] = equivalences[LabelledComponents[i][j]];
+        int value = LabelledComponents[i][j];
+        while(equivalences[1][value]!=equivalences[0][value]) value = equivalences[1][value];
+        LabelledComponents[i][j] = value;
       }
     }
   } 
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j<NCols; ++j)
+    {
+      if(LabelledComponents[i][j+1] != NoDataValue && LabelledComponents[i][j] != NoDataValue && LabelledComponents[i][j+1] != LabelledComponents[i][j])
+      {
+        cout << "we have a problem " << LabelledComponents[i][j+1] << " " << LabelledComponents[i][j] << " " << equivalences[1][LabelledComponents[i][j+1]] << " " << equivalences[1][LabelledComponents[i][j]] << endl;
+      }
+    }
+  }  
   LSDIndexRaster ConnectedComponentsRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,LabelledComponents);
   return ConnectedComponentsRaster;
 }
