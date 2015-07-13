@@ -10334,6 +10334,90 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantileAdaptive(int half_width)
+{
+  cout << "Calculating adaptive curvature threshold" << endl;
+  Array2D<float> curvature_threshold_array(NRows,NCols,NoDataValue);
+  for(int i = 0; i < NRows; ++i)
+  {
+    cout << flush << "processing row " << i+1 << " of " << NRows << "\r" ;
+    for(int j = 0; j < NCols; ++j)
+    {  
+      if(RasterData[i][j]!=NoDataValue)
+      {
+        vector<float> values;
+        for(int i_kernel = i-half_width; i_kernel < i+half_width; ++i_kernel)
+        {
+          for(int j_kernel = j-half_width; j_kernel < j+half_width; ++j_kernel)
+          {
+            if(i_kernel>=0 && i_kernel<NRows && j_kernel>=0 && j_kernel<NCols)
+            {
+              if(RasterData[i_kernel][j_kernel] != NoDataValue)
+              {
+                values.push_back(RasterData[i_kernel][j_kernel]);
+              }
+            }
+          }
+        }
+  
+        vector<float> quantile_values,normal_variates,mn_values;
+        int N_points = 10000;//values.size();
+        if(int(values.size())<10000) N_points = values.size();
+        quantile_quantile_analysis(values, quantile_values, normal_variates, mn_values, N_points);
+
+        // Find q-q threshold
+        //cout << "\t finding deviation from Gaussian distribution to define q-q threshold" << endl;
+        vector<int> indices;
+        int flag = 0;
+        float threshold_condition=0.99;
+        float curvature_threshold = 0.1;
+        int threshold_index=0;
+        int n_values = quantile_values.size();
+        for(int i_val = 0; i_val<n_values; ++i_val)
+        {
+          if(normal_variates[i_val] >= 0)
+          {
+            if(mn_values[i_val]<threshold_condition*quantile_values[i_val])
+            {
+              if (flag==0)
+              {
+                flag = 1;
+//               curvature_threshold = quantile_values[i];
+                threshold_index = i_val;
+              }
+            }
+            else flag = 0;
+          }
+        }
+        float mean_curvature = get_mean(values);
+        float sd_curvature = get_standard_deviation(values,mean_curvature);
+        curvature_threshold = mean_curvature+normal_variates[threshold_index]*sd_curvature;
+        curvature_threshold_array[i][j] = curvature_threshold;
+	// cout << "\t Creating channel raster based on curvature threshold (threshold = " << curvature_threshold << ")" << endl;
+      }
+    }
+  }
+  Array2D<int> binary_raster(NRows,NCols,NoDataValue);
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if(RasterData[i][j] != NoDataValue)
+      {
+        if(RasterData[i][j] >= curvature_threshold_array[i][j]) binary_raster[i][j]=1;
+        else binary_raster[i][j]=0;
+      }
+    }
+  }
+  cout << "DONE" << endl;
+  LSDIndexRaster ChannelMask(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_raster);
+  return ChannelMask;
+
+}
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Simple method to flatten an LSDRaster and place the non NDV values in a file.
 // Each value is placed on its own line, so that it can be read more quickly in python etc.
 // SWDG 9/2/15
