@@ -590,7 +590,7 @@ void LSDIndexRaster::read_raster(string filename, string extension)
       if (DataType == 2)
       {
         //cout << "Loading raster, recasting data from int to float!" << endl;
-        short int temp;
+        int temp;
         //cout << "Integer size: " << sizeof(temp) << endl;
         for (int i=0; i<NRows; ++i)
         {
@@ -607,7 +607,7 @@ void LSDIndexRaster::read_raster(string filename, string extension)
           //cout << endl;
         }
       }
-      else if (DataType == 4)
+            else if (DataType == 4)
       {
         float temp;
         //cout << "Float size: " << sizeof(temp) << endl;
@@ -809,7 +809,7 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 
     // now do the main data
     ofstream data_ofs(string_filename.c_str(), ios::out | ios::binary);
-    int data_type = 4;
+    int data_type = 2;
     int temp;
     for (int i=0; i<NRows; ++i)
     {
@@ -2161,22 +2161,22 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 	    if((above_left!= NoDataValue) || (above != NoDataValue) || (above_right != NoDataValue) || (left != NoDataValue))
 	    {
               // above left
-              if(above_left != NoDataValue) if(above_left < minimum_label) minimum_label = above_left;
+              if((above_left != NoDataValue) && (above_left < minimum_label)) minimum_label = above_left;
 	      // above
-              if(above != NoDataValue) if(above < minimum_label) minimum_label = above;
+              if((above != NoDataValue) && (above < minimum_label)) minimum_label = above;
 	      // above right
-              if(above_right != NoDataValue) if(above_right < minimum_label) minimum_label = above_right;
+              if((above_right != NoDataValue) && (above_right < minimum_label)) minimum_label = above_right;
 	      // left
-              if(left != NoDataValue) if(left < minimum_label) minimum_label = left;
+              if((left != NoDataValue) && (left < minimum_label)) minimum_label = left;
 
               // above left
-              if(above_left != NoDataValue) if(equivalences[1][above_left] > minimum_label) equivalences[1][above_left] = minimum_label;  
+              if((above_left != NoDataValue) && (equivalences[1][above_left] > minimum_label)) equivalences[1][above_left] = minimum_label;  
 	      // above
-              if(above != NoDataValue) if(equivalences[1][above] > minimum_label) equivalences[1][above] = minimum_label;
+              if((above != NoDataValue) && (equivalences[1][above] > minimum_label)) equivalences[1][above] = minimum_label;
 	      // above right
-              if(above_right != NoDataValue) if(equivalences[1][above_right] > minimum_label) equivalences[1][above_right] = minimum_label;
+              if((above_right != NoDataValue) && (equivalences[1][above_right] > minimum_label)) equivalences[1][above_right] = minimum_label;
 	      // left
-              if(left != NoDataValue) if(equivalences[1][left] > minimum_label) equivalences[1][left] = minimum_label;
+              if((left != NoDataValue) && (equivalences[1][left] > minimum_label)) equivalences[1][left] = minimum_label;
             }
             else
 	    {
