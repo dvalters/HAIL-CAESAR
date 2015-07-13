@@ -1899,6 +1899,7 @@ class LSDRaster
   /// @author DTM
   /// @date 10/02/2015 
   LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
+  LSDIndexRaster IsolateChannelsQuantileQuantileAdaptive(int half_width);
 
   /// @brief Method to convert an LSDRaster hilltop file into a series of contigiuous hilltop patches.
   ///
