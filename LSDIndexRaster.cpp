@@ -590,7 +590,7 @@ void LSDIndexRaster::read_raster(string filename, string extension)
       if (DataType == 2)
       {
         //cout << "Loading raster, recasting data from int to float!" << endl;
-        int temp;
+        short int temp;
         //cout << "Integer size: " << sizeof(temp) << endl;
         for (int i=0; i<NRows; ++i)
         {
@@ -607,7 +607,7 @@ void LSDIndexRaster::read_raster(string filename, string extension)
           //cout << endl;
         }
       }
-            else if (DataType == 4)
+      else if (DataType == 4)
       {
         float temp;
         //cout << "Float size: " << sizeof(temp) << endl;
@@ -809,7 +809,7 @@ void LSDIndexRaster::write_raster(string filename, string extension)
 
     // now do the main data
     ofstream data_ofs(string_filename.c_str(), ios::out | ios::binary);
-    int data_type = 2;
+    int data_type = 4;
     int temp;
     for (int i=0; i<NRows; ++i)
     {
