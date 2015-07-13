@@ -2097,7 +2097,7 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
         if(flag == false)
 	{
           LabelledComponents[i][j] = next_label;
-          equivalences[next_label] = next_label;
+          equivalences.push_back(next_label);
 	  ++next_label;
           flag = true; 
         }
