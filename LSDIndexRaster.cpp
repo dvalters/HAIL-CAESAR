@@ -87,6 +87,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <algorithm>
 #include "TNT/tnt.h"
 #include "LSDIndexRaster.hpp"
 #include "LSDRaster.hpp"
@@ -2082,134 +2083,175 @@ LSDIndexRaster LSDIndexRaster::MergeChannelWithFloodplain(LSDIndexRaster FloodPl
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 {
-  cout << "\t\t Connected Components" << endl;
+  cout << "\t\t Connected Components; first pass" << endl;
   Array2D<int> LabelledComponents(NRows,NCols,NoDataValue);
   vector < vector<int> > equivalences; 
   vector <int> empty_vector;
   equivalences.push_back(empty_vector);
   equivalences.push_back(empty_vector);
+ 
+  vector< vector<int> > eqs;
   int next_label = 0;
+  eqs.push_back(empty_vector);
+  eqs[next_label].push_back(next_label); 
   bool flag = false;
-  for(int i = 0; i<NRows; ++i)
-  {
-    for(int j = 0; j<NCols; ++j)
-    {
+  for(int i = 0; i<NRows; ++i){
+    for(int j = 0; j<NCols; ++j){
       // Iterate through the array
-      if(RasterData[i][j] == 1)
-      {
-        if(flag == false)
-	{
+      if(RasterData[i][j] == 1){
+        if(flag == false){
           LabelledComponents[i][j] = next_label;
           equivalences[0].push_back(next_label);
           equivalences[1].push_back(next_label);
+          eqs.push_back(empty_vector);
 	  ++next_label;
+          eqs[next_label].push_back(next_label); 
           flag = true; 
         }
         // Check neighbours
-        else
-	{
+        else{
           // first row is easy
-          if(i == 0)
-	  {
+          if(i == 0){
             if(LabelledComponents[i][j-1] != NoDataValue) LabelledComponents[i][j] = LabelledComponents[i][j-1];
-            else
-	    {
+            else{
               LabelledComponents[i][j] = next_label;
               equivalences[0].push_back(next_label);
               equivalences[1].push_back(next_label);
+              eqs.push_back(empty_vector);
 	      ++next_label;
+              eqs[next_label].push_back(next_label); 
             }
           }
           // for first column, need to check above and above right
-          else if(j==0)
-          { 
-            int minimum_label = next_label;
+          else if(j==0){ 
+            int minimum_label;
             int above = LabelledComponents[i-1][j];
             int above_right = LabelledComponents[i-1][j+1];
             vector<int> neighbourhood_labels;
-            if((above != NoDataValue) || (above_right != NoDataValue))
-	    {
-              if(above != NoDataValue)
-	      {
-	        if(above < minimum_label) minimum_label = above;
-	      }
-              if(above_right != NoDataValue)
-	      {
-                if(above_right < minimum_label) minimum_label = above_right;
-	      }
-              // above
-              if(above != NoDataValue) if((above > minimum_label) && (equivalences[1][above] > minimum_label)) equivalences[1][above] = minimum_label;
-	      // above right
-              if(above_right != NoDataValue) if((above_right > minimum_label) && (equivalences[1][above_right]) > minimum_label) equivalences[1][above_right] = minimum_label;
-            }
-            else
-	    {
+
+            if(above != NoDataValue) neighbourhood_labels.push_back(above);
+            if(above_right != NoDataValue) neighbourhood_labels.push_back(above_right);
+
+            int N = neighbourhood_labels.size();
+            if (N == 0){
               equivalences[0].push_back(next_label);
-              equivalences[1].push_back(next_label);
+              equivalences[1].push_back(next_label); 
+              eqs.push_back(empty_vector);
+              LabelledComponents[i][j] = next_label;
               ++next_label;
-            }
-            LabelledComponents[i][j] = minimum_label;
+              eqs[next_label].push_back(next_label); 
+	    }
+            else{
+              minimum_label = neighbourhood_labels[0];
+	      for(int k = 0; k<N; ++k){
+		if(neighbourhood_labels[k]<minimum_label) minimum_label = neighbourhood_labels[k];
+	      }
+	      for(int k = 0; k<N; ++k) equivalences[1][neighbourhood_labels[k]] = equivalences[1][minimum_label];
+              LabelledComponents[i][j] = minimum_label;  
+	    }
+          }
+          // for final column, check above left, left and above.
+          else if(j==NCols-1){ 
+            int minimum_label;
+            int above_left = LabelledComponents[i-1][j-1];
+            int above = LabelledComponents[i-1][j];
+            int left = LabelledComponents[i][j-1];
+            vector<int> neighbourhood_labels;
+
+            if(above_left != NoDataValue) neighbourhood_labels.push_back(above_left);
+            if(above != NoDataValue) neighbourhood_labels.push_back(above);
+            if(left != NoDataValue) neighbourhood_labels.push_back(left);
+
+            int N = neighbourhood_labels.size();
+            if (N == 0){
+              equivalences[0].push_back(next_label);
+              equivalences[1].push_back(next_label); 
+              eqs.push_back(empty_vector);
+              LabelledComponents[i][j] = next_label;
+              ++next_label;
+              eqs[next_label].push_back(next_label); 
+	    }
+            else{
+              minimum_label = neighbourhood_labels[0];
+	      for(int k = 0; k<N; ++k){
+		if(neighbourhood_labels[k]<minimum_label) minimum_label = neighbourhood_labels[k];
+	      }
+	      for(int k = 0; k<N; ++k) equivalences[1][neighbourhood_labels[k]] = equivalences[1][minimum_label];
+              LabelledComponents[i][j] = minimum_label;  
+	    }
           }
           // for other cells, check above left, above, above right and left.
-          else
-	  { 
-            int minimum_label = next_label;
+          else{
+	    cout << i << " " << j << " ";
             int above_left = LabelledComponents[i-1][j-1];
             int above = LabelledComponents[i-1][j];
             int above_right = LabelledComponents[i-1][j+1];
             int left = LabelledComponents[i][j-1];
-	    if((above_left!= NoDataValue) || (above != NoDataValue) || (above_right != NoDataValue) || (left != NoDataValue))
-	    {
-              // above left
-              if((above_left != NoDataValue) && (above_left < minimum_label)) minimum_label = above_left;
-	      // above
-              if((above != NoDataValue) && (above < minimum_label)) minimum_label = above;
-	      // above right
-              if((above_right != NoDataValue) && (above_right < minimum_label)) minimum_label = above_right;
-	      // left
-              if((left != NoDataValue) && (left < minimum_label)) minimum_label = left;
-
-              // above left
-              if((above_left != NoDataValue) && (equivalences[1][above_left] > minimum_label)) equivalences[1][above_left] = minimum_label;  
-	      // above
-              if((above != NoDataValue) && (equivalences[1][above] > minimum_label)) equivalences[1][above] = minimum_label;
-	      // above right
-              if((above_right != NoDataValue) && (equivalences[1][above_right] > minimum_label)) equivalences[1][above_right] = minimum_label;
-	      // left
-              if((left != NoDataValue) && (equivalences[1][left] > minimum_label)) equivalences[1][left] = minimum_label;
-            }
-            else
-	    {
+            vector<int> neighbourhood_labels;
+            if(above_left != NoDataValue){
+	      neighbourhood_labels.push_back(above_left);
+	    }
+            if(above != NoDataValue){
+	      if(neighbourhood_labels.empty()) neighbourhood_labels.push_back(above);
+	      else if(find(neighbourhood_labels.begin(),neighbourhood_labels.end(),above)==neighbourhood_labels.end()) neighbourhood_labels.push_back(above);
+	    }
+            if(above_right != NoDataValue){
+	      if(neighbourhood_labels.empty()) neighbourhood_labels.push_back(above_right);
+	      else if(find(neighbourhood_labels.begin(),neighbourhood_labels.end(),above_right)==neighbourhood_labels.end()) neighbourhood_labels.push_back(above_right);
+	    }
+            if(left != NoDataValue){
+	      if(neighbourhood_labels.empty()) neighbourhood_labels.push_back(left);
+	      else if(find(neighbourhood_labels.begin(),neighbourhood_labels.end(),left)==neighbourhood_labels.end()) neighbourhood_labels.push_back(left);
+	    }
+            int N = neighbourhood_labels.size();
+	    cout << "neighbours = " << N <<  " ";
+	    if (N == 0){
               equivalences[0].push_back(next_label);
-              equivalences[1].push_back(next_label); 
+              equivalences[1].push_back(next_label);
+              eqs.push_back(empty_vector); 
+              LabelledComponents[i][j] = next_label;
               ++next_label;
-            }
-            LabelledComponents[i][j] = minimum_label;
+              eqs[next_label].push_back(next_label);
+	      cout << "new lab " << next_label;
+	    }
+            else{
+              vector<size_t> index_map;
+	      matlab_int_sort(neighbourhood_labels,neighbourhood_labels,index_map);
+              LabelledComponents[i][j] = neighbourhood_labels[0];
+	      if(N>1){
+		for(int k1 = 0; k1<N; ++k1){
+		  for(int k2 = 1; k2<N; ++k2){
+		    for(int i_eq = 0; i_eq < int(eqs[neighbourhood_labels[k2]].size()); ++i_eq){
+		      eqs[neighbourhood_labels[k1]].push_back(eqs[neighbourhood_labels[k2]][i_eq]);
+		    }
+		    for(int i_eq = 0; i_eq < int(eqs[neighbourhood_labels[k1]].size()); ++i_eq){
+		      eqs[neighbourhood_labels[k2]].push_back(eqs[neighbourhood_labels[k1]][i_eq]);
+		    }
+		  }
+		}
+	      }
+	      cout << "finished eqs, moving on" << endl;
+	    }
           }
 	}
       }
     }
   }
   // Second pass, assign equivalences 
-  for(int i = 0; i<NRows; ++i)
-  {
-    for(int j = 0; j<NCols; ++j)
-    {
-      if(LabelledComponents[i][j] != NoDataValue)
-      {
-        int value = LabelledComponents[i][j];
-        while(equivalences[1][value]!=equivalences[0][value]) value = equivalences[1][value];
-        LabelledComponents[i][j] = value;
-      }
+  cout << "Second pass" << endl;
+  for(int i = 0; i < int(eqs.size()); ++i){
+    vector<size_t> index_map;
+    matlab_int_sort(eqs[i],eqs[i],index_map);
+  }
+  for(int i = 0; i<NRows; ++i){
+    for(int j = 0; j<NCols; ++j){
+      if(LabelledComponents[i][j] != NoDataValue) LabelledComponents[i][j] = eqs[LabelledComponents[i][j]][0];
     }
   } 
-  for(int i = 0; i<NRows; ++i)
-  {
-    for(int j = 0; j<NCols; ++j)
-    {
-      if(LabelledComponents[i][j+1] != NoDataValue && LabelledComponents[i][j] != NoDataValue && LabelledComponents[i][j+1] != LabelledComponents[i][j])
-      {
-        cout << "we have a problem " << LabelledComponents[i][j+1] << " " << LabelledComponents[i][j] << " " << equivalences[1][LabelledComponents[i][j+1]] << " " << equivalences[1][LabelledComponents[i][j]] << endl;
+  for(int i = 0; i<NRows; ++i){ 
+    for(int j = 0; j<NCols; ++j){
+      if(LabelledComponents[i][j-1] != NoDataValue && LabelledComponents[i][j] != NoDataValue && LabelledComponents[i][j-1] != LabelledComponents[i][j]){
+	cout << "we have a problem " << i << " " << j << " " << LabelledComponents[i][j-1] << " " << LabelledComponents[i][j] << endl;//" " << equivalences[1][LabelledComponents[i][j-1]] << " " << equivalences[1][LabelledComponents[i][j]] << endl;
       }
     }
   }  
