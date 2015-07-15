@@ -130,7 +130,7 @@ int main (int nNumberofArgs,char *argv[])
   LSDCosmoData CosmoData(path_name,param_name_prefix);
 
   // spawn the basins
-  CosmoData.RunShielding();
+  CosmoData.RunShielding(path_name,param_name_prefix);
 
 
 }
