@@ -2204,7 +2204,7 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 	      else if(find(neighbourhood_labels.begin(),neighbourhood_labels.end(),left)==neighbourhood_labels.end()) neighbourhood_labels.push_back(left);
 	    }
             int N = neighbourhood_labels.size();
-	    cout << "neighbours = " << N <<  " ";
+	    cout << "neighbours = " << N <<  " " << endl;
 	    if (N == 0){
               equivalences[0].push_back(next_label);
               equivalences[1].push_back(next_label);
@@ -2212,24 +2212,30 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
               LabelledComponents[i][j] = next_label;
               ++next_label;
               eqs[next_label].push_back(next_label);
-	      cout << "new lab " << next_label;
+	      cout << "new lab " << next_label << endl;
 	    }
             else{
-              vector<size_t> index_map;
-	      matlab_int_sort(neighbourhood_labels,neighbourhood_labels,index_map);
-              LabelledComponents[i][j] = neighbourhood_labels[0];
 	      if(N>1){
+		vector<size_t> index_map;
+		matlab_int_sort(neighbourhood_labels,neighbourhood_labels,index_map);
+		LabelledComponents[i][j] = neighbourhood_labels[0];
+		cout << "this might be the problem area" << endl;
 		for(int k1 = 0; k1<N; ++k1){
 		  for(int k2 = 1; k2<N; ++k2){
-		    for(int i_eq = 0; i_eq < int(eqs[neighbourhood_labels[k2]].size()); ++i_eq){
-		      eqs[neighbourhood_labels[k1]].push_back(eqs[neighbourhood_labels[k2]][i_eq]);
-		    }
-		    for(int i_eq = 0; i_eq < int(eqs[neighbourhood_labels[k1]].size()); ++i_eq){
-		      eqs[neighbourhood_labels[k2]].push_back(eqs[neighbourhood_labels[k1]][i_eq]);
+		    if(k1!=k2){
+                      vector<int> k1_labs = eqs[neighbourhood_labels[k1]];
+                      vector<int> k2_labs = eqs[neighbourhood_labels[k2]];
+		      for(int i_eq = 0; i_eq < int(k2_labs.size()); ++i_eq){
+			eqs[neighbourhood_labels[k1]].push_back(k2_labs[i_eq]);
+		      }
+		      for(int i_eq = 0; i_eq < int(k1_labs.size()); ++i_eq){
+			eqs[neighbourhood_labels[k2]].push_back(k1_labs[i_eq]);
+		      }
 		    }
 		  }
 		}
 	      }
+	      else LabelledComponents[i][j] = neighbourhood_labels[0];
 	      cout << "finished eqs, moving on" << endl;
 	    }
           }
