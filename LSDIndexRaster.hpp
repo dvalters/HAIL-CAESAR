@@ -390,8 +390,17 @@ class LSDIndexRaster
   /// @date 13/07/2015
   LSDIndexRaster ConnectedComponents();
 
-  void thinningIteration(Array2D<int>& binary, int iter);
+  /// @brief A method to thin a multipixel feature (binary) to a single thread skeleton
+  ///
+  /// @details Takes a binary array in which features are identified as 1, and
+  /// background 0, and thins the features down to a skeleton, using the thinning
+  /// algorithm described by Zhang and Suen, 1984, "A fast algorithm for thinning
+  /// digital patterns", Communications of the ACM.
+  /// @return an LSDIndexRaster with the skeleton
+  /// @author DTM
+  /// @date 15/07/2015
   LSDIndexRaster thin_to_skeleton();
+  void thinningIteration(Array2D<int>& binary, int iter);
 
   protected:
   ///Number of rows.
