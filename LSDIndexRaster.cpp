@@ -1931,7 +1931,6 @@ void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter){
       }
       if(A==1 && B>=2 && B<=6 && m1==0 && m2==0){
 	marker[i][j]=1;
-	//binary[i][j]=0;
       }
     }
   }
