@@ -1955,7 +1955,7 @@ LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
   int even = 1;
   int odd = 0;
   while(finish_flag == 0){
-    cout << "Thinning - iteration number " << count << "\n ";
+    cout << flush << "Thinning - iteration number " << count << "; ";
     ++count;
     int removed = 0;
     finish_flag = 1;
@@ -1972,7 +1972,7 @@ LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
       }
     }
     total_removed += removed;
-    cout << "\tremoved " << removed << " pixels; " << total_removed << " removed in total     \n";
+    cout << "removed " << removed << " pixels; " << total_removed << "; removed in total     \r";
     binary_old = binary_new.copy();
   }
   cout << "\nDone" << endl;
@@ -1980,6 +1980,28 @@ LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
   return skeleton;
 }
 
+LSDIndexRaster LSDIndexRaster::find_end_points()
+{
+  Array2D<int> EndPoints(NRows,NCols,NoDataValue);
+  int p2,p3,p4,p5,p6,p7,p8,p9;
+  for(int i=1; i<NRows-1; ++i){
+    for(int j=1; j<NCols-1; ++j){
+      if(RasterData[i][j]==1){	
+	p2 = RasterData[i-1][j];
+	p3 = RasterData[i-1][j+1];
+	p4 = RasterData[i][j+1];
+	p5 = RasterData[i+1][j+1];
+	p6 = RasterData[i+1][j];
+	p7 = RasterData[i+1][j-1];
+	p8 = RasterData[i][j-1];
+	p9 = RasterData[i-1][j-1];
+	if(p2+p3+p4+p5+p6+p7+p8+p9>1) EndPoints = 1;
+      }
+    }
+  }
+  LSDIndexRaster Ends(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,EndPoints);
+  return Ends;
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
