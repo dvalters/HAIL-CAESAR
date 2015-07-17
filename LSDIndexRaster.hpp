@@ -400,6 +400,9 @@ class LSDIndexRaster
   /// @date 13/07/2015
   LSDIndexRaster ConnectedComponents();
 
+  void thinningIteration(Array2D<int>& binary, int iter);
+  LSDIndexRaster thin_to_skeleton();
+
   protected:
   ///Number of rows.
   int NRows;
