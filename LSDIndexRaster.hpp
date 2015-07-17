@@ -350,16 +350,6 @@ class LSDIndexRaster
   /// @author SWDG
   /// @date 02/9/13
   LSDIndexRaster LSDRasterTemplate(Array2D<int> InputData);
-
-  /// @brief This function implements the thinning algorithm described in Rosenfeld and
-  /// Kak (1982).  It takes a binary map and turns it into a continuous single 
-  /// thread skeleton.  At present, pixels at the limits of the raster are
-  /// automatically set to 0.  If it is necessary to extend the skeleton to the 
-  /// edge, this should be a straightforward operation afterwards.
-  ///
-  /// @author DTM 
-  /// @date 28/10/2013
-  LSDIndexRaster thin_to_single_thread_network();
   
   /// @brief Method to resample an LSDIndexRaster to a lower resolution. 
   /// @param OutputResolution the resolution in spatial units to be resampled to.
