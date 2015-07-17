@@ -2268,7 +2268,8 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
   return ConnectedComponentsRaster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
+// The following two functions are used to thin a multi-pixel binary feature into a single pixel skeleton.  It uses the algorithm described by Zhang and Suen (1984), A fast algorithm for thinning digital patterns, Communications of the ACM.
+// Thinning algorithm 
 void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter){
 
   Array2D<int> marker(NRows,NCols,0);
@@ -2306,7 +2307,6 @@ void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter){
     }
   }
 }
-
 LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
   int finish_flag = 0;
   Array2D<int> binary_old(NRows,NCols,0);
