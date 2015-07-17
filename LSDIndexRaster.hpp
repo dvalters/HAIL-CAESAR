@@ -402,6 +402,8 @@ class LSDIndexRaster
   LSDIndexRaster thin_to_skeleton();
   void thinningIteration(Array2D<int>& binary, int iter);
 
+  LSDIndexRaster find_end_points();
+
   protected:
   ///Number of rows.
   int NRows;
