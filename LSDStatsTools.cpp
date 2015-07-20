@@ -5334,7 +5334,92 @@ float inverf(float p)
 {
   return inverfc(1.-p);
 }
+ 
+// DISJOINT SET STUFF
+DisjointSet::DisjointSet() : elements(0), sets(0) {};  
+
+DisjointSet::~DisjointSet(){
+  for(int i = 0; i < int(DSnodes.size()); ++i) delete DSnodes[i];
+  DSnodes.clear();
+}
+
+//DSnode* DisjointSet::DSMakeSet(int i){
+void DisjointSet::DSMakeSet(int i){
+  if (elements + 1 > int(DSnodes.size())) DSnodes.push_back(new DSnode);
+  DSnodes[elements]->parent = DSnodes[elements];
+  DSnodes[elements]->i_node = i;
+  DSnodes[elements]->rank = 0;
+  ++elements;
+  ++sets;
+  //return DSnodes[elements-1];
+}
+
+DSnode* DisjointSet::Find(DSnode* node){ //Find with path compression
+  if(node->parent==node) return node;
+  else{
+    node->parent = Find(node->parent);
+    return node->parent;
+  } 
+}
+
+void DisjointSet::Union(DSnode* node1, DSnode* node2){
+  if(node1==node2) return; // same node - no action required
+  DSnode *parent1 = Find(node1);
+  DSnode *parent2 = Find(node2);
+  if(parent1==parent2) return; // same set - no action required
+  if(parent1->rank < parent2->rank) parent1->parent = parent2;
+  else if(parent2->rank < parent1->rank) parent2->parent = parent1;
+  else{
+    parent1->parent = parent2;
+    parent2->rank++;
+  }
+  --sets;
+}
+
+int DisjointSet::Union_return_label(DSnode* node1, DSnode* node2){
+  if(node1==node2) return node1->parent->i_node; // same node - no action required
+  DSnode *parent1 = Find(node1);
+  DSnode *parent2 = Find(node2);
+  if(parent1==parent2) return parent1->i_node; // same set - no action required
+  if(parent1->rank < parent2->rank) parent1->parent = parent2;
+  else if(parent2->rank < parent1->rank){
+    parent2->parent = parent1;
+  }
+  else{
+    parent1->parent = parent2;
+    parent2->rank++;
+  }
+  --sets;
+  return parent2->parent->i_node;
+}
+DSnode* DisjointSet::get_DSnode(int i){
+  return DSnodes[i];
+}
+
+int DisjointSet::get_parent(int i){
+  DSnode *parent = Find(DSnodes[i]);
+  return parent->i_node;
+}
+
+int DisjointSet::ElementCount(){
+  return elements;
+}
+
+int DisjointSet::SetCount(){
+  return sets;
+}
+
+int DisjointSet::Reduce(){
+  int j=0;
+  for(int i = 0; i < elements; ++i) if(DSnodes[i]->parent == DSnodes[i]) DSnodes[i]->i_node = j++;
+  return j; 
+}
+
+void DisjointSet::Reset(){
+  elements = sets = 0;
+}
 
 #endif
+
 
 
