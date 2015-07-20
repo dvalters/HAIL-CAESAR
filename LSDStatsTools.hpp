@@ -493,6 +493,37 @@ float inverfc(float p);
 // Inverse Complementary error function.  Returns x such that erf(x)=p within limits -1<p<1
 float inverf(float p);
 
+// CODE FOR DISJOINT SET STRUCTURE
+struct DSnode{
+  DSnode *parent;
+  int i_node;
+  int rank;
+};
+
+class DisjointSet{
+private:
+  vector<DSnode *> DSnodes;
+  int elements;
+  int sets;
+public:
+  DisjointSet();
+  ~DisjointSet();
+  void DSMakeSet(int i);
+  DSnode* Find(DSnode* node);
+  void Union(DSnode* node_1, DSnode* node_2);
+  int Union_return_label(DSnode* node_1, DSnode* node_2);
+  DSnode* get_DSnode(int i);
+  int get_parent(int i);
+  int ElementCount();
+  int SetCount();
+  int Reduce();
+  void Reset();
+};
+
+
+
+
+
 #endif
 
 
