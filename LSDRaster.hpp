@@ -1900,6 +1900,13 @@ class LSDRaster
   /// @date 10/02/2015 
   LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
   LSDIndexRaster IsolateChannelsQuantileQuantileAdaptive(int half_width);
+  
+  /// @brief Function to calculate the curvature threshold used for DrEICH channel extraction which varies across the landscape
+  /// @param half_width radius over which to calculate the curvature threshold
+  /// @return Array2D<float> array with curvature threshold for each row and col 
+  /// @author FJC   
+  /// @date 20/07/15   
+  Array2D<float> CalculateAdaptiveCurvatureThresholdSD(int half_width);
 
   /// @brief Method to convert an LSDRaster hilltop file into a series of contigiuous hilltop patches.
   ///

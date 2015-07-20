@@ -10415,6 +10415,55 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantileAdaptive(int half_width
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This function calculates the standard deviation of curvature values which
+// varies across the landscape due to varying relief, slope, etc.
+// The standard deviation of the curvature is used as the curvature threshold to
+// find valleys to use in the DrEICH method.
+//
+// adapted from IsolateChannelsQuantileQuantileAdaptive to just use the
+// standard deviation of the curvature rather than the qq plot
+// FJC
+// 20/07/15
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+Array2D<float> LSDRaster::CalculateAdaptiveCurvatureThresholdSD(int half_width)
+{
+  cout << "Calculating adaptive curvature threshold" << endl;
+  Array2D<float> curvature_threshold_array(NRows,NCols,NoDataValue);
+  for(int i = 0; i < NRows; ++i)
+  {
+    cout << flush << "processing row " << i+1 << " of " << NRows << "\r" ;
+    for(int j = 0; j < NCols; ++j)
+    {  
+      if(RasterData[i][j]!=NoDataValue)
+      {
+        vector<float> values;
+        for(int i_kernel = i-half_width; i_kernel < i+half_width; ++i_kernel)
+        {
+          for(int j_kernel = j-half_width; j_kernel < j+half_width; ++j_kernel)
+          {
+            if(i_kernel>=0 && i_kernel<NRows && j_kernel>=0 && j_kernel<NCols)
+            {
+              if(RasterData[i_kernel][j_kernel] != NoDataValue)
+              {
+                values.push_back(RasterData[i_kernel][j_kernel]);
+              }
+            }
+          }
+        }
+  
+        float mean_curvature = get_mean(values);
+        float sd_curvature = get_standard_deviation(values,mean_curvature);
+        curvature_threshold_array[i][j] = (2*sd_curvature);
+        //cout << "Threshold: " << curvature_threshold_array[i][j] << endl;
+	// cout << "\t Creating channel raster based on curvature threshold (threshold = " << curvature_threshold << ")" << endl;
+      }
+    }
+  }
+  return curvature_threshold_array;
+}
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
