@@ -1722,27 +1722,19 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 {
   cout << "\t\t Connected Components; first pass" << endl;
   Array2D<int> LabelledComponents(NRows,NCols,NoDataValue);
-  vector < vector<int> > equivalences; 
-  vector <int> empty_vector;
-  equivalences.push_back(empty_vector);
-  equivalences.push_back(empty_vector);
- 
-  vector< vector<int> > eqs;
   int next_label = 0;
-  eqs.push_back(empty_vector);
-  eqs[next_label].push_back(next_label); 
   bool flag = false;
+
+  DisjointSet DS;
+
   for(int i = 0; i<NRows; ++i){
     for(int j = 0; j<NCols; ++j){
       // Iterate through the array
       if(RasterData[i][j] == 1){
         if(flag == false){
           LabelledComponents[i][j] = next_label;
-          equivalences[0].push_back(next_label);
-          equivalences[1].push_back(next_label);
-          eqs.push_back(empty_vector);
+	  DS.DSMakeSet(next_label);
 	  ++next_label;
-          eqs[next_label].push_back(next_label); 
           flag = true; 
         }
         // Check neighbours
@@ -1752,16 +1744,12 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
             if(LabelledComponents[i][j-1] != NoDataValue) LabelledComponents[i][j] = LabelledComponents[i][j-1];
             else{
               LabelledComponents[i][j] = next_label;
-              equivalences[0].push_back(next_label);
-              equivalences[1].push_back(next_label);
-              eqs.push_back(empty_vector);
+	      DS.DSMakeSet(next_label);
 	      ++next_label;
-              eqs[next_label].push_back(next_label); 
             }
           }
           // for first column, need to check above and above right
-          else if(j==0){ 
-            int minimum_label;
+          else if(j==0){
             int above = LabelledComponents[i-1][j];
             int above_right = LabelledComponents[i-1][j+1];
             vector<int> neighbourhood_labels;
@@ -1771,25 +1759,19 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 
             int N = neighbourhood_labels.size();
             if (N == 0){
-              equivalences[0].push_back(next_label);
-              equivalences[1].push_back(next_label); 
-              eqs.push_back(empty_vector);
               LabelledComponents[i][j] = next_label;
+	      DS.DSMakeSet(next_label);
               ++next_label;
-              eqs[next_label].push_back(next_label); 
 	    }
+	    else if(N==1) LabelledComponents[i][j] = neighbourhood_labels[0];
             else{
-              minimum_label = neighbourhood_labels[0];
-	      for(int k = 0; k<N; ++k){
-		if(neighbourhood_labels[k]<minimum_label) minimum_label = neighbourhood_labels[k];
-	      }
-	      for(int k = 0; k<N; ++k) equivalences[1][neighbourhood_labels[k]] = equivalences[1][minimum_label];
-              LabelledComponents[i][j] = minimum_label;  
+	      DSnode* node1 = DS.get_DSnode(neighbourhood_labels[0]);
+	      DSnode* node2 = DS.get_DSnode(neighbourhood_labels[1]);
+	      LabelledComponents[i][j] = DS.Union_return_label(node1,node2);
 	    }
           }
-          // for final column, check above left, left and above.
+          // for final column, check above left, above left and above.
           else if(j==NCols-1){ 
-            int minimum_label;
             int above_left = LabelledComponents[i-1][j-1];
             int above = LabelledComponents[i-1][j];
             int left = LabelledComponents[i][j-1];
@@ -1801,79 +1783,43 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 
             int N = neighbourhood_labels.size();
             if (N == 0){
-              equivalences[0].push_back(next_label);
-              equivalences[1].push_back(next_label); 
-              eqs.push_back(empty_vector);
               LabelledComponents[i][j] = next_label;
+	      DS.DSMakeSet(next_label);
               ++next_label;
-              eqs[next_label].push_back(next_label); 
 	    }
+	    else if(N==1) LabelledComponents[i][j] = neighbourhood_labels[0];
             else{
-              minimum_label = neighbourhood_labels[0];
-	      for(int k = 0; k<N; ++k){
-		if(neighbourhood_labels[k]<minimum_label) minimum_label = neighbourhood_labels[k];
+	      DSnode* node1 = DS.get_DSnode(neighbourhood_labels[0]);
+	      for(int k = 1; k<N; ++k){
+		DSnode* node2 = DS.get_DSnode(neighbourhood_labels[k]);
+		LabelledComponents[i][j] = DS.Union_return_label(node1,node2);
 	      }
-	      for(int k = 0; k<N; ++k) equivalences[1][neighbourhood_labels[k]] = equivalences[1][minimum_label];
-              LabelledComponents[i][j] = minimum_label;  
 	    }
           }
           // for other cells, check above left, above, above right and left.
           else{
-	    cout << i << " " << j << " ";
             int above_left = LabelledComponents[i-1][j-1];
             int above = LabelledComponents[i-1][j];
             int above_right = LabelledComponents[i-1][j+1];
             int left = LabelledComponents[i][j-1];
             vector<int> neighbourhood_labels;
-            if(above_left != NoDataValue){
-	      neighbourhood_labels.push_back(above_left);
-	    }
-            if(above != NoDataValue){
-	      if(neighbourhood_labels.empty()) neighbourhood_labels.push_back(above);
-	      else if(find(neighbourhood_labels.begin(),neighbourhood_labels.end(),above)==neighbourhood_labels.end()) neighbourhood_labels.push_back(above);
-	    }
-            if(above_right != NoDataValue){
-	      if(neighbourhood_labels.empty()) neighbourhood_labels.push_back(above_right);
-	      else if(find(neighbourhood_labels.begin(),neighbourhood_labels.end(),above_right)==neighbourhood_labels.end()) neighbourhood_labels.push_back(above_right);
-	    }
-            if(left != NoDataValue){
-	      if(neighbourhood_labels.empty()) neighbourhood_labels.push_back(left);
-	      else if(find(neighbourhood_labels.begin(),neighbourhood_labels.end(),left)==neighbourhood_labels.end()) neighbourhood_labels.push_back(left);
-	    }
+            if(above_left != NoDataValue) neighbourhood_labels.push_back(above_left);
+            if(above != NoDataValue) neighbourhood_labels.push_back(above);
+            if(above_right != NoDataValue) neighbourhood_labels.push_back(above_right);
+            if(left != NoDataValue) neighbourhood_labels.push_back(left);
             int N = neighbourhood_labels.size();
-	    cout << "neighbours = " << N <<  " " << endl;
 	    if (N == 0){
-              equivalences[0].push_back(next_label);
-              equivalences[1].push_back(next_label);
-              eqs.push_back(empty_vector); 
               LabelledComponents[i][j] = next_label;
+	      DS.DSMakeSet(next_label);
               ++next_label;
-              eqs[next_label].push_back(next_label);
-	      cout << "new lab " << next_label << endl;
 	    }
+	    else if(N==1) LabelledComponents[i][j] = neighbourhood_labels[0];
             else{
-	      if(N>1){
-		vector<size_t> index_map;
-		matlab_int_sort(neighbourhood_labels,neighbourhood_labels,index_map);
-		LabelledComponents[i][j] = neighbourhood_labels[0];
-		cout << "this might be the problem area" << endl;
-		for(int k1 = 0; k1<N; ++k1){
-		  for(int k2 = 1; k2<N; ++k2){
-		    if(k1!=k2){
-                      vector<int> k1_labs = eqs[neighbourhood_labels[k1]];
-                      vector<int> k2_labs = eqs[neighbourhood_labels[k2]];
-		      for(int i_eq = 0; i_eq < int(k2_labs.size()); ++i_eq){
-			eqs[neighbourhood_labels[k1]].push_back(k2_labs[i_eq]);
-		      }
-		      for(int i_eq = 0; i_eq < int(k1_labs.size()); ++i_eq){
-			eqs[neighbourhood_labels[k2]].push_back(k1_labs[i_eq]);
-		      }
-		    }
-		  }
-		}
+	      DSnode* node1 = DS.get_DSnode(neighbourhood_labels[0]);
+	      for(int k = 1; k<N; ++k){
+		DSnode* node2 = DS.get_DSnode(neighbourhood_labels[k]);
+		LabelledComponents[i][j] = DS.Union_return_label(node1,node2);
 	      }
-	      else LabelledComponents[i][j] = neighbourhood_labels[0];
-	      cout << "finished eqs, moving on" << endl;
 	    }
           }
 	}
@@ -1882,22 +1828,13 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
   }
   // Second pass, assign equivalences 
   cout << "Second pass" << endl;
-  for(int i = 0; i < int(eqs.size()); ++i){
-    vector<size_t> index_map;
-    matlab_int_sort(eqs[i],eqs[i],index_map);
-  }
   for(int i = 0; i<NRows; ++i){
     for(int j = 0; j<NCols; ++j){
-      if(LabelledComponents[i][j] != NoDataValue) LabelledComponents[i][j] = eqs[LabelledComponents[i][j]][0];
-    }
-  } 
-  for(int i = 0; i<NRows; ++i){ 
-    for(int j = 0; j<NCols; ++j){
-      if(LabelledComponents[i][j-1] != NoDataValue && LabelledComponents[i][j] != NoDataValue && LabelledComponents[i][j-1] != LabelledComponents[i][j]){
-	cout << "we have a problem " << i << " " << j << " " << LabelledComponents[i][j-1] << " " << LabelledComponents[i][j] << endl;//" " << equivalences[1][LabelledComponents[i][j-1]] << " " << equivalences[1][LabelledComponents[i][j]] << endl;
+      if(LabelledComponents[i][j]!=NoDataValue){
+	LabelledComponents[i][j] = DS.get_parent(LabelledComponents[i][j]);
       }
     }
-  }  
+  }
   LSDIndexRaster ConnectedComponentsRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,LabelledComponents);
   return ConnectedComponentsRaster;
 }
@@ -1983,19 +1920,14 @@ LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
 LSDIndexRaster LSDIndexRaster::find_end_points()
 {
   Array2D<int> EndPoints(NRows,NCols,NoDataValue);
-  int p2,p3,p4,p5,p6,p7,p8,p9;
+  //int p2,p3,p4,p5,p6,p7,p8,p9,test;
+  int test;
   for(int i=1; i<NRows-1; ++i){
+    cout << flush << i << "/" << NRows << "\r";
     for(int j=1; j<NCols-1; ++j){
       if(RasterData[i][j]==1){	
-	p2 = RasterData[i-1][j];
-	p3 = RasterData[i-1][j+1];
-	p4 = RasterData[i][j+1];
-	p5 = RasterData[i+1][j+1];
-	p6 = RasterData[i+1][j];
-	p7 = RasterData[i+1][j-1];
-	p8 = RasterData[i][j-1];
-	p9 = RasterData[i-1][j-1];
-	if(p2+p3+p4+p5+p6+p7+p8+p9>1) EndPoints = 1;
+	test = RasterData[i-1][j]+RasterData[i-1][j+1]+RasterData[i][j+1]+RasterData[i+1][j+1]+RasterData[i+1][j]+RasterData[i+1][j-1]+RasterData[i][j-1]+RasterData[i-1][j-1];
+	if(test<=1) EndPoints = 1;
       }
     }
   }
