@@ -1826,6 +1826,7 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
       }
     }
   }
+  DS.Reduce();
   // Second pass, assign equivalences 
   cout << "Second pass" << endl;
   for(int i = 0; i<NRows; ++i){
@@ -1835,6 +1836,8 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
       }
     }
   }
+
+  // Now 
   LSDIndexRaster ConnectedComponentsRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,LabelledComponents);
   return ConnectedComponentsRaster;
 }
@@ -1920,7 +1923,6 @@ LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
 LSDIndexRaster LSDIndexRaster::find_end_points()
 {
   Array2D<int> EndPoints(NRows,NCols,NoDataValue);
-  //int p2,p3,p4,p5,p6,p7,p8,p9,test;
   int test;
   for(int i=1; i<NRows-1; ++i){
     cout << flush << i << "/" << NRows << "\r";
@@ -1934,6 +1936,36 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
   LSDIndexRaster Ends(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,EndPoints);
   return Ends;
 }
+
+
+void LSDIndexRaster::filter_by_connected_components(int connected_components_threshold){
+  LSDIndexRaster ConnectedComponentsRaster = ConnectedComponents();
+  vector<int> IDs;
+  for(int i = 0; i < NRows; ++i){
+    for(int j = 0; j < NCols; ++j){
+      if(ConnectedComponentsRaster.get_data_element(i,j) != NoDataValue) IDs.push_back(ConnectedComponentsRaster.get_data_element(i,j));
+    }
+  }
+  vector<size_t> index_map;
+  matlab_int_sort(IDs, IDs, index_map);
+  int N = IDs.back()+1;
+  vector<int> ID(N,0);
+  vector<int> count(N,0);
+  for(int i = 0; i<N; ++i) ID[i]=i;
+  for(int i = 0; i<int(IDs.size()); ++i) ++count[IDs[i]];
+  for(int i = 0; i < NRows; ++i){
+    for(int j = 0; j < NCols; ++j){
+      if(ConnectedComponentsRaster.get_data_element(i,j) != NoDataValue){
+	if(count[ConnectedComponentsRaster.get_data_element(i,j)] >= connected_components_threshold){
+	  RasterData[i][j] = 1;
+	}
+	else RasterData[i][j] = NoDataValue;
+      }
+      else RasterData[i][j] = NoDataValue; 
+    }
+  }
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
