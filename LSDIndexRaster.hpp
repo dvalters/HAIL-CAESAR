@@ -394,7 +394,7 @@ class LSDIndexRaster
   ///
   /// @author DTM
   /// @date 22/07/2015
-  void filter_by_connected_components(int connected_components_threshold);
+  LSDIndexRaster filter_by_connected_components(int connected_components_threshold);
 
 
   /// @brief A method to thin a multipixel feature (binary) to a single thread skeleton
