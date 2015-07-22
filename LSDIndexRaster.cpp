@@ -1940,8 +1940,9 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
 }
 
 
-void LSDIndexRaster::filter_by_connected_components(int connected_components_threshold){
+LSDIndexRaster LSDIndexRaster::filter_by_connected_components(int connected_components_threshold){
   LSDIndexRaster ConnectedComponentsRaster = ConnectedComponents();
+  Array2D<int> BinaryArray = RasterData.copy();
   vector<int> IDs;
   for(int i = 0; i < NRows; ++i){
     for(int j = 0; j < NCols; ++j){
@@ -1959,11 +1960,14 @@ void LSDIndexRaster::filter_by_connected_components(int connected_components_thr
     for(int j = 0; j < NCols; ++j){
       if(ConnectedComponentsRaster.get_data_element(i,j) != NoDataValue){
 	if(count[ConnectedComponentsRaster.get_data_element(i,j)] >= connected_components_threshold){
-	  RasterData[i][j] = 1;
+	  BinaryArray[i][j] = 1;
 	}
+	else BinaryArray[i][j]=0;
       }
     }
   }
+  LSDIndexRaster filtered_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,BinaryArray);
+  return filtered_raster;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
