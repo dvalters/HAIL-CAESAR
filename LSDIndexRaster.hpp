@@ -390,6 +390,13 @@ class LSDIndexRaster
   /// @date 13/07/2015
   LSDIndexRaster ConnectedComponents();
 
+  /// @brief Method to filter a binary array according to a connected components threshold
+  ///
+  /// @author DTM
+  /// @date 22/07/2015
+  void filter_by_connected_components(int connected_components_threshold);
+
+
   /// @brief A method to thin a multipixel feature (binary) to a single thread skeleton
   ///
   /// @details Takes a binary array in which features are identified as 1, and
