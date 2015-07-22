@@ -1928,8 +1928,10 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
     cout << flush << i << "/" << NRows << "\r";
     for(int j=1; j<NCols-1; ++j){
       if(RasterData[i][j]==1){	
-	      test = RasterData[i-1][j]+RasterData[i-1][j+1]+RasterData[i][j+1]+RasterData[i+1][j+1]+RasterData[i+1][j]+RasterData[i+1][j-1]+RasterData[i][j-1]+RasterData[i-1][j-1];
-	      if(test<=1) EndPoints[i][j] = 1;
+	test = RasterData[i-1][j]+RasterData[i-1][j+1]+RasterData[i][j+1]+RasterData[i+1][j+1]+RasterData[i+1][j]+RasterData[i+1][j-1]+RasterData[i][j-1]+RasterData[i-1][j-1];
+	if(test<=1){
+	  EndPoints[i][j] = 1;
+	}
       }
     }
   }
@@ -1959,9 +1961,7 @@ void LSDIndexRaster::filter_by_connected_components(int connected_components_thr
 	if(count[ConnectedComponentsRaster.get_data_element(i,j)] >= connected_components_threshold){
 	  RasterData[i][j] = 1;
 	}
-	else RasterData[i][j] = NoDataValue;
       }
-      else RasterData[i][j] = NoDataValue; 
     }
   }
 }
