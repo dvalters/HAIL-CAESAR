@@ -79,6 +79,7 @@
 #include <map>
 #include "TNT/tnt.h"
 //#include "LSDRaster.hpp"
+
 using namespace std;
 using namespace TNT;
 
@@ -410,6 +411,12 @@ class LSDIndexRaster
   void thinningIteration(Array2D<int>& binary, int iter);
 
   LSDIndexRaster find_end_points();
+
+  /// @brief Method to convert all values in an LSDIndexRaster to a single value.
+  /// @param Value, an integer value that will be assigned to every non NDV cell in the raster.
+  /// @author SWDG
+  /// @date 24/07/2015
+  LSDIndexRaster ConvertToBinary(int Value);
 
   protected:
   ///Number of rows.
