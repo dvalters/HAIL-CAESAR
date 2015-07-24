@@ -1971,6 +1971,26 @@ LSDIndexRaster LSDIndexRaster::filter_by_connected_components(int connected_comp
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to convert all values in an LSDIndexRaster to a single value
+// SWDG 24/7/15 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDIndexRaster::ConvertToBinary(int Value){
 
+  Array2D<int> binary(NRows,NCols,NoDataValue);
+    
+  for(int i = 0; i < NRows; ++i){
+    for(int j = 0; j < NCols; ++j){
+      if (RasterData[i][j] != NoDataValue){
+        binary[i][j] = Value;                          
+      }                                                                                 
+    }
+  }
+    
+  LSDIndexRaster binmask(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary,GeoReferencingStrings);
+  return binmask;
+} 
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 #endif
