@@ -414,10 +414,11 @@ class LSDIndexRaster
 
   /// @brief Method to convert all values in an LSDIndexRaster to a single value.
   /// @param Value, an integer value that will be assigned to every non NDV cell in the raster.
+  /// @param ndv an integer no data value.
   /// @author SWDG
   /// @date 24/07/2015
-  LSDIndexRaster ConvertToBinary(int Value);
-
+  LSDIndexRaster ConvertToBinary(int Value, int ndv);
+  
   protected:
   ///Number of rows.
   int NRows;
