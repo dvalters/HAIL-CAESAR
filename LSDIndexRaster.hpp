@@ -411,6 +411,7 @@ class LSDIndexRaster
   void thinningIteration(Array2D<int>& binary, int iter);
 
   LSDIndexRaster find_end_points();
+  void remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster Topo);
 
   /// @brief Method to convert all values in an LSDIndexRaster to a single value.
   /// @param Value, an integer value that will be assigned to every non NDV cell in the raster.

@@ -1941,6 +1941,49 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
   return Ends;
 }
 
+void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster Topo){
+  //first loop through the array to find the number of different components to check
+  int max_segment_ID = 0;
+  for(int i = 0; i<NRows; ++i){
+    for(int j = 0; j<NCols; ++j){
+      if(RasterData[i][j]!=NoDataValue && CC.get_data_element(i,j) > max_segment_ID) max_segment_ID = CC.get_data_element(i,j);
+    }
+  }
+  vector<vector<int> > end_points_row,end_points_col;
+  vector<vector<float> > end_point_elevations;
+  vector<float> empty_float;
+  vector<int> empty_int;
+  for(int i=0; i < max_segment_ID+1; ++i){
+    end_points_row.push_back(empty_int);
+    end_points_col.push_back(empty_int);
+    end_point_elevations.push_back(empty_float);
+  }
+  int index;
+  for(int i = 0; i<NRows; ++i){
+    for(int j = 0; j<NCols; ++j){
+      if(RasterData[i][j]!=NoDataValue){
+	index = CC.get_data_element(i,j);
+	end_points_row[index].push_back(i);
+	end_points_col[index].push_back(j);
+	end_point_elevations[index].push_back(Topo.get_data_element(i,j));
+      }
+    }
+  }
+  //Now sort end points by elevation, and remove the lowest elevation point in each group
+
+  for(int i=0; i < max_segment_ID+1;++i){
+    int N = end_point_elevations.size();
+    if(N>0){
+      vector<size_t> index_map;
+      matlab_float_sort(end_point_elevations[i], end_point_elevations[i], index_map);
+      matlab_int_reorder(end_points_row[i],index_map,end_points_row[i]);
+      matlab_int_reorder(end_points_col[i],index_map,end_points_col[i]);
+      // erase lowest end point to leave just the segment heads.
+      RasterData[ end_points_row[i][0] ][ end_points_col[i][0] ] = NoDataValue;
+    }
+  }
+}
+
 
 LSDIndexRaster LSDIndexRaster::filter_by_connected_components(int connected_components_threshold){
   LSDIndexRaster ConnectedComponentsRaster = ConnectedComponents();
