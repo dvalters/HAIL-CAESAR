@@ -1970,18 +1970,21 @@ void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster To
     }
   }
   //Now sort end points by elevation, and remove the lowest elevation point in each group
-
+  Array2D<int> FilteredEnds(NRows,NCols,NoDataValue);
   for(int i=0; i < max_segment_ID+1;++i){
-    int N = end_point_elevations.size();
+    int N = end_point_elevations[i].size();
     if(N>0){
       vector<size_t> index_map;
       matlab_float_sort(end_point_elevations[i], end_point_elevations[i], index_map);
       matlab_int_reorder(end_points_row[i],index_map,end_points_row[i]);
       matlab_int_reorder(end_points_col[i],index_map,end_points_col[i]);
       // erase lowest end point to leave just the segment heads.
-      RasterData[ end_points_row[i][0] ][ end_points_col[i][0] ] = NoDataValue;
+      for(int k = 1; k < N; ++k){
+	FilteredEnds[ end_points_row[i][k] ][ end_points_col[i][k] ] = 1;
+      }
     }
   }
+  RasterData = FilteredEnds.copy();
 }
 
 
