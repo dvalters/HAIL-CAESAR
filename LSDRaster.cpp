@@ -10541,7 +10541,22 @@ void LSDRaster::FlattenToCSV(string FileName_prefix)
 //Requires an integer minimum_patch_size, the minimum number of pixels required for a patch to be created
 //SWDG
 //5/6/15
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+LSDIndexRaster LSDRaster::CreateHilltopPatchesNEW(int minimum_patch_size){
+
+  Array2D<int> hilltops(NRows,NCols,int(NoDataValue));
+  for(int i = 1; i<NRows-1; ++i){
+    for(int j = 1; j<NCols-1; ++j){
+      if(RasterData[i][j]!=NoDataValue) hilltops[i][j] = 1;
+    }
+  }
+  LSDIndexRaster HilltopPatches(NRows,NCols,XMinimum,YMinimum,DataResolution,int(NoDataValue),hilltops);
+  HilltopPatches = HilltopPatches.filter_by_connected_components(minimum_patch_size);
+  HilltopPatches = HilltopPatches.ConnectedComponents();
+  return HilltopPatches;
+}
+
 LSDIndexRaster LSDRaster::CreateHilltopPatches(int minimum_patch_size){
   
   //create array to hold patch IDs
