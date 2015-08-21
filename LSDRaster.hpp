@@ -1919,7 +1919,7 @@ class LSDRaster
   /// @author SWDG
   /// @date 5/6/15
   LSDIndexRaster CreateHilltopPatches(int minimum_patch_size);
-
+  LSDIndexRaster CreateHilltopPatchesNEW(int minimum_patch_size);
   /// @brief Simple method to flatten an LSDRaster to a text file, with a sigle value on each line. 
   /// @param FileName The name of the file to write, if no path is included it will write to the current directory. 
   /// @author SWDG
