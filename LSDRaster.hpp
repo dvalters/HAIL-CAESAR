@@ -1941,6 +1941,14 @@ class LSDRaster
   /// @author SWDG
   /// @date 22/6/15
   LSDRaster RemoveBelow(float Value);
+
+  /// @brief apply a mask to a raster dataset, converts pixels to nodata where mas=k=1
+  /// @author DTM
+  /// @date 25/08/2015
+  LSDRaster apply_mask(LSDIndexRaster& mask);
+
+
+
   protected:
 
   ///Number of rows.
