@@ -6152,11 +6152,12 @@ void LSDRaster::raster_statistics_by_index(LSDIndexRaster& IndexRaster,
     SD = get_standard_deviation(values_for_this_ID, mean);
     SErr = get_standard_error(values_for_this_ID, SD);
   }  
-  cout << "kicking out output vectors" << endl;
+  cout << "kicking out output vectors ";
   mean_vector.push_back(mean);
   SD_vector.push_back(SD);
   SErr_vector.push_back(SErr);
   NPts_vector.push_back(values_for_this_ID.size());
+  cout << "...done" << endl;
 }
 
 
@@ -10790,5 +10791,21 @@ LSDRaster LSDRaster::RemoveBelow(float Value){
   return Removed;  
 
 } 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Apply a mask to an LSDRaster.  Mask designated by LSDIndexRaster containing 1
+// values for the pixels that need to be converted to nodata
+// DTM 25/08/2015
+LSDRaster LSDRaster::apply_mask(LSDIndexRaster& mask){
+  Array2D<float> masked_data = RasterData.copy();
+  for(int i=0; i<NRows; ++i){
+    for(int j=0; j<NCols; ++j){
+	if(mask.get_data_element(i,j)==1) masked_data[i][j]=NoDataValue;
+    }
+  }
+  LSDRaster masked_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,masked_data);
+  return masked_raster;
+}
+
 
 #endif
