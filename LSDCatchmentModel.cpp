@@ -59,6 +59,7 @@
 
 #include "LSDCatchmentModel.hpp"
 
+
 // One day, I'd like to integrate this more into the LSDTopoTools,
 // particulalrly the LSDBasin object using it to 'cut out' basins
 // and then perform topo analysis on the model runs...
@@ -979,6 +980,10 @@ void LSDCatchmentModel::call_slide5()   // not exactly sure what slide_5 does di
 //=-=-=-=-=-=-=-=-=-=
 // DATA OUTPUTS ETC.
 //=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::output_data()
+{
+	//placeholder
+}
 //void LSDCatchmentModel::output_data()	  // this was part of erodep() in CL but I felt it should have its own method call - DAV
 //{
 	//int n;
