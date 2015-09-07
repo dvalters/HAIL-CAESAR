@@ -66,7 +66,7 @@ public:
     /// @param fname the filename of the parameter file !!INCLUDING EXTENSION!!
     /// @author DAV
     /// @date 2015-01-16	
-    LSDCatchmentModel(std::string pname, std::string pfname)		
+    LSDCatchmentModel(string pname, string pfname)		
     { 
 		std::cout << "The constructor has been called..." << std::endl;
 		create(pname, pfname); 
@@ -550,7 +550,7 @@ public:
 
 	//JMW Vars
 	std::string basetext = "CAESAR - Lisflood 1.8a (21/7/2014)";
-	std::string cfgname = NULL;  //Config file name
+	std::string cfgname = "";  //Config file name // Removed NULL string - can't have these in C++
 	std::string workdir = "c:\\program files\\Caesar\\work\\";
 
 	// stage/tidal variables
