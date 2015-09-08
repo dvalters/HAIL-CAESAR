@@ -1840,7 +1840,7 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
   }
 
   // Now 
-  LSDIndexRaster ConnectedComponentsRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,LabelledComponents);
+  LSDIndexRaster ConnectedComponentsRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,LabelledComponents,GeoReferencingStrings);
   return ConnectedComponentsRaster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1918,7 +1918,7 @@ LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
     binary_old = binary_new.copy();
   }
   cout << "\nDone" << endl;
-  LSDIndexRaster skeleton(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_new.copy());
+  LSDIndexRaster skeleton(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_new.copy(),GeoReferencingStrings);
   return skeleton;
 }
 
@@ -1937,7 +1937,7 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
       }
     }
   }
-  LSDIndexRaster Ends(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,EndPoints);
+  LSDIndexRaster Ends(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,EndPoints,GeoReferencingStrings);
   return Ends;
 }
 
@@ -1979,8 +1979,9 @@ void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster To
       matlab_int_reorder(end_points_row[i],index_map,end_points_row[i]);
       matlab_int_reorder(end_points_col[i],index_map,end_points_col[i]);
       // erase lowest end point to leave just the segment heads.
-      for(int k = 1; k < N; ++k){
-	FilteredEnds[ end_points_row[i][k] ][ end_points_col[i][k] ] = 1;
+      for(int k = 1; k < N; ++k)
+      {
+       FilteredEnds[ end_points_row[i][k] ][ end_points_col[i][k] ] = 1;
       }
     }
   }
@@ -1988,7 +1989,8 @@ void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster To
 }
 
 
-LSDIndexRaster LSDIndexRaster::filter_by_connected_components(int connected_components_threshold){
+LSDIndexRaster LSDIndexRaster::filter_by_connected_components(int connected_components_threshold)
+{
   LSDIndexRaster ConnectedComponentsRaster = ConnectedComponents();
   Array2D<int> BinaryArray = RasterData.copy();
   vector<int> IDs;
@@ -2007,14 +2009,14 @@ LSDIndexRaster LSDIndexRaster::filter_by_connected_components(int connected_comp
   for(int i = 0; i < NRows; ++i){
     for(int j = 0; j < NCols; ++j){
       if(ConnectedComponentsRaster.get_data_element(i,j) != NoDataValue){
-	if(count[ConnectedComponentsRaster.get_data_element(i,j)] >= connected_components_threshold){
-	  BinaryArray[i][j] = 1;
-	}
-	else BinaryArray[i][j]=0;
+  if(count[ConnectedComponentsRaster.get_data_element(i,j)] >= connected_components_threshold){
+    BinaryArray[i][j] = 1;
+  }
+  else BinaryArray[i][j]=0;
       }
     }
   }
-  LSDIndexRaster filtered_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,BinaryArray);
+  LSDIndexRaster filtered_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,BinaryArray,GeoReferencingStrings);
   return filtered_raster;
 }
 
