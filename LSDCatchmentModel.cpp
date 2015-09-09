@@ -57,6 +57,9 @@
 #include <algorithm>
 #include <fstream>
 
+// Only for the debug macro
+#include <cstdio>
+
 #include "LSDCatchmentModel.hpp"
 
 
@@ -67,6 +70,9 @@ using std::string;
 
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
+
+// For debugging purposes only!
+//#define DUMP(varname) fprintf(stderr, "%s = %x", #varname, varname);
 
 // ingest data tools
 // DAV: I've copied these here for now to make the model self-contained for testing purposes
@@ -247,6 +253,11 @@ void LSDCatchmentModel::load_data()
 	// Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
 	init_elevs = elevR.get_RasterData_dbl();
 	
+	ymax = elevR.get_NRows();
+	xmax = elevR.get_NCols();
+	std::cout << "YMAX: " << ymax;
+	std::cout << "XMAX: " << xmax;
+	
 	// Load the HYDROINDEX DEM
 	if (spatially_var_rainfall == true)
 	{
@@ -377,7 +388,7 @@ void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
       lower[i] = std::tolower(parameter[i]);  // converts to lowercase
     }
 
-    std::cout << "parameter is: " << lower << " and value is: " << value << std::endl;
+    //std::cout << "parameter is: " << lower << " and value is: " << value << std::endl;
 
     // get rid of control characters
     value = RemoveControlCharactersFromEndOfString(value);
@@ -386,31 +397,37 @@ void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
     {
       dem_read_extension = value;
       dem_read_extension = RemoveControlCharactersFromEndOfString(dem_read_extension);
+      std::cout << "dem_read_extension: " << dem_read_extension << std::endl;
     }
     else if (lower == "dem_write_extension")
     {
       dem_write_extension = value;
       dem_write_extension = RemoveControlCharactersFromEndOfString(dem_write_extension);
+      std::cout << "dem_write_extension: " << dem_write_extension << std::endl;
     }
     else if (lower == "write_path")
     {
       write_path = value;
       write_path = RemoveControlCharactersFromEndOfString(write_path);
+      std::cout << "dem_read_extension: " << dem_read_extension << std::endl;
     }
     else if (lower == "write_fname")
     {
       write_fname = value;
       write_fname = RemoveControlCharactersFromEndOfString(write_fname);
+      std::cout << "write_fname: " << write_fname << std::endl;
     }
     else if (lower == "read_path")
     {
       read_path = value;
       read_path = RemoveControlCharactersFromEndOfString(read_path);
+      std::cout << "read_path: " << read_path << std::endl;
     }
     else if (lower == "read_fname")
     {
       read_fname = value;
       read_fname = RemoveControlCharactersFromEndOfString(read_fname);
+      std::cout << "read_fname: " << read_fname << std::endl;
     }
 
     //=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -421,69 +438,208 @@ void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Supplementary Input Files
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //else if (lower == "hydroindex_file") hydroindex_fname = value;
-    //else if (lower == "rainfall_data_file") rainfall_data_file = value;
-    else if (lower == "grain_data_file") { grain_data_file = value; }
-    else if (lower == "bedrock_data_file") bedrock_data_file = value;
+    else if (lower == "hydroindex_file") 
+    { 
+		hydroindex_fname = value;
+		std::cout << "hydroindex_file: " << hydroindex_fname << std::endl;
+	}
+    else if (lower == "rainfall_data_file") 
+    { 
+		rainfall_data_file = value;
+		std::cout << "rainfall_data_file: " << rainfall_data_file << std::endl;
+	}
+    else if (lower == "grain_data_file") 
+    { 	
+		grain_data_file = value; 
+		std::cout << "grain data file: " << grain_data_file << std::endl;
+	}
+    else if (lower == "bedrock_data_file") 
+    {
+		bedrock_data_file = value;
+		std::cout << "bedrock data file: " << bedrock_data_file << std::endl;
+	}
     
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Numerical
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    else if (lower == "no_of_iterations") 		no_of_iterations = atoi(value.c_str());
-    else if (lower == "min_time_step") 			min_time_step = atoi(value.c_str());
-    else if (lower == "max_time_step") 			max_time_step = atoi(value.c_str());
-    else if (lower == "run_time_start") 		run_time_start = atof(value.c_str()); //?
-    else if (lower == "max_run_duration") 		max_run_duration = atof(value.c_str()); //?
-    else if (lower == "memory_limit") 			LIMIT = atoi(value.c_str());
-    else if (lower == "max_time_step") 			max_time_step = atoi(value.c_str());
+    else if (lower == "no_of_iterations") 	
+    {
+		no_of_iterations = atoi(value.c_str());
+		std::cout << "no of iterations: " << no_of_iterations << std::endl;
+	}
+    else if (lower == "min_time_step") 		
+    {
+		min_time_step = atoi(value.c_str());
+		std::cout << "min time step: " << min_time_step << std::endl;
+	}
+    else if (lower == "max_time_step") 			
+    {
+		max_time_step = atoi(value.c_str());
+		std::cout << "max time step: " << max_time_step << std::endl;
+	}
+    else if (lower == "run_time_start") 		
+    {
+		run_time_start = atof(value.c_str()); //?
+		std::cout << "run time start: " << run_time_start << std::endl;
+	}
+    else if (lower == "max_run_duration") 		
+    {
+		maxcycle = atoi(value.c_str()); //?
+		std::cout << "max run duration: " << maxcycle << std::endl;
+	}
+    else if (lower == "memory_limit") 			
+    {
+		LIMIT = atoi(value.c_str());
+		std::cout << "memory LIMIT: " << LIMIT << std::endl;
+	}
+    else if (lower == "max_time_step") 			
+    {
+		max_time_step = atoi(value.c_str());
+		std::cout << "max_time_step: " << max_time_step << std::endl;
+	}
     
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Output and Save Options
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    else if (lower == "save_interval") 			saveinterval = atoi(value.c_str());
-    else if (lower == "time_series_interval")	timeseries_interval = atoi(value.c_str());
-    else if (lower == "elevation_file") 		elev_fname = value;
-    else if (lower == "write_elev_file") 		write_elev_file = (value == "yes") ? true : false;
-    else if (lower == "grainsize_file") 		grainsize_fname = value;
-    else if (lower == "write_grainsize_file")	write_grainsz_file = (value == "yes") ? true : false;
-    else if (lower == "parameters_file") 		params_fname = value;
-    else if (lower == "write_parameters_file") 	write_params_file = (value == "yes") ? true : false;
-    else if (lower == "flowvelocity_file") 		flowvel_fname = value;
-    else if (lower == "write_flowvelocity_file") write_flowvel_file = (value == "yes") ? true : false;
-    else if (lower == "waterdepth_file")		waterdepth_fname = value;
-    else if (lower == "write_waterdepth_file") 	write_waterd_file = (value == "yes") ? true : false;
-    else if (lower == "timeseries_file") 		timeseries_fname = value;
+    else if (lower == "save_interval") 	
+    {		
+		saveinterval = atoi(value.c_str());
+		std::cout << "save_interval: " << saveinterval << std::endl;
+	}
+    else if (lower == "time_series_interval")	
+    {
+		timeseries_interval = atoi(value.c_str());
+		std::cout << "timeseries_interval: " << timeseries_interval << std::endl;
+	}
+    else if (lower == "elevation_file") 		
+    {
+		elev_fname = value;
+		std::cout << "eleve_fname: " << elev_fname << std::endl;
+	}
+    else if (lower == "write_elev_file") 		
+    {
+		write_elev_file = (value == "yes") ? true : false;
+		std::cout << "write_elev_file_on: " << write_elev_file << std::endl;
+	}
+    else if (lower == "grainsize_file") 		
+    {
+		grainsize_fname = value;
+		std::cout << "grainsize_fname: " << grainsize_fname << std::endl;
+	}
+    else if (lower == "write_grainsize_file")	
+    {
+		write_grainsz_file = (value == "yes") ? true : false;
+		std::cout << "write_grainsz_file: " << write_grainsz_file << std::endl;
+	}
+    else if (lower == "parameters_file") 		
+    {
+		params_fname = value;
+		std::cout << "params_fname: " << params_fname << std::endl;
+	}
+    else if (lower == "write_parameters_file") 	
+    {
+		write_params_file = (value == "yes") ? true : false;
+		std::cout << "write_params_file: " << write_params_file << std::endl;
+	}
+    else if (lower == "flowvelocity_file") 		
+    {
+		flowvel_fname = value;
+		std::cout << "flowvel_fname: " << flowvel_fname << std::endl;
+	}
+    else if (lower == "write_flowvelocity_file") 
+    {
+		write_flowvel_file = (value == "yes") ? true : false;
+		std::cout << "write_flowvel_file: " << write_flowvel_file << std::endl;
+	}
+    else if (lower == "waterdepth_file")		
+    {
+		waterdepth_fname = value;
+		std::cout << "waterdepth_fname: " << waterdepth_fname << std::endl;
+	}
+    else if (lower == "write_waterdepth_file") 	
+    {
+		write_waterd_file = (value == "yes") ? true : false;
+		std::cout << "write_waterd_file: " << write_waterd_file << std::endl;
+	}
+    else if (lower == "timeseries_file") 		
+    {
+		timeseries_fname = value;
+		std::cout << "timeseries_fname: " << timeseries_fname << std::endl;
+	}
     
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Sediment
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    else if (lower == "bedrock_layer_on") bedrock_layer_on = (value == "yes") ? true : false;
+    else if (lower == "bedrock_layer_on") 
+    {
+		bedrock_layer_on = (value == "yes") ? true : false;
+		std::cout << "bedrock_layer_on: " << bedrock_layer_on << std::endl;
+	}
     else if (lower == "transport_law")
     {
 		if (value == "wilcock")	wilcock = true;
 		else if (value == "einstein") einstein = true;
 		else std::cout << "No sedi transport law specified in parameter file..." << std::endl;
+		
+		std::cout << "wilcock: " << wilcock << std::endl;
+		std::cout << "einstein: " << einstein << std::endl;
 	}	
     
-    else if (lower == "max_tau_velocity") 		max_vel = atof(value.c_str()); 
+    else if (lower == "max_tau_velocity") 		
+    {
+		max_vel = atof(value.c_str()); 
+		std::cout << "max_vel (to calculate tau): " << max_vel << std::endl;
+	}
     // max velocity used to calculate tau
-    else if (lower == "active_layer_thickness") active = atof(value.c_str());   
-    else if (lower == "recirculate_proportion") recirculate_proportion = atof(value.c_str());     
-    else if (lower == "lateral_erosion_on") lateral_erosion_on = (value == "yes") ? true : false;  
+    else if (lower == "active_layer_thickness") 
+    {
+		active = atof(value.c_str());   
+		std::cout << "active: " << active << std::endl;
+	}
+    else if (lower == "recirculate_proportion") 
+    {
+		recirculate_proportion = atof(value.c_str()); 
+		std::cout << "recirculate_proportion: " << recirculate_proportion << std::endl;    
+	}
+    else if (lower == "lateral_erosion_on") 
+    {
+		lateral_erosion_on = (value == "yes") ? true : false; 
+		std::cout << "lateral_erosion_on: " << lateral_erosion_on << std::endl; 
+	}
     //else if (lower == "lateral_ero_rate") lateral_ero_rate = atof(value.c_str());    
-    else if (lower == "edge_filter_passes") smoothing_times = atof(value.c_str());
-    else if (lower == "cells_shift_lat") downstream_shift = atof(value.c_str());     
-    else if (lower == "max_diff_cross_chann") lateral_cross_channel_smoothing = atof(value.c_str()); 
+    else if (lower == "edge_filter_passes") 
+    {
+		smoothing_times = atof(value.c_str());
+		std::cout << "smoothing_times: " << smoothing_times << std::endl;
+	}
+    else if (lower == "cells_shift_lat") 
+    {
+		downstream_shift = atof(value.c_str()); 
+		std::cout << "downstream_shift: " << downstream_shift << std::endl;    
+	}
+    else if (lower == "max_diff_cross_chann") 
+    {
+		lateral_cross_channel_smoothing = atof(value.c_str()); 
+		std::cout << "lateral_cross_channel_smoothing: " << lateral_cross_channel_smoothing << std::endl;
+	}
     
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Grain Size Options
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    else if (lower == "suspended_sediment_on") suspended_opt = (value == "yes") ? true : false;
+    else if (lower == "suspended_sediment_on") 
+    {
+		suspended_opt = (value == "yes") ? true : false;
+		std::cout << "suspended_opt: " << suspended_opt << std::endl;
+	}
     
-    // This is a vector of values and needs some thought
+    // This is a vector of values and needs some thought (different fractions)
     //else if (lower == "fall_velocity") fall_velocity = atof(value.c_str());
     
-    else if (lower == "grain_size_frac_file") grain_data_file = value;
+    else if (lower == "grain_size_frac_file") 
+    {
+		grain_data_file = value;
+		std::cout << "grain_data_file: " << grain_data_file << std::endl;
+	}
     
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Hydrology and Flow
@@ -1012,6 +1168,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 	std::cout << "Running model components..." << std::endl;
 	do 
 	{
+		//std::cout << "Calculate time step-related variables, make sure they don't fall below the threshold values..." << std::endl;
 		double input_output_difference = std::abs(waterinput - waterOut);
 		// calculate time step-related variables, make sure they don't fall below the threshold values
 		if (maxdepth <= 0.1) 
@@ -1037,7 +1194,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 	// WATER INPUTS
 	//double waterinput = 0;
 	
-	// route the water and update the flow depths
+	std::cout << "route the water and update the flow depths" << std::endl;
 	qroute();
 	depth_update();
 	call_erosion();
@@ -1046,6 +1203,8 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 	
 	
 	output_data();  // not sure if this is the best place to put this, but it needs to be done every timestep? - DAV
+	
+	std::cout << cycle << std::endl;
 	
 	if (cycle >= save_time)
 	{
@@ -1058,6 +1217,14 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 	// here endeth the erodepo loop!
 	
 }
+
+void LSDCatchmentModel::print_initial_values()
+{
+	//
+	std::cout << "Printing initial parameter values: " << std::endl;
+	//std::cout << 
+}
+
 	
 
 void LSDCatchmentModel::zero_values()
@@ -1208,16 +1375,21 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)    // Extracted
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::qroute()
 {
+	std::cout << "qroute" << std::endl;
 	double local_time_factor = time_factor;
 	if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
 		local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
-		
+	
+	std::cout << "local time factor: " << local_time_factor << std::endl;	
 	// PARALLELISATION	COULD BE INSERTED HERE - DAV
 	// #OMP PARALLEL...etc
-	
+
+	// SET THIS IN A SEPARATE FUNCTION (initialise arrays)??
+	TNT::Array2D<int> down_scan(xmax,ymax, 0.0);
 	int inc = 1;
-	for (int y =1; y < ymax+1; y++)
+	for (int y=1; y < ymax+1; y++)
 	{
+	std::cout << down_scan[y][inc] << std::endl;
 	while (down_scan[y][inc] > 0)
 	{
 		int x = down_scan[y][inc];
@@ -3276,9 +3448,11 @@ void LSDCatchmentModel::slide_3()
 
 	for(y=2;y<ymax;y++)
 	{
+		
 		inc=1;
 		while(down_scan[y][inc]>0)
 		{
+			
 			x=down_scan[y][inc];
 			if(x==xmax)x=xmax-1;
 			if(x==1)x=2;
