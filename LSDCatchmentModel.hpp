@@ -87,6 +87,11 @@ public:
 	/// @author dav
 	void load_data();
 	
+	
+	/// Prints the initial values set by user from param file
+	/// as well as those default initial values in the code.
+	void print_initial_values();
+	
 	/// @brief Loads the rainfall data file which is in a special format (headerless text file)
 	/// @author DAV
 	/// @details Rainfall data file is not too big, so think it's okay to use the vector<vector> 
@@ -347,10 +352,10 @@ protected:
 	// no. of rainfall cells
 	int rfnum = 2;
 
-	int xmax, ymax;
+	int xmax, ymax; // set by ncols and nrows
 	double xll, yll;
 
-	int maxcycle;
+	int maxcycle = 1000;
 	const int ACTIVE_FACTOR=1;
 	const int TRUE=1;
 	const int FALSE=0;
@@ -476,7 +481,11 @@ protected:
 
 	/*static*/ TNT::Array2D<double> elev, bedrock, init_elevs, water_depth, area, tempcreep, Tau, Vel, qx, qy, qxs, qys,
 		/* dune arrays */ area_depth, sand, elev2, sand2, grain, elev_diff;
-	TNT::Array2D<int> index, cross_scan,down_scan, rfarea;
+	TNT::Array2D<int> index;
+	TNT::Array2D<int> cross_scan;
+	TNT::Array2D<int> down_scan; 
+	TNT::Array2D<int>rfarea;
+	
 	TNT::Array2D<bool> inputpointsarray;
 	std::vector<int> catchment_input_x_coord, catchment_input_y_coord;
 	
@@ -592,7 +601,7 @@ protected:
 	int timeseries_interval;
 	float run_time_start;
 	int no_of_iterations;
-	float max_run_duration;
+	//float max_run_duration;  // this is maxcycle
 	
 	//protected:
 	std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
