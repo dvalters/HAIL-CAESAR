@@ -250,12 +250,8 @@ public:
 	// Maps holding parameters and switches read from input paramter files
 	//
 	//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-	// DAV - I am not sure whether these should be public or protected data members
-	// LSDModelDriver needs read/write access to them, so my guess would be public?
 	
-	// CM = LSDCatchmentModel specific
-	// (RM = LSDRasterModel specific)
-
+protected:
 
 	/// This map holds all the possible model switches
 	std::map<std::string,bool> CM_model_switches; 
@@ -310,31 +306,17 @@ public:
 	// as need. (Unlike the standard practice of initiaising C-style arrays 
 	// with new[] etc....
 
-	//static double magnifyValue;// = 0;
-	//static int updateClick; // = 0;
-	//std::vector<double>[] zoomFactor = { .25, .33, .50, .66, .80, 1, 1.25, 1.5, 2.0, 2.5, 3.0 };
-	//double[] contrastFactor = { 1, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3 };
-	//double contrastMultiplier = 0;
-	//int imageCount = 1;
-	//int imageCount2 = 0;
-	//int coordinateDone = 0;
-	//double urfinalLati, urfinalLongi, llfinalLati, llfinalLongi, yurcorner, xurcorner = 0;
-	//std::string kml = "";
-	//std::string KML_FILE_NAME = "animation\\animation.kml";
-	//int save_time2, save_interval2 = 0;
-	//std::string startDate, kmlTime;
-	
-	//std::string[] DateArray;
-	//std::string[] DateArray2;
-   
 	// toms global variables
 	// DAV: Note: You are only allowed to initialize non-static variables in C++11.
 	bool uniquefilecheck = false;
 	
+
+	
+//constants
 	double gravity = 9.81;
 	const float g = 9.81F;
 	const float kappa = 0.4F;
-	double water_depth_erosion_threshold = 0.01;
+	double water_depth_erosion_threshold = 0.01; //duplicated? hflow_threshold?
 	int input_time_step = 60;
 	int number_of_points = 0;
 	double globalsediq = 0;
@@ -361,6 +343,8 @@ public:
 	double waterOut = 0;
 	double in_out_difference = 0;
 	double mannings = 0.04;
+	
+	// no. of rainfall cells
 	int rfnum = 2;
 
 	int xmax, ymax;
@@ -374,7 +358,7 @@ public:
 	double DX=5.0;
 	double root=7.07;
 
-	int LIMIT=1;
+	int LIMIT=1; //memory limit
 	double MIN_Q=0.01; // PARAM
 	double MIN_Q_MAXVAL=1000.0; // PARAM
 	double CREEP_RATE=0.0025;
@@ -384,16 +368,23 @@ public:
 	double lateral_constant=0.0000002;
 	int grain_array_tot =1 ;
 	
-	double smoothing_times = 100.0;
-	double downstream_shift= 5.0;
+	// Number of passes for edge smoothing filter
+	double smoothing_times = 100.0; 
+	// Number of cells to shift lat erosion downstream 
+	double downstream_shift= 5.0;    
 
 	double time_factor = 1;
 	std::vector<double> j, jo, j_mean, old_j_mean, new_j_mean;
-	double M = 0.005;
+	
+	// TOPMODEL 'm'
+	double M = 0.005; 
 	double baseflow = 0.00000005; //end of hyd model variables usually 0.0000005 changed 2/11/05
+	
 	double cycle =0;  // can't initalise static vars in header file!
 	double rain_factor = 1;
 	double sediQ = 0;
+	
+	// speed in which vegetation reaches full maturity in year
 	double grow_grass_time = 0;
 	double duneupdatetime = 0;
 	
@@ -414,7 +405,10 @@ public:
 	double edgeslope = 0.001;
 	double bed_proportion = 0.01;
 	double veg_lat_restriction = 0.1;
-	double lateral_cross_channel_smoothing = 0.0001;
+	
+	//Max difference allowed in cross channel smoothing of edge values
+	double lateral_cross_channel_smoothing = 0.0001; //Max difference allowed in cross channel smoothing of edge values
+
 	double froude_limit = 0.8;
 	double recirculate_proportion = 1;
 
@@ -523,12 +517,6 @@ public:
 	TNT::Array2D<double> slopeAnalysis;  // Initially calculated in percent slope, coverted to radians
 	TNT::Array2D<double> aspect;		  // Radians
 	TNT::Array2D<double> hillshade;	  // 0 to 255
-	double hue = 360.0;		// Ranges between 0 and 360 degrees
-	double sat = 0.90;		// Ranges between 0 and 1.0 (where 1 is 100%)
-	double val = 1.0;		// Ranges between 0 and 1.0 (where 1 is 100%)
-	double red = 0.0;
-	double green = 0.0;
-	double blue = 0.0;
 
 	// siberia submodel parameters
 	double m1 = 1.70;
@@ -538,11 +526,10 @@ public:
 	double Beta1 = 1067;
 
 	// sedi tpt flags   
-	int einstein = 0;
-	int wilcock = 0;
+	bool einstein = true;
+	bool wilcock = false;
 	int div_inputs = 1;
 	double rain_data_time_step = 60; // time step for rain data - default is 60. 
-
 
 	// lisflood caesar adaptation globals
 	std::vector<int> catchment_input_counter;
@@ -558,6 +545,7 @@ public:
 	double stage_input_time_step = 1;
 	std::vector<double> stage_inputfile;
 
+
 	// Soil generation variables
 	double P1, b1, k1, c1, c2, k2, c3, c4;
 	
@@ -572,7 +560,41 @@ public:
 	bool physical_weather_opt;
 	bool chem_weath_opt;
 	
-	protected:
+	bool soil_j_mean_depends_on;
+	bool rainfall_data_on;
+	bool vegetation_on;
+	bool bedrock_layer_on;
+	bool lateral_erosion_on;
+	bool spatially_var_rainfall;
+	
+	
+	// Bools for writing out files
+	bool write_elev_file;
+	bool write_grainsz_file;
+	bool write_params_file;
+	bool write_flowvel_file;
+	bool write_waterd_file;
+	
+	// input file names
+	std::string rainfall_data_file;
+	std::string grain_data_file;
+	std::string bedrock_data_file;
+	
+	// output file names
+	std::string elev_fname;
+	std::string grainsize_fname;
+	std::string params_fname;
+	std::string waterdepth_fname;
+	std::string flowvel_fname;
+	std::string hydroindex_fname;
+	std::string timeseries_fname;
+	
+	int timeseries_interval;
+	float run_time_start;
+	int no_of_iterations;
+	float max_run_duration;
+	
+	//protected:
 	std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
 	
 	// Mainly just the definitions of the create() functions go here:
