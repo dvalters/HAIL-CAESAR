@@ -1947,7 +1947,12 @@ class LSDRaster
   /// @date 25/08/2015
   LSDRaster apply_mask(LSDIndexRaster& mask);
 
-
+  /// @brief Method to convert all values in an LSDRaster to a single value.
+  /// @param Value, an integer value that will be assigned to every non NDV cell in the raster.
+  /// @param ndv an integer no data value.
+  /// @author SWDG
+  /// @date 24/07/2015
+  LSDIndexRaster ConvertToBinary(int Value, int ndv);
 
   protected:
 
