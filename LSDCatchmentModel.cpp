@@ -1185,34 +1185,42 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 		}
 	
 	
-	// increment the counters
-	counter++;
-	cycle += time_factor / 60;
-	// cycle is minutes, time_factor is seconds
-	
-	
-	// WATER INPUTS
-	//double waterinput = 0;
-	
-	std::cout << "route the water and update the flow depths" << std::endl;
-	qroute();
-	depth_update();
-	call_erosion();
-	call_lateral();
-	water_flux_out(local_time_factor);
-	
-	
-	output_data();  // not sure if this is the best place to put this, but it needs to be done every timestep? - DAV
-	
-	std::cout << cycle << std::endl;
-	
-	if (cycle >= save_time)
-	{
-		save_data_and_draw_graphics(); //similar to above worry?
-		save_time += saveinterval;
-	}
-	
-	// if we have reached the end of the run, kill the cycle
+		// increment the counters
+		counter++;
+		cycle += time_factor / 60;
+		// cycle is minutes, time_factor is seconds
+		
+		
+		// WATER INPUTS
+		//double waterinput = 0;
+		
+		std::cout << "route the water and update the flow depths" << std::endl;
+		qroute();
+		depth_update();
+		
+		// check scan area every 5 iters.. maybe re-visit for reach mode if it causes too much backing up of sed. see code commented below nex if..
+		if (std::remainder(counter, 5) == 0)
+		{
+			std::cout << "Scan area..." << std::endl;
+			scan_area();
+		}
+		
+		call_erosion();
+		call_lateral();
+		water_flux_out(local_time_factor);
+		
+		
+		output_data();  // not sure if this is the best place to put this, but it needs to be done every timestep? - DAV
+		
+		std::cout << cycle << std::endl;
+		
+		if (cycle >= save_time)
+		{
+			save_data_and_draw_graphics(); //similar to above worry?
+			save_time += saveinterval;
+		}
+		
+		// if we have reached the end of the run, kill the cycle
 	} while (cycle < maxcycle * 60);
 	// here endeth the erodepo loop!
 	
@@ -1385,7 +1393,7 @@ void LSDCatchmentModel::qroute()
 	// #OMP PARALLEL...etc
 
 	// SET THIS IN A SEPARATE FUNCTION (initialise arrays)??
-	TNT::Array2D<int> down_scan(xmax,ymax, 0.0);
+	//TNT::Array2D<int> down_scan(xmax,ymax, 0.0);
 	int inc = 1;
 	for (int y=1; y < ymax+1; y++)
 	{
