@@ -317,7 +317,7 @@ protected:
 	
 
 	
-//constants
+	//constants
 	double gravity = 9.81;
 	const float g = 9.81F;
 	const float kappa = 0.4F;
@@ -337,7 +337,7 @@ protected:
 	double bedrock_erosion_threshold = 0;
 	double bedrock_erosion_rate = 0;
 
-	//int tot_number_of_tracer_points=0;
+	///int tot_number_of_tracer_points=0;
 	int input_type_flag=0; // 0 is water input from points, 1 is input from hydrograph or rainfall file.
 	double failureangle=45;
 	double saveinterval=1000;
@@ -349,10 +349,11 @@ protected:
 	double in_out_difference = 0;
 	double mannings = 0.04;
 	
-	// no. of rainfall cells
+	/// no. of rainfall cells
 	int rfnum = 2;
 
-	int xmax, ymax; // set by ncols and nrows
+	/// set by ncols and nrows
+	int xmax, ymax; 
 	double xll, yll;
 
 	int maxcycle = 1000;
@@ -363,7 +364,8 @@ protected:
 	double DX=5.0;
 	double root=7.07;
 
-	int LIMIT=1; //memory limit
+	/// memory limit
+	int LIMIT=1; 
 	double MIN_Q=0.01; // PARAM
 	double MIN_Q_MAXVAL=1000.0; // PARAM
 	double CREEP_RATE=0.0025;
@@ -373,15 +375,15 @@ protected:
 	double lateral_constant=0.0000002;
 	int grain_array_tot =1 ;
 	
-	// Number of passes for edge smoothing filter
+	/// Number of passes for edge smoothing filter
 	double smoothing_times = 100.0; 
-	// Number of cells to shift lat erosion downstream 
+	/// Number of cells to shift lat erosion downstream 
 	double downstream_shift= 5.0;    
 
 	double time_factor = 1;
 	std::vector<double> j, jo, j_mean, old_j_mean, new_j_mean;
 	
-	// TOPMODEL 'm'
+	/// TOPMODEL 'm'
 	double M = 0.005; 
 	double baseflow = 0.00000005; //end of hyd model variables usually 0.0000005 changed 2/11/05
 	
@@ -389,14 +391,14 @@ protected:
 	double rain_factor = 1;
 	double sediQ = 0;
 	
-	// speed in which vegetation reaches full maturity in year
+	/// speed in which vegetation reaches full maturity in year
 	double grow_grass_time = 0;
 	double duneupdatetime = 0;
 	
 	double output_file_save_interval = 60;
 	double min_time_step = 0;
 	double vegTauCrit = 100;
-	int graphics_scale;// = 2; // value that controls the number of bmp pixels per model pixel for the output images.
+	//int graphics_scale;// = 2; // value that controls the number of bmp pixels per model pixel for the output images.
 	int max_time_step = 0;
 	int dune_mult = 5;
 	double dune_time = 1;
@@ -411,7 +413,7 @@ protected:
 	double bed_proportion = 0.01;
 	double veg_lat_restriction = 0.1;
 	
-	//Max difference allowed in cross channel smoothing of edge values
+	/// Max difference allowed in cross channel smoothing of edge values
 	double lateral_cross_channel_smoothing = 0.0001; //Max difference allowed in cross channel smoothing of edge values
 
 	double froude_limit = 0.8;
@@ -423,7 +425,7 @@ protected:
 	// KAtharine
 	int variable_m_value_flag = 0;
 
-	// grain size variables - the sizes
+	/// grain size variables - the sizes
 	double d1=0.0005;
 	double d2=0.001;
 	double d3=0.002;
@@ -434,8 +436,7 @@ protected:
 	double d8=0.064;
 	double d9=0.128;
 
-	// grain size proportions for each fraction... as a proportion of 1.
-	
+	/// grain size proportions for each fraction... as a proportion of 1.
 	double d1prop=0.144;
 	double d2prop=0.022;
 	double d3prop=0.019;
@@ -474,13 +475,17 @@ protected:
 	// toms global arrays 
 	
 	// DAV: Move towards using the LSD Objects such as LSDRaster for reading/storing DEMs and LSDBasin
+	/// Surface elevation LSDRaster object
 	LSDRaster elevR;
+	/// Hydroindex LSDRaster: tells rainfall input where to be distributed
 	LSDRaster hydroindexR;
+	/// Bedrock LSDRaster object
 	LSDRaster bedrockR;
+	/// Water depth LSDRaster object
 	LSDRaster water_depthR;
 
 	/*static*/ TNT::Array2D<double> elev, bedrock, init_elevs, water_depth, area, tempcreep, Tau, Vel, qx, qy, qxs, qys,
-		/* dune arrays */ area_depth, sand, elev2, sand2, grain, elev_diff;
+	/* dune arrays */ area_depth, sand, elev2, sand2, grain, elev_diff;
 	TNT::Array2D<int> index;
 	TNT::Array2D<int> cross_scan;
 	TNT::Array2D<int> down_scan; 
@@ -545,7 +550,7 @@ protected:
 	int totalinputpoints = 0;
 
 	//JMW Vars
-	std::string basetext = "CAESAR - Lisflood 1.8a (21/7/2014)";
+	std::string basetext = "CAESAR PlusPlus";
 	std::string cfgname = "";  //Config file name // Removed NULL string - can't have these in C++
 	std::string workdir = "c:\\program files\\Caesar\\work\\";
 
@@ -555,10 +560,10 @@ protected:
 	std::vector<double> stage_inputfile;
 
 
-	// Soil generation variables
+	/// Soil generation variables
 	double P1, b1, k1, c1, c2, k2, c3, c4;
 	
-	// Option Bools
+	/// Option Bools
 	bool soildevoption;
 	bool suspended_opt;
 	bool jmeaninputfile_opt;
@@ -584,12 +589,12 @@ protected:
 	bool write_flowvel_file;
 	bool write_waterd_file;
 	
-	// input file names
+	/// input file names
 	std::string rainfall_data_file;
 	std::string grain_data_file;
 	std::string bedrock_data_file;
 	
-	// output file names
+	/// output file names
 	std::string elev_fname;
 	std::string grainsize_fname;
 	std::string params_fname;
