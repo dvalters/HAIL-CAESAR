@@ -126,7 +126,11 @@ public:
 	
 	/// @brief reads data values from the parameter file into the relevant maps
 	/// @return 
-	void initialise_model(std::string pname, std::string pfname);	
+	void initialise_variables(std::string pname, std::string pfname);
+	
+	/// @brief initialises array sizes based on DEM dimensions
+	/// @details also sets 'hard-coded' parameters to start the model
+	void initialise_arrays();
 	
 	/// @brief Wrapper function that calls the main erosional and depositional methods
 	/// @return 
@@ -484,12 +488,29 @@ protected:
 	/// Water depth LSDRaster object
 	LSDRaster water_depthR;
 
-	/*static*/ TNT::Array2D<double> elev, bedrock, init_elevs, water_depth, area, tempcreep, Tau, Vel, qx, qy, qxs, qys,
-	/* dune arrays */ area_depth, sand, elev2, sand2, grain, elev_diff;
+	TNT::Array2D<double> elev; 
+	TNT::Array2D<double> bedrock;
+	TNT::Array2D<double> init_elevs;
+	TNT::Array2D<double> water_depth; 
+	TNT::Array2D<double> area;
+	TNT::Array2D<double> tempcreep; 
+	TNT::Array2D<double> Tau; 
+	TNT::Array2D<double> Vel; 
+	TNT::Array2D<double> qx; 
+	TNT::Array2D<double> qy;
+	TNT::Array2D<double> qxs; 
+	TNT::Array2D<double> qys;
+	/* dune arrays */ 
+	TNT::Array2D<double> area_depth; 
+	TNT::Array2D<double> sand;
+	TNT::Array2D<double> elev2; 
+	TNT::Array2D<double> sand2; 
+	TNT::Array2D<double> grain; 
+	TNT::Array2D<double> elev_diff;
 	TNT::Array2D<int> index;
 	TNT::Array2D<int> cross_scan;
 	TNT::Array2D<int> down_scan; 
-	TNT::Array2D<int>rfarea;
+	TNT::Array2D<int> rfarea;
 	
 	TNT::Array2D<bool> inputpointsarray;
 	std::vector<int> catchment_input_x_coord, catchment_input_y_coord;

@@ -197,7 +197,7 @@ void LSDCatchmentModel::create(string pname, string pfname)
 {
 	std::cout << "Creating an instance of LSDCatchmentModel.." << std::endl;
 	// Using the parameter file
-	initialise_model(pname, pfname);
+	initialise_variables(pname, pfname);
 }
 
 
@@ -361,8 +361,11 @@ void LSDCatchmentModel::load_data()
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This function gets all the data from a parameter file
+// 
+// Update: It also intialises the other params that are set internally (hard coded)
+// Some functions have been taken out of mainloop()
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
+void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfname)
 {
   std::cout << "Initialising the model parameters..." << std::endl;
   // Concatenate the path and paramter file name to get the full file address
@@ -678,6 +681,138 @@ void LSDCatchmentModel::initialise_model(std::string pname, std::string pfname)
     //else if (lower == "call_muddpile_model") call_muddpile_model = atof(value.c_str());
 
 	}
+	
+	std::cout << "No other parameters found, paramter ingestion complete." << std::endl;
+	std::cout << "Initialising hard coded-constants." << std::endl;
+	
+	// Initialise the other parameters (those not set by param file)
+	double tempflow=baseflow;
+	double ince=cycle+60;
+}	
+
+// Initialise the arrays (as done in initialise() ) 
+// Not sure the point of having them declared on header file if you 
+// can't resize them...surely this is duplicating array creation?? DV
+
+// These need moving - initialise_params() is called before load_data()
+// but load_data() determines array sizes based on DEM hdr info...epic programmer fail - DV
+// i.e. don't know xmax and ymax at start of this function call in program flow.
+void LSDCatchmentModel::initialise_arrays()
+{
+	std::cout << "ymax: " << ymax << " xmax: " << xmax << std::endl;
+	
+	elev = TNT::Array2D<double> (xmax+2,ymax+2);
+	water_depth = TNT::Array2D<double> (xmax+2,ymax+2);
+
+// Cast to int and then double, what?
+	//old_j_mean_store = new double[(int)((maxcycle*60)/input_time_step)+10];
+	old_j_mean_store = std::vector<double> (static_cast<int>((maxcycle*60)/input_time_step)+10);
+
+	qx = TNT::Array2D<double> (xmax + 2, ymax + 2);
+	qy = TNT::Array2D<double> (xmax + 2, ymax + 2);
+
+	qxs = TNT::Array2D<double> (xmax + 2, ymax + 2);
+	qys = TNT::Array2D<double> (xmax + 2, ymax + 2);
+	
+	Vel = TNT::Array2D<double> (xmax + 2, ymax + 2);
+	//std::cout << "Vel: " << Vel << std::endl;
+	area = TNT::Array2D<double> (xmax+2,ymax+2);
+	index = TNT::Array2D<int> (xmax+2,ymax+2);
+	elev_diff = TNT::Array2D<double> (xmax + 2, ymax + 2);
+	
+	bedrock = TNT::Array2D<double> (xmax+2,ymax+2);
+	tempcreep = TNT::Array2D<double> (xmax+2,ymax+2);
+	init_elevs = TNT::Array2D<double> (xmax+2,ymax+2);
+	
+	vel_dir = TNT::Array3D<double> (xmax+2, ymax+2, 9);	
+	strata = TNT::Array3D<double> ( ((xmax+2)*(ymax+2))/LIMIT , 10, G_MAX+1);
+	veg = TNT::Array3D<double> (xmax+1, ymax+1, 4);
+	
+	grain = TNT::Array2D<double> ( ((2+xmax)*(ymax+2))/LIMIT, G_MAX+1 );
+	cross_scan = TNT::Array2D<int> (xmax+2,ymax+2);
+	down_scan = TNT::Array2D<int> (ymax+2,xmax+2);
+
+    // line to stop max time step being greater than rain time step
+    if (rain_data_time_step < 1) rain_data_time_step = 1;
+    if (max_time_step / 60 > rain_data_time_step) max_time_step = static_cast<int>(rain_data_time_step) * 60;
+
+    // see StackOverflow for how to set size of nested vector
+    // http://stackoverflow.com/questions/2665936/is-there-a-way-to-specify-the-dimensions-of-a-nested-stl-vector-c
+    hourly_rain_data = std::vector< std::vector<float> > ( (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100), vector<float>(rfnum+1) );
+
+
+    hourly_m_value = std::vector<double> (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100);
+
+    // erm...what? Best just leave it in for now...
+    // magic numbers FTW
+    // Does this represent 10000 years? - DV
+	climate_data = TNT::Array2D<double> (10001, 3);
+
+	temp_grain = std::vector<double> (G_MAX+1);
+	
+	inputpointsarray = TNT::Array2D <bool> (xmax + 2, ymax + 2);
+	
+	edge = TNT::Array2D<double> (xmax+1,ymax+1);
+	edge2 = TNT::Array2D<double> (xmax+1,ymax+1);
+
+	Tau = TNT::Array2D<double> (xmax+2,ymax+2);
+
+    catchment_input_x_coord = std::vector<int> (xmax * ymax);
+    catchment_input_y_coord = std::vector<int> (xmax * ymax);
+
+	area_depth = TNT::Array2D<double> (xmax + 2, ymax + 2);
+	
+    //dune things - but not implemented in this version
+    /*
+    dune_mult = (int)(DX)/int.Parse(dune_grid_size_box.Text);
+    if (dune_mult < 1) dune_mult = 1;
+    if (DuneBox.Checked == false) dune_mult = 1; // needed in order to stop it tripping out the memory
+	
+    area_depth = new double[xmax + 2, ymax + 2];
+    sand = new double[xmax + 2, ymax + 2];
+    elev2 = new double[(xmax * dune_mult) + 2, (ymax*dune_mult) + 2];
+    sand2 = new double[(xmax * dune_mult) + 2, (ymax * dune_mult) + 2];
+	*/
+
+	dischargeinput = TNT::Array2D<double> (1000,5);
+	
+	hydrograph = TNT::Array2D<double> ( (maxcycle -(static_cast<int>(cycle/60))) + 1000, 2);    
+	
+	Vsusptot = TNT::Array2D<double> (xmax+2,ymax+2);
+	
+	// disributed hydro model arrays
+	j = std::vector<double> (rfnum + 1); //0.000000001; //start of hydrological model paramneters
+	jo = std::vector<double> (rfnum + 1);//0.000000001;
+	j_mean = std::vector<double> (rfnum + 1);
+	old_j_mean = std::vector<double> (rfnum + 1);
+	new_j_mean = std::vector<double> (rfnum + 1);
+	rfarea = TNT::Array2D<int> (xmax + 2, ymax + 2);
+	nActualGridCells = std::vector<int> (rfnum + 1);
+	catchment_input_counter = std::vector<int> (rfnum + 1);
+
+
+	// Segfaults here because you are trying to zero a load of
+	// zero length arrays
+	zero_values();
+	
+	time_1=1;
+
+    std::cout << "Calulating J.." << std::endl;
+	calc_J(1.0);
+
+	save_time=cycle;
+	creep_time=cycle;
+	creep_time2 = cycle;
+	soil_erosion_time = cycle;
+	soil_development_time = cycle;
+	time_1=cycle;
+	
+	std::cout << "Get_area().." << std::endl;
+	get_area();
+
+	std::cout << "Get_catchment_input_points().." << std::endl;
+	get_catchment_input_points();
+	time_factor = 1;
 }
 
 void LSDCatchmentModel::get_area()
@@ -1260,7 +1395,7 @@ void LSDCatchmentModel::zero_values()
 			edge[x][y] = 0;
 			edge2[x][y] = 0;
 			
-			sand[x][y] = 0;
+			//sand[x][y] = 0;
 
 			qx[x][y] = 0;
 			qy[x][y] = 0;
@@ -1391,13 +1526,12 @@ void LSDCatchmentModel::qroute()
 	std::cout << "local time factor: " << local_time_factor << std::endl;	
 	// PARALLELISATION	COULD BE INSERTED HERE - DAV
 	// #OMP PARALLEL...etc
-
-	// SET THIS IN A SEPARATE FUNCTION (initialise arrays)??
-	//TNT::Array2D<int> down_scan(xmax,ymax, 0.0);
+	
 	int inc = 1;
 	for (int y=1; y < ymax+1; y++)
 	{
-	std::cout << down_scan[y][inc] << std::endl;
+	//std::cout << "inc: " << inc << " y: " << y << " ymax: " << ymax << std::endl;
+	//std::cout << "downscan: " << down_scan[y][inc] << std::endl;
 	while (down_scan[y][inc] > 0)
 	{
 		int x = down_scan[y][inc];
@@ -1542,6 +1676,7 @@ void LSDCatchmentModel::qroute()
 
 void LSDCatchmentModel::depth_update()
 {
+	std::cout << "depth_update(): " << std::endl;
 	double local_time_factor = time_factor;
 	
 	if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
@@ -1570,11 +1705,14 @@ void LSDCatchmentModel::depth_update()
 		inc++;
 		
 		// UPDATE THE WATER DEPTHS
+		std::cout << "update water depth: " << inc << std::endl;
 		water_depth[x][y] += local_time_factor * (qx[x+1][y] - qx[x][y] + qy[x][y+1] - qy[x][y]) / DX;
+		
 		
 		// UPDATE THE SUSPENDED SEDIMENT CONCENTRATIONS
 		if (suspended_opt == true)
 		{
+			std::cout << "update SuspSedi: " << std::endl;
 			Vsusptot[x][y] += local_time_factor * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
 		}
 		
@@ -2899,7 +3037,7 @@ void LSDCatchmentModel::lateral3()
 		{
 
 			edge[x][y] = -9999;
-
+			std::cout << "water depth2: " << water_depth2[x][y] << std::endl;
 			if (water_depth2[x][y] < mft)
 			{
 				// if water depth < threshold then if its next to a wet cell then its an edge cell
