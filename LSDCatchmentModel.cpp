@@ -62,7 +62,6 @@
 
 #include "LSDCatchmentModel.hpp"
 
-
 // One day, I'd like to integrate this more into the LSDTopoTools,
 // particulalrly the LSDBasin object using it to 'cut out' basins
 // and then perform topo analysis on the model runs...
@@ -70,9 +69,6 @@ using std::string;
 
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
-
-// For debugging purposes only!
-//#define DUMP(varname) fprintf(stderr, "%s = %x", #varname, varname);
 
 // ingest data tools
 // DAV: I've copied these here for now to make the model self-contained for testing purposes
@@ -1698,35 +1694,34 @@ void LSDCatchmentModel::depth_update()
 	double tempmaxdepth = 0;
 	for (int y=1; y<=ymax; y++)
 	{
-	
-	while (down_scan[y][inc] > 0)
-	{
-		int x = down_scan[y][inc];
-		inc++;
-		
-		// UPDATE THE WATER DEPTHS
-		std::cout << "update water depth: " << inc << std::endl;
-		water_depth[x][y] += local_time_factor * (qx[x+1][y] - qx[x][y] + qy[x][y+1] - qy[x][y]) / DX;
-		
-		
-		// UPDATE THE SUSPENDED SEDIMENT CONCENTRATIONS
-		if (suspended_opt == true)
-		{
-			std::cout << "update SuspSedi: " << std::endl;
-			Vsusptot[x][y] += local_time_factor * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
-		}
-		
-		if (water_depth[x][y] > 0) 
-		{
-			// remove any water depths on NODATA cells (This shouldnae happen!)
-			if (elev[x][y] == -9999)
-				water_depth[x][y] = 0;
-				
-			// calculate the maximum flow depth for this time step.
-			if (water_depth[x][y] > tempmaxdepth) 
-				tempmaxdepth = water_depth[x][y];
-		}
-	}
+    while (down_scan[y][inc] > 0)
+    {
+      int x = down_scan[y][inc];
+      inc++;
+      
+      // UPDATE THE WATER DEPTHS
+      std::cout << "update water depth: " << inc << std::endl;
+      water_depth[x][y] += local_time_factor * (qx[x+1][y] - qx[x][y] + qy[x][y+1] - qy[x][y]) / DX;
+      
+      
+      // UPDATE THE SUSPENDED SEDIMENT CONCENTRATIONS
+      if (suspended_opt == true)
+      {
+        std::cout << "update SuspSedi: " << std::endl;
+        Vsusptot[x][y] += local_time_factor * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
+      }
+      
+      if (water_depth[x][y] > 0) 
+      {
+        // remove any water depths on NODATA cells (This shouldnae happen!)
+        if (elev[x][y] == -9999)
+          water_depth[x][y] = 0;
+          
+        // calculate the maximum flow depth for this time step.
+        if (water_depth[x][y] > tempmaxdepth) 
+          tempmaxdepth = water_depth[x][y];
+      }
+    }
 	tempmaxdepth2[y] = tempmaxdepth;
 	}
 	// reduction (if paralellism implemented at later date)
@@ -2987,8 +2982,13 @@ void LSDCatchmentModel::lateral3()
 	//double[,] edge_temp, edge_temp2, water_depth2;
 	//int[,] upscale, upscale_edge;
 	
-	TNT::Array2D<double> edge_temp, edge_temp2, water_depth2;
-	TNT::Array2D<int> upscale, upscale_edge;
+  // declare arrays and initialise the size of them
+	TNT::Array2D<double> edge_temp(xmax + 1, ymax + 1);
+  TNT::Array2D<double> edge_temp2(xmax + 1, ymax + 1);
+  TNT::Array2D<double> water_depth2(xmax + 1, ymax + 1);
+  
+	TNT::Array2D<int> upscale( (xmax + 1)*2, (ymax + 1)*2);
+  TNT::Array2D<int> upscale_edge( (xmax + 1)*2, (ymax + 1)*2);
 
 	//edge_temp = new Double[xmax + 1][ymax + 1];
 	//edge_temp2 = new Double[xmax + 1][ymax + 1];
