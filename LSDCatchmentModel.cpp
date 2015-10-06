@@ -57,6 +57,9 @@
 #include <algorithm>
 #include <fstream>
 
+#include <sstream>
+#include <iomanip>
+
 // Only for the debug macro
 #include <cstdio>
 
@@ -729,20 +732,19 @@ void LSDCatchmentModel::initialise_arrays()
 	cross_scan = TNT::Array2D<int> (xmax+2,ymax+2);
 	down_scan = TNT::Array2D<int> (ymax+2,xmax+2);
 
-    // line to stop max time step being greater than rain time step
-    if (rain_data_time_step < 1) rain_data_time_step = 1;
-    if (max_time_step / 60 > rain_data_time_step) max_time_step = static_cast<int>(rain_data_time_step) * 60;
+  // line to stop max time step being greater than rain time step
+  if (rain_data_time_step < 1) rain_data_time_step = 1;
+  if (max_time_step / 60 > rain_data_time_step) max_time_step = static_cast<int>(rain_data_time_step) * 60;
 
-    // see StackOverflow for how to set size of nested vector
-    // http://stackoverflow.com/questions/2665936/is-there-a-way-to-specify-the-dimensions-of-a-nested-stl-vector-c
-    hourly_rain_data = std::vector< std::vector<float> > ( (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100), vector<float>(rfnum+1) );
+  // see StackOverflow for how to set size of nested vector
+  // http://stackoverflow.com/questions/2665936/is-there-a-way-to-specify-the-dimensions-of-a-nested-stl-vector-c
+  hourly_rain_data = std::vector< std::vector<float> > ( (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100), vector<float>(rfnum+1) );
 
+  hourly_m_value = std::vector<double> (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100);
 
-    hourly_m_value = std::vector<double> (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100);
-
-    // erm...what? Best just leave it in for now...
-    // magic numbers FTW
-    // Does this represent 10000 years? - DV
+  // erm...what? Best just leave it in for now...
+  // magic numbers FTW
+  // Does this represent 10000 years? - DV
 	climate_data = TNT::Array2D<double> (10001, 3);
 
 	temp_grain = std::vector<double> (G_MAX+1);
@@ -754,8 +756,8 @@ void LSDCatchmentModel::initialise_arrays()
 
 	Tau = TNT::Array2D<double> (xmax+2,ymax+2);
 
-    catchment_input_x_coord = std::vector<int> (xmax * ymax);
-    catchment_input_y_coord = std::vector<int> (xmax * ymax);
+  catchment_input_x_coord = std::vector<int> (xmax * ymax);
+  catchment_input_y_coord = std::vector<int> (xmax * ymax);
 
 	area_depth = TNT::Array2D<double> (xmax + 2, ymax + 2);
 	
@@ -773,11 +775,25 @@ void LSDCatchmentModel::initialise_arrays()
 
 	dischargeinput = TNT::Array2D<double> (1000,5);
 	
-	hydrograph = TNT::Array2D<double> ( (maxcycle -(static_cast<int>(cycle/60))) + 1000, 2);    
+	hydrograph = TNT::Array2D<double> ( (maxcycle -(static_cast<int>(cycle/60))) + 1000, 2);  
 	
 	Vsusptot = TNT::Array2D<double> (xmax+2,ymax+2);
+  
+  // Grain Arrays
+  sum_grain = std::vector<double> (G_MAX+1);
+  sum_grain2 = std::vector<double> (G_MAX + 1);
+  old_sum_grain = std::vector<double> (G_MAX+1);
+  old_sum_grain2 = std::vector<double> (G_MAX + 1);
+  Qg_step = std::vector<double> (G_MAX+1);
+  Qg_hour = std::vector<double> (G_MAX+1);
+  Qg_over = std::vector<double> (G_MAX+1);
+  Qg_last = std::vector<double> (G_MAX+1);
+  Qg_step2 = std::vector<double> (G_MAX + 1);
+  Qg_hour2 = std::vector<double> (G_MAX + 1);
+  Qg_over2 = std::vector<double> (G_MAX + 1);
+  Qg_last2 = std::vector<double> (G_MAX + 1);
 	
-	// disributed hydro model arrays
+	// Distributed Hydrological Model Arrays
 	j = std::vector<double> (rfnum + 1); //0.000000001; //start of hydrological model paramneters
 	jo = std::vector<double> (rfnum + 1);//0.000000001;
 	j_mean = std::vector<double> (rfnum + 1);
@@ -893,9 +909,10 @@ void LSDCatchmentModel::get_area4()
 	}
 	
 	// Now do the sort
-	std::sort(x_keys_elevs_paired.begin(), x_keys_elevs_paired.end(), sort_pair_second<double,double>() );
-
-
+	std::sort(x_keys_elevs_paired.begin(), 
+            x_keys_elevs_paired.end(), 
+            sort_pair_second<double,double>() 
+            );
 
 	// now does the same for y values
 	inc = 1;
@@ -1102,156 +1119,189 @@ void LSDCatchmentModel::call_slide5()   // not exactly sure what slide_5 does di
 // DATA OUTPUTS ETC.
 //=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::output_data()
+// this was part of erodep() in CL but I felt it should have its own method call - DAV
 {
-	//placeholder
-}
-//void LSDCatchmentModel::output_data()	  // this was part of erodep() in CL but I felt it should have its own method call - DAV
-//{
-	//int n;
-	//Qw+newvol += temptotal*((cycle-previous)*60); // 60 seconds per min
+	int n;
+	Qw_newvol += temptotal*((cycle - previous)*60); // 60 seconds per min
 	
-	//for (int nn == 1; nn <= rfnum; nn++) Jw_newvol += (j_mean[nn]*DX*DX*nActualGridCells[nn]) * ((cycle - previous)*60);
+	for (int nn = 1; nn <= rfnum; nn++) 
+  {
+    Jw_newvol += (j_mean[nn] * DX * DX * nActualGridCells[nn]) * ((cycle - previous)*60);
+  }
 	
-	//// Catch all the timesteps that pass one or more hour marks
-	//if ((new_cycle < old_cycle) || (cycle - previous >= output_file_save_interval))
-	//{
-		//while (( tx > previous ) && (cycle >= tx))
-		//{
-			//hours++;
+	// Catch all the timesteps that pass one or more hour marks
+	if ((new_cycle < old_cycle) || (cycle - previous >= output_file_save_interval))
+	{
+		while (( tx > previous ) && (cycle >= tx))
+		{
+			hours++;
 			
-			//// Step 1: Calculate hourly total sediment Q (m3)
-			//Qs_step = globasediq - old_sediq;
-			//Qs_over = Qs_step*((cycle - tx)/(cycle - tslastcalc));
-			//Qs_hour = Qs_step - Qs_over + Qs_last;
+			// Step 1: Calculate hourly total sediment Q (m3)
+			Qs_step = globalsediq - old_sediq;
+			Qs_over = Qs_step*((cycle - tx)/(cycle - tlastcalc));
+			Qs_hour = Qs_step - Qs_over + Qs_last;
 			
-			//// reset Qs_last and old_sediq for large time steps
-			//if (cycle >= tx + output_file_save_interval)
-			//{
-				//Qs_last = 0;
-				//old_sediq = globalsediq - Qs_over;
-			//}
+			// reset Qs_last and old_sediq for large time steps
+			if (cycle >= tx + output_file_save_interval)
+			{
+				Qs_last = 0;
+				old_sediq = globalsediq - Qs_over;
+			}
 			
-			//// reset Qs_last and old_sediq for small time steps
-			//if (cycle<tx+output_file_save_interval)
-			//{
-				//Qs_last = Qs_over;
-				//old_sediq = globalsediq;
-			//}
+			// reset Qs_last and old_sediq for small time steps
+			if (cycle<tx+output_file_save_interval)
+			{
+				Qs_last = Qs_over;
+				old_sediq = globalsediq;
+			}
 
-			//// Step 2: Calculate grain size Qgs, also calculate contaminated amounts
-			//for (n=1; n<=G_MAX-1; n++)
-			//{
-				//// calculate timestep Qgs
-				//Qg_step[n] = sum_grain[n] - old_sum_grain[n];
-				//Qg_step2[n] = sum_grain2[n] - old_sum_grain2[n];
-				//// Interpolate Qgs beyond time tx
-				//Qg_over[n] = Qg_step[n]*((cycle - tx)/(cycle - tlastcalc));
-				//Qg_over2[n] = Qg_step2[n] * ((cycle - tx) / (cycle - tlastcalc));
-				//// and calculate hourly Qgs
-				//Qg_hour[n] = Qg_step[n] - Qg_over[n] + Qg_last[n];
-				//Qg_hour2[n] = Qg_step2[n] - Qg_over2[n] + Qg_last2[n];
-				//// Reset Qg_last[n] and old_sum_grain[n]for large time steps
-				//if (cycle >= tx + output_file_save_interval)
-				//{
-					//Qg_last[n] = 0;
-					//Qg_last2[n] = 0;
-					//old_sum_grain[n] = sum_grain[n] - Qg_over[n];
-					//old_sum_grain2[n] = sum_grain2[n] - Qg_over2[n];
-				//}
-				//// Reset Qg_last[n] and old_sum_grain[n] for small time steps
-				//if (cycle < tx + output_file_save_interval)
-				//{
-					//Qg_last[n] = Qg_over[n];
-					//Qg_last2[n] = Qg_over2[n];
-					//old_sum_grain[n] = sum_grain[n];
-					//old_sum_grain2[n] = sum_grain2[n];
-				//}
-			//}
+			// Step 2: Calculate grain size Qgs, also calculate contaminated amounts
+			for (n=1; n<=G_MAX-1; n++)
+			{
+				// calculate timestep Qgs
+				Qg_step[n] = sum_grain[n] - old_sum_grain[n];
+				Qg_step2[n] = sum_grain2[n] - old_sum_grain2[n];
+				// Interpolate Qgs beyond time tx
+				Qg_over[n] = Qg_step[n]*((cycle - tx)/(cycle - tlastcalc));
+				Qg_over2[n] = Qg_step2[n] * ((cycle - tx) / (cycle - tlastcalc));
+				// and calculate hourly Qgs
+				Qg_hour[n] = Qg_step[n] - Qg_over[n] + Qg_last[n];
+				Qg_hour2[n] = Qg_step2[n] - Qg_over2[n] + Qg_last2[n];
+				// Reset Qg_last[n] and old_sum_grain[n]for large time steps
+				if (cycle >= tx + output_file_save_interval)
+				{
+					Qg_last[n] = 0;
+					Qg_last2[n] = 0;
+					old_sum_grain[n] = sum_grain[n] - Qg_over[n];
+					old_sum_grain2[n] = sum_grain2[n] - Qg_over2[n];
+				}
+				// Reset Qg_last[n] and old_sum_grain[n] for small time steps
+				if (cycle < tx + output_file_save_interval)
+				{
+					Qg_last[n] = Qg_over[n];
+					Qg_last2[n] = Qg_over2[n];
+					old_sum_grain[n] = sum_grain[n];
+					old_sum_grain2[n] = sum_grain2[n];
+				}
+			}
 	
-			//// Step 3: Calculate hourly mean water discharge
-			//// Qw_overvol = temptotal*((cycle-tx)*output_file_save_interval); // replaced by line below MJ 25/01/05
-			//Qw_overvol = temptotal*((cycle - tx)*60);	// 60 secs per min
-			//Qw_stepvol = Qw_newvol - Qw_oldvol;
-			//Qw_hourvol = Qw_stepvol - Qw_overvol + Qw_lastvol;
-			//Qw_hour = Qw_hourvol/(60*output_file_save_interval); // convert hourly water volume to cumecs
+			// Step 3: Calculate hourly mean water discharge
+			// Qw_overvol = temptotal*((cycle-tx)*output_file_save_interval); // replaced by line below MJ 25/01/05
+			Qw_overvol = temptotal*((cycle - tx)*60);	// 60 secs per min
+			Qw_stepvol = Qw_newvol - Qw_oldvol;
+			Qw_hourvol = Qw_stepvol - Qw_overvol + Qw_lastvol;
+			Qw_hour = Qw_hourvol/(60*output_file_save_interval); // convert hourly water volume to cumecs
 
-			//// same for Jw (j_mean contribution)  MJ 14/03/05
-			//for (int nn=1; nn<=rfnum; nn++) 
-			//{
-				//Jw_overvol = (j_mean[nn]*DX*DX*nActualGridCells[nn])*((cycle - tx)*60);  // fixed MJ 29/03/05
-			//}
-			//Jw_stepvol = Jw_newvol - Jw_oldvol;
-			//Jw_hourvol = Jw_stepvol - Jw_overvol + Jw_lastvol;
-			//Jw_hour = Jw_hourvol/(60*output_file_save_interval);
+			// same for Jw (j_mean contribution)  MJ 14/03/05
+			for (int nn=1; nn<=rfnum; nn++) 
+			{
+				Jw_overvol = (j_mean[nn] * DX * DX * nActualGridCells[nn])*((cycle - tx)*60);  // fixed MJ 29/03/05
+			}
+			Jw_stepvol = Jw_newvol - Jw_oldvol;
+			Jw_hourvol = Jw_stepvol - Jw_overvol + Jw_lastvol;
+			Jw_hour = Jw_hourvol/(60*output_file_save_interval);
 
 
-			//// reset Qw_lastvol and Qw_oldvol for large time steps
-			//if (cycle >= tx + output_file_save_interval)
-			//{
-				//Qw_lastvol = 0;
-				//Qw_oldvol = Qw_newvol - Qw_overvol;
+			// reset Qw_lastvol and Qw_oldvol for large time steps
+			if (cycle >= tx + output_file_save_interval)
+			{
+				Qw_lastvol = 0;
+				Qw_oldvol = Qw_newvol - Qw_overvol;
 
-				//// same for Jw (j_mean contribution)  MJ 14/03/05
-				//Jw_lastvol = 0;
-				//Jw_oldvol = Jw_newvol - Jw_overvol;
-			//}
+				// same for Jw (j_mean contribution)  MJ 14/03/05
+				Jw_lastvol = 0;
+				Jw_oldvol = Jw_newvol - Jw_overvol;
+			}
 
-			//// reset Qw_lastvol and Qw_oldvol for small time steps
-			//if (cycle < tx + output_file_save_interval)
-			//{
-				//Qw_lastvol = Qw_overvol;
-				//Qw_oldvol = Qw_newvol;
+			// reset Qw_lastvol and Qw_oldvol for small time steps
+			if (cycle < tx + output_file_save_interval)
+			{
+				Qw_lastvol = Qw_overvol;
+				Qw_oldvol = Qw_newvol;
 
-				//// same for Jw (j_mean contribution)  MJ 14/03/05
-				//Jw_lastvol = Jw_overvol;
-				//Jw_oldvol = Jw_newvol;
-			//}
+				// same for Jw (j_mean contribution)  MJ 14/03/05
+				Jw_lastvol = Jw_overvol;
+				Jw_oldvol = Jw_newvol;
+			}
 
-			//Tx = tx;
-			//tx = Tx + output_file_save_interval;
+			Tx = tx;
+			tx = Tx + output_file_save_interval;
 		  
-	
-			//// Step 4: Output hourly data to file (format for reach model input)
-			//// changed MJ 18/01/05
-			//string output = string.Format("{0}",hours);
-			//output = output	+ string.Format(" {0:F6}",Qw_hour);
-			//output = output	+ string.Format(" {0:F6}",Jw_hour);
+      /* Former C# stuff using string.format
+       * 
+			// Step 4: Output hourly data to file (format for reach model input)
+			// changed MJ 18/01/05
+			std::string output = string.Format("{0}",hours);
+			output = output	+ string.Format(" {0:F6}",Qw_hour);
+			output = output	+ string.Format(" {0:F6}",Jw_hour);
 			
-			//// DAV: Took out the SIBERIA sub-model bit here.
+			// DAV: Took out the SIBERIA sub-model bit here.
 			
-			//output = output + string.Format(" {0:F6}", sand_out);
-			//sand_out = 0;
+			output = output + string.Format(" {0:F6}", sand_out);
+			sand_out = 0;
 
-			//output = output	+ string.Format(" {0:F10}", Qs_hour);
+			output = output	+ string.Format(" {0:F10}", Qs_hour);
+      */
+      
+      // Step: 4 ((C++) needs rewriting)
+      // Need to process each double as stringstream to set fixed precision
+      // Then convert stringstream to new string and append to line of output.
+      std::string output;
+      
+      std::stringstream hours_format;
+      hours_format << std::fixed << std::setprecision(0) << hours;
+      output = hours_format.str();
+      
+      std::stringstream Qw_hour_format;
+      Qw_hour_format << std::fixed << std::setprecision(6) << Qw_hour;
+      output = output + " " + Qw_hour_format.str();
+      
+      std::stringstream Jw_hour_format;
+      Jw_hour_format << std::fixed << std::setprecision(6) << Jw_hour;
+      output = output + " " + Jw_hour_format.str();
+      
+      std::stringstream sand_out_format;
+      sand_out_format << std::fixed << std::setprecision(6) << sand_out;
+      output = output + " " + sand_out_format.str();
+      sand_out = 0; // reset sand
+      
+      std::stringstream Qs_hour_format;
+      Qs_hour_format << std::fixed << std::setprecision(10) << Qs_hour;
+      output = output + " " + Qs_hour_format.str();
+      
 			
-			//for (n=1; n<=G_MAX-1; n++)
-			//{
+			for (n=1; n<=G_MAX-1; n++)
+			{
+        std::stringstream Qg_hour_format;
+        Qg_hour_format << std::fixed << std::setprecision(10) << Qg_hour[n];
+        output = output + " " + Qg_hour_format.str();
+        
 				//output = output + string.Format(" {0:F10}", Qg_hour[n]);
-				////output = output+" "+Qg_hour[n]; 
-			//}
+				//output = output+" "+Qg_hour[n]; 
+			}
 			
-			//// Open the catchment time series file in append mode (ios_base::app)
-			//// Open it in write mode (ios_base::out)
-			//// CATCH_FILE is called "catchment.dat" by default (see the .hpp file)
-			//std::ofstream timeseriesf(CATCH_FILE, std::ios_base::app | std::ios_base::out);
+			// Open the catchment time series file in append mode (ios_base::app)
+			// Open it in write mode (ios_base::out)
+			// CATCH_FILE is called "catchment.dat" by default (see the .hpp file)
+			std::ofstream timeseriesf(CATCH_FILE, std::ios_base::app | std::ios_base::out);
 			
-			//// write the current timestep output to the time series file
-			//timeseriesf << output << std::endl; 
+			// write the current timestep output to the time series file
+			timeseriesf << output << std::endl; 
 			
-			////close the file, although should you really do this if just opening it again in the next loop?
-			//timeseriesf.close();
+			//close the file, although should you really do this if just opening it again in the next loop?
+			timeseriesf.close();
 			
-			//////C# version of the above
-			////StreamWriter sw = File.AppendText(CATCH_FILE);
-			////sw.WriteLine(output);
-			////sw.Close();
+			////C# version of the above
+			//StreamWriter sw = File.AppendText(CATCH_FILE);
+			//sw.WriteLine(output);
+			//sw.Close();
 
 
-		//}
-		//tlastcalc = cycle;	
-	//}													   
+		}
+		tlastcalc = cycle;	
+	}													   
 
-//}	
+}	
 
 void LSDCatchmentModel::save_data_and_draw_graphics()
 {
@@ -1275,7 +1325,7 @@ void LSDCatchmentModel::save_data(int typeflag, double tempcycle)
 	if (typeflag == 17 && tempcycle == 0) FILENAME = "velocity_vectors.txt";	// <JOE 20050605>
 
 	// convert the tempcycle to an int, then to a string
-	// DAV: Need to uncomment these at somepoint for the unique filename option to work.
+	// DAV: Need to uncomment + translate these at somepoint for the unique filename option to work.
 	//if(typeflag==1&&tempcycle>0) FILENAME = "waterdepth"+Convert.ToString(Convert.ToInt64(tempcycle))+".txt";
 	//if (typeflag == 2 && tempcycle > 0) FILENAME = "elevdiff" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
 	//if (typeflag == 3 && tempcycle > 0) FILENAME = "elev.dat" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
@@ -1290,9 +1340,6 @@ void LSDCatchmentModel::save_data(int typeflag, double tempcycle)
   // use the write_raster(FILENAME) call from LSDRaster when you implement the rest of this.
 	}
 }
-
-
-
 
 // A wrapper method that calls the chief erosional and water routing methods.
 void LSDCatchmentModel::run_components()   // originally erodepo() in CL
@@ -1316,12 +1363,10 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 			local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
 		}
 	
-	
 		// increment the counters
 		counter++;
 		cycle += time_factor / 60;
 		// cycle is minutes, time_factor is seconds
-		
 		
 		// WATER INPUTS
 		//double waterinput = 0;

@@ -8,6 +8,8 @@
 #include <array>
 #include <map>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <sys/stat.h>
 
 #include "LSDRaster.hpp"
@@ -35,11 +37,9 @@ struct sort_pair_second
 	}
 };
 
-
-
-///@brief This object is used to model the hydrology, sediment transport and 
+/// @brief This object is used to model the hydrology, sediment transport and 
 /// evolution of individual basins.
-///@details The object is (for now) just a rough and ready translation of the 
+/// @details The object is (for now) just a rough and ready translation of the 
 /// CAESAR-Lisflood model - a hydrologically explicit landscape evolution model. It 
 /// models landscape evolution and hydro-geomorphic processes at the basin scale.
 class LSDCatchmentModel: public LSDRaster
