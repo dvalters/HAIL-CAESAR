@@ -62,9 +62,10 @@
 
 #include "LSDCatchmentModel.hpp"
 
-// One day, I'd like to integrate this more into the LSDTopoTools,
-// particulalrly the LSDBasin object using it to 'cut out' basins
-// and then perform topo analysis on the model runs...
+// DV - One day, I'd like to integrate this more into the LSDTopoTools,
+// particulalrly the LSDBasin object using it to 'cut out' basins,
+// run hydrology sims for the catchment (hundreds - thousands yrs).
+// and then perform topo analysis on the model run output
 using std::string;
 
 #ifndef LSDCatchmentModel_CPP
@@ -484,7 +485,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
     else if (lower == "max_run_duration") 		
     {
 		maxcycle = atoi(value.c_str()); //?
-		std::cout << "max run duration: " << maxcycle << std::endl;
+		std::cout << "max_run_duration: " << maxcycle << std::endl;
 	}
     else if (lower == "memory_limit") 			
     {
@@ -1325,14 +1326,14 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 		// WATER INPUTS
 		//double waterinput = 0;
 		
-		std::cout << "route the water and update the flow depths" << std::endl;
+		//std::cout << "route the water and update the flow depths\r" << std::flush;
 		qroute();
 		depth_update();
 		
 		// check scan area every 5 iters.. maybe re-visit for reach mode if it causes too much backing up of sed. see code commented below nex if..
 		if (std::remainder(counter, 5) == 0)
 		{
-			std::cout << "Scan area..." << std::endl;
+			//std::cout << "Scan area...\r" << std::flush ;
 			scan_area();
 		}
 		
@@ -1343,7 +1344,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 		
 		output_data();  // not sure if this is the best place to put this, but it needs to be done every timestep? - DAV
 		
-		std::cout << cycle << std::endl;
+		std::cout << cycle << "\r" << std::flush;
 		
 		if (cycle >= save_time)
 		{
@@ -1514,12 +1515,12 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)    // Extracted
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::qroute()
 {
-	std::cout << "qroute" << std::endl;
+	//std::cout << "qroute\r" << std::flush;
 	double local_time_factor = time_factor;
 	if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
 		local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
 	
-	std::cout << "local time factor: " << local_time_factor << std::endl;	
+	//std::cout << "local time factor: " << local_time_factor <<"\r" << std::flush;	
 	// PARALLELISATION	COULD BE INSERTED HERE - DAV
 	// #OMP PARALLEL...etc
 	
@@ -1672,7 +1673,7 @@ void LSDCatchmentModel::qroute()
 
 void LSDCatchmentModel::depth_update()
 {
-	std::cout << "depth_update(): " << std::endl;
+	//std::cout << "depth_update(): \r" << std::flush;
 	double local_time_factor = time_factor;
 	
 	if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
@@ -1700,14 +1701,14 @@ void LSDCatchmentModel::depth_update()
       inc++;
       
       // UPDATE THE WATER DEPTHS
-      std::cout << "update water depth: " << inc << std::endl;
+      //std::cout << "update water depth: " << inc << "\r" << std::flush;
       water_depth[x][y] += local_time_factor * (qx[x+1][y] - qx[x][y] + qy[x][y+1] - qy[x][y]) / DX;
       
       
       // UPDATE THE SUSPENDED SEDIMENT CONCENTRATIONS
       if (suspended_opt == true)
       {
-        std::cout << "update SuspSedi: " << std::endl;
+        //std::cout << "update SuspSedi: " << std::endl;
         Vsusptot[x][y] += local_time_factor * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
       }
       
@@ -3037,7 +3038,7 @@ void LSDCatchmentModel::lateral3()
 		{
 
 			edge[x][y] = -9999;
-			std::cout << "water depth2: " << water_depth2[x][y] << std::endl;
+			//std::cout << "water depth2: " << water_depth2[x][y] << std::endl;
 			if (water_depth2[x][y] < mft)
 			{
 				// if water depth < threshold then if its next to a wet cell then its an edge cell
