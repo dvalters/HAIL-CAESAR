@@ -106,7 +106,11 @@ public:
 	/// @author DAV
 	/// @details dependent on the LSDRaster class calling the overloaded write_raster func
 	void save_data(int typeflag, double tempcycle);
-	
+  
+  void save_data(double tempcycle);
+  
+  void save_data_and_draw_graphics();
+  
 	/// @brief Checks to see if a file exists
 	/// @author DAV (Thanks to StackOverflow)
 	/// @return Returns a bool value
@@ -187,8 +191,6 @@ public:
 	void get_catchment_input_points();
 	
 	void output_data();
-	
-	void save_data_and_draw_graphics();
 	
 	void intialise_params();
 	
@@ -629,6 +631,8 @@ protected:
 	float run_time_start;
 	int no_of_iterations;
 	//float max_run_duration;  // this is maxcycle
+  
+  int tempcycle = 0;
 	
 	//protected:
 	std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
