@@ -1305,16 +1305,26 @@ void LSDCatchmentModel::output_data()
 
 void LSDCatchmentModel::save_data_and_draw_graphics()
 {
+  
 }
 
 void LSDCatchmentModel::save_data(int typeflag, double tempcycle)
 {
+  //
+}
+
+void LSDCatchmentModel::save_data(double tempcycle)
+{
 	int x,y,z,inc,nn;
 	
-	string FILENAME = "waterdepth.dat";
+	string FILENAME = "output.dat";
 
 	if(uniquefilecheck==false) tempcycle=0;
+  
+  if (write_waterd_file==true) water_depthR.write_raster(waterdepth_fname, "asc");
+  if (write_elev_file == true) elevR.write_raster(elev_fname, "asc");
 
+  /*
 	// turns file name into days from mins.
 	if(typeflag==1&&tempcycle==0) FILENAME = "waterdepth.txt";
 	if(typeflag==2&&tempcycle==0) FILENAME = "elevdiff.txt";
@@ -1323,6 +1333,7 @@ void LSDCatchmentModel::save_data(int typeflag, double tempcycle)
 	if (typeflag == 15 && tempcycle == 0) FILENAME = "d50top.txt";
 	if (typeflag == 16 && tempcycle == 0) FILENAME = "velocity.txt";			// <JOE 20050605>
 	if (typeflag == 17 && tempcycle == 0) FILENAME = "velocity_vectors.txt";	// <JOE 20050605>
+  * */
 
 	// convert the tempcycle to an int, then to a string
 	// DAV: Need to uncomment + translate these at somepoint for the unique filename option to work.
@@ -1335,10 +1346,23 @@ void LSDCatchmentModel::save_data(int typeflag, double tempcycle)
 	//if (typeflag == 16 && tempcycle > 0) FILENAME = "velocity" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
 	//if (typeflag == 17 && tempcycle > 0) FILENAME = "velocity_vectors" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
 
+/*
 	if(typeflag>=1&&typeflag<4)
 	{
-  // use the write_raster(FILENAME) call from LSDRaster when you implement the rest of this.
-	}
+    // use the write_raster(FILENAME) call from LSDRaster when you implement the rest of this.
+    if (write_waterd_file==true) water_depthR.write_raster(waterdepth_fname, "asc");
+    if (write_elev_file == true) elevR.write_raster(elev_fname, "asc");
+    
+    //if (write_bedrock_file == true) bedrockR.write_raster(bedrock_fname, "asc");
+    
+    /* SPECIAL CASES
+    Need more thought
+    if (write_elevdiff_file == true) ...
+    if (write_grainsz_file == true) 
+    if (write_bedrock_file == true) 
+    if (write_flowvel_file == true)
+    */
+//	}
 }
 
 // A wrapper method that calls the chief erosional and water routing methods.
@@ -1393,7 +1417,8 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 		
 		if (cycle >= save_time)
 		{
-			save_data_and_draw_graphics(); //similar to above worry?
+			// deprecated // save_data_and_draw_graphics(); //similar to above worry?
+      save_data(tempcycle);
 			save_time += saveinterval;
 		}
 		
