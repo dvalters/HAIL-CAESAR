@@ -1,55 +1,34 @@
 /// LSDCatchmentModel.cpp
-///
-/// This is basically the C++ implementation of the CAESAR-Lisflood (T. Coulthard) model. 
-/// 
-/// It is designed to be integrated with the LSD Topo Tools package, but it should
-/// also be able to run as a standalone program with a driver file and input data.
-///
-/// WHY CAESAR-Lisflood?
-/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-/// The key features of the CAESAR-Lisflood (CL) model are the simplified physical-based
-/// treatment of water flow across the landscape (Lisflood). The hydrological aspect of the
-/// model is essentially nonsteady state. (Unlike most other landscape evolution models such
-/// as CHILD, the old version of CAESAR etc..) The timestep is much shorter than a typical 
-/// landscape evolution model, so it is more suited to shorter time scales from individual 
-/// storms, to years, decades, or Holocene landscape evolution. Though in theory there is no
-/// upper limit to the model run length, it will just take a helluva long time. It is designed for
-/// individual catchment simulation (though the catchements could in theory be quite large, but
-/// there are caveats to using large catchments or high resolution DEMs)
-///
-/// Why not use the original, C#, Windows version, with the neat GUI?
-/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-/// You can do, if you are happy to run on Windows, and would prefer to use a model in GUI-mode
-/// then CAESAR-Lisflood is a good choice for this. This branch of the model is designed to 
-/// be cross platform, though with an emphasis on running on a linux environment, and hopefully
-/// on a supercomputer if the resources are available. One of the drawbacks to the original model
-/// is that you need a dedicated Windows box to do your simulations, you can't send them off to
-/// a cluster computer type facility. 
-///
-/// With this version you can also perform topographic analysis within the same
-/// LSDTopoTools environment, switching eaasily between modelling and landscape analysis.
-///
-/// How does LSDCatchmentModel fit in with LSDRasterModel?
-/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-/// It should compliment the LSDRasterModel, which is better suited to large-scale, 
-/// topographic evolution over long geological time periods, and has a much faster solver based
-/// on Jean Braun's FastScape algorithm.
-///
-/// References:
-/// =-=-=-=-=-=-=
-/// Coulthard, T. J., Neal, J. C., Bates, P. D., Ramirez, J., Almeida, G. A., & Hancock, G. R. (2013).
-/// Integrating the LISFLOOD‐FP 2D hydrodynamic model with the CAESAR model: implications for modelling 
-/// landscape evolution. Earth Surface Processes and Landforms, 38(15), 1897-1906.
-///
-/// Bates, P. D., Horritt, M. S., & Fewtrell, T. J. (2010). A simple inertial formulation of the 
-/// shallow water equations for efficient two-dimensional flood inundation modelling. 
-/// Journal of Hydrology, 387(1), 33-45.
-/// 
-///
-/// Declan Valters, 2014
-/// Version 0.0.1 alpha 
-/// January 2015
-///
+
+/* LSDCatchmentModel is a 2D numerical model of landscape evolution that
+ * simulates the processes and evolution
+ * of catchments (river basins) and their hydrological and sedimentological
+ * process over timescales of days to thousands of years.
+ * 
+ * This is a C++ implementation of the original CAESAR-Lisflood model
+ * (Coulthard et al. (2013)). This is a non-GUI version of the CL model. You
+ * run it from the command line/terminal/console. 
+ * 
+ * It is integrated with the LSDTopoTools package and makes use of several
+ * of the LSDTopoTools objects, such as LSDRaster in particular for reading
+ * and writing raster data to and from the model. You might wish to use some
+ * of the topographic analysis tools to analyse your model output.
+ * 
+ * The hydrological component of the model is based on the Bates et al (2010) 
+ * algorithm of non-steady surface water flow, to represent the variation 
+ * in hydrological flow in a landscape under non-steady state hydrological
+ * inputs.
+ * 
+ * @author Declan Valters
+ * @date  2014, 2015
+ * University of Manchester
+ * @contact declan.valters@manchester.ac.uk
+ * @version 0.01
+ * 
+ * Released under the GNU v2 Public License
+ *
+ */
+
 
 #include <string>
 #include <cmath>
@@ -76,8 +55,8 @@ using std::string;
 
 // ingest data tools
 // DAV: I've copied these here for now to make the model self-contained for testing purposes
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Line parser for parameter files - JAJ 08/01/2014
 // This might be better off somewhere else
 //
@@ -88,8 +67,8 @@ using std::string;
 // This just does one line at a time; you need a wrapper function to get all
 // the information out of the file
 //
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::parse_line(std::ifstream &infile, string &parameter, string &value)
 {
 	char c;
@@ -102,7 +81,7 @@ void LSDCatchmentModel::parse_line(std::ifstream &infile, string &parameter, str
 		if (pos >= 256)
 		{
 			std::cout << "Buffer overrun, word too long in parameter line: " << std::endl;
-			string line;
+			std::string line;
 			getline(infile, line);
 			std::cout << "\t" << buff << " ! \n" << line << std::endl;
 			exit(1);
@@ -285,9 +264,9 @@ void LSDCatchmentModel::load_data()
 	}
 	
 	// Load the BEDROCK DEM
-	if (CM_model_switches["bedrock_layer_on"] == true)
+	if (bedrock_layer_on == true)
 	{
-		FILENAME = CM_support_file_names["bedrock_data_file"];
+		FILENAME = bedrock_data_file;
 		// Check for the file first of all
 		if (!does_file_exist(FILENAME))
 		{
@@ -312,9 +291,9 @@ void LSDCatchmentModel::load_data()
 	
 	// Load the RAINDATA file
 	// Remember the format is not the same as a standard ASCII DEM...
-	if (CM_model_switches["rainfall_data_on"]==true)
+	if (rainfall_data_on==true)
 	{
-		FILENAME = CM_support_file_names["rainfall_data_file"];
+		FILENAME = rainfall_data_file;
 		// Check for the file first of all
 		if (!does_file_exist(FILENAME))
 		{
