@@ -39,6 +39,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include <iterator> // For the printing vector method
+
 // Only for the debug macro
 #include <cstdio>
 
@@ -188,10 +190,11 @@ void LSDCatchmentModel::create(string pname, string pfname)
 // Need to think about this...the number of rows and cols are not known beforehand
 std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(string FILENAME)
 {
-	std::cout << "\n\n Loading Rainfall File, the filename is " << FILENAME << std::endl;
+	std::cout << "\n\n Loading Spatially Distributed Rainfall File, the filename is "
+            << FILENAME << std::endl;
 
 	// open the data file
-	std::fstream infile(FILENAME.c_str());
+	std::ifstream infile(FILENAME.c_str());
 	
 	std::string line;
 	//std::vector< std::vector<float> > raingrid; //declared in .hpp now
@@ -210,7 +213,48 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(string FI
 		}
 		++i;
 	}
-	return raingrid;
+  return raingrid;  // You(I) forgot the return statement! - DV
+  // It's odd that the compiler allows no return statement.
+}
+/*
+std::vector<float> LSDCatchmentModel::read_rainfall_uniform(string FILENAME)
+{
+  std::cout << "\n\n Loading Uniform Rainfall File, the filename is "
+            << FILENAME << std::endl;
+  
+  std::ifstream infile(FILENAME.c_str());
+  
+  if (infile)
+  {
+    float value;
+    while (infile >> value))
+    {
+      raingrid.push_back(value)
+    }
+  }
+  else
+  {
+    std::cout << "There was an error opening your uniform rainfall file." << 
+    std::endl;
+  }
+}
+*/
+
+
+void LSDCatchmentModel::print_rainfall_data()
+{
+  std::vector< std::vector<float> > vector2d = hourly_rain_data;
+  
+  std::vector<std::vector<float> >::iterator itr = vector2d.begin();
+  std::vector<std::vector<float> >::iterator end = vector2d.end();
+  
+  while (itr!=end) 
+  {
+      std::vector<float>::iterator it1=itr->begin(),end1=itr->end();
+      std::copy(it1,end1,std::ostream_iterator<float>(std::cout, " "));
+      std::cout << std::endl;
+      ++itr;
+  }
 }
 
 void LSDCatchmentModel::load_data()
@@ -226,16 +270,26 @@ void LSDCatchmentModel::load_data()
 	
 	// Read in the elevation raster data from file, setting the elevation LSDRaster
 	// object, 'elevR'
-	elevR.read_ascii_raster(FILENAME);
-	// You have now read in all the headers and the raster data
-	// Headers are accessed by elevR.get_Ncols(), elevR.get_NRows() etc
-	// Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
-	init_elevs = elevR.get_RasterData_dbl();
-	
-	ymax = elevR.get_NRows();
-	xmax = elevR.get_NCols();
-	std::cout << "YMAX: " << ymax;
-	std::cout << "XMAX: " << xmax;
+  try
+  {
+    elevR.read_ascii_raster(FILENAME);
+    // You have now read in all the headers and the raster data
+    // Headers are accessed by elevR.get_Ncols(), elevR.get_NRows() etc
+    // Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
+    init_elevs = elevR.get_RasterData_dbl();
+    
+   	ymax = elevR.get_NRows();
+    xmax = elevR.get_NCols();
+    std::cout << "YMAX: " << ymax << std::endl;
+    std::cout << "XMAX: " << xmax << std::endl;
+	}
+  catch(...)
+  {
+  	std::cout << "Something is wrong with your initial elevation raster file." << std::endl
+		<< "Common causes are: " << std::endl << "1) Data type is not correct" <<
+		std::endl << "2) Non standard raster format" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 	
 	// Load the HYDROINDEX DEM
 	if (spatially_var_rainfall == true)
@@ -1274,8 +1328,6 @@ void LSDCatchmentModel::output_data()
 			//StreamWriter sw = File.AppendText(CATCH_FILE);
 			//sw.WriteLine(output);
 			//sw.Close();
-
-
 		}
 		tlastcalc = cycle;	
 	}													   
@@ -1296,7 +1348,7 @@ void LSDCatchmentModel::save_data(double tempcycle)
 {
 	int x,y,z,inc,nn;
 	
-	string FILENAME = "output.dat";
+	std::string FILENAME = "output.dat";
 
 	if(uniquefilecheck==false) tempcycle=0;
   
@@ -1370,9 +1422,11 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 		counter++;
 		cycle += time_factor / 60;
 		// cycle is minutes, time_factor is seconds
-		
-		// WATER INPUTS
-		//double waterinput = 0;
+    new_cycle = std::remainder(cycle, output_file_save_interval);
+    
+    // WATER ROUTING
+    // first zero counter to tally up water inputs
+    waterinput = 0;
 		
 		//std::cout << "route the water and update the flow depths\r" << std::flush;
 		qroute();
@@ -1381,7 +1435,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 		// check scan area every 5 iters.. maybe re-visit for reach mode if it causes too much backing up of sed. see code commented below nex if..
 		if (std::remainder(counter, 5) == 0)
 		{
-			//std::cout << "Scan area...\r" << std::flush ;
+			//std::cout << "Scan area.." << std::endl ;
 			scan_area();
 		}
 		
@@ -1511,7 +1565,8 @@ void LSDCatchmentModel::zero_values()
 // This must be done so that water can still move sediment to the edge of the catchment
 // and hence remove it from the catchment. (otherwise you would get sediment build
 // up around the edges.
-void LSDCatchmentModel::water_flux_out(double local_time_factor)    // Extracted as a seprate method from erodepo()
+void LSDCatchmentModel::water_flux_out(double local_time_factor)   
+// Extracted as a seprate method from erodepo()
 {
 	double temptot = 0;    // temporary water total
 	for (int y = 1; y <= ymax; y++)
@@ -1549,6 +1604,13 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)    // Extracted
 	}
 	waterOut = temptot;
 }
+/*
+void LSDCatchmentModel::init_water_routing(int flag, double reach_input_amount, double catchment_input_amount)
+{
+  int x, y, inc;
+  double w = water_depth_erosion_threshold;
+}  
+*/  
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // THE WATER ROUTING ALGORITHM: LISFLOOD-FP 
@@ -1595,9 +1657,11 @@ void LSDCatchmentModel::qroute()
 				// find the amount of horizontal flow by comparing the water heights of two neighbouring cells: x and x-1. 
 				double hflow = std::max(elev[x][y] + water_depth[x][y], elev[x-1][y] + water_depth[x-1][y]) -
 								std::max(elev[x-1][y], elev[x][y]);
-								
+				
+        std::cout << "hflow: " << hflow << std::endl;			
 				if (hflow > hflow_threshold)	// don't bother computing flow if it is so minuscule...
 				{
+          std::cout << "caluclating hflow..." << std::endl;
 					double tempslope = (((elev[x-1][y] + water_depth[x-1][y])) - (elev[x][y] + water_depth[x][y])) / DX;
 				
 					if (x == xmax) tempslope = edgeslope;
@@ -1961,7 +2025,7 @@ void LSDCatchmentModel::scan_area()
 {
 	//var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
 	//Parallel.For(1, ymax+1, options, delegate(int y)
-	for (int y=1; y < ymax; y++)
+	for (int y=1; y <= ymax; y++)
 	{
 		int inc = 1;
 
@@ -1982,6 +2046,7 @@ void LSDCatchmentModel::scan_area()
 			{
 				down_scan[y][inc] = x;
 				inc++;
+        std::cout << "downscan: "<< down_scan[y][inc] << std::endl;
 			}
 		}
 	}//);	
@@ -2750,7 +2815,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 					}
 				}
 			}
-			// "We need to do a reduction on tempbmax" - DAV I don't know what this means or does --- It is for the paralellism loops, you deleted them so you don't need it anymore.
+			// "We need to do a reduction on tempbmax" - DAV I don't know what this means or does --- It is for the paralellism loops, you deleted them so you don't need it anymore - future version of DAV.
 			//for (int y=1; y<=ymax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];   // This is the actual reduction bit
 			
 			if (tempbmax > ERODEFACTOR)
@@ -2759,6 +2824,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 			}	
 		} // ENDFOR
 	} while (tempbmax > ERODEFACTOR);
+  
 	
 	
 	
@@ -2881,7 +2947,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 			}
 		}
 	}
-
+  // (PARALLELISM GOES HERE)
 	//Parallel.For2(2, ymax, delegate(int y)
 	for (int y = 2; y < ymax; y++)
 	{
