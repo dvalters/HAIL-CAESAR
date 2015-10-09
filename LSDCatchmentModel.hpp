@@ -56,21 +56,21 @@ public:
     /// It then opens the paramter file and ingests the information
     /// @author DAV
     /// @date 2015-01-16    
-    LSDCatchmentModel()
-    { 
-		create(); 
+  LSDCatchmentModel()
+  { 
+    create(); 
 	}
 	
-    /// @brief this constructor just reads the param file given by the path and
-    /// filename. You must give the parameter file extension!
-    /// @param pname the pathname to the parameter file
-    /// @param fname the filename of the parameter file !!INCLUDING EXTENSION!!
-    /// @author DAV
-    /// @date 2015-01-16	
-    LSDCatchmentModel(string pname, string pfname)		
-    { 
-		std::cout << "The constructor has been called..." << std::endl;
-		create(pname, pfname); 
+  /// @brief this constructor just reads the param file given by the path and
+  /// filename. You must give the parameter file extension!
+  /// @param pname the pathname to the parameter file
+  /// @param fname the filename of the parameter file !!INCLUDING EXTENSION!!
+  /// @author DAV
+  /// @date 2015-01-16	
+  LSDCatchmentModel(string pname, string pfname)		
+  { 
+    std::cout << "The constructor has been called..." << std::endl;
+    create(pname, pfname); 
 	}
 	
 	//-------------------------------------
@@ -99,14 +99,27 @@ public:
 	/// method instead of TNT array. Easier to dynamically resize as the rainfall data contains
 	/// no header and can vary in size. Saves the user having to count the rows and cols. Reads
 	/// in the rainfall data file specified in the parameter list file as floats.
-	/// @return Returns a vector of vector<float>. (A 2D-like vector). 
+	/// @return Returns a vector of vector<float>. (A 2D-like vector).
 	std::vector< std::vector<float> > read_rainfalldata(std::string FILENAME);
+  
+  
+  /// @brief Prints the contents of the rainfall data for checking
+  /// @author DAV
+  /// @details Uses iterators <iterator> header to iterate through
+  /// the vector of vectors that is raingrid.
+  /// @details Actually, this is a generic function for printing a 2D vector
+  void print_rainfall_data();
 	
 	/// @brief Calls the various save functions depending on the data types to be saved
+  /// @deprecated (Replaced with a overloaded method that does not require a 
+  ///       flag.
 	/// @author DAV
 	/// @details dependent on the LSDRaster class calling the overloaded write_raster func
 	void save_data(int typeflag, double tempcycle);
   
+  /// @brief Calls the various save functions depending on the data types to be saved
+	/// @author DAV
+	/// @details dependent on the LSDRaster class calling the overloaded write_raster func
   void save_data(double tempcycle);
   
   void save_data_and_draw_graphics();
@@ -127,6 +140,7 @@ public:
 	
 	/// @brief Removes the end-of-line weird character mess that you get in Windows
 	/// @author JAJ? SMM? - borrowed here by DAV	
+  /// @return returns a string with the control characters removed.
 	std::string RemoveControlCharactersFromEndOfString(std::string toRemove);
 	
 	/// @brief reads data values from the parameter file into the relevant maps
@@ -164,11 +178,9 @@ public:
 	void call_soilcreep();
 	
 	/// @brief Calls the soil erosion method
-	/// @return	
 	void call_soil_erosion();
 
 	/// @brief Calls the soil development method
-	/// @return	
 	void call_soil_devel();
 	
 	/// @brief Calls the evapo-transpiration method
@@ -176,7 +188,6 @@ public:
 	void call_evapotrans();
 
 	/// @brief Calls the grass growing method
-	/// @return
 	void call_grass_growing();
 	
 	/// @brief Calculates the area, although it also calls
@@ -190,10 +201,11 @@ public:
 	
 	void get_catchment_input_points();
 	
+  /// @brief Writes the time series of catchment output data.
 	void output_data();
 	
-	void intialise_params();
-	
+  /// @brief Zeros certain arrays which have to be reset every timestep
+  /// or every certain number of timesteps.
 	void zero_values();
 	
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -229,18 +241,23 @@ public:
 	void soil_development();
 	
 	
-	
-	
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // HYDROLOGY COMPONENTS
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		
+
+  /// @brief initialises the water routing routine (qroute) arrays and vars etc.
+  /// @details Sets cross_scan[][] and down_scan[][].
+  //void init_water_routing(int flag, 
+  //                        double reach_input_amount,
+ //                         double catchment_input_amount);
+  
 	/// @brief Updates the water depths (and susp sedi concentrations)
-	/// @return	nowt (it's a void)
 	void depth_update();
 	
 	/// @brief Performs the water routing method
-	/// @return nowt (it's a void)
+  /// @details Uses the Bates et al. (2010) simplification of the St. Venant
+  /// shallow water equations. Does not assume steady state flow across the 
+  /// landscape.
 	void qroute();
 	
 	void catchment_water_input_and_hydrology( double local_time_factor);
@@ -249,7 +266,7 @@ public:
 	
 	void calchydrograph( double time);
 	
-	void Cdepth_update();
+	//void depth_update();
 	
 	void evaporate(double time);
 	
@@ -321,9 +338,7 @@ protected:
 	// toms global variables
 	// DAV: Note: You are only allowed to initialize non-static variables in C++11.
 	bool uniquefilecheck = false;
-	
 
-	
 	//constants
 	double gravity = 9.81;
 	const float g = 9.81F;
@@ -510,18 +525,24 @@ protected:
 	TNT::Array2D<double> sand2; 
 	TNT::Array2D<double> grain; 
 	TNT::Array2D<double> elev_diff;
+  
 	TNT::Array2D<int> index;
 	TNT::Array2D<int> cross_scan;
 	TNT::Array2D<int> down_scan; 
 	TNT::Array2D<int> rfarea;
 	
 	TNT::Array2D<bool> inputpointsarray;
-	std::vector<int> catchment_input_x_coord, catchment_input_y_coord;
+  
+	std::vector<int> catchment_input_x_coord;
+  std::vector<int> catchment_input_y_coord;
 	
 	TNT::Array3D<double> vel_dir;
 	TNT::Array3D<double> strata;
-	std::vector<double> hourly_m_value, temp_grain;
-	TNT::Array2D<double> hydrograph, dischargeinput;  //, hourly_rain_data; // made this vector below, see if it causes problems?
+  
+	std::vector<double> hourly_m_value;
+  std::vector<double> temp_grain;
+	TNT::Array2D<double> hydrograph;
+  TNT::Array2D<double> dischargeinput;  //, hourly_rain_data; // made this vector below, see if it causes problems?
 	std::vector< std::vector<float> > hourly_rain_data;
 	TNT::Array3D<double> inputfile;
 	TNT::Array2D<int> inpoints;
@@ -564,8 +585,8 @@ protected:
 	double Beta1 = 1067;
 
 	// sedi tpt flags   
-	bool einstein = true;
-	bool wilcock = false;
+	bool einstein;
+	bool wilcock;
 	int div_inputs = 1;
 	double rain_data_time_step = 60; // time step for rain data - default is 60. 
 
@@ -634,7 +655,6 @@ protected:
   
   int tempcycle = 0;
 	
-	//protected:
 	std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
 	
 	// Mainly just the definitions of the create() functions go here:
