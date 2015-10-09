@@ -550,7 +550,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
     else if (lower == "elevation_file") 		
     {
 		elev_fname = value;
-		std::cout << "eleve_fname: " << elev_fname << std::endl;
+		std::cout << "elev_fname: " << elev_fname << std::endl;
 	}
     else if (lower == "write_elev_file") 		
     {
@@ -610,16 +610,24 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
     {
 		bedrock_layer_on = (value == "yes") ? true : false;
 		std::cout << "bedrock_layer_on: " << bedrock_layer_on << std::endl;
-	}
+    }
     else if (lower == "transport_law")
     {
-		if (value == "wilcock")	wilcock = true;
-		else if (value == "einstein") einstein = true;
-		else std::cout << "No sedi transport law specified in parameter file..." << std::endl;
-		
-		std::cout << "wilcock: " << wilcock << std::endl;
-		std::cout << "einstein: " << einstein << std::endl;
-	}	
+      if (value == "wilcock")	
+      {
+        wilcock = true;
+        einstein = false;
+      }
+      else if (value == "einstein")
+      {
+         einstein = true;
+         wilcock = false;
+      }
+      else std::cout << "No sedi transport law specified in parameter file..." << std::endl;
+      
+      std::cout << "wilcock: " << wilcock << std::endl;
+      std::cout << "einstein: " << einstein << std::endl;
+    }	
     
     else if (lower == "max_tau_velocity") 		
     {
@@ -1402,6 +1410,9 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 	std::cout << "Running model components..." << std::endl;
 	do 
 	{
+    previous = cycle;
+    old_cycle = std::fmod(cycle, output_file_save_interval);
+    //std::cout << "Old cycle: " << old_cycle << std::endl;
 		//std::cout << "Calculate time step-related variables, make sure they don't fall below the threshold values..." << std::endl;
 		double input_output_difference = std::abs(waterinput - waterOut);
 		// calculate time step-related variables, make sure they don't fall below the threshold values
@@ -1422,7 +1433,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 		counter++;
 		cycle += time_factor / 60;
 		// cycle is minutes, time_factor is seconds
-    new_cycle = std::remainder(cycle, output_file_save_interval);
+    new_cycle = std::fmod(cycle, output_file_save_interval);
     
     // WATER ROUTING
     // first zero counter to tally up water inputs
@@ -1646,7 +1657,7 @@ void LSDCatchmentModel::qroute()
 		inc++;
 		y++;
 		
-		if (elev[x][y] > -9999)   // stops the water moving into NODATA value cells
+		if (elev[x][y] > -9999.0)   // stops the water moving into NODATA value cells
 		{
 			// =-=-=-=-=-=-=-=-=-=-=-=-=-=
 			// ROUTING IN THE X-DIRECTION
@@ -1781,27 +1792,18 @@ void LSDCatchmentModel::qroute()
 			}   // end of the y-direction water routing block
 		}
 	} // endwhile
-    } // endfor
+} // endfor
 }
 
 void LSDCatchmentModel::depth_update()
 {
-	//std::cout << "depth_update(): \r" << std::flush;
+	//std::cout << "depth_update(): " << std::endl;
 	double local_time_factor = time_factor;
 	
 	if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
 		local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
 		
 	//double tempmaxdepth2[]; 
-	
-	// In the CL code, the array is initialised using 'new' but I am not sure why this needs to be done like this?
-	// Quote: "Using C++ arrays with new (that is, using dynamical arrays) should be avoided. There is the problem
-	// you have to keep track of the size, and you need to delete them manually, and do all sort of housekeeping."
-	// e.g.:
-	// double tempmaxdepth2[]; 
-	// tempmaxdepth2 = new double[ymax + 2]();
-	
-	// Why not use:
 	std::vector<double> tempmaxdepth2(ymax + 2);
 	maxdepth = 0;
 	int inc = 1;
@@ -1816,7 +1818,7 @@ void LSDCatchmentModel::depth_update()
       // UPDATE THE WATER DEPTHS
       //std::cout << "update water depth: " << inc << "\r" << std::flush;
       water_depth[x][y] += local_time_factor * (qx[x+1][y] - qx[x][y] + qy[x][y+1] - qy[x][y]) / DX;
-      
+      std::cout << "incrementing_depth: " << water_depth[x][y] << std::endl;
       
       // UPDATE THE SUSPENDED SEDIMENT CONCENTRATIONS
       if (suspended_opt == true)
@@ -1836,12 +1838,12 @@ void LSDCatchmentModel::depth_update()
           tempmaxdepth = water_depth[x][y];
       }
     }
-	tempmaxdepth2[y] = tempmaxdepth;
+	//tempmaxdepth2[y] = tempmaxdepth;
 	}
 	// reduction (if paralellism implemented at later date)
-	for (int y = 1; y <= ymax; y++)
-		if (tempmaxdepth2[y] > maxdepth) 
-			maxdepth = tempmaxdepth2[y];
+	//for (int y = 1; y <= ymax; y++)
+	//	if (tempmaxdepth2[y] > maxdepth) 
+	//		maxdepth = tempmaxdepth2[y];
 }
 		
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor)     // DAV - This can be split into subfunctions
@@ -2026,11 +2028,13 @@ void LSDCatchmentModel::scan_area()
 	//var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
 	//Parallel.For(1, ymax+1, options, delegate(int y)
 	for (int y=1; y <= ymax; y++)
-	{
+  {//std::cout << "Outer for loop scan area" << std::endl;
+	
 		int inc = 1;
 
 		for (int x = 1; x <= xmax; x++)
-		{
+    {//std::cout << "Inner for loop scan area" << std::endl;
+		
 			// zero scan bit..
 			down_scan[y][x] = 0;
 			// and work out scanned area.
