@@ -1407,7 +1407,35 @@ void LSDCatchmentModel::save_data(double tempcycle)
 // A wrapper method that calls the chief erosional and water routing methods.
 void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 {
-	std::cout << "Running model components..." << std::endl;
+  /// Originally main_loop() in CL, but no need (I think) for separete
+  /// loops here.
+	std::cout << "Initialising first iteration..." << std::endl;
+  double tempflow = baseflow;
+  double ince = cycle + 60;
+
+  time_1=1;
+
+  std::cout << "Initialising J for first time..." << std::endl;
+  calc_J(1.0);
+
+  save_time = cycle;
+  creep_time = cycle;
+  creep_time2 = cycle;
+  soil_erosion_time = cycle;
+  soil_development_time = cycle;
+  time_1 = cycle;
+
+  std::cout << "Initialising drainage area for first time..." << std::endl;
+  get_area();
+
+  std::cout << "Initialising catchment input points for first time..." << std::endl;
+  get_catchment_input_points();
+
+  time_factor = 1;
+
+  // Originally erodedepo() in CL...
+  // Entering the main loop here
+  std::cout << "Entering main model loop..." << std::endl;
 	do 
 	{
     previous = cycle;
@@ -1438,6 +1466,10 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     // WATER ROUTING
     // first zero counter to tally up water inputs
     waterinput = 0;
+    
+    // In CL there was an option to set either reach or tidal mode.
+    // Only catchment mode is implemented in this spin off version
+    catchment_water_input_and_hydrology(local_time_factor);
 		
 		//std::cout << "route the water and update the flow depths\r" << std::flush;
 		qroute();
