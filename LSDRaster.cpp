@@ -99,6 +99,7 @@
 #include <string.h>
 #include <omp.h>
 #include <ctime>
+#include <sys/stat.h>
 #include "TNT/tnt.h"
 #include "TNT/jama_lu.h"
 #include "TNT/jama_eig.h"
@@ -227,6 +228,11 @@ void LSDRaster::read_raster(string filename, string extension)
   string dot = ".";
   string_filename = filename+dot+extension;
   cout << "\n\nLoading an LSDRaster, the filename is " << string_filename << endl;
+
+  // First get the size of the file
+  int rc = get_file_size(string_filename);
+  cout << "The size of the file is: " << rc << endl;
+
 
   if (extension == "asc")
   {
@@ -626,17 +632,44 @@ void LSDRaster::read_raster(string filename, string extension)
       else if (DataType == 13)
       {
         unsigned long int temp;
-        cout << "unsigned long int: " << sizeof(temp) << endl;
+        cout << "size unsigned long int: " << sizeof(temp) << endl;
         
-        int test_size = 16;
+        float temp2;
+        cout << "size float: " << sizeof(temp2) << endl;
+
+        int temp3;
+        cout << "size int: " << sizeof(temp3) << endl;
         
+        // figure out the size of the file
+        cout << "the size of the file is: " << rc << endl;
+        
+        int data_size = int(sizeof(temp));
+        
+        // see if this matches the dimensions of the DEM
+        if (NRows*NCols*int(sizeof(temp)) != rc)
+        {
+          cout << "Something is funny here, I expect a file size of: " 
+               << NRows*NCols*int(data_size) << endl;
+          cout << "changing to the right data size: ";
+          data_size = rc/(NRows*NCols);
+          cout << data_size << endl;
+        }
+
+        //data_size= 8;
+
         for (int i=0; i<NRows; ++i)
         {
           for (int j=0; j<NCols; ++j)
           {
-            ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+            ifs_data.read(reinterpret_cast<char*>(&temp3), data_size);
             
-            data[i][j] = float(temp);
+            //if (i%250 == 0 && j%250 == 0)
+            //{
+            //  cout << "["<<i<<"]["<<j<<"]: " << temp3 << " recast: " << float(temp3) << endl;
+            //}
+            
+            data[i][j] = float(temp3);
+           
             if (data[i][j]<-1e10)
             {
               data[i][j] = NoDataValue;
@@ -648,14 +681,19 @@ void LSDRaster::read_raster(string filename, string extension)
       {
         cout << "WARNING loading ENVI raster with unusual data type. " << endl
              << "If you get a crazy DEM go to LINE 625 of LSDRaster.cpp to debug" << endl;
+             
+        int DataSize = rc/(NRows*NCols);
+        
         float temp;   // might need to change this
         //cout << "Float size: " << sizeof(temp) << endl;
         for (int i=0; i<NRows; ++i)
         {
           for (int j=0; j<NCols; ++j)
           {
+
+            
             // Use data type to control the bytes being read for each entry
-            ifs_data.read(reinterpret_cast<char*>(&temp), DataType);
+            ifs_data.read(reinterpret_cast<char*>(&temp), DataSize);
             
             data[i][j] = float(temp);
             if (data[i][j]<-1e10)
@@ -887,7 +925,14 @@ void LSDRaster::write_raster(string filename, string extension)
     {
       for (int j=0; j<NCols; ++j)
       {
+
         temp = float(RasterData[i][j]);
+        //if (i%250 == 0 && j%250 == 0)
+        //{
+        //  cout << "data["<<i<<"]["<<j<<"]: " << temp << endl;
+        //}                  
+      
+        
         data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
       }
     }

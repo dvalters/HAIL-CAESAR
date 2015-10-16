@@ -5207,6 +5207,23 @@ void Count_Instances(vector<int> Data, vector<int> Key_Values, map<int,int>& Dat
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This gets the size of a file. 
+// From http://stackoverflow.com/questions/5840148/how-can-i-get-a-files-size-in-c
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+int get_file_size(string filename) // path to file
+{
+    //cout << "Opening file: " << filename << endl;
+    FILE *p_file = NULL;
+    p_file = fopen(filename.c_str(),"rb");
+    fseek(p_file,0,SEEK_END);
+    //cout << "Getting the end" << endl;
+    int size = ftell(p_file);
+    fclose(p_file);
+    return size;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 // Given a filestream object, read the file into memory and return
 // it as a string. From: http://www.cplusplus.com/forum/general/58945/
 // No error handling.
