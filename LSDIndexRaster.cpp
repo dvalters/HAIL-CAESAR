@@ -608,7 +608,7 @@ void LSDIndexRaster::read_raster(string filename, string extension)
           //cout << endl;
         }
       }
-            else if (DataType == 4)
+      else if (DataType == 4)
       {
         float temp;
         //cout << "Float size: " << sizeof(temp) << endl;
@@ -618,7 +618,25 @@ void LSDIndexRaster::read_raster(string filename, string extension)
           {
             ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
             
-            data[i][j] = float(temp);
+            data[i][j] = int(temp);
+            if (data[i][j]<-1e10)
+            {
+              data[i][j] = NoDataValue;
+            }
+          }
+        }
+      } 
+      else if (DataType == 13)
+      {
+        unsigned long int temp;
+        //cout << "Float size: " << sizeof(temp) << endl;
+        for (int i=0; i<NRows; ++i)
+        {
+          for (int j=0; j<NCols; ++j)
+          {
+            ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+            
+            data[i][j] = int(temp);
             if (data[i][j]<-1e10)
             {
               data[i][j] = NoDataValue;
