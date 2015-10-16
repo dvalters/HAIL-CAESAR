@@ -463,6 +463,10 @@ void rank_vector_with_groups(vector<float> sorted_data,
 // SWDG 16/07/14
 string ReadTextFile(ifstream& File);
 
+// THis gets the size of a file
+// SMM 16/10/2015
+int get_file_size(string filename);
+
 //Takes an integer vector of data and an integer vector of key values and 
 //returns a map of the counts of each value tied to its key.
 //
