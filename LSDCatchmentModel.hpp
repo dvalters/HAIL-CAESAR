@@ -83,6 +83,10 @@ public:
 	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	// Stuff for loading and manipulating files
 	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  /// @brief Initialises the size of the arrays holding the various
+  /// model fields such as elevation, water depth etc.
+  void initialise_model_domain_extents();
 	
 	/// @brief Loads the required data files based on the parameters set in the parameter file 
 	/// @author dav
@@ -377,6 +381,7 @@ protected:
 	/// set by ncols and nrows
 	int xmax, ymax; 
 	double xll, yll;
+  double no_data_value;
 
 	int maxcycle = 1000;
 	const int ACTIVE_FACTOR=1;
@@ -490,7 +495,12 @@ protected:
 	double Qw_overvol = 0;
 	double temptotal = 0;
 	double old_sediq = 0;
-	std::vector<double> sum_grain, sum_grain2, old_sum_grain,old_sum_grain2, Qg_step, Qg_step2, Qg_hour, Qg_hour2, Qg_over, Qg_over2, Qg_last,Qg_last2;
+  
+	std::vector<double> sum_grain, sum_grain2;
+  std::vector<double> old_sum_grain,old_sum_grain2;
+  std::vector<double> Qg_step, Qg_step2, Qg_hour, Qg_hour2;
+  std::vector<double> Qg_over, Qg_over2, Qg_last,Qg_last2;
+  
 	std::string CATCH_FILE = "catchment.dat";
 	// end gez
 

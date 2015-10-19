@@ -257,6 +257,48 @@ void LSDCatchmentModel::print_rainfall_data()
   }
 }
 
+void LSDCatchmentModel::initialise_model_domain_extents()
+{
+  std::string FILENAME = read_fname + dem_read_extension;
+	
+	if (!does_file_exist(FILENAME))
+	{
+		std::cout << "No terrain DEM found by name of: " << FILENAME << std::endl
+					<< "You must supply a correct path and filename in the input parameter file" << std::endl;
+          std::cout << "The model domain cannot be intitialised for real topography\n \
+                        without a valid DEM to read from" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+  try
+  {
+    std::cout << "\n\nLoading DEM header info, the filename is " << FILENAME << std::endl;
+
+    // open the data file
+    std::ifstream data_in(FILENAME.c_str());
+
+    //Read in raster data
+    std::string str;			// a temporary string for discarding text
+
+    // read the georeferencing data and metadata
+    data_in >> str >> xmax;
+    std::cout << "NCols: " << xmax << " str: " << std::endl;
+    data_in >> str >> ymax;
+    std::cout << "NRows: " << ymax << " str: " << std::endl;
+    data_in >> str >> xll
+            >> str >> yll
+            >> str >> DX // cell size or grid resolution
+            >> str >> no_data_value;
+	}
+  catch(...)
+  {
+  	std::cout << "Something is wrong with your initial elevation raster file." << std::endl
+		<< "Common causes are: " << std::endl << "1) Data type is not correct" <<
+		std::endl << "2) Non standard raster format" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  
+}
+
 void LSDCatchmentModel::load_data()
 {
 	std::string FILENAME = read_fname + dem_read_extension;
@@ -278,10 +320,10 @@ void LSDCatchmentModel::load_data()
     // Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
     init_elevs = elevR.get_RasterData_dbl();
     
-   	ymax = elevR.get_NRows();
-    xmax = elevR.get_NCols();
-    std::cout << "YMAX: " << ymax << std::endl;
-    std::cout << "XMAX: " << xmax << std::endl;
+   	//ymax = elevR.get_NRows();
+    //xmax = elevR.get_NCols();
+    //std::cout << "YMAX: " << ymax << std::endl;
+    //std::cout << "XMAX: " << xmax << std::endl;
 	}
   catch(...)
   {
@@ -727,8 +769,8 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
 	std::cout << "Initialising hard coded-constants." << std::endl;
 	
 	// Initialise the other parameters (those not set by param file)
-	double tempflow=baseflow;
-	double ince=cycle+60;
+	double tempflow = baseflow;
+	double ince = cycle + 60;
 }	
 
 // Initialise the arrays (as done in initialise() ) 
@@ -847,8 +889,9 @@ void LSDCatchmentModel::initialise_arrays()
 
 	// Segfaults here because you are trying to zero a load of
 	// zero length arrays
+
 	zero_values();
-	
+	/*
 	time_1=1;
 
     std::cout << "Calulating J.." << std::endl;
@@ -867,6 +910,7 @@ void LSDCatchmentModel::initialise_arrays()
 	std::cout << "Get_catchment_input_points().." << std::endl;
 	get_catchment_input_points();
 	time_factor = 1;
+  **/
 }
 
 void LSDCatchmentModel::get_area()
@@ -1190,7 +1234,7 @@ void LSDCatchmentModel::output_data()
 			}
 			
 			// reset Qs_last and old_sediq for small time steps
-			if (cycle<tx+output_file_save_interval)
+			if (cycle < tx+output_file_save_interval)
 			{
 				Qs_last = Qs_over;
 				old_sediq = globalsediq;
@@ -1289,28 +1333,33 @@ void LSDCatchmentModel::output_data()
       // Then convert stringstream to new string and append to line of output.
       std::string output;
       
+      // 1st Column: TIME (hours)
       std::stringstream hours_format;
       hours_format << std::fixed << std::setprecision(0) << hours;
       output = hours_format.str();
       
+      // 2nd Column: Actual Discharge (cumecs)
       std::stringstream Qw_hour_format;
       Qw_hour_format << std::fixed << std::setprecision(6) << Qw_hour;
       output = output + " " + Qw_hour_format.str();
       
+      // 3rd Column: Expected discharge (based on TOPMODEL?/drainage area?) 
       std::stringstream Jw_hour_format;
       Jw_hour_format << std::fixed << std::setprecision(6) << Jw_hour;
       output = output + " " + Jw_hour_format.str();
       
+      // Not used anymore(?)
       std::stringstream sand_out_format;
       sand_out_format << std::fixed << std::setprecision(6) << sand_out;
       output = output + " " + sand_out_format.str();
       sand_out = 0; // reset sand
       
+      // Total Sediment discharge (m^3)
       std::stringstream Qs_hour_format;
       Qs_hour_format << std::fixed << std::setprecision(10) << Qs_hour;
       output = output + " " + Qs_hour_format.str();
       
-			
+			// Output the grain size fractions (m^3)
 			for (n=1; n<=G_MAX-1; n++)
 			{
         std::stringstream Qg_hour_format;
@@ -1407,6 +1456,16 @@ void LSDCatchmentModel::save_data(double tempcycle)
 // A wrapper method that calls the chief erosional and water routing methods.
 void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 {
+  // Originall part of the Ur-loop (buttonclick 2 or something)
+  //nActualGridCells = 0;
+  for (int x = 1; x <= xmax; x++)
+  {
+    for (int y = 1; y <= ymax; y++)
+    {
+      if (elev[x][y] > -9999) nActualGridCells[rfarea[x][y]]++;
+    }
+  }
+  
   /// Originally main_loop() in CL, but no need (I think) for separete
   /// loops here.
 	std::cout << "Initialising first iteration..." << std::endl;
