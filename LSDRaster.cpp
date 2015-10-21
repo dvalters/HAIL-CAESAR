@@ -10894,4 +10894,34 @@ LSDIndexRaster LSDRaster::ConvertToBinary(int Value, int ndv){
   return binmask;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Function to get potential floodplain patches using a slope and relief threshold
+// FJC 20/10/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDRaster::get_potential_floodplain_patches(LSDRaster& Relief, LSDRaster& Slope, float relief_threshold,
+                                                     float slope_threshold)
+{
+  Array2D<int> FloodplainArray(NRows,NCols,0);
+  
+  //loop through every row and col and get the slope and relief values
+  for (int i =0; i < NRows; i++)
+  {
+    for (int j = 0; j < NCols; j++)
+    {
+      if (Relief.get_data_element(i,j) != NoDataValue && Slope.get_data_element(i,j) != NoDataValue)
+      {
+        float slope = Slope.get_data_element(i,j);
+        float relief = Relief.get_data_element(i,j);
+        if (relief < relief_threshold && slope < slope_threshold)        //floodplain points must be lower than both the relief 
+        {                                                                //and the slope threshold.
+          FloodplainArray[i][j] = 1;  
+        }
+      }
+    }
+  }
+  
+  LSDIndexRaster FloodplainRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FloodplainArray,GeoReferencingStrings);
+  return FloodplainRaster;
+} 
+
 #endif
