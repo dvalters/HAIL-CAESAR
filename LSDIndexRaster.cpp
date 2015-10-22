@@ -2122,5 +2122,70 @@ LSDIndexRaster LSDIndexRaster::RemoveSmallPatches(int minimum_patch_size){
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to remove small holes in patches from an integer raster (at the moment set to run on
+// a raster made up of 0s, 1s, and 2s).
+// FJC 22/10/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDIndexRaster::remove_holes_in_patches(int window_radius)
+{
+  int pixel_radius = int(window_radius/DataResolution);
+  if (window_radius < DataResolution) window_radius = DataResolution;
+  Array2D<int> RasterArray = RasterData;
+
+  Array2D<int> FilledRaster(NRows, NCols, 0);
+  //search the neighbours of each pixel for 0 values within the window radius
+  for (int row = 0; row < NRows; row ++)
+  {
+    for (int col = 0; col < NCols; col++)
+    {
+      if (RasterArray[row][col] == 1) FilledRaster[row][col] = 1;
+      if (RasterArray[row][col] == 2) FilledRaster[row][col] = 2;
+      if (RasterArray[row][col] == 0)
+      {
+        vector<int> counts(8,0);
+        for (int i = 1; i <= pixel_radius; i++)
+        {
+          //set exceptions for first or last row
+          int min_row = row-i;
+          int max_row = row+i;
+          if (min_row < 0) min_row = 0;
+          if (max_row >= NRows) max_row = NRows-1;
+          
+          //set exceptions for first or last col
+          int min_col = col-i;
+          int max_col = col+i;
+          if (min_col < 0) min_col = 0;
+          if (max_col >= NCols) max_col = NCols-1;
+          
+          //check the north direction
+          
+          //check whether surrounding pixels in all directions are equal to 0
+          if (RasterArray[min_row][min_col]  == 1) counts.at(0) = 1; 
+          if (RasterArray[row][min_col]  == 1) counts.at(1) = 1; 
+          if (RasterArray[max_row][min_col]  == 1) counts.at(2) = 1; 
+          if (RasterArray[min_row][col]  == 1) counts.at(3) = 1; 
+          if (RasterArray[min_row][max_col]  == 1) counts.at(4) = 1; 
+          if (RasterArray[row][max_col]  == 1) counts.at(5) = 1; 
+          if (RasterArray[max_row][max_col]  == 1) counts.at(6) = 1; 
+          if (RasterArray[max_row][col] == 1) counts.at(7) = 1; 
+          
+          // if 1s surround the pixel, then fill in the pixel
+          if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+          {
+            FilledRaster[row][col] = 1;
+            i = pixel_radius+1;
+          } 
+        }
+      }
+    }
+  }
+  
+  //create new LSDIndexRaster with the filled patches
+  LSDIndexRaster FilledPatches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledRaster,GeoReferencingStrings);
+  return FilledPatches;  
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 #endif
