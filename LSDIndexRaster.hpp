@@ -427,6 +427,12 @@ class LSDIndexRaster
   /// @date 17/9/15 
   LSDIndexRaster RemoveSmallPatches(int minimum_segment_size);
   
+  /// @brief Method to remove small holes in patches from a binary raster.
+  /// @param window_radius radius over which to search to remove holes (size of hole)
+  /// @author FJC
+  /// @date 22/10/15
+  LSDIndexRaster remove_holes_in_patches(int window_radius);
+  
   protected:
   ///Number of rows.
   int NRows;
