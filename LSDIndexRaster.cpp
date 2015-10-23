@@ -2139,7 +2139,6 @@ LSDIndexRaster LSDIndexRaster::remove_holes_in_patches(int window_radius)
     for (int col = 0; col < NCols; col++)
     {
       if (RasterArray[row][col] == 1) FilledRaster[row][col] = 1;
-      if (RasterArray[row][col] == 2) FilledRaster[row][col] = 2;
       if (RasterArray[row][col] == 0)
       {
         vector<int> counts(8,0);
@@ -2175,6 +2174,7 @@ LSDIndexRaster LSDIndexRaster::remove_holes_in_patches(int window_radius)
           } 
         }
       }
+      if (RasterArray[row][col] == 2) FilledRaster[row][col] = 2;
     }
   }
   
