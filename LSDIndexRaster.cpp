@@ -2157,8 +2157,6 @@ LSDIndexRaster LSDIndexRaster::remove_holes_in_patches(int window_radius)
           if (min_col < 0) min_col = 0;
           if (max_col >= NCols) max_col = NCols-1;
           
-          //check the north direction
-          
           //check whether surrounding pixels in all directions are equal to 0
           if (RasterArray[min_row][min_col]  == 1) counts.at(0) = 1; 
           if (RasterArray[row][min_col]  == 1) counts.at(1) = 1; 
