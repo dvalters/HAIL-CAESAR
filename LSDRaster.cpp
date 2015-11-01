@@ -244,17 +244,17 @@ void LSDRaster::read_raster(string filename, string extension)
 
     // read the georeferencing data and metadata
     data_in >> str >> NCols;
-                cout << "NCols: " << NCols << " str: " << endl;
+    //cout << "NCols: " << NCols << " str: " << endl;
     data_in >> str >> NRows;
-    cout << "NRows: " << NRows << " str: " << endl;
+    //cout << "NRows: " << NRows << " str: " << endl;
     data_in >> str >> XMinimum >> str >> YMinimum
           >> str >> DataResolution
           >> str >> NoDataValue;
 
-    cout << "Loading asc file; NCols: " << NCols << " NRows: " << NRows << endl
-         << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
-         << "Data Resolution: " << DataResolution << " and No Data Value: "
-         << NoDataValue << endl;
+    //cout << "Loading asc file; NCols: " << NCols << " NRows: " << NRows << endl
+    //     << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+    //     << "Data Resolution: " << DataResolution << " and No Data Value: "
+    //     << NoDataValue << endl;
 
     // this is the array into which data is fed
     Array2D<float> data(NRows,NCols,NoDataValue);
@@ -300,10 +300,10 @@ void LSDRaster::read_raster(string filename, string extension)
     }
     ifs.close();
 
-    cout << "Loading flt file; NCols: " << NCols << " NRows: " << NRows << endl
-         << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
-         << "Data Resolution: " << DataResolution << " and No Data Value: "
-         << NoDataValue << endl;
+    //cout << "Loading flt file; NCols: " << NCols << " NRows: " << NRows << endl
+    //     << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+    //     << "Data Resolution: " << DataResolution << " and No Data Value: "
+    //     << NoDataValue << endl;
 
     // this is the array into which data is fed
     Array2D<float> data(NRows,NCols,NoDataValue);
@@ -706,10 +706,10 @@ void LSDRaster::read_raster(string filename, string extension)
     }
     ifs_data.close();
 
-    cout << "Loading ENVI bil file; NCols: " << NCols << " NRows: " << NRows << endl
-       << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
-         << "Data Resolution: " << DataResolution << " and No Data Value: "
-         << NoDataValue << endl;
+    //cout << "Loading ENVI bil file; NCols: " << NCols << " NRows: " << NRows << endl
+    //   << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << endl
+    //     << "Data Resolution: " << DataResolution << " and No Data Value: "
+    //     << NoDataValue << endl;
 
     // now update the objects raster data
     RasterData = data.copy();         
