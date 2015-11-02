@@ -1543,41 +1543,41 @@ void LSDRaster::rewrite_with_random_values(float range)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDRaster LSDRaster::calculate_relief(float kernelWidth, int kernelType)
 {
-	int kr = ((kernelWidth/DataResolution))/2-1;
-	float max, min;
-	Array2D <float> reliefMap(NRows, NCols, 0.0);
-	if (kr < 1)
-	{
-		kernelWidth = 2.5;
-		kr = 1;
-	}
-	for (int i=0; i<NRows; ++i)
-	{
-		for (int j=0; j<NCols; ++j)
-		{
-			max = RasterData[i][j];
-			min = RasterData[i][j];
-			for (int sub_i = i-kr; sub_i<=i+kr; ++sub_i)
-			{
-				if (sub_i<0 || sub_i>=NRows) continue;
-				for (int sub_j = j-kr; sub_j<=j+kr; ++sub_j)
-				{
-					if (sub_j<0 || sub_j>=NCols) continue;
-					if (RasterData[sub_i][sub_j] == NoDataValue) continue;
+  int kr = ((kernelWidth/DataResolution))/2-1;
+  float max, min;
+  Array2D <float> reliefMap(NRows, NCols, 0.0);
+  if (kr < 1)
+  {
+    kernelWidth = 2.5;
+    kr = 1;
+  }
+  for (int i=0; i<NRows; ++i)
+  {
+    for (int j=0; j<NCols; ++j)
+    {
+      max = RasterData[i][j];
+      min = RasterData[i][j];
+      for (int sub_i = i-kr; sub_i<=i+kr; ++sub_i)
+      {
+        if (sub_i<0 || sub_i>=NRows) continue;
+        for (int sub_j = j-kr; sub_j<=j+kr; ++sub_j)
+        {
+          if (sub_j<0 || sub_j>=NCols) continue;
+          if (RasterData[sub_i][sub_j] == NoDataValue) continue;
 
-					if (kernelType == 1)	//circular
-						if ((pow(sub_i-i,2) + pow(sub_j-j,2))*DataResolution > kernelWidth/2)
-							continue;
-					if (RasterData[sub_i][sub_j] > max)
-						max = RasterData[sub_i][sub_j];
-					if (RasterData[sub_i][sub_j] < min)
-						min = RasterData[sub_i][sub_j];
-				}
-			}
-			reliefMap[i][j] = max-min;
-		}
-	}
-	return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, 
+          if (kernelType == 1)	//circular
+            if ((pow(sub_i-i,2) + pow(sub_j-j,2))*DataResolution > kernelWidth/2)
+              continue;
+          if (RasterData[sub_i][sub_j] > max)
+            max = RasterData[sub_i][sub_j];
+          if (RasterData[sub_i][sub_j] < min)
+            min = RasterData[sub_i][sub_j];
+        }
+      }
+      reliefMap[i][j] = max-min;
+    }
+  }
+  return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, 
                    NoDataValue, reliefMap, GeoReferencingStrings);
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1592,20 +1592,20 @@ LSDRaster LSDRaster::calculate_relief(float kernelWidth, int kernelType)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 float LSDRaster::mean_elevation(void)
 {
-	float sum_elevation = 0;
-	int n = 0;
-	for (int i=0; i<NRows; ++i)
-	{
-		for (int j=0; j<NCols; ++j)
-		{
-			if (RasterData[i][j] != NoDataValue)
-			{
-				sum_elevation += RasterData[i][j];
-				++n;
-			}
-		}
-	}
-	return float(sum_elevation/float(n));
+  float sum_elevation = 0;
+  int n = 0;
+  for (int i=0; i<NRows; ++i)
+  {
+    for (int j=0; j<NCols; ++j)
+    {
+      if (RasterData[i][j] != NoDataValue)
+      {
+        sum_elevation += RasterData[i][j];
+        ++n;
+      }
+    }
+  }
+  return float(sum_elevation/float(n));
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1745,31 +1745,30 @@ void LSDRaster::raster_multiplier(float multiplier)
 float LSDRaster::WrapSample(int row, int col)
 {
 
-	int wraprow;
-	int wrapcol;
+  int wraprow;
+  int wrapcol;
 
+  if(row >=0)
+  {
+    wraprow = row % NRows;
+  }
+  else
+  {
+    wraprow = NRows - (-row % NRows);
+  }
+  if(col >= 0)
+  {
+    wrapcol = col % NCols;
+  }
+  else
+  {
+    wrapcol = NCols - (-col % NCols);
+  }
 
-	if(row >=0)
-	{
-		wraprow = row % NRows;
-	}
-	else
-	{
-		wraprow = NRows - (-row % NRows);
-	}
-	if(col >= 0)
-	{
-		wrapcol = col % NCols;
-	}
-	else
-	{
-		wrapcol = NCols - (-col % NCols);
-	}
+  //cout << "Nrows: " << NRows << " row: " << row << " wraprow: " << wraprow << endl;
+  //cout << "Ncols: " << NCols << " col: " << col << " wrapcol: " << wrapcol << endl;
 
-	//cout << "Nrows: " << NRows << " row: " << row << " wraprow: " << wraprow << endl;
-	//cout << "Ncols: " << NCols << " col: " << col << " wrapcol: " << wrapcol << endl;
-
-	return RasterData[wraprow][wrapcol];
+  return RasterData[wraprow][wrapcol];
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1779,27 +1778,27 @@ float LSDRaster::WrapSample(int row, int col)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::SetWrapSample(int row, int col, float value)
 {
-	int wraprow;
-	int wrapcol;
+  int wraprow;
+  int wrapcol;
 
-	if(row >=0)
-	{
-		wraprow = row % NRows;
-	}
-	else
-	{
-		wraprow = NRows - (-row % NRows);
-	}
-	if(col >= 0)
-	{
-		wrapcol = col % NCols;
-	}
-	else
-	{
-		wrapcol = NCols - (-col % NCols);
-	}
+  if(row >=0)
+  {
+    wraprow = row % NRows;
+  }
+  else
+  {
+    wraprow = NRows - (-row % NRows);
+  }
+  if(col >= 0)
+  {
+    wrapcol = col % NCols;
+  }
+  else
+  {
+    wrapcol = NCols - (-col % NCols);
+  }
 
-	RasterData[wraprow][wrapcol] = value;
+  RasterData[wraprow][wrapcol] = value;
 }
 
 
@@ -1810,19 +1809,19 @@ void LSDRaster::SetWrapSample(int row, int col, float value)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::DSSetFeatureCorners(int featuresize, float scale)
 {
-	long seed = time(NULL);
-	// the function starts from -featuresize since in the diamond square step
-	// of the algorithm it wraps from row and column 0
-	for (int row = 0; row < NRows; row+= featuresize)
-	{
-		for (int col = 0; col<NCols; col+= featuresize)
-		{
-			float randn = (ran3(&seed)-0.5)*scale;
-			//cout << "setting feature corners, row: " << row << " and col: " << col << endl;
-			SetWrapSample(row,col,randn);
-		}
-	}
-	//cout << "Set the feature corners" << endl;
+  long seed = time(NULL);
+  // the function starts from -featuresize since in the diamond square step
+  // of the algorithm it wraps from row and column 0
+  for (int row = 0; row < NRows; row+= featuresize)
+  {
+    for (int col = 0; col<NCols; col+= featuresize)
+    {
+      float randn = (ran3(&seed)-0.5)*scale;
+      //cout << "setting feature corners, row: " << row << " and col: " << col << endl;
+      SetWrapSample(row,col,randn);
+    }
+  }
+  //cout << "Set the feature corners" << endl;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1837,36 +1836,36 @@ void LSDRaster::DSSetFeatureCorners(int featuresize, float scale)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::DSSampleSquare(int row,int col, int size, float value)
 {
-    int hs = size / 2;
+  int hs = size / 2;
 
-    float a = WrapSample(col - hs, row - hs);
-    float b = WrapSample(col + hs, row - hs);
-    float c = WrapSample(col - hs, row + hs);
-    float d = WrapSample(col + hs, row + hs);
+  float a = WrapSample(col - hs, row - hs);
+  float b = WrapSample(col + hs, row - hs);
+  float c = WrapSample(col - hs, row + hs);
+  float d = WrapSample(col + hs, row + hs);
 
-    if (a == -9999 || b == -9999 || c == -9999 || d == -9999)
+  if (a == -9999 || b == -9999 || c == -9999 || d == -9999)
+  {
+    cout << "got a nodata; row: " << row << " and col: " << col << endl;
+
+    if (a == -9999)
     {
-		  cout << "got a nodata; row: " << row << " and col: " << col << endl;
+      cout << "col - hs: " << col - hs << " and row - hs: " << row - hs << endl;
+    }
+    if (b == -9999)
+    {
+      cout << "col + hs: " << col + hs << " and row - hs: " << row - hs << endl;
+    }
+    if (c == -9999)
+    {
+      cout << "col - hs: " << col - hs << " and row + hs: " << row + hs << endl;
+    }
+    if (d == -9999)
+    {
+      cout << "col + hs: " << col + hs << " and row + hs: " << row + hs << endl;
+    }
+  }
 
-		  if (a == -9999)
-		  {
-			  cout << "col - hs: " << col - hs << " and row - hs: " << row - hs << endl;
-		  }
-		  if (b == -9999)
-		  {
-			  cout << "col + hs: " << col + hs << " and row - hs: " << row - hs << endl;
-		  }
-		  if (c == -9999)
-		  {
-			  cout << "col - hs: " << col - hs << " and row + hs: " << row + hs << endl;
-		  }
-		  if (d == -9999)
-		  {
-			  cout << "col + hs: " << col + hs << " and row + hs: " << row + hs << endl;
-		  }
-	  }
-
-    SetWrapSample(row, col, ((a + b + c + d) / 4.0) + value);
+  SetWrapSample(row, col, ((a + b + c + d) / 4.0) + value);
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1923,33 +1922,32 @@ void LSDRaster::DiamondSquare_SampleStep(int stepsize, float scale)
     int halfstep = stepsize / 2;
     long seed = time(NULL);
 
-	// first do the square step. This gets the sqare for the node
-	// at the half distance between the starting points
-    for (int row = -halfstep; row < NRows+halfstep; row += stepsize)
+  // first do the square step. This gets the sqare for the node
+  // at the half distance between the starting points
+  for (int row = -halfstep; row < NRows+halfstep; row += stepsize)
+  {
+    for (int col = -halfstep; col < NCols + halfstep; col += stepsize)
     {
-      for (int col = -halfstep; col < NCols + halfstep; col += stepsize)
-      {
-			  //cout << "SS row and col: " << row << " " << col << endl;
-	      DSSampleSquare(row, col, stepsize, ((ran3(&seed)-0.5) * scale));
-      }
+      //cout << "SS row and col: " << row << " " << col << endl;
+      DSSampleSquare(row, col, stepsize, ((ran3(&seed)-0.5) * scale));
     }
+  }
 
-	// now the DiamondStep.
-	// The first diamond gets the point halfway below the first column
-	// Second diamond gets the column halfway past the first row.
-	// That means for col 0 and row 0 it will wrap to the other side
-	// This means these values will need to be wrapped in the inital
-	// set corners stage!
-    for (int row = -stepsize; row < NRows; row += stepsize)
+  // now the DiamondStep.
+  // The first diamond gets the point halfway below the first column
+  // Second diamond gets the column halfway past the first row.
+  // That means for col 0 and row 0 it will wrap to the other side
+  // This means these values will need to be wrapped in the inital
+  // set corners stage!
+  for (int row = -stepsize; row < NRows; row += stepsize)
+  {
+    for (int col = -stepsize; col < NCols; col += stepsize)
     {
-      for (int col = -stepsize; col < NCols; col += stepsize)
-      {
-			  //cout << "DS row and col: " << row << " " << col << endl;
-	      DSSampleDiamond(row + halfstep, col, stepsize, ((ran3(&seed)-0.5) * scale));
-	      DSSampleDiamond(row, col + halfstep, stepsize, ((ran3(&seed)-0.5) * scale));
-      }
+      //cout << "DS row and col: " << row << " " << col << endl;
+      DSSampleDiamond(row + halfstep, col, stepsize, ((ran3(&seed)-0.5) * scale));
+      DSSampleDiamond(row, col + halfstep, stepsize, ((ran3(&seed)-0.5) * scale));
     }
-
+  }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -2005,11 +2003,11 @@ LSDRaster LSDRaster::DiamondSquare(int feature_order, float scale)
     int samplesize = featuresize;
     scale = scale/2;
 
-	  cout << "Starting diamond square algorithm, samplesize is: " << samplesize << endl;
+    cout << "Starting diamond square algorithm, samplesize is: " << samplesize << endl;
 
     while (samplesize > 1)
     {
-		  cout << "Running Diamond square, samplesize: " << samplesize << endl;
+      cout << "Running Diamond square, samplesize: " << samplesize << endl;
 
       DSRaster.DiamondSquare_SampleStep(samplesize,scale);
 
@@ -2036,9 +2034,10 @@ LSDRaster LSDRaster::LSDRasterTemplate(Array2D<float> InputData){
                            NoDataValue, InputData,GeoReferencingStrings);
     return OutputRaster;
   }
-  else{
-   	cout << "Array dimensions do not match template LSDRaster object" << endl;
-		exit(EXIT_FAILURE);
+  else
+  {
+    cout << "Array dimensions do not match template LSDRaster object" << endl;
+    exit(EXIT_FAILURE);
   }
 
 }
@@ -2068,11 +2067,11 @@ LSDRaster LSDRaster::LSDRasterTemplate(Array2D<float> InputData){
 
 LSDRaster LSDRaster::hillshade()
 {
-	float Zenith = 45;
-	float Azimuth = 315;
-	float ZFactor = 1;
-	LSDRaster Hillshade = this->hillshade(Zenith, Azimuth,ZFactor);
-	return Hillshade;
+  float Zenith = 45;
+  float Azimuth = 315;
+  float ZFactor = 1;
+  LSDRaster Hillshade = this->hillshade(Zenith, Azimuth,ZFactor);
+  return Hillshade;
 }
 
 LSDRaster LSDRaster::hillshade(float altitude, float azimuth, float z_factor)
@@ -2270,14 +2269,14 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
     for(int AzimuthAngle = AzimuthStep; AzimuthAngle <= 360; AzimuthAngle += AzimuthStep)
     {
       fflush(stdout);
-			printf("\nAzimuth: %d, Zenith: %d - ",AzimuthAngle,ZenithAngle);
+      printf("\nAzimuth: %d, Zenith: %d - ",AzimuthAngle,ZenithAngle);
 
-			//Find cells in shadow (1s and 0s)
+      //Find cells in shadow (1s and 0s)
       Array2D<float> ShadowsArray;
       if (ZenithAngle < 90) ShadowsArray = Shadows(AzimuthAngle,ZenithAngle);
       else ShadowsArray = Empty;
-			                
-			//Calculate Weighting
+                      
+      //Calculate Weighting
       float Weighting = (AzimuthStep*(M_PI/180.))*(ZenithStep*(M_PI/180.))*cos(ZenithAngle*(M_PI/180.))*pow(sin(ZenithAngle*(M_PI/180.)),m);
       Array2D<float> WeightsArray(NRows,NCols,Weighting);
       
@@ -2288,20 +2287,19 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
   }
   
   Array2D<float> ShieldingFactor(NRows,NCols,1);
-	Array2D<float> MaxWeightArray(NRows,NCols,MaxWeight);
-	ShieldingFactor -= FinalArray/MaxWeightArray;
-	
-	//make sure there is no shielding value for NDV cells
-	Array2D<float> FinalShieldingFactor(NRows,NCols,NoDataValue);
-	for (int i = 0; i < NRows; ++i){
+  Array2D<float> MaxWeightArray(NRows,NCols,MaxWeight);
+  ShieldingFactor -= FinalArray/MaxWeightArray;
+  
+  //make sure there is no shielding value for NDV cells
+  Array2D<float> FinalShieldingFactor(NRows,NCols,NoDataValue);
+  for (int i = 0; i < NRows; ++i){
     for (int j = 0; j < NCols; ++j){
       if (RasterData[i][j] != NoDataValue){
         FinalShieldingFactor[i][j] = ShieldingFactor[i][j]; 
       }
     }
   }
-	
-	
+
   //write LSDRaster
   LSDRaster Shielding(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue,
                       FinalShieldingFactor,GeoReferencingStrings);
@@ -2408,14 +2406,14 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
   Array2D<float> Shadows(NRows,NCols,0.0);
 
   //variables for screen printing
-	int PrintStep = (int)(NCols*(NRows/100));
-	int Print = 0;
-	int PrintCounter = 0;
-	
-	//parameters for searching along shadow paths
-	int NSearch = 2;
-	vector<int> as, bs;
-	
+  int PrintStep = (int)(NCols*(NRows/100));
+  int Print = 0;
+  int PrintCounter = 0;
+  
+  //parameters for searching along shadow paths
+  int NSearch = 2;
+  vector<int> as, bs;
+  
   //Convert Azimuth and Zenith to radians
   float ZenithRadians = (M_PI/180.)*(90.-ZenithAngle);
   float AzimuthRadians = (M_PI/180.)*(180.-(Azimuth+90.));
@@ -2428,8 +2426,8 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
   {
     for (int j=0; j<NCols; ++j)
     {
-			if (RasterData[i][j] != NoDataValue)
-			{
+      if (RasterData[i][j] != NoDataValue)
+      {
         YCoords[i][j] = (NRows-i)*DataResolution;
         XCoords[i][j] = j*DataResolution;
         
@@ -2438,176 +2436,175 @@ Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
         //YCoords_Transform[i][j] = XCoords[i][j]*cos(AzimuthRadians)+YCoords[i][j]*sin(AzimuthRadians);
         
         //Modified from Codilean 2006 whose equation 8 is missing a + sign and needs rederiving following the new equation 6
-        ZCoords_Transform[i][j] = 	(RasterData[i][j]*cos(ZenithRadians)
-														        - (XCoords[i][j]*cos(AzimuthRadians)
-														        + YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
+        ZCoords_Transform[i][j] = (RasterData[i][j]*cos(ZenithRadians)
+                                        - (XCoords[i][j]*cos(AzimuthRadians)
+                                  + YCoords[i][j]*sin(AzimuthRadians))*sin(ZenithRadians));
       }
     }
   }
-	
-	
-	// Check direction to start looking and generate search indices for looking in each quadrant
-	// to determine if cells down the look direction are in shadow
-	// Also determine directions to loop across DEM, e.g. if Az = 0-90 start in upper right corner
-	int Reversei=0;
-	int Reversej=0;
-	if (Azimuth >= 0 && Azimuth <= 45)
-	{
-		as.push_back(1);	as.push_back(1);
-		bs.push_back(0);	bs.push_back(-1);
-		Reversej=1;
-	}
-	else if (Azimuth > 45 && Azimuth <= 90)
-	{
-		as.push_back(1);	as.push_back(0);
-		bs.push_back(-1);	bs.push_back(-1);
-		Reversej=1;
-	}
-	else if (Azimuth > 90 && Azimuth <= 135)
-	{
-		as.push_back(0);	as.push_back(-1);
-		bs.push_back(-1);	bs.push_back(-1);
-		Reversei=1;
-		Reversej=1;
-	}
-	else if (Azimuth > 135 && Azimuth <= 180)
-	{
-		as.push_back(-1);	as.push_back(-1);
-		bs.push_back(-1);	bs.push_back(0);
-		Reversei=1;
-		Reversej=1;
-	}
-	else if (Azimuth > 180 && Azimuth <= 225)
-	{
-	  as.push_back(-1);	as.push_back(-1);
-		bs.push_back(0);	bs.push_back(1);
-		Reversei=1;
-	}
-	else if (Azimuth > 225 && Azimuth <= 270)
-	{
-	  as.push_back(-1);	as.push_back(0);
-		bs.push_back(1);	bs.push_back(1);
-		Reversei=1;
-	}
-	else if (Azimuth > 270 && Azimuth <= 315)
-	{
-		as.push_back(0);	as.push_back(1);
-		bs.push_back(1);	bs.push_back(1);
-	}
-	else if (Azimuth > 315 && Azimuth <= 360)
-	{
-		as.push_back(1);	as.push_back(1);
-		bs.push_back(1);	bs.push_back(0);
-	}
-	else 
-	{
-		//critical error, Azimuth outside range
-		printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
-		exit(EXIT_FAILURE);
-	}
-	
-	//print to screen
-	float Percentage = (100.*PrintCounter/(NRows*NCols));
-	fflush(stdout);
-	printf("%3.0f %% Complete\b\b\b\b\b\b\b\b\b\b\b\b\b\b",Percentage);
-			  
-	for (int ii=0; ii < NRows; ++ii) 
-	{
-	  //check which direction to loop in
-	  int i,j;
-	  if (Reversei==1) i = NRows-ii-1;
-	  else i=ii;
-	  
-		for (int jj=0; jj < NCols; ++jj)
-	  {
+
+  // Check direction to start looking and generate search indices for looking in each quadrant
+  // to determine if cells down the look direction are in shadow
+  // Also determine directions to loop across DEM, e.g. if Az = 0-90 start in upper right corner
+  int Reversei=0;
+  int Reversej=0;
+  if (Azimuth >= 0 && Azimuth <= 45)
+  {
+    as.push_back(1);	as.push_back(1);
+    bs.push_back(0);	bs.push_back(-1);
+    Reversej=1;
+  }
+  else if (Azimuth > 45 && Azimuth <= 90)
+  {
+    as.push_back(1);	as.push_back(0);
+    bs.push_back(-1);	bs.push_back(-1);
+    Reversej=1;
+  }
+  else if (Azimuth > 90 && Azimuth <= 135)
+  {
+    as.push_back(0);	as.push_back(-1);
+    bs.push_back(-1);	bs.push_back(-1);
+    Reversei=1;
+    Reversej=1;
+  }
+  else if (Azimuth > 135 && Azimuth <= 180)
+  {
+    as.push_back(-1);	as.push_back(-1);
+    bs.push_back(-1);	bs.push_back(0);
+    Reversei=1;
+    Reversej=1;
+  }
+  else if (Azimuth > 180 && Azimuth <= 225)
+  {
+    as.push_back(-1);	as.push_back(-1);
+    bs.push_back(0);	bs.push_back(1);
+    Reversei=1;
+  }
+  else if (Azimuth > 225 && Azimuth <= 270)
+  {
+    as.push_back(-1);	as.push_back(0);
+    bs.push_back(1);	bs.push_back(1);
+    Reversei=1;
+  }
+  else if (Azimuth > 270 && Azimuth <= 315)
+  {
+    as.push_back(0);	as.push_back(1);
+    bs.push_back(1);	bs.push_back(1);
+  }
+  else if (Azimuth > 315 && Azimuth <= 360)
+  {
+    as.push_back(1);	as.push_back(1);
+    bs.push_back(1);	bs.push_back(0);
+  }
+  else 
+  {
+    //critical error, Azimuth outside range
+    printf("LSDRaster:FATAL ERROR: Encountered Azimuth out of range. In %s at line %d\n",__func__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
+  
+  //print to screen
+  float Percentage = (100.*PrintCounter/(NRows*NCols));
+  fflush(stdout);
+  printf("%3.0f %% Complete\b\b\b\b\b\b\b\b\b\b\b\b\b\b",Percentage);
+      
+  for (int ii=0; ii < NRows; ++ii) 
+  {
+    //check which direction to loop in
+    int i,j;
+    if (Reversei==1) i = NRows-ii-1;
+    else i=ii;
+    
+    for (int jj=0; jj < NCols; ++jj)
+    {
       //check which direction to loop in
-	    if (Reversej==1) j = NCols-jj-1;
-	    else j=jj;
-	    
-	  //print progress to screen (turn this off if parallel?)
+      if (Reversej==1) j = NCols-jj-1;
+      else j=jj;
+      
+    //print progress to screen (turn this off if parallel?)
       ++PrintCounter;
       if (PrintCounter > Print)
-			{
-			  float Percentage = (100.*PrintCounter/(NRows*NCols));
-			  fflush(stdout);
-			  printf("%3.0f\b\b\b",Percentage);
-			  Print += PrintStep;
-		  }
-			
+      {
+        float Percentage = (100.*PrintCounter/(NRows*NCols));
+        fflush(stdout);
+        printf("%3.0f\b\b\b",Percentage);
+        Print += PrintStep;
+      }
+      
       if (i==0 || i==NRows-1 || j==0 || j==NCols-1) continue;
       else if (RasterData[i][j] == NoDataValue) continue;
-		  
-		  //Parameters declared internally to avoid dependencies in parallel processing
-		  
-		  //pull out vector of indices for searching the line in direction of azimuth
-			int a = i;
-			int b = j;
-		
-		  //push indices to vectors for line trace until reaching the edges
-		  //infinite loop, conditions inside should catch breaks
-		  int ShadowFlag = 0;
-		  int NDVFlag = 0;
-		  float MinX = 2*DataResolution;
-		  float DiffX, DiffZ;
-		  int a_temp = 0; //assigned meaningless value to stop compiler warnings, value will always be updated. 
+      
+      //Parameters declared internally to avoid dependencies in parallel processing
+      
+      //pull out vector of indices for searching the line in direction of azimuth
+      int a = i;
+      int b = j;
+    
+      //push indices to vectors for line trace until reaching the edges
+      //infinite loop, conditions inside should catch breaks
+      int ShadowFlag = 0;
+      int NDVFlag = 0;
+      float MinX = 2*DataResolution;
+      float DiffX, DiffZ;
+      int a_temp = 0; //assigned meaningless value to stop compiler warnings, value will always be updated. 
       int b_temp = 0; 
       int i_temp, j_temp;
-				
-		  while (true)
-		  {
-			  //check the three search cells for a minumum X value in rotated coordinate mode
-			  MinX = 2*DataResolution;
-			  bool Initialized = false; //this flag tests if a_temp and b_temp have a real value.
-			  for (int k=0;k<NSearch;++k)
-			  {
-				  //assign temporary indices
-				  i_temp = a+as[k];
-				  j_temp = b+bs[k];
-				
-				  if (RasterData[i_temp][j_temp] == NoDataValue) 
-				  {
-				    NDVFlag = 1; 
-				    break;
-				  }
-	      			  
-			    //minimise Y along X direction
-			    DiffX = fabs(XCoords_Transform[i_temp][j_temp]-XCoords_Transform[i][j]);
-			    if (DiffX < MinX)
-			    {
-				    MinX = DiffX;
-				    Initialized = true;
-				    a_temp = i_temp;
-				    b_temp = j_temp;
-				  }
-			  }
-			
-			  if (Initialized == true){  //without this condition a and b can be assigned values from unallocated memory, causing crashes.
-		      //update a and b
-		      a = a_temp;
-		      b = b_temp;
+
+      while (true)
+      {
+        //check the three search cells for a minumum X value in rotated coordinate mode
+        MinX = 2*DataResolution;
+        bool Initialized = false; //this flag tests if a_temp and b_temp have a real value.
+        for (int k=0;k<NSearch;++k)
+        {
+          //assign temporary indices
+          i_temp = a+as[k];
+          j_temp = b+bs[k];
+        
+          if (RasterData[i_temp][j_temp] == NoDataValue) 
+          {
+            NDVFlag = 1; 
+            break;
+          }
+
+          //minimise Y along X direction
+          DiffX = fabs(XCoords_Transform[i_temp][j_temp]-XCoords_Transform[i][j]);
+          if (DiffX < MinX)
+          {
+            MinX = DiffX;
+            Initialized = true;
+            a_temp = i_temp;
+            b_temp = j_temp;
+          }
+        }
+      
+        if (Initialized == true){  //without this condition a and b can be assigned values from unallocated memory, causing crashes.
+          //update a and b
+          a = a_temp;
+          b = b_temp;
         }
         else break;
         
         //Check if edge of shadow, edge of DEM or NDVs reached
-		    if (ShadowFlag > 10) break;
-		    else if (a <= 0 || b == 0 || a == NRows-1 || b == NCols-1 || RasterData[a][b]==NoDataValue) break;
-		    else if (NDVFlag == true) break;
-		    else 
-		    {
+        if (ShadowFlag > 10) break;
+        else if (a <= 0 || b == 0 || a == NRows-1 || b == NCols-1 || RasterData[a][b]==NoDataValue) break;
+        else if (NDVFlag == true) break;
+        else 
+        {
           //Check if transformed elevation a,b greater than at i,j
-    			DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
-      		if (DiffZ < 0) Shadows[a][b] = 1;
-      		else ShadowFlag += 1;
-		    }
-	    }
-	  }
-	}
-	
+          DiffZ = ZCoords_Transform[a][b] - ZCoords_Transform[i][j];
+          if (DiffZ < 0) Shadows[a][b] = 1;
+          else ShadowFlag += 1;
+        }
+      }
+    }
+  }
+  
   //Print completion to screen
-	fflush(stdout);
-	printf("100 %% Complete\r");
-	
-	//write LSDRaster and return
+  fflush(stdout);
+  printf("100 %% Complete\r");
+  
+  //write LSDRaster and return
   return Shadows;
 }
 
