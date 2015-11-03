@@ -433,6 +433,11 @@ class LSDIndexRaster
   /// @date 22/10/15
   LSDIndexRaster remove_holes_in_patches(int window_radius);
   
+  /// @brief Method to fill in checkerboard pattern from a binary raster.
+  /// @author FJC
+  /// @date 30/10/15
+  LSDIndexRaster remove_checkerboard_pattern();
+  
   protected:
   ///Number of rows.
   int NRows;
