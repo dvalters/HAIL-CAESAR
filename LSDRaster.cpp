@@ -8507,6 +8507,25 @@ vector<float> LSDRaster::get_XY_MinMax()
   
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function gets the raster data into a vector
+// FJC 06/11/15
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+vector<float> LSDRaster::get_RasterData_vector()
+{
+  vector<float> Raster_vector;
+  for (int row = 0; row < NRows; row++)
+  {
+    for (int col = 0; col < NCols; col++)
+    {
+      Raster_vector.push_back(RasterData[row][col]);
+    }
+  }
+  
+  return Raster_vector;
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // THis clips to a smaller raster. The smaller raster does not need
 // to have the same data resolution as the old raster

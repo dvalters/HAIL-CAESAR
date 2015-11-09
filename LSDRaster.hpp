@@ -387,6 +387,12 @@ class LSDRaster
   /// @date 3/7/2015
   vector<float> get_XY_MinMax();
   
+  ///@brief This function returns the raster data as a vector
+  ///@return vector<float> with raster data
+  ///@author FJC
+  ///@date 06/11/15
+  vector<float> get_RasterData_vector();
+  
   /// @brief rewrite all the data array values with random numbers (with a 
   /// uniform distribution). 
   /// @param range is the range of values.
