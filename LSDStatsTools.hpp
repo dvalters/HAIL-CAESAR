@@ -83,6 +83,10 @@ float get_standard_error(vector<float>& y_data, float standard_deviation);
 vector<float> get_common_statistics(vector<float>& y_data);
 float get_percentile(vector<float>& data, float percentile);
 
+// this function gets the difference between nearest neighbours in a vector of y data
+// FJC 10/11/15
+vector<float> difference(vector<float>& y_data);
+
 // sorts data; produces quartile-quantile comparison against standard normal variate, returning
 // an (evenly spaced) sorted subsample of N_points, their corresponding normal variate and the
 // reference value  from the standard normal distribution.  Test for departures from normality

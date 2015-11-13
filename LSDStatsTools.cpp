@@ -478,6 +478,26 @@ float get_standard_error(vector<float>& y_data, float standard_deviation)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function gets the difference between neighbouring elements in a vector
+// Same as np.diff in Python
+// Output vector will be one element shorter than the input vector
+// FJC 10/11/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+vector<float> difference(vector<float>& y_data)
+{
+  vector<float> diff;
+  for (int i = 0; i < int(y_data.size())-1; i++)
+  {    
+    float difference = y_data[i+1] - y_data[i];
+    diff.push_back(difference);
+  }
+  
+  return diff;  
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function returns a vector with several common statistics
 // the vector has the following elements
 // 0 mean
