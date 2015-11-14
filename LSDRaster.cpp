@@ -188,8 +188,12 @@ void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
   DataResolution = cellsize;
   NoDataValue = ndv;
   GeoReferencingStrings = temp_GRS;
+  
+  //cout << "Set params" << endl;
 
   RasterData = data.copy();
+  
+  //cout << "Set data" << endl;
 
   if (RasterData.dim1() != NRows)
   {
@@ -227,11 +231,11 @@ void LSDRaster::read_raster(string filename, string extension)
   string string_filename;
   string dot = ".";
   string_filename = filename+dot+extension;
-  cout << "\n\nLoading an LSDRaster, the filename is " << string_filename << endl;
+  //cout << "\n\nLoading an LSDRaster, the filename is " << string_filename << endl;
 
   // First get the size of the file
   int rc = get_file_size(string_filename);
-  cout << "The size of the file is: " << rc << endl;
+  //cout << "The size of the file is: " << rc << endl;
 
 
   if (extension == "asc")
@@ -467,7 +471,7 @@ void LSDRaster::read_raster(string filename, string extension)
             istringstream iss(lines[counter]);
             iss >> str >> str >> str >> str >> str;
             DataType = atoi(str.c_str());
-            cout << "Data Type = " << DataType << endl;
+            //cout << "Data Type = " << DataType << endl;
                      
             // advance to the end so you move on to the new loop            
             counter = lines.size();    
@@ -1685,7 +1689,7 @@ float LSDRaster::difference_rasters(LSDRaster& compare_raster)
   int n = 0;
   float raster_val1, raster_val2;
   
-  float average_difference = NoDataValue;
+  float average_difference;
   // first, compare the raster dimensions
   if(does_raster_have_same_dimensions(compare_raster))
   {
@@ -1702,9 +1706,14 @@ float LSDRaster::difference_rasters(LSDRaster& compare_raster)
         }
       }
     }
+    average_difference = float(total_difference/float(n));
+  }
+  else
+  {
+    average_difference = NoDataValue;
   }
 
-  return float(total_difference/float(n));
+  return average_difference;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -2970,11 +2979,11 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
 vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_radius1, float window_radius2, vector<int> raster_selection)
 {
-	Array2D<float> void_array(1,1,NoDataValue);
+  Array2D<float> void_array(1,1,NoDataValue);
   LSDRaster VOID(1,1,NoDataValue,NoDataValue,NoDataValue,NoDataValue,void_array,GeoReferencingStrings);  
   
   // catch if the supplied window radius is less than the data resolution and
-	// set it to equal the data resolution - SWDG
+  // set it to equal the data resolution - SWDG
   if (window_radius1 < sqrt(2)*DataResolution)
   {
     cout << "Supplied window radius: " << window_radius1 << " is less than sqrt(2) * data resolution: " <<
@@ -2989,43 +2998,43 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
   }
   // this fits a polynomial surface over a kernel window. First, perpare the
   // kernel
-	int kr = int(ceil(window_radius1/DataResolution));  // Set radius of kernel
-	int kw=2*kr+1;                    						     // width of kernel
+  int kr = int(ceil(window_radius1/DataResolution));  // Set radius of kernel
+  int kw=2*kr+1;                    						     // width of kernel
 
-	Array2D<float> data_kernel(kw,kw,NoDataValue);
-	Array2D<float> x_kernel(kw,kw,NoDataValue);
-	Array2D<float> y_kernel(kw,kw,NoDataValue);
-	Array2D<int> mask(kw,kw,0);
+  Array2D<float> data_kernel(kw,kw,NoDataValue);
+  Array2D<float> x_kernel(kw,kw,NoDataValue);
+  Array2D<float> y_kernel(kw,kw,NoDataValue);
+  Array2D<int> mask(kw,kw,0);
 
-	// reset the a,b,c,d,e and f matrices (the coefficient matrices)
-	Array2D<float> temp_coef(NRows,NCols,NoDataValue);
-	Array2D<float> pheta, phi, s1_raster, s2_raster, s3_raster;
+  // reset the a,b,c,d,e and f matrices (the coefficient matrices)
+  Array2D<float> temp_coef(NRows,NCols,NoDataValue);
+  Array2D<float> pheta, phi, s1_raster, s2_raster, s3_raster;
   // Copy across raster template into the desired array containers
   if(raster_selection[0]==1)  s1_raster = temp_coef.copy();
   if(raster_selection[1]==1)  s2_raster = temp_coef.copy();
-	if(raster_selection[2]==1)  s3_raster = temp_coef.copy();
+  if(raster_selection[2]==1)  s3_raster = temp_coef.copy();
   pheta = temp_coef.copy();
   phi = temp_coef.copy();
-  float a,b,c,d,e,f;
-  
-	// scale kernel window to resolution of DEM, and translate coordinates to be
-	// centred on cell of interest (the centre cell)
-	float x,y,zeta,radial_dist;
-	for(int i=0;i<kw;++i)
-	{
-	  for(int j=0;j<kw;++j)
-	  {
-	    x_kernel[i][j]=(i-kr)*DataResolution;
-	    y_kernel[i][j]=(j-kr)*DataResolution;
-			// Build circular mask
-			// distance from centre to this point.
-			radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
+  //float a,b,c,d,e,f;
+  float d,e;
+  // scale kernel window to resolution of DEM, and translate coordinates to be
+  // centred on cell of interest (the centre cell)
+  float x,y,zeta,radial_dist;
+  for(int i=0;i<kw;++i)
+  {
+    for(int j=0;j<kw;++j)
+    {
+      x_kernel[i][j]=(i-kr)*DataResolution;
+      y_kernel[i][j]=(j-kr)*DataResolution;
+      // Build circular mask
+      // distance from centre to this point.
+      radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
 
 //       if (floor(radial_dist) <= window_radius1)
       if (radial_dist <= window_radius1)
       {
-				mask[i][j] = 1;
-			}
+        mask[i][j] = 1;
+      }
     }
 	}
 	// FIT POLYNOMIAL SURFACE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO
@@ -3044,49 +3053,49 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
 		{
 			if (mask[i][j] == 1)
       {
-       	x = x_kernel[i][j];
-				y = y_kernel[i][j];
+        x = x_kernel[i][j];
+        y = y_kernel[i][j];
 
-				// Generate matrix A
-				A[0][0] += pow(x,4);
-				A[0][1] += pow(x,2)*pow(y,2);
-				A[0][2] += pow(x,3)*y;
-				A[0][3] += pow(x,3);
-				A[0][4] += pow(x,2)*y;
-				A[0][5] += pow(x,2);
-				A[1][0] += pow(x,2)*pow(y,2);
-				A[1][1] += pow(y,4);
-				A[1][2] += x*pow(y,3);
-				A[1][3] += x*pow(y,2);
-				A[1][4] += pow(y,3);
-				A[1][5] += pow(y,2);
-				A[2][0] += pow(x,3)*y;
-				A[2][1] += x*pow(y,3);
-				A[2][2] += pow(x,2)*pow(y,2);
-				A[2][3] += pow(x,2)*y;
-				A[2][4] += x*pow(y,2);
-				A[2][5] += x*y;
-				A[3][0] += pow(x,3);
-				A[3][1] += x*pow(y,2);
-				A[3][2] += pow(x,2)*y;
-				A[3][3] += pow(x,2);
-				A[3][4] += x*y;
-				A[3][5] += x;
-				A[4][0] += pow(x,2)*y;
-				A[4][1] += pow(y,3);
-				A[4][2] += x*pow(y,2);
-				A[4][3] += x*y;
-				A[4][4] += pow(y,2);
-				A[4][5] += y;
-				A[5][0] += pow(x,2);
-				A[5][1] += pow(y,2);
-				A[5][2] += x*y;
-				A[5][3] += x;
-				A[5][4] += y;
-				A[5][5] += 1;
-		  }
-		}
-	}
+        // Generate matrix A
+        A[0][0] += pow(x,4);
+        A[0][1] += pow(x,2)*pow(y,2);
+        A[0][2] += pow(x,3)*y;
+        A[0][3] += pow(x,3);
+        A[0][4] += pow(x,2)*y;
+        A[0][5] += pow(x,2);
+        A[1][0] += pow(x,2)*pow(y,2);
+        A[1][1] += pow(y,4);
+        A[1][2] += x*pow(y,3);
+        A[1][3] += x*pow(y,2);
+        A[1][4] += pow(y,3);
+        A[1][5] += pow(y,2);
+        A[2][0] += pow(x,3)*y;
+        A[2][1] += x*pow(y,3);
+        A[2][2] += pow(x,2)*pow(y,2);
+        A[2][3] += pow(x,2)*y;
+        A[2][4] += x*pow(y,2);
+        A[2][5] += x*y;
+        A[3][0] += pow(x,3);
+        A[3][1] += x*pow(y,2);
+        A[3][2] += pow(x,2)*y;
+        A[3][3] += pow(x,2);
+        A[3][4] += x*y;
+        A[3][5] += x;
+        A[4][0] += pow(x,2)*y;
+        A[4][1] += pow(y,3);
+        A[4][2] += x*pow(y,2);
+        A[4][3] += x*y;
+        A[4][4] += pow(y,2);
+        A[4][5] += y;
+        A[5][0] += pow(x,2);
+        A[5][1] += pow(y,2);
+        A[5][2] += x*y;
+        A[5][3] += x;
+        A[5][4] += y;
+        A[5][5] += 1;
+      }
+    }
+  }
 
 	// Move window over DEM, fitting 2nd order polynomial surface to the
 	// elevations within the window.
@@ -3152,12 +3161,12 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
 					LU<float> sol_A(A);  // Create LU object
 					coeffs = sol_A.solve(bb);
 
-			  	a=coeffs[0];
-			  	b=coeffs[1];
-			  	c=coeffs[2];
+			  	//a=coeffs[0];
+			  	//b=coeffs[1];
+			  	//c=coeffs[2];
 			  	d=coeffs[3];
 			  	e=coeffs[4];
-			  	f=coeffs[5];
+			  	//f=coeffs[5];
 			  	
 			  	// COMPUTING SURFACE NORMAL in spherical polar coordinate (ignore
           // radial component)
@@ -8389,6 +8398,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
   //calculate lower left corner coordinates of new array
   float new_XLL = (min_col * DataResolution) + XMinimum;
   float new_YLL = YMinimum + ((NRows - max_row - 1) * DataResolution);
+  
 
   LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
                           new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);  
@@ -8469,26 +8479,27 @@ LSDRaster LSDRaster::clip_to_smaller_raster(LSDRaster& smaller_raster)
   float NewR_XMinimum = XMinimum+float(XLL_col)*DataResolution;
   float NewR_YMinimum = YMinimum + ((NRows - YLL_row ) * DataResolution);
   
+
   Array2D<float> NewData(New_NRows,New_NCols, NoDataValue);
-  
   for(int row = 0; row< New_NRows; row++)
   {
-    for(int col = 0; col<=New_NCols; col++)
+    for(int col = 0; col<New_NCols; col++)
     {
        NewData[row][col] = RasterData[row+YUL_row][col+XLL_col];
     }
   }
-  
+
   LSDRaster TrimmedRaster(New_NRows, New_NCols, NewR_XMinimum,
                           NewR_YMinimum, DataResolution, NoDataValue, NewData, 
                           GeoReferencingStrings);  
+
+  cout << "Made a new raster" << endl;
 
   TrimmedRaster.Update_GeoReferencingStrings();
   
   return TrimmedRaster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This gets the minimum and maximum values and returns them as a vector
@@ -8505,25 +8516,6 @@ vector<float> LSDRaster::get_XY_MinMax()
   
   return XYMaxMin;
   
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// This function gets the raster data into a vector
-// FJC 06/11/15
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-vector<float> LSDRaster::get_RasterData_vector()
-{
-  vector<float> Raster_vector;
-  for (int row = 0; row < NRows; row++)
-  {
-    for (int col = 0; col < NCols; col++)
-    {
-      Raster_vector.push_back(RasterData[row][col]);
-    }
-  }
-  
-  return Raster_vector;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -8597,17 +8589,23 @@ LSDRaster LSDRaster::clip_to_smaller_raster(LSDIndexRaster& smaller_raster)
   
   Array2D<float> NewData(New_NRows,New_NCols, NoDataValue);
   
+  //cout << "Writing the array" << endl;
+  
   for(int row = 0; row< New_NRows; row++)
   {
-    for(int col = 0; col<=New_NCols; col++)
+    for(int col = 0; col<New_NCols; col++)
     {
        NewData[row][col] = RasterData[row+YUL_row][col+XLL_col];
     }
   }
   
+  //cout << "Wrote the array" << endl;
+  
   LSDRaster TrimmedRaster(New_NRows, New_NCols, NewR_XMinimum,
                           NewR_YMinimum, DataResolution, NoDataValue, NewData, 
                           GeoReferencingStrings);  
+
+  cout << "Making the raster" << endl;
 
   TrimmedRaster.Update_GeoReferencingStrings();
   

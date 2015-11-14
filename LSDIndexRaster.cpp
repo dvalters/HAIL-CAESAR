@@ -236,7 +236,7 @@ void LSDIndexRaster::read_raster(string filename, string extension)
   string dot = ".";
   string_filename = filename+dot+extension;
   cout << "The filename is " << string_filename << endl;
-  int DataType;
+  int DataType = 2;
 
   if (extension == "asc")
   {
@@ -1113,7 +1113,7 @@ LSDIndexRaster LSDIndexRaster::clip_to_smaller_raster(LSDIndexRaster& smaller_ra
   
   for(int row = 0; row< New_NRows; row++)
   {
-    for(int col = 0; col<=New_NCols; col++)
+    for(int col = 0; col<New_NCols; col++)
     {
        NewData[row][col] = RasterData[row+YUL_row][col+XLL_col];
     }
@@ -1201,7 +1201,7 @@ LSDIndexRaster LSDIndexRaster::clip_to_smaller_raster(LSDRaster& smaller_raster)
   
   for(int row = 0; row< New_NRows; row++)
   {
-    for(int col = 0; col<=New_NCols; col++)
+    for(int col = 0; col<New_NCols; col++)
     {
        NewData[row][col] = RasterData[row+YUL_row][col+XLL_col];
     }
