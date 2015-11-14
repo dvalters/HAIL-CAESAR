@@ -9033,7 +9033,7 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
     // Now get slopes and diffusion coefficients
     float p_n, p_s, p_e, p_w;
     float dh;
-    float slope_n, slope_s, slope_e, slope_w;
+    //float slope_n, slope_s, slope_e, slope_w;
     float slope_n_g, slope_s_g, slope_e_g, slope_w_g;
     int count = 0;
     int bad_count=0;
@@ -9068,10 +9068,10 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
 //             p_e = exp(-((abs(slope_e_g)/lambda )*(abs(slope_e_g)/lambda)));
 //             p_w = exp(-((abs(slope_w_g)/lambda )*(abs(slope_w_g)/lambda)));
             
-            slope_n = (PM_FilteredTopo.get_data_element(i-1,j)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
-            slope_s = (PM_FilteredTopo.get_data_element(i+1,j)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
-            slope_e = (PM_FilteredTopo.get_data_element(i,j+1)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
-            slope_w = (PM_FilteredTopo.get_data_element(i,j-1)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
+            //slope_n = (PM_FilteredTopo.get_data_element(i-1,j)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
+            //slope_s = (PM_FilteredTopo.get_data_element(i+1,j)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
+            //slope_e = (PM_FilteredTopo.get_data_element(i,j+1)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
+            //slope_w = (PM_FilteredTopo.get_data_element(i,j-1)-PM_FilteredTopo.get_data_element(i,j))/DataResolution;
             
             dh = dt*(p_n*slope_n_g + p_s*slope_s_g + p_e*slope_e_g + p_w*slope_w_g);
             Topography[i][j]+=dh;
