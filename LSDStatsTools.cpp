@@ -4405,6 +4405,42 @@ double deg(double radians)
   return (radians/M_PI)*deg;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Get the data for a boxplot from an unsorted vector of floats, which does not
+// contain any NDV values.
+//
+// Returns a vector, which contains (in this order):
+//
+// 2Percentile 25Percentile median mean 75Percentile 98Percentile minimum maximum
+//
+// SWDG 12/11/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+vector<float> BoxPlot(vector<float> data){
+
+  vector<float> Boxplot;
+  vector<size_t> index_map;
+  vector<float> SortedData;
+  matlab_float_sort(data, SortedData, index_map);
+  float pc2 = get_percentile(SortedData, 2);
+  float pc25 = get_percentile(SortedData, 25);
+  float pc50 = get_percentile(SortedData, 50);
+  float pc75 = get_percentile(SortedData, 75);
+  float pc98 = get_percentile(SortedData, 98);
+  float mean = get_mean(SortedData);
+
+  Boxplot.push_back(pc2);
+  Boxplot.push_back(pc25);
+  Boxplot.push_back(pc50);
+  Boxplot.push_back(mean);
+  Boxplot.push_back(pc75);
+  Boxplot.push_back(pc98);
+
+  //get the max and min values from the sorted vector
+  Boxplot.push_back(SortedData.front());
+  Boxplot.push_back(SortedData.back());
+
+  return Boxplot;
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to generate Statistical distribution. - DTM

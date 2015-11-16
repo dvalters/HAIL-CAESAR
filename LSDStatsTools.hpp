@@ -392,6 +392,16 @@ double rad(double degree);
 float deg(float radians);
 double deg(double radians);
 
+// Get the data for a boxplot from an unsorted vector of floats, which does not
+// contain any NDV values.
+//
+// Returns a vector which contains (in this order):
+//
+// 2Percentile 25Percentile median mean 75Percentile 98Percentile minimum maximum
+//
+// SWDG 12/11/15
+vector<float> BoxPlot(vector<float> data);
+
 //Method to generate Statistical distribution. - DTM
 void get_distribution_stats(vector<float>& y_data, float& mean, float& median, float& UpperQuartile, float& LowerQuartile, float& MaxValue);
 
