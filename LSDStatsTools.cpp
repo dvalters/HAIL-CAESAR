@@ -582,8 +582,7 @@ void get_peak_indices(vector<float>& y_data, float threshold, int distance, vect
       if (check_peaks[i] == 1)
       {
         //copy to final vector
-        int peak_index = y_data[i]; 
-        peak_indices.push_back(peak_index); 
+        peak_indices.push_back(i); 
         //cout << "Removed small peaks, Peak value: " << y_data[i] << " Peak index: " << i << endl;
       }
     }
