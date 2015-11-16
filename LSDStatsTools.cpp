@@ -496,6 +496,106 @@ vector<float> difference(vector<float>& y_data)
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function gets the main peaks from a vector of y data.  User must set a y-threshold 
+// which the amplitude of the peak must be above, and a distance between peaks (smaller
+// peaks very close to a large one will be removed).
+// It returns the indices of the input vector which represent the peaks.
+// Ported from the Python package PeakUtils https://pypi.python.org/pypi/PeakUtils
+// The MIT License (MIT)
+// Copyright (c) 2014 Lucas Hermann Negri
+
+// FJC 10/11/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void get_peak_indices(vector<float>& y_data, float threshold, int distance, vector<int>& peak_indices)
+{
+  vector<int> peak_indices_temp;
+  vector<float> peak_values_temp;
+  // get the vector with nearest neighbour differences
+  vector<float> diff = difference(y_data);
+
+  // append 0 to start of vector - use this to identify rising limbs
+  vector<float> diff_rising(diff);
+  vector<float>::iterator it; 
+  it = diff_rising.begin();
+  diff_rising.insert(it, 0.0);
+  
+  // append 0 to end of vector - use this to identify falling limbs
+  vector<float> diff_falling(diff);
+  diff_falling.push_back(0.0);
+  
+  for (int i = 0; i < int(diff_rising.size()); i++)
+  {
+    if(diff_falling[i] < 0 && diff_rising[i] > 0 && y_data[i] > threshold)    //identifies peaks using neighbour differences
+    {
+      peak_indices_temp.push_back(i);
+      peak_values_temp.push_back(y_data[i]);
+      //cout << "Potential peak value: " << y_data[i] << " Peak index: " << i << endl;
+    }  
+  }
+  
+  if (int(peak_indices_temp.size()) > 1)
+  {
+    //initialise vectors for sorting
+    vector<float> peak_values_sorted;
+    vector<int> peak_indices_sorted;
+    vector<size_t> index_map;
+    
+    //sort peak indices by maximum value
+    matlab_float_sort(peak_values_temp,  peak_values_sorted, index_map);
+    matlab_int_reorder(peak_indices_temp, index_map, peak_indices_sorted);
+    reverse(peak_indices_sorted.begin(), peak_indices_sorted.end());
+    
+    //get binary vector of peak locations
+    vector<int> check_peaks;
+    check_peaks.resize(int(y_data.size()), 0);
+    vector<int>:: iterator find_it;
+    for (int i = 0; i < int(check_peaks.size()); i++)
+    {
+      // set binary to 1 if we are at a peak
+      find_it = find(peak_indices_temp.begin(), peak_indices_temp.end(), i);
+      if (find_it != peak_indices_temp.end()) 
+      {
+        check_peaks[i] = 1;
+      }
+    }
+    
+    // loop through peaks from highest - lowest removing peaks within min distance
+    for (int i = 0; i < int(peak_indices_sorted.size()); i++)
+    {
+      if (check_peaks[peak_indices_sorted[i]] == 1)
+      {
+        //get the indices of the min and max distances
+        int min_dist = peak_indices_sorted[i] - distance;
+        int max_dist = peak_indices_sorted[i] + distance;
+        if (min_dist < 0) min_dist = 0;
+        if (max_dist >= int(check_peaks.size())) max_dist = int(check_peaks.size()) - 1;  
+        for (int j = min_dist; j <= max_dist; j++)
+        {
+          //remove peaks within the specified distance from the highest peak
+          check_peaks[j] = 0;
+          check_peaks[peak_indices_sorted[i]] = 1;
+        }
+      }      
+    }
+    for (int i = 0; i < int(check_peaks.size()); i++)
+    {
+      if (check_peaks[i] == 1)
+      {
+        //copy to final vector
+        int peak_index = y_data[i]; 
+        peak_indices.push_back(peak_index); 
+        //cout << "Removed small peaks, Peak value: " << y_data[i] << " Peak index: " << i << endl;
+      }
+    }
+  }
+  else 
+  {
+    peak_indices = peak_indices_temp;
+  }
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function returns a vector with several common statistics
