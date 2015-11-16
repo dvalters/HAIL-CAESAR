@@ -10958,47 +10958,46 @@ LSDIndexRaster LSDRaster::get_potential_floodplain_patches(LSDRaster& Relief, LS
 } 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Function to set the relief threshold to use in floodplain extraction
+// Function to set the threshold value to use in floodplain extraction
 // FJC 16/11/15
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-float LSDRaster::get_relief_threshold_for_floodplain(float peak_threshold, int peak_distance)
+float LSDRaster::get_threshold_for_floodplain(float bin_width, float peak_threshold, int peak_distance)
 {
   //get vector of raster data
-  vector<float> relief_vector; 
+  vector<float> raster_vector; 
   for (int row = 0; row < NRows; row++) 
   { 
     for (int col = 0; col < NCols; col++) 
     { 
-      relief_vector.push_back(RasterData[row][col]); 
+      raster_vector.push_back(RasterData[row][col]); 
     } 
   }
   
-  float max_relief = 0;  
-  //get maximum relief to use as upper limit of histogram
-  for (int i = 0; i < int(relief_vector.size()); i++)
+  float max_value = 0;  
+  //get maximum value to use as upper limit of histogram
+  for (int i = 0; i < int(raster_vector.size()); i++)
   {
-    if (relief_vector[i] > max_relief) max_relief = relief_vector[i];   
+    if (raster_vector[i] > max_value) max_value = raster_vector[i];   
   }
   
-  //get histogram of relief 
-  float bin_width = 0.5;
+  //get histogram of the raster values
   vector<float> Midpoints;
   vector<float> LLims;
   vector<float> ULims;
   float lower_limit = 0;
   vector<int> Count;
   vector<float> ProbabilityDensity;
-  calculate_histogram_fixed_limits(relief_vector, bin_width, lower_limit, max_relief, Midpoints, LLims, ULims, Count, ProbabilityDensity);
+  calculate_histogram_fixed_limits(raster_vector, bin_width, lower_limit, max_value, Midpoints, LLims, ULims, Count, ProbabilityDensity);
   
   //get peaks from histogram
   vector<int> peak_indices;
   get_peak_indices(ProbabilityDensity, peak_threshold, peak_distance, peak_indices);
   
   //first peak is the floodplain: get the midpoint of the bin with the peak
-  float relief_threshold = Midpoints[peak_indices[0]];
-  cout << "Relief threshold: " << relief_threshold << endl;
+  float threshold = Midpoints[peak_indices[0]];
+  cout << "Threshold value: " << threshold << endl;
     
-  return relief_threshold;  
+  return threshold;  
 }
 
 #endif

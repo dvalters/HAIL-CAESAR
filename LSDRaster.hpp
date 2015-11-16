@@ -1970,15 +1970,16 @@ class LSDRaster
   LSDIndexRaster get_potential_floodplain_patches(LSDRaster& Relief, LSDRaster& Slope, float relief_threshold,
                                                      float slope_threshold);
                                                      
-  /// @brief Function to get relief threshold from a raster using a histogram of Probability-Density
-  /// values. The function identifies the peaks in the PDF of relief, and sets the relief threshold to
-  /// the peak with the lowest relief value.  This can be used to set the floodplain threshold.
+  /// @brief Function to get threshold from a raster using a histogram of Probability-Density
+  /// values. The function identifies the peaks in the PDF, and sets the threshold to
+  /// the peak with the lowest value.  This can be used to set the floodplain threshold.
+  /// @param bin_width Bin width for histogram
   /// @param peak_threshold Threshold probability-density value above which peaks will be selected
   /// @param peak_distance Threshold distance between identified peaks (will remove smaller peaks close to
   /// the largest ones)
   /// @author FJC
   /// @date 16/11/15                                                  
-  float get_relief_threshold_for_floodplain(float peak_threshold, int peak_distance);
+  float get_threshold_for_floodplain(float bin_width, float peak_threshold, int peak_distance);
 
   protected:
 
