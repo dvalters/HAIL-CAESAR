@@ -10969,25 +10969,17 @@ float LSDRaster::get_threshold_for_floodplain(float bin_width, float peak_thresh
   { 
     for (int col = 0; col < NCols; col++) 
     { 
-      raster_vector.push_back(RasterData[row][col]); 
+      if(RasterData[row][col] >= 0) raster_vector.push_back(RasterData[row][col]); 
     } 
-  }
-  
-  float max_value = 0;  
-  //get maximum value to use as upper limit of histogram
-  for (int i = 0; i < int(raster_vector.size()); i++)
-  {
-    if (raster_vector[i] > max_value) max_value = raster_vector[i];   
   }
   
   //get histogram of the raster values
   vector<float> Midpoints;
   vector<float> LLims;
   vector<float> ULims;
-  float lower_limit = 0;
   vector<int> Count;
   vector<float> ProbabilityDensity;
-  calculate_histogram_fixed_limits(raster_vector, bin_width, lower_limit, max_value, Midpoints, LLims, ULims, Count, ProbabilityDensity);
+  calculate_histogram(raster_vector, bin_width, Midpoints, LLims, ULims, Count, ProbabilityDensity);
   
   //get peaks from histogram
   vector<int> peak_indices;
