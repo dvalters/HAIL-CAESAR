@@ -87,6 +87,10 @@ float get_percentile(vector<float>& data, float percentile);
 // FJC 10/11/15
 vector<float> difference(vector<float>& y_data);
 
+// this function gets the main peaks from a vector of y data using the first order difference
+// FJC 13/11/15
+void get_peak_indices(vector<float>& y_data, float threshold, int distance, vector<int>& peak_indices);
+
 // sorts data; produces quartile-quantile comparison against standard normal variate, returning
 // an (evenly spaced) sorted subsample of N_points, their corresponding normal variate and the
 // reference value  from the standard normal distribution.  Test for departures from normality
