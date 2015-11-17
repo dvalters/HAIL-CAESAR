@@ -4783,83 +4783,122 @@ float Get_Maximum(Array2D<int> Input, float NDV){
 }
 
 // Method to get the index of the maximum value in a 2D array of floats - MDH 28/8/14
-int Get_Maximum_Index(Array2D<float> Input, int NDV) {
-	float max = 0;
-	int maxi, maxj;
-	for (int i = 0; i < Input.dim1(); ++i) {
-   	for(int j = 0; j < Input.dim2(); ++j) {
-   	   if (Input[i][j] > max && Input[i][j] != NDV) {
-        		max = Input[i][j];
-        		maxi = i;
-        		maxj = j;
-   } 	} 	}
-  	return maxi*Input.dim2() + maxj;
+int Get_Maximum_Index(Array2D<float> Input, int NDV)
+{
+  float max = 0;
+  int maxi = 0; 
+  int maxj = 0;
+  for (int i = 0; i < Input.dim1(); ++i) 
+  {
+    for(int j = 0; j < Input.dim2(); ++j) 
+    {
+      if (Input[i][j] > max && Input[i][j] != NDV) 
+      {
+        max = Input[i][j];
+        maxi = i;
+        maxj = j;
+      }
+    }
+  }
+  return maxi*Input.dim2() + maxj;
 }
 
 // Method to get the index of the maximum value in a 2D array of ints - MDH 28/8/14
 int Get_Maximum_Index(Array2D<int> Input, int NDV) {
-	float max = 0;
-	int maxi, maxj;
-	for (int i = 0; i < Input.dim1(); ++i) {
-   	for(int j = 0; j < Input.dim2(); ++j) {
-   	   if (Input[i][j] > max && Input[i][j] != NDV) {
-        		max = Input[i][j];
-        		maxi = i;
-        		maxj = j;
-   } 	} 	}
-  	return maxi*Input.dim2() + maxj;
+  float max = 0;
+  int maxi = 0; 
+  int maxj = 0;
+  for (int i = 0; i < Input.dim1(); ++i) 
+  {
+     for(int j = 0; j < Input.dim2(); ++j) 
+     {
+       if (Input[i][j] > max && Input[i][j] != NDV) 
+       {
+         max = Input[i][j];
+         maxi = i;
+         maxj = j;
+       }
+    }
+  }
+  return maxi*Input.dim2() + maxj;
 }
 
 //Routine to return minimum value from a 2D Array
-float Get_Minimum(Array2D<float> Input, int NDV){
-  	float min = 10000;
+float Get_Minimum(Array2D<float> Input, int NDV)
+{
+  float min = 10000;
 
-	for (int i = 0; i < Input.dim1(); ++i){
-   	for(int j = 0; j < Input.dim2(); ++j){
-   	   if (Input[i][j] < min && Input[i][j] != NDV){
-   			min = Input[i][j];
-   } 	} 	}
+  for (int i = 0; i < Input.dim1(); ++i)
+  {
+    for(int j = 0; j < Input.dim2(); ++j)
+    {
+      if (Input[i][j] < min && Input[i][j] != NDV)
+      {
+        min = Input[i][j];
+      }
+    }
+  }
    
-	return min;
+  return min;
 }
 
 //Routine to return minimum value from a 2D Array
-float Get_Minimum(Array2D<int> Input, int NDV){
-  	int min = 10000;
-	for (int i = 0; i < Input.dim1(); ++i){
-   	for(int j = 0; j < Input.dim2(); ++j){
-   	   if (Input[i][j] < min && Input[i][j] != NDV){
-   			min = Input[i][j];
-   } 	} 	}
+float Get_Minimum(Array2D<int> Input, int NDV)
+{
+  int min = 10000;
+  for (int i = 0; i < Input.dim1(); ++i)
+  {
+    for(int j = 0; j < Input.dim2(); ++j)
+    {
+      if (Input[i][j] < min && Input[i][j] != NDV)
+      {
+        min = Input[i][j];
+      }
+    }
+  }
    
-	return min;
+  return min;
 }
 
 //Routine to return index for minimum value from a 2D Array of floats
-int Get_Minimum_Index(Array2D<float> Input, int NDV){
-	float min = 10000;
-	int mini, minj;
-	for (int i = 0; i < Input.dim1(); ++i) {
-   	for(int j = 0; j < Input.dim2(); ++j) {
-   	   if (Input[i][j] < min && Input[i][j] != NDV) {
-        		min = Input[i][j];
-        		mini = i;
-        		minj = j;
-   }	} 	}
-  	return mini*Input.dim2() + minj;
+int Get_Minimum_Index(Array2D<float> Input, int NDV)
+{
+  float min = 10000;
+  int mini = 0;
+  int minj = 0;
+  for (int i = 0; i < Input.dim1(); ++i)
+  {
+    for(int j = 0; j < Input.dim2(); ++j)
+    {
+      if (Input[i][j] < min && Input[i][j] != NDV)
+      {
+        min = Input[i][j];
+        mini = i;
+        minj = j;
+      }
+    } 
+  }
+  return mini*Input.dim2() + minj;
 }
 //Routine to return index for minimum value from a 2D Array of ints
-int Get_Minimum_Index(Array2D<int> Input, int NDV){
-	int min = 10000;
-	int mini, minj;
-	for (int i = 0; i < Input.dim1(); ++i) {
-   	for(int j = 0; j < Input.dim2(); ++j) {
-   	   if (Input[i][j] < min && Input[i][j] != NDV) {
-        		min = Input[i][j];
-        		mini = i;
-        		minj = j;
-   } 	} 	}
-  	return mini*Input.dim2() + minj;
+int Get_Minimum_Index(Array2D<int> Input, int NDV)
+{
+  float min = 10000;
+  int mini = 0;
+  int minj = 0;
+  for (int i = 0; i < Input.dim1(); ++i)
+  {
+    for(int j = 0; j < Input.dim2(); ++j)
+    {
+      if (Input[i][j] < min && Input[i][j] != NDV)
+      {
+        min = Input[i][j];
+        mini = i;
+        minj = j;
+      }
+    } 
+  }
+  return mini*Input.dim2() + minj;
 }
 
 //Routine to count the number of values in an array - MDH 27/8/14
