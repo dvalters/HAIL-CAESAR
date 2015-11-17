@@ -10985,8 +10985,8 @@ float LSDRaster::get_threshold_for_floodplain(float bin_width, float peak_thresh
   vector<int> peak_indices;
   get_peak_indices(ProbabilityDensity, peak_threshold, peak_distance, peak_indices);
   
-  //first peak is the floodplain: get the midpoint of the bin with the peak
-  float threshold = Midpoints[peak_indices[0]];
+  //using second peak as the floodplain: get the midpoint of the bin with the peak
+  float threshold = Midpoints[peak_indices[1]];
   cout << "Threshold value: " << threshold << endl;
     
   return threshold;  
