@@ -376,7 +376,7 @@ protected:
 	double mannings = 0.04;
 	
 	/// no. of rainfall cells
-	int rfnum = 2;
+	int rfnum = 1;
 
 	/// set by ncols and nrows
 	int xmax, ymax; 
@@ -495,6 +495,8 @@ protected:
 	double Qw_overvol = 0;
 	double temptotal = 0;
 	double old_sediq = 0;
+  
+  double temptot = 0;
   
 	std::vector<double> sum_grain, sum_grain2;
   std::vector<double> old_sum_grain,old_sum_grain2;
@@ -619,30 +621,30 @@ protected:
 	double P1, b1, k1, c1, c2, k2, c3, c4;
 	
 	/// Option Bools
-	bool soildevoption;
-	bool suspended_opt;
-	bool jmeaninputfile_opt;
-	bool recirculate_opt;
-	bool reach_mode_opt;
-	bool dunes_opt;
-	bool bedrock_lower_opt;
-	bool physical_weather_opt;
-	bool chem_weath_opt;
+	bool soildevoption = false;
+	bool suspended_opt = false;
+	bool jmeaninputfile_opt = false;
+	bool recirculate_opt = false;
+	bool reach_mode_opt = false;
+	bool dunes_opt = false;
+	bool bedrock_lower_opt = false;
+	bool physical_weather_opt = false;
+	bool chem_weath_opt = false;
 	
-	bool soil_j_mean_depends_on;
-	bool rainfall_data_on;
-	bool vegetation_on;
-	bool bedrock_layer_on;
-	bool lateral_erosion_on;
-	bool spatially_var_rainfall;
+	bool soil_j_mean_depends_on = false;
+	bool rainfall_data_on = false;
+	bool vegetation_on = false;
+	bool bedrock_layer_on = false;
+	bool lateral_erosion_on = false;
+	bool spatially_var_rainfall = false;
 	
 	
 	// Bools for writing out files
-	bool write_elev_file;
-	bool write_grainsz_file;
-	bool write_params_file;
-	bool write_flowvel_file;
-	bool write_waterd_file;
+	bool write_elev_file = false;
+	bool write_grainsz_file = false;
+	bool write_params_file = false;
+	bool write_flowvel_file = false;
+	bool write_waterd_file = false;
 	
 	/// input file names
 	std::string rainfall_data_file;
