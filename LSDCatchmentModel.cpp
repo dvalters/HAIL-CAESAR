@@ -1544,7 +1544,8 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 		call_erosion();
 		call_lateral();
 		water_flux_out(local_time_factor);
-		
+    
+		temptotal = temptot;
 		
 		output_data();  // not sure if this is the best place to put this, but it needs to be done every timestep? - DAV
 		
@@ -1670,7 +1671,10 @@ void LSDCatchmentModel::zero_values()
 void LSDCatchmentModel::water_flux_out(double local_time_factor)   
 // Extracted as a seprate method from erodepo()
 {
-	double temptot = 0;    // temporary water total
+	//double temptot = 0;    // temporary water total // DV MADE GLOBAL VAR
+  
+  // Zero the water, but then we set it to the minimum depth - DV
+  temptot = 0;
 	for (int y = 1; y <= ymax; y++)
 	{
 		// Note about C# vs C++ TNT Arrays, 
