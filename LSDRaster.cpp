@@ -10891,6 +10891,33 @@ LSDRaster LSDRaster::RemoveBelow(float Value){
 
 } 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Simple method to remove any values above a user supplied value from an LSDRaster. 
+//
+// Value is a float of the threshold above which values will be removed.
+// SWDG 25/11/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::RemoveAbove(float Value){
+
+  Array2D<float> Data = RasterData.copy();
+
+    for(int i = 1; i < NRows-1; ++i){
+      for(int j = 1; j < NCols-1; ++j){
+
+        if (Data[i][j] != NoDataValue && Data[i][j] > Value){
+
+          Data[i][j] = NoDataValue;
+
+        }
+      }
+    }
+
+  LSDRaster Removed(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Data,GeoReferencingStrings);
+  return Removed;
+
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Apply a mask to an LSDRaster.  Mask designated by LSDIndexRaster containing 1
 // values for the pixels that need to be converted to nodata

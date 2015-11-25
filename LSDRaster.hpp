@@ -1948,6 +1948,12 @@ class LSDRaster
   /// @date 22/6/15
   LSDRaster RemoveBelow(float Value);
 
+  /// @brief Simple method to remove any values above a user supplied value from an LSDRaster.
+  /// @param Value float of the threshold above which values will be removed.
+  /// @author SWDG
+  /// @date 25/11/15
+  LSDRaster RemoveAbove(float Value);
+
   /// @brief apply a mask to a raster dataset, converts pixels to nodata where mas=k=1
   /// @author DTM
   /// @date 25/08/2015
