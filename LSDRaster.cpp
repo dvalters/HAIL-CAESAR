@@ -9000,9 +9000,9 @@ LSDRaster LSDRaster::GaussianFilter(float sigma, int kr)
 //  geometric framework for channel network extraction from lidar: Nonlinear
 //  diffusion and geodesic paths, J. Geophys. Res., 115(F1), F01002,
 // doi:10.1029/2009JF001254.
-//  See also  Catté et al. (1992), Image Selective
+//  See also  Catte et al. (1992), Image Selective
 //  Smoothing and Edge Detection by Nonlinear Diffusion, SIAM J. Numer. Anal.,
-//  29(1), 182–193, doi:10.1137/0729012.
+//  29(1), 182-193, doi:10.1137/0729012.
 //
 //  David Milodowski, Feb 2015
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

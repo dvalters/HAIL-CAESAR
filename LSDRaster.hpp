@@ -1584,8 +1584,8 @@ class LSDRaster
   ///  @details This follows the algorithm descibed in Passalacqua et al. (2010), A
   ///  geometric framework for channel network extraction from lidar: Nonlinear diffusion
   ///  and geodesic paths, J. Geophys. Res., 115(F1), F01002, doi:10.1029/2009JF001254.
-  ///  See also  Catté et al. (1992), Image Selective Smoothing and Edge Detection by
-  ///  Nonlinear Diffusion, SIAM J. Numer. Anal., 29(1), 182–193, doi:10.1137/0729012.
+  ///  See also  Catte et al. (1992), Image Selective Smoothing and Edge Detection by
+  ///  Nonlinear Diffusion, SIAM J. Numer. Anal., 29(1), 182-193, doi:10.1137/0729012.
   ///  @param timesteps the number of diffusion timesteps.  Suggest ~50 for 1m LiDAR
   ///  @param lambda percentile (selects the gradient percentile that is used to define lambda.  Suggest 90th percentile)
   ///  @param dt The timestep for each round of diffusion.  Suggest that this is 0.1 to avoid stability issues (same as Passalacqua et al. 2010)
