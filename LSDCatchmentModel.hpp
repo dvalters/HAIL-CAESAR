@@ -92,6 +92,9 @@ public:
 	/// @author dav
 	void load_data();
 	
+  /// Checks that there is an outlet point on at least one side of the DEM
+  /// and also counts the number of actual grid cells in the catchment
+  void check_DEM_edge_condition();
 	
 	/// Prints the initial values set by user from param file
 	/// as well as those default initial values in the code.
@@ -206,7 +209,7 @@ public:
 	void get_catchment_input_points();
 	
   /// @brief Writes the time series of catchment output data.
-	void output_data();
+	void output_data(double temptotal);
 	
   /// @brief Zeros certain arrays which have to be reset every timestep
   /// or every certain number of timesteps.
