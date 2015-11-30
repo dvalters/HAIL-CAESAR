@@ -1053,7 +1053,10 @@ void LSDCatchmentModel::get_area4()
     int x, y, n, x2, y2, dir;
 
     // zero load of arrays
-    std::vector<double> tempvalues((xmax+2) *(ymax+2)), tempvalues2((xmax+2) * (ymax+2)), xkey((xmax+2)*(ymax+2)), ykey((xmax+2) * (ymax+2));
+    std::vector<double> tempvalues((xmax+2) *(ymax+2));
+    std::vector<double> tempvalues2((xmax+2) * (ymax+2)); 
+    std::vector<double> xkey((xmax+2)*(ymax+2));
+    std::vector<double> ykey((xmax+2) * (ymax+2));
     
     // I leave in the old C# syntax for now for reference (note the subtle differences) (DAV)
     //tempvalues = new Double [(xmax+2) *(ymax+2)];
@@ -1067,7 +1070,9 @@ void LSDCatchmentModel::get_area4()
     {
         for (x = 1; x <= xmax; x++)    
         {
+            // tempvalues is just a list of all the elevations in the grid.
             tempvalues[inc] = elev[x][y];
+            // xkey is the xcoordinates collated
             xkey[inc] = x;
             inc++;
         }
@@ -1093,7 +1098,8 @@ void LSDCatchmentModel::get_area4()
     // needed.
     
     // Pair the vectors up
-    std::vector<std::pair<double,double> > x_keys_elevs_paired(xkey.size() < tempvalues.size() ? xkey.size() : tempvalues.size() );
+    std::vector<std::pair<double,double> > 
+      x_keys_elevs_paired(xkey.size() < tempvalues.size() ? xkey.size() : tempvalues.size() );
     
     for (unsigned i=0; i < x_keys_elevs_paired.size(); i++)
     {
@@ -1106,7 +1112,7 @@ void LSDCatchmentModel::get_area4()
             sort_pair_second<double,double>() 
             );
 
-    // now does the same for y values
+    // now does the same for y values, creating a temporary array for the ykeys etc.
     inc = 1;
     for (y = 1; y <= ymax; y++)
     {
@@ -1118,7 +1124,8 @@ void LSDCatchmentModel::get_area4()
         }
     }
     // Pair the vectors up
-    std::vector<std::pair<double,double> > y_keys_elevs_paired(ykey.size() < tempvalues2.size() ? ykey.size() : tempvalues2.size() );
+    std::vector<std::pair<double,double> > 
+        y_keys_elevs_paired(ykey.size() < tempvalues2.size() ? ykey.size() : tempvalues2.size() );
     
     for (unsigned i=0; i < y_keys_elevs_paired.size(); i++)
     {
@@ -1126,7 +1133,9 @@ void LSDCatchmentModel::get_area4()
     }
     
     // Now do the sort
-    std::sort(y_keys_elevs_paired.begin(), y_keys_elevs_paired.end(), sort_pair_second<double,double>() );
+    std::sort(y_keys_elevs_paired.begin(), 
+              y_keys_elevs_paired.end(), 
+              sort_pair_second<double,double>() );
     
     //Array.Sort(tempvalues2, ykey);  // The old C# version (Why write one-line in C# when you can write 8 in C++?) 
 
@@ -1570,6 +1579,8 @@ void LSDCatchmentModel::check_DEM_edge_condition()
       if (elev[x][y] > -9999) nActualGridCells[rfarea[x][y]]++;
     }
   }
+  // This is an odd construction, since nActualGridCells[0] is surely always 0?
+  std::cout << "Number of grid cells within catchment: " << nActualGridCells[1] << std::endl;
   
   //check for -9999's on RH edge of DEM
   double temp = -9999;
@@ -2190,7 +2201,7 @@ void LSDCatchmentModel::calchydrograph(double time)
         
 void LSDCatchmentModel::get_catchment_input_points()
 {
-    
+    std::cout << "Calculating catchment input points... Total: ";
     totalinputpoints = 1;
     for (int n=1; n <= rfnum; n++)
     {
@@ -2198,7 +2209,7 @@ void LSDCatchmentModel::get_catchment_input_points()
     }
     for (int x=1; x <= xmax; x++)
     {
-        for (int y=1; y <= ymax; y++)
+        for (int y=1; y <= ymax; y++) 
         {
             if ((area[x][y] * j_mean[rfarea[x][y]] * 3 * DX * DX) > MIN_Q \
                     && (area[x][y] * j_mean[rfarea[x][y]] * 3 * DX * DX) < MIN_Q_MAXVAL)
@@ -2208,9 +2219,11 @@ void LSDCatchmentModel::get_catchment_input_points()
                         catchment_input_counter[rfarea[x][y]]++;
                         totalinputpoints++;
                     }
-                }
-            }
         }
+    }
+    // Debug
+    std::cout << totalinputpoints << std::endl;
+}
 
 void LSDCatchmentModel::evaporate(double time)
 {
