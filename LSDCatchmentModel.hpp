@@ -197,12 +197,14 @@ public:
 	/// @brief Calls the grass growing method
 	void call_grass_growing();
 	
-	/// @brief Calculates the area, although it also calls
-	/// get_area4(), which is slightly confusing
+	/// @brief Calculates the area and calls area4(). 
+  /// @details This is basically a wrapper function now. It sets area = 0,
+  ///  and area_depth = 1 where there is actual elevation data. Then calls 
+  /// get_area4() which does the actual work.
 	/// @author Translated by DAV
 	void get_area();
 	
-	/// @brief Calculates the area, after being called by get_area()
+	/// @brief Calculates the drainage area, after being called by get_area()
 	/// @author Translated by DAV	
 	void get_area4();
 	
