@@ -763,12 +763,12 @@ void LSDRaster::read_ascii_raster(string FILENAME)
             << NoDataValue << std::endl;
 
   // this is the array into which data is fed
-  TNT::Array2D<double> asciidata(NRows,NCols,NoDataValue);
+  TNT::Array2D<double> asciidata(NCols,NRows,NoDataValue);
 
   // read the data
-  for (int i=0; i<NRows; ++i)
+  for (int i=0; i<NCols; ++i)
   {
-    for (int j=0; j<NCols; ++j)
+    for (int j=0; j<NRows; ++j)
     {
       data_in >> asciidata[i][j];
     }
