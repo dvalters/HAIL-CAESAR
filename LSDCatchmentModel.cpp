@@ -326,15 +326,18 @@ void LSDCatchmentModel::load_data()
     // So start the counters at one, rather than zero, this
     // will ensure that elev[0][n] is not written to and left set to zero.
     // remember this data member is set with dim size equal to xmax + 2 to 
-    // allow the border of zeros.
-    int xcounter = 1;
-    int ycounter = 1;
+    // allow the border of zeros
+    
+    //int xcounter = 1;
+    //int ycounter = 1;
     for (int i=0; i<xmax; i++)
     {
       for (int j=0; j<ymax; j++)
       {
-        elev[xcounter][ycounter] = raw_elev[i][j];
+        elev[i+1][j+1] = raw_elev[i][j];
+        //ycounter++;
       }
+      //xcounter++;
     }
     // copy needed? -- DAV 2/12/2015
     init_elevs = elev;
@@ -2141,14 +2144,15 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         waterinput += (water_add_amt / local_time_factor) * DX * DX;
         
         // debug
-        if (waterinput > 0)
-        {
-          std::cout << "waterinput: " << waterinput << std::endl;
-        }
-        if (water_add_amt > 0)
-        {
-          std::cout << "water_add_amt: " << water_add_amt << std::endl;
-        }
+        //if (waterinput > 0)
+        //{
+          //std::cout << "waterinput: " << waterinput << std::endl;
+        //}
+        //if (water_add_amt > 0)
+        //{
+          //std::cout << "water_add_amt: " << water_add_amt << std::endl;
+        //}
+
         
         water_depth[x][y] += water_add_amt;
     }
