@@ -52,6 +52,8 @@
 // and then perform topo analysis on the model run output
 using std::string;
 
+int DEBUG = 1;
+
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
 
@@ -1223,7 +1225,7 @@ void LSDCatchmentModel::get_area4()
             // Will there be any flow distribution?
             if (difftot > 0)
             {
-            std::cout << "Distribution of flow! : " << difftot << std::endl;
+            //if (DEBUG = 1) std::cout << "Distribution of flow! : " << difftot << std::endl;
                 // then distribute to all 8...
                 for (dir = 1; dir <= 8; dir++)//was 1 to 8 +=2
                 {
@@ -1735,10 +1737,11 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     water_flux_out(local_time_factor);
 
     temptotal = temptot;
+    std::cout << "Temptotal: " << temptotal << "             \r" << std::flush;
 
     output_data(temptotal);  // not sure if this is the best place to put this, but it needs to be done every timestep? - DAV
 
-    std::cout << cycle << "\r" << std::flush;
+    std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
 
     if (cycle >= save_time)
     {
@@ -2092,14 +2095,16 @@ void LSDCatchmentModel::depth_update()
         double tempmaxdepth = 0;
         while (down_scan[y][inc] > 0)
         {
-          std::cout << "Entering the depth update loop" <<std::endl;
+          //debug
+          //std::cout << "Entering the depth update loop" <<std::endl;
           int x = down_scan[y][inc];
           inc++;
           
           // UPDATE THE WATER DEPTHS
           //std::cout << "update water depth: " << inc << "\r" << std::flush;
           water_depth[x][y] += local_time_factor * (qx[x+1][y] - qx[x][y] + qy[x][y+1] - qy[x][y]) / DX;
-          std::cout << "incrementing_depth: " << water_depth[x][y] << std::endl;
+          //debug
+          //std::cout << "incrementing_depth: " << water_depth[x][y] << std::endl;
           
           // UPDATE THE SUSPENDED SEDIMENT CONCENTRATIONS
           if (suspended_opt == true)
@@ -2209,8 +2214,9 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 }
 
 // Calculates the rainfall input to each cell per time step
-void LSDCatchmentModel::calc_J(double cycle)    // J is the local rainfall inputed into the cell at each timestep 
-                                        // (Actually this is j_mean)
+// J is the local rainfall inputed into the cell at each timestep 
+// (Actually that is j_mean)
+void LSDCatchmentModel::calc_J(double cycle) 
 {
     for (int n=1; n <= rfnum; n++)    // rfnum is the rainfall number int = 2 to begin with
     {
@@ -2218,6 +2224,9 @@ void LSDCatchmentModel::calc_J(double cycle)    // J is the local rainfall input
         double local_time_step = 60; // in seconds
         
         old_j_mean[n] = new_j_mean[n];
+        
+        // jo[n] and j[n] are pre-initialised to some very small value in 
+        // the zero_values() function
         jo[n] = j[n];
         
         // Get the M value from the files if one is specified
@@ -2227,9 +2236,16 @@ void LSDCatchmentModel::calc_J(double cycle)    // J is the local rainfall input
         }
 
         local_rain_fall_rate = 0;
-        if (hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n] > 0)
+       
+        // DAV- Experimental fix! subtract 1 as n=1 should be outside the vector index 
+        // for spatially uniform rainfall. You actuall want:
+        // hourly_rain_data[hour][0]  (n starts at 1 here)
+        double cur_rain_rate = hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1];
+        // std::cout << cur_rain_rate << std::endl;
+        
+        if (hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1] > 0)
         {
-            local_rain_fall_rate = rain_factor * ((hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n] / 1000) / 3600); 
+            local_rain_fall_rate = rain_factor * ((hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1] / 1000) / 3600); 
             /** divide by 1000 to make m/hr, then by 3600 for m/sec */
         }
 
@@ -2254,12 +2270,13 @@ void LSDCatchmentModel::calc_J(double cycle)    // J is the local rainfall input
     }
 }   
         
-// Calculates the storm hydrograph      
+// Calculates the storm hydrograph   
+// Where is this derivation from? - DAV   
 void LSDCatchmentModel::calchydrograph(double time)
 {
     for (int n=1; n <= rfnum; n++)
     {
-        j_mean[n] = old_j_mean[n] + (((new_j_mean[n] - old_j_mean[n]) / 2) * (2 - time));
+        j_mean[n] = old_j_mean[n] + (( (new_j_mean[n] - old_j_mean[n]) / 2) * (2 - time));
     }
 }
 
@@ -2267,6 +2284,8 @@ void LSDCatchmentModel::calchydrograph(double time)
 void LSDCatchmentModel::get_catchment_input_points()
 {
     std::cout << "Calculating catchment input points... Total: ";
+    
+    
     totalinputpoints = 1;
     for (int n=1; n <= rfnum; n++)
     {
@@ -2344,7 +2363,9 @@ void LSDCatchmentModel::scan_area()
 		{
 			down_scan[y][inc] = x;
 			inc++;
-			std::cout << "set downscan: "<< down_scan[y][inc] << std::endl;
+      
+      // debug
+			//std::cout << "set downscan: "<< down_scan[y][inc] << std::endl;
 		}
 	}
     }//);   
