@@ -318,7 +318,26 @@ void LSDCatchmentModel::load_data()
     // You have now read in all the headers and the raster data
     // Headers are accessed by elevR.get_Ncols(), elevR.get_NRows() etc
     // Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
-    init_elevs = elevR.get_RasterData_dbl();
+    
+    // Load the raw ascii raster data
+    TNT::Array2D<double> raw_elev = elevR.get_RasterData_dbl();
+    
+    // We want an edge pixel of zeros surrounding the raster data
+    // So start the counters at one, rather than zero, this
+    // will ensure that elev[0][n] is not written to and left set to zero.
+    // remember this data member is set with dim size equal to xmax + 2 to 
+    // allow the border of zeros.
+    int xcounter = 1;
+    int ycounter = 1;
+    for (int i=0; i<xmax; i++)
+    {
+      for (int j=0; j<ymax; j++)
+      {
+        elev[xcounter][ycounter] = raw_elev[i][j];
+      }
+    }
+    // copy needed? -- DAV 2/12/2015
+    init_elevs = elev;
     
     //ymax = elevR.get_NRows();
     //xmax = elevR.get_NCols();
@@ -1022,7 +1041,6 @@ void LSDCatchmentModel::initialise_arrays()
 
 void LSDCatchmentModel::get_area()
 {
-    // TO DO
     // gets the drainage area 
     // Could possible come from one of the other LSDRaster objects?
     int x,y;
@@ -1050,13 +1068,13 @@ void LSDCatchmentModel::get_area4()
     // instead of using sweeps this sorts all the elevations then works frmo the
     // highest to lowest - calculating drainage area - D-infinity basically.
 
-    int x, y, n, x2, y2, dir;
+    volatile int x, y, n, x2, y2, dir;
 
     // zero load of arrays
     std::vector<double> tempvalues((xmax+2) *(ymax+2));
     std::vector<double> tempvalues2((xmax+2) * (ymax+2)); 
     std::vector<double> xkey((xmax+2)*(ymax+2));
-    std::vector<double> ykey((xmax+2) * (ymax+2));
+    std::vector<double> ykey((xmax+2)*(ymax+2));
     
     // I leave in the old C# syntax for now for reference (note the subtle differences) (DAV)
     //tempvalues = new Double [(xmax+2) *(ymax+2)];
@@ -1108,9 +1126,8 @@ void LSDCatchmentModel::get_area4()
     
     // Now do the sort
     std::sort(x_keys_elevs_paired.begin(), 
-            x_keys_elevs_paired.end(), 
-            sort_pair_second<double,double>() 
-            );
+              x_keys_elevs_paired.end(), 
+              sort_pair_second<double,double>() );
 
     // now does the same for y values, creating a temporary array for the ykeys etc.
     inc = 1;
@@ -1123,34 +1140,53 @@ void LSDCatchmentModel::get_area4()
             inc++;
         }
     }
-    // Pair the vectors up
+    // Create a suitably sized vector to hold the pairs
     std::vector<std::pair<double,double> > 
         y_keys_elevs_paired(ykey.size() < tempvalues2.size() ? ykey.size() : tempvalues2.size() );
     
+    
+    // Pair the vectors of keys and tempvalues (elevs) up.
     for (unsigned i=0; i < y_keys_elevs_paired.size(); i++)
     {
         y_keys_elevs_paired[i] = std::make_pair(ykey[i],tempvalues2[i]);
     }
     
     // Now do the sort
+    // DAV- this implentation needs double-checking 1/12/2015
     std::sort(y_keys_elevs_paired.begin(), 
               y_keys_elevs_paired.end(), 
               sort_pair_second<double,double>() );
     
-    //Array.Sort(tempvalues2, ykey);  // The old C# version (Why write one-line in C# when you can write 8 in C++?) 
+    //Array.Sort(tempvalues2, ykey);  
+    // The old C# version 
+    //(Why write one-line in C# when you can write 8 in C++?) 
+    
+    // Hang on, do these need to be unpaired now? - DAV 1/12/2015
+    // Yes! - you are using the unsorted xkeys/ykeys below
 
 
     // then works through the list of x and y co-ordinates from highest to lowest...
     for (n = (xmax * ymax); n >= 1; n--)
     {
-        x = (int)(xkey[n]);
+        //x = (int)(xkey[n]); 1/12/15
         //this.InfoStatusPanel.Text = Convert.ToString(x);
-        y = (int)(ykey[n]);
+        //y = (int)(ykey[n]); 1/12/15
         //this.InfoStatusPanel.Text = Convert.ToString(y);
-
+        
+        // need to extract the x/y keys from the pair
+        //x = static_cast<int>(x_keys_elevs_paired[n].first );
+        //y = static_cast<int>(y_keys_elevs_paired[n].first );
+        
+        // 5th attempt using std::get<i>
+        x = static_cast<int>(std::get<0>(x_keys_elevs_paired[n]) );
+        y = static_cast<int>(std::get<0>(y_keys_elevs_paired[n]) );
+        
+        
+        // I.e. If we are in the catchment (area_depth = 0 in NODATA)
         if (area_depth[x][y] > 0)
         {
             // update area if area_depth is higher
+            // That is, set the area to a value if in catchment 
             if (area_depth[x][y] > area[x][y]) area[x][y] = area_depth[x][y];
 
             double difftot = 0;
@@ -1158,31 +1194,45 @@ void LSDCatchmentModel::get_area4()
             // work out sum of +ve slopes in all 8 directions
             for (dir = 1; dir <= 8; dir++)//was 1 to 8 +=2
             {
-
                 x2 = x + deltaX[dir];
                 y2 = y + deltaY[dir];
-                if (x2 < 1) x2 = 1; if (y2 < 1) y2 = 1; if (x2 > xmax) x2 = xmax; if(y2>ymax) y2=ymax;
+                
+                if (x2 < 1) x2 = 1; 
+                if (y2 < 1) y2 = 1; 
+                if (x2 > xmax) x2 = xmax; 
+                if(y2>ymax) y2=ymax;
 
                 // swap comment lines below for drainage area from D8 or Dinfinity
+                // Calculates the total drop (difference) in elevation of surrounding cells
+                // cumulatively.
+                // D8
                 if (std::remainder(dir, 2) != 0)
                 {
-                    if (elev[x2][y2] < elev[x][y]) difftot += elev[x][y] - elev[x2][y2];
+                  if (elev[x2][y2] < elev[x][y]) difftot += elev[x][y] - elev[x2][y2];
                 }
                 else
                 {
-                    if (elev[x2][y2] < elev[x][y]) difftot += (elev[x][y] - elev[x2][y2]) / 1.414;
+                  if (elev[x2][y2] < elev[x][y]) difftot += (elev[x][y] - elev[x2][y2]) / 1.414;
                 }
                 //if(elev[x][y]-elev[x2][y2]>difftot) difftot=elev[x][y]-elev[x2][y2];
             }
+            
+            // Will there be any flow distribution?
             if (difftot > 0)
             {
+            std::cout << "Distribution of flow! : " << difftot << std::endl;
                 // then distribute to all 8...
                 for (dir = 1; dir <= 8; dir++)//was 1 to 8 +=2
                 {
-
+                    // Calculate the adjacent coordinates
                     x2 = x + deltaX[dir];
                     y2 = y + deltaY[dir];
-                    if (x2 < 1) x2 = 1; if (y2 < 1) y2 = 1; if (x2 > xmax) x2 = xmax; if (y2 > ymax) y2 = ymax;
+                    
+                    // Make sure we don't go over the edges of the model domain
+                    if (x2 < 1) x2 = 1; 
+                    if (y2 < 1) y2 = 1; 
+                    if (x2 > xmax) x2 = xmax; 
+                    if (y2 > ymax) y2 = ymax;
 
                     // swap comment lines below for drainage area from D8 or Dinfinity
                     
@@ -1199,7 +1249,7 @@ void LSDCatchmentModel::get_area4()
                 }
 
             }
-            // finally zero the area depth...
+             // finally zero the area depth for the old cell (i.e. centre cell in D8)
             area_depth[x][y] = 0;
         }
     }
@@ -1617,6 +1667,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
   time_1 = cycle;
 
   std::cout << "Initialising drainage area for first time..." << std::endl;
+  // calculate the contributing drainage area
   get_area();
 
   std::cout << "Initialising catchment input points for first time..." << std::endl;
@@ -1662,6 +1713,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     
     // In CL there was an option to set either reach or tidal mode.
     // Only catchment mode is implemented in this spin off version
+    //std::cout << "LOCAL TIME FACTOR: " << local_time_factor << std::endl;
     catchment_water_input_and_hydrology(local_time_factor);
         
     //std::cout << "route the water and update the flow depths\r" << std::flush;
@@ -2088,6 +2140,15 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         
         waterinput += (water_add_amt / local_time_factor) * DX * DX;
         
+        // debug
+        if (waterinput > 0)
+        {
+          std::cout << "waterinput: " << waterinput << std::endl;
+        }
+        if (water_add_amt > 0)
+        {
+          std::cout << "water_add_amt: " << water_add_amt << std::endl;
+        }
         
         water_depth[x][y] += water_add_amt;
     }
