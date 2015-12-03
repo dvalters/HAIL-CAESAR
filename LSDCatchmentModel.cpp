@@ -242,7 +242,7 @@ std::vector<float> LSDCatchmentModel::read_rainfall_uniform(string FILENAME)
 }
 */
 
-
+// This is just for sanity checking the rainfall input really
 void LSDCatchmentModel::print_rainfall_data()
 {
   std::vector< std::vector<float> > vector2d = hourly_rain_data;
@@ -1016,6 +1016,12 @@ void LSDCatchmentModel::initialise_arrays()
     rfarea = TNT::Array2D<int> (xmax + 2, ymax + 2);
     nActualGridCells = std::vector<int> (rfnum + 1);
     catchment_input_counter = std::vector<int> (rfnum + 1);
+    
+    sr = TNT::Array3D<double> (xmax + 2, ymax + 2, 10);
+    sl = TNT::Array3D<double> (xmax + 2, ymax + 2, 10);
+    su = TNT::Array3D<double> (xmax + 2, ymax + 2, 10);
+    sd = TNT::Array3D<double> (xmax + 2, ymax + 2, 10);
+    ss = TNT::Array2D<double> (xmax + 2, ymax + 2);
 
 
     // Segfaults here because you are trying to zero a load of
@@ -1272,7 +1278,7 @@ void LSDCatchmentModel::call_erosion()
 {
     if (counter >= erode_call)   // erode_call is by default zero, so don't call erosion before water has been routed.
     {
-        erode_mult = static_cast<int>(ERODEFACTOR / erode_mult);
+        erode_mult = static_cast<int>(ERODEFACTOR / erode(erode_mult) );
         if (erode_mult < 1) 
         {
             erode_mult = 1;
@@ -1732,7 +1738,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
       scan_area();
     }
 
-    call_erosion();
+    //call_erosion();
     call_lateral();
     water_flux_out(local_time_factor);
 
@@ -2749,9 +2755,7 @@ double LSDCatchmentModel::erode(double mult_factor)
     // double gravity = 9.8;
     double tempbmax = 0;
     
-    std::vector<double> gtot2(20);     // changed this from an array in the CL code
-    // There is no need to use C-style arrays. The std::vector is preferred
-    // Also, no need to initalise with new() and delete().
+    std::vector<double> gtot2(20);    
     
     for (int n=0; n <= G_MAX; n++)
     {
