@@ -235,6 +235,11 @@ public:
 	
 	double mean_ws_elev(int x, int y);
 	
+  /// @brief The main erosion routine
+  /// @details Erosion only takes place above certain threshold.
+  /// Contains calls to subroutines such as addGS() and d50().
+  /// Needs re-factoring to extract seprate methods (bedrock vs loose sedi erosion etc.)
+  /// @author DAV
 	double erode(double mult_factor);
 	
 	void lateral3();
@@ -248,6 +253,12 @@ public:
 	void soil_erosion( double time );
 	
 	void soil_development();
+  
+  /// @brief Sets the fall velocities of suspended sediment.
+  /// @details These are hard coded. Should be set up to read from
+  /// an sediment properties input file at a later stage. 
+  /// @author DAV
+  void set_fall_velocities();
 	
 	
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

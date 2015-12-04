@@ -52,7 +52,7 @@
 // and then perform topo analysis on the model run output
 using std::string;
 
-int DEBUG = 1;
+int DEBUG = 0;
 
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
@@ -423,7 +423,9 @@ void LSDCatchmentModel::load_data()
         }
         std::cout << "Ingesting rainfall data file: " << FILENAME << " into hourly_rain_data" << std::endl;
         hourly_rain_data = read_rainfalldata(FILENAME);
-        print_rainfall_data();
+        
+        // debug
+        if (DEBUG = 1) print_rainfall_data();
         
     } 
     // INCOMPLETE! See the read_rainfalldata() method...
@@ -916,7 +918,7 @@ void LSDCatchmentModel::initialise_arrays()
     std::cout << "ymax: " << ymax << " xmax: " << xmax << std::endl;
     
     elev = TNT::Array2D<double> (xmax+2,ymax+2);
-    water_depth = TNT::Array2D<double> (xmax+2,ymax+2);
+    water_depth = TNT::Array2D<double> (xmax+2,ymax+2, 0.0);
 
     // Cast to int and then double, what?
     //old_j_mean_store = new double[(int)((maxcycle*60)/input_time_step)+10];
@@ -931,7 +933,7 @@ void LSDCatchmentModel::initialise_arrays()
     Vel = TNT::Array2D<double> (xmax + 2, ymax + 2);
     //std::cout << "Vel: " << Vel << std::endl;
     area = TNT::Array2D<double> (xmax+2,ymax+2);
-    index = TNT::Array2D<int> (xmax+2,ymax+2);
+    index = TNT::Array2D<int> (xmax+2,ymax+2, 0);
     elev_diff = TNT::Array2D<double> (xmax + 2, ymax + 2);
     
     bedrock = TNT::Array2D<double> (xmax+2,ymax+2);
@@ -943,8 +945,8 @@ void LSDCatchmentModel::initialise_arrays()
     veg = TNT::Array3D<double> (xmax+1, ymax+1, 4);
     
     grain = TNT::Array2D<double> ( ((2+xmax)*(ymax+2))/LIMIT, G_MAX+1 );
-    cross_scan = TNT::Array2D<int> (xmax+2,ymax+2);
-    down_scan = TNT::Array2D<int> (ymax+2,xmax+2);
+    cross_scan = TNT::Array2D<int> (xmax+2,ymax+2, 0);
+    down_scan = TNT::Array2D<int> (ymax+2,xmax+2, 0);
 
     // line to stop max time step being greater than rain time step
     if (rain_data_time_step < 1) rain_data_time_step = 1;
@@ -1022,8 +1024,13 @@ void LSDCatchmentModel::initialise_arrays()
     su = TNT::Array3D<double> (xmax + 2, ymax + 2, 10);
     sd = TNT::Array3D<double> (xmax + 2, ymax + 2, 10);
     ss = TNT::Array2D<double> (xmax + 2, ymax + 2);
-
-
+    
+    // Initialise suspended fraction vector
+    // Tells program whether sediment is suspended fraction or not
+    isSuspended = std::vector<bool>(G_MAX+1, false);
+    fallVelocity = std::vector<double>(G_MAX+1, 0.0);
+    set_fall_velocities();
+    
     // Segfaults here because you are trying to zero a load of
     // zero length arrays
 
@@ -1050,15 +1057,31 @@ void LSDCatchmentModel::initialise_arrays()
   **/
 }
 
+// Hard coded! - Should make this read from sed details file.
+// DAV 3/12/2015
+void LSDCatchmentModel::set_fall_velocities()
+{
+  fallVelocity[0] = 0.0;
+  fallVelocity[1] = 0.066;
+  fallVelocity[2] = 0.109;
+  fallVelocity[3] = 0.164;
+  fallVelocity[4] = 0.237;
+  fallVelocity[5] = 0.338;
+  fallVelocity[6] = 0.479;
+  fallVelocity[7] = 0.678;
+  fallVelocity[8] = 0.959;
+  fallVelocity[9] = 1.357;
+}
+
 void LSDCatchmentModel::get_area()
 {
     // gets the drainage area 
     // Could possible come from one of the other LSDRaster objects?
     int x,y;
 
-    for(x=1;x<=xmax;x++)
+    for(x=0;x<=xmax;x++)
     {
-        for(y=1;y<=ymax;y++)
+        for(y=0;y<=ymax;y++)
         {
             area_depth[x][y]=1;
             area[x][y] = 0;
@@ -1738,7 +1761,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
       scan_area();
     }
 
-    //call_erosion();
+    call_erosion();
     call_lateral();
     water_flux_out(local_time_factor);
 
@@ -1764,7 +1787,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 
 void LSDCatchmentModel::print_initial_values()
 {
-    //
+    // TO DO: (just for debugging, really)
     std::cout << "Printing initial parameter values: " << std::endl;
     //std::cout << 
 }
@@ -1842,6 +1865,12 @@ void LSDCatchmentModel::zero_values()
         old_j_mean[x] = 0;
         new_j_mean[x] = 0;
     }
+    
+    
+    // TO DO
+    // DAV - Hard coded in that the 1st fraction is suspended: needs
+    // to be red from a separate input file at later date.
+    isSuspended[1] = true;
 
 }
 
@@ -2338,43 +2367,40 @@ void LSDCatchmentModel::evaporate(double time)
                     water_depth[x][y] -= evap_amount;
                     if (water_depth[x][y] < 0) water_depth[x][y] = 0;
                 }
-
             }
-
         }//);
 }
 
 void LSDCatchmentModel::scan_area()
 {
-  int inc = 1;
+  
   //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
   //Parallel.For(1, ymax+1, options, delegate(int y)
-  for (int y=1; y <= ymax; y++)
-  {//std::cout << "Outer for loop scan area" << std::endl;
-    for (int x = 1; x <= xmax; x++)
-    {//std::cout << "Inner for loop scan area" << std::endl;
-        
-		// zero scan bit..
-		down_scan[y][x] = 0;
-		// and work out scanned area.
-		if (water_depth[x][y] > 0
-			|| water_depth[x - 1][y] > 0
-			|| water_depth[x - 1][y - 1] > 0
-			|| water_depth[x - 1][y + 1] > 0
-			|| water_depth[x + 1][y - 1] > 0
-			|| water_depth[x + 1][y + 1] > 0
-			|| water_depth[x][y - 1] > 0
-			|| water_depth[x + 1][y] > 0
-			|| water_depth[x][y + 1] > 0)
-		{
-			down_scan[y][inc] = x;
-			inc++;
-      
-      // debug
-			//std::cout << "set downscan: "<< down_scan[y][inc] << std::endl;
-		}
-	}
-    }//);   
+  for (int y=1; y<=ymax+1; y++)
+  {
+    int inc = 1;
+    for (int x=1; x<=xmax; x++)
+    {
+      // zero scan bit..
+      down_scan[y][x] = 0;
+      // and work out scanned area. // TO DO (DAV) there is some out-of-bounds indexing going on here, check carefully!
+      if (water_depth[x][y] > 0
+        || water_depth[x - 1][y] > 0
+        || water_depth[x - 1][y - 1] > 0
+        || water_depth[x - 1][y + 1] > 0
+        || water_depth[x + 1][y - 1] > 0
+        || water_depth[x + 1][y + 1] > 0
+        || water_depth[x][y - 1] > 0
+        || water_depth[x + 1][y] > 0
+        || water_depth[x][y + 1] > 0)
+      {
+        down_scan[y][inc] = x;
+        inc++;
+        // debug
+        //std::cout << "set downscan: "<< down_scan[y][inc] << std::endl;
+      }
+    }
+  }//);   
 }
 
 
@@ -2752,10 +2778,10 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 double LSDCatchmentModel::erode(double mult_factor)
 {
     double rho = 1000.0;
-    // double gravity = 9.8;
     double tempbmax = 0;
     
-    std::vector<double> gtot2(20);    
+    //std::array<double, 20> gtot2;  
+    double gtot2[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
     
     for (int n=0; n <= G_MAX; n++)
     {
@@ -2770,17 +2796,20 @@ double LSDCatchmentModel::erode(double mult_factor)
         
     int counter2 = 0;
     
+    
+    // main erosion loop
+    // Needs refactoring to smaller functions/methods for maintainability
     do
     {
         counter2++;
         tempbmax = 0;
-        std::vector<double> tempbmax2(ymax + 2);
+        std::vector<double> tempbmax2(ymax + 2, 0.0);
         
         // PARALELLISATION GOES HERE
-        for (int y =1; y<=ymax; y++)
+        for (int y =1; y <= ymax; y++)
         {
             int inc = 1;
-            while (down_scan[y][inc] > 0);
+            while (down_scan[y][inc] > 0) // results in an infinte loop!?
             {
                 int x = down_scan[y][inc];
                 inc++;
@@ -2809,8 +2838,8 @@ double LSDCatchmentModel::erode(double mult_factor)
                     double velnum = 0;
                     double slopetot = 0;        
                     
-                    std::vector<double> temp_dist(11);    // this vector holds the amountto be removed from the cell in each grain size
-                    std::vector<double> tempdir(11);    // this vector hold the velocity directions temporariliy
+                    std::vector<double> temp_dist(11, 0.0);    // this vector holds the amountto be removed from the cell in each grain size
+                    std::vector<double> tempdir(11, 0.0);    // this vector hold the velocity directions temporariliy
                     
                     // check to see if the there is a nodata value in the cell
                     if (index[x][y] == -9999)
@@ -2890,6 +2919,8 @@ double LSDCatchmentModel::erode(double mult_factor)
                     // DAV- These ought to be seperate methods really, no need
                     // for so many if blocks in a single function. 
                     // i.e. one method for the Wilcock, one for Einstein.
+                    
+                    // Check we have some shear stress
                     if (tau > 0)
                     {
                         double d_50 = 0;
@@ -2899,19 +2930,18 @@ double LSDCatchmentModel::erode(double mult_factor)
                         
                         if (wilcock == true)
                         {
-                            d_50 = d50(index[x][y]);   // d50 function needs implemented
+                            d_50 = d50(index[x][y]);  
                             if (d_50 < 1) 
                             {
                                 d_50 = d1;
                             }
-                            Fs = sand_fraction(index[x][y]);   // sand_fraction needs implemented
+                            Fs = sand_fraction(index[x][y]); 
                             
                             for (int n=1; n <= G_MAX; n++)
                             {
                                 graintot += (grain[index[x][y]][n]);
                             }
                         }
-                            
                             
                             for (int n=1; n <= 9; n++)
                             {
@@ -2929,6 +2959,7 @@ double LSDCatchmentModel::erode(double mult_factor)
                                 }
                                 
                                 // For the WILCOCK and CROW/CURRAN transport/erosion laws
+                                // MAKE SEPARATE METHOD
                                 if (wilcock == true)
                                 { 
                                     double tau_ri = 0;
@@ -2951,6 +2982,7 @@ double LSDCatchmentModel::erode(double mult_factor)
                                 }
                                 
                                 // EINSTEIN Sediment option
+                                // MAKE SEPARATE METHOD
                                 if (einstein == true)
                                 {   
                                     temp_dist[n] = mult_factor * time_factor * (40 * std::pow(((1 / (((2650 - 1000) * Di) / tau / gravity))), 3)) / std::sqrt(1000 / ((2250 - 1000) * gravity * (Di * Di * Di))) / DX;  // recheck the maths here!
@@ -3086,6 +3118,10 @@ double LSDCatchmentModel::erode(double mult_factor)
                         if (temptot1 > tempbmax2[y]) tempbmax2[y] = temptot1;   // I have no idea what this is for...
                         // Too many temp... temp this temp that....need to rename - DAV
                         
+                        // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                        // BEDLOAD ROUTING
+                        //
+                        //
                         // Work out what portion of bedload has to go where
                         if (temptot1 > 0)
                         { 
@@ -3139,7 +3175,7 @@ double LSDCatchmentModel::erode(double mult_factor)
                 }
             }
             // "We need to do a reduction on tempbmax" - DAV I don't know what this means or does --- It is for the paralellism loops, you deleted them so you don't need it anymore - future version of DAV.
-            //for (int y=1; y<=ymax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];   // This is the actual reduction bit
+            for (int y=1; y<=ymax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];   // This is the actual reduction bit
             
             if (tempbmax > ERODEFACTOR)
             {
@@ -3156,20 +3192,15 @@ double LSDCatchmentModel::erode(double mult_factor)
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     
     
-    // new temp erode array.
+    // new temp erode total array.
     TNT::Array2D<double> erodetot(xmax + 2, ymax + 2);
-    //double [,] erodetot;
-    //erodetot = new Double[xmax + 2, ymax + 2];
-
     TNT::Array2D<double> erodetot3(xmax + 2, ymax +2);
-    //double[,] erodetot3;
-    //erodetot3 = new Double[xmax + 2, ymax + 2];
 
     //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
     //Parallel.For(2, ymax, options1, delegate(int y)
     for (int y=2; y<ymax; y++)
     {
-        int inc = 1;
+        volatile int inc = 1;
         while (down_scan[y][inc] > 0)
         {
             int x = down_scan[y][inc];
@@ -3177,7 +3208,6 @@ double LSDCatchmentModel::erode(double mult_factor)
 
             if (water_depth[x][y] > water_depth_erosion_threshold && x < xmax && x > 1)
             {
-
                 if (index[x][y] == -9999) addGS(x, y);
                 for (int n = 1; n <= 9; n++)
                 {
@@ -3185,7 +3215,7 @@ double LSDCatchmentModel::erode(double mult_factor)
                     {
                         // updating entrainment of SS
                         Vsusptot[x][y] += ss[x][y];
-                        grain[index[x][y]][n] -= ss[x][y];
+                        grain[ index[x][y] ][n] -= ss[x][y];
                         erodetot[x][y] -= ss[x][y];
 
                         // this next part is unusual. You have to stop susp sed deposition on the input cells, otherwies
@@ -3270,7 +3300,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             }
         }
     }
-  // (PARALLELISM GOES HERE)
+    // (PARALLELISM GOES HERE)
     //Parallel.For2(2, ymax, delegate(int y)
     for (int y = 2; y < ymax; y++)
     {
@@ -3280,7 +3310,6 @@ double LSDCatchmentModel::erode(double mult_factor)
             int x = down_scan[y][inc];
             inc++;
             {
-
                 if (erodetot3[x][y] > 0)
                 {
                     double elev_update = 0;
@@ -3327,8 +3356,10 @@ double LSDCatchmentModel::erode(double mult_factor)
             }
         }
     }
-
-
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // SEDIMENT OUTPUT AT EDGES
+    //
+    //
     // now calculate sediment outputs from all four edges...
     for (int y = 2; y < ymax; y++)
     {
@@ -3422,12 +3453,12 @@ void LSDCatchmentModel::lateral3()
     //int[,] upscale, upscale_edge;
     
   // declare arrays and initialise the size of them
-    TNT::Array2D<double> edge_temp(xmax + 1, ymax + 1);
-  TNT::Array2D<double> edge_temp2(xmax + 1, ymax + 1);
-  TNT::Array2D<double> water_depth2(xmax + 1, ymax + 1);
+    TNT::Array2D<double> edge_temp(xmax + 1, ymax + 1, 0.0);
+  TNT::Array2D<double> edge_temp2(xmax + 1, ymax + 1, 0.0);
+  TNT::Array2D<double> water_depth2(xmax + 1, ymax + 1, 0.0);
   
-    TNT::Array2D<int> upscale( (xmax + 1)*2, (ymax + 1)*2);
-  TNT::Array2D<int> upscale_edge( (xmax + 1)*2, (ymax + 1)*2);
+    TNT::Array2D<int> upscale( (xmax + 1)*2, (ymax + 1)*2, 0);
+  TNT::Array2D<int> upscale_edge( (xmax + 1)*2, (ymax + 1)*2, 0);
 
     //edge_temp = new Double[xmax + 1][ymax + 1];
     //edge_temp2 = new Double[xmax + 1][ymax + 1];
