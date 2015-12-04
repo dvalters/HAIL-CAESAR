@@ -1955,162 +1955,187 @@ void LSDCatchmentModel::init_water_routing(int flag, double reach_input_amount, 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::qroute()
 {
-    //std::cout << "qroute\r" << std::flush;
-    double local_time_factor = time_factor;
-    if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
-        local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
-    
-    //std::cout << "local time factor: " << local_time_factor <<"\r" << std::flush; 
-    // PARALLELISATION  COULD BE INSERTED HERE - DAV
-    // #OMP PARALLEL...etc
-    
-    int inc = 1;
-    for (int y=1; y < ymax+1; y++)
-    {
-    //std::cout << "inc: " << inc << " y: " << y << " ymax: " << ymax << std::endl;
-    //std::cout << "downscan: " << down_scan[y][inc] << std::endl;
+  //std::cout << "qroute\r" << std::flush;
+  double local_time_factor = time_factor;
+  if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+      local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+  
+  //std::cout << "local time factor: " << local_time_factor <<"\r" << std::flush; 
+  // PARALLELISATION  COULD BE INSERTED HERE - DAV
+  // #OMP PARALLEL...etc
+  
+  int inc = 1;
+  for (int y=1; y < ymax+1; y++)
+  {
+  //std::cout << "inc: " << inc << " y: " << y << " ymax: " << ymax << std::endl;
+  //std::cout << "downscan: " << down_scan[y][inc] << std::endl;
     while (down_scan[y][inc] > 0)
     {
-        int x = down_scan[y][inc];
-        inc++;
-        y++;
-        
-        if (elev[x][y] > -9999.0)   // stops the water moving into NODATA value cells
+      int x = down_scan[y][inc];
+      inc++;
+      y++;
+      
+      if (elev[x][y] > -9999.0)   // stops the water moving into NODATA value cells
+      {
+        // =-=-=-=-=-=-=-=-=-=-=-=-=-=
+        // ROUTING IN THE X-DIRECTION
+        // =-=-=-=-=-=-=-=-=-=-=-=-=-=
+        // check that we are in a cell containing water and not a -9999 cell
+        if ((water_depth[x][y] > 0 || water_depth[x-1][y] > 0) && elev[x - 1][y] > -9999)
         {
-            // =-=-=-=-=-=-=-=-=-=-=-=-=-=
-            // ROUTING IN THE X-DIRECTION
-            // =-=-=-=-=-=-=-=-=-=-=-=-=-=
-            // check that we are in a cell containing water and not a -9999 cell
-            if ((water_depth[x][y] > 0 || water_depth[x-1][y] > 0) && elev[x - 1][y] > -9999)
-            {
-                // find the amount of horizontal flow by comparing the water heights of two neighbouring cells: x and x-1. 
-                double hflow = std::max(elev[x][y] + water_depth[x][y], elev[x-1][y] + water_depth[x-1][y]) -
-                                std::max(elev[x-1][y], elev[x][y]);
-                
-        std::cout << "hflow: " << hflow << std::endl;           
-                if (hflow > hflow_threshold)    // don't bother computing flow if it is so minuscule...
-                {
-          std::cout << "caluclating hflow..." << std::endl;
-                    double tempslope = (((elev[x-1][y] + water_depth[x-1][y])) - (elev[x][y] + water_depth[x][y])) / DX;
-                
-                    if (x == xmax) tempslope = edgeslope;
-                    if (x <= 2) tempslope = 0 - edgeslope; // this deals with the problem of the next-to-edge cells
-                    
-                    // appears to be some variation of the Darcy-Weisbach formula? Should check this - DAV.
-                    // calculate discharge out of cells in x direction.
-                    qx[x][y] = ((qx[x][y] - (gravity * hflow * local_time_factor * tempslope)) /
-                                (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qx[x][y]) /
-                                    std::pow(hflow, (10/3))));
-                    
-                    // Below, the lines attempt to stop a situation where there would be too much water 
-                    // moving from one cell to another in a single time step, resulting in negative 
-                    // discharges. Large instabilities can develop in steep catchments.
-                    if (qx[x][y] > 0 && (qx[x][y] / hflow)/std::sqrt(gravity*hflow) > froude_limit) 
-                        qx[x][y] = hflow * (std::sqrt(gravity * hflow) * froude_limit);
-                        
-                    if (qx[x][y] < 0 && std::abs(qx[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit) 
-                        qx[x][y] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
-                        
-                    if ((qx[x][y] > 0 && qx[x][y] * local_time_factor / DX) > (water_depth[x][y] / 4))
-                        qx[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
-                        
-                    if (qx[x][y] < 0 && std::abs(qx[x][y] * local_time_factor / DX) > (water_depth[x-1][y] / 4))
-                        qx[x][y] = 0 - ((water_depth[x-1][y] * DX) / 5) / local_time_factor;
-                        
-                    // BOOL IF statement about the suspended sediment option
-                    //if (isSuspended == true)
-                    if (suspended_opt == true)
-                    {
-                        if (qx[x][y] > 0) 
-                            qxs[x][y] = qx[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
-                        if (qx[x][y] < 0) 
-                            qxs[x][y] = qx[x][y] * (Vsusptot[x-1][y] / water_depth[x-1][y]);
-                            
-                        if (qxs[x][y] > 0 && std::abs(qxs[x][y] * local_time_factor > (Vsusptot[x-1][y] * DX) / 4))
-                        {
-                            qxs[x][y] = 0 - ((Vsusptot[x-1][y] * DX) / 5 / local_time_factor);
-                        }
-                    }
-                    
-                    // CALCULATE THE VELOCITY OF THE FLOWS
-                    if (qx[x][y] > 0) 
-                        vel_dir[x][y][7] = qx[x][y] / hflow;
-                    if (qx[x][y] < 0)
-                        vel_dir[x-1][y][3] = (0 - qx[x][y]) / hflow;
-                }
-                else // What to do if the water depth is really, really small:
-                {
-                    qx[x][y] = 0;
-                    qxs[x][y] = 0;
-                }
-            }  // end of the X-direction routing code block
+          // find the amount of horizontal flow by comparing the water heights of two neighbouring cells: x and x-1. 
+          double hflow = std::max(elev[x][y] + water_depth[x][y], elev[x-1][y] + water_depth[x-1][y]) -
+                          std::max(elev[x-1][y], elev[x][y]);
+          //debug      
+          //std::cout << "hflow: " << hflow << std::endl;   
+          // don't bother routing flow if it is so minuscule...        
+          if (hflow > hflow_threshold)    
+          {
+            // debug
+            //std::cout << "caluclating hflow..." << std::endl;
+            double tempslope = (((elev[x-1][y] + water_depth[x-1][y])) - (elev[x][y] + water_depth[x][y])) / DX;
+              
+            if (x == xmax) tempslope = edgeslope;
+            if (x <= 2) tempslope = 0 - edgeslope; // this deals with the problem of the next-to-edge cells
             
-            // =-=-=-=-=-=-=-=-=-=-=-=-=-=
-            // ROUTING IN THE Y-DIRECTION
-            // =-=-=-=-=-=-=-=-=-=-=-=-=-=
-            // check that we are in a cell containing water and not a -9999 cell
-            if ((water_depth[x][y] > 0 || water_depth[x][y-1] > 0) && elev[x][y-1] > -9999)
+            // appears to be some variation of the Darcy-Weisbach formula? Should check this - DAV.
+            // calculate discharge out of cells in x direction.
+            qx[x][y] = ((qx[x][y] - (gravity * hflow * local_time_factor * tempslope)) /
+                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qx[x][y]) /
+                            std::pow(hflow, (10/3))));
+            
+            // Below, the lines attempt to stop a situation where there would be too much water 
+            // moving from one cell to another in a single time step, resulting in negative 
+            // discharges. Large instabilities can develop in steep catchments.
+            if (qx[x][y] > 0 && (qx[x][y] / hflow)/std::sqrt(gravity*hflow) > froude_limit) 
             {
-                // find the amount of horizontal flow by comparing the water heights of two neighbouring cells: x and x-1. 
-                double hflow = std::max(elev[x][y] + water_depth[x][y], elev[x][y-1] + water_depth[x][y-1]) -
-                                std::max(elev[x][y], elev[x][y-1]);
-                                
-                if (hflow > hflow_threshold)    // don't bother computing flow if it is so minuscule...
-                {
-                    double tempslope = (((elev[x][y-1] + water_depth[x][y-1])) - (elev[x][y] + water_depth[x][y])) / DX;
+              qx[x][y] = hflow * (std::sqrt(gravity * hflow) * froude_limit);
+            }    
+            if (qx[x][y] < 0 && std::abs(qx[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit) 
+            {
+              qx[x][y] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
+            }
                 
-                    if (y == xmax) tempslope = edgeslope;
-                    if (y <= 2) tempslope = 0 - edgeslope; // this deals with the problem of the next-to-edge cells
-                    
-                    // The Lisflood-FP algorithm developed in Bates et al 2010 - DAV.
-                    // calculate discharge out of cells in y direction.
-                    qy[x][y] = ((qy[x][y] - (gravity * hflow * local_time_factor * tempslope)) /
-                                (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qy[x][y]) /
-                                    std::pow(hflow, (10/3))));
-                    
-                    // Below, the lines attempt to stop a situation where there would be too much water 
-                    // moving from one cell to another in a single time step, resulting in negative 
-                    // discharges. Large instabilities can develop in steep catchments.
-                    if (qy[x][y] > 0 && (qy[x][y] / hflow)/std::sqrt(gravity*hflow) > froude_limit) 
-                        qy[x][y] = hflow * (std::sqrt(gravity * hflow) * froude_limit);
-                        
-                    if (qy[x][y] < 0 && std::abs(qy[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit) 
-                        qy[x][y] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
-                        
-                    if ((qy[x][y] > 0 && qy[x][y] * local_time_factor / DX) > (water_depth[x][y] / 4))
-                        qy[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
-                        
-                    if (qy[x][y] < 0 && std::abs(qy[x][y] * local_time_factor / DX) > (water_depth[x][y-1] / 4))
-                        qy[x][y] = 0 - ((water_depth[x][y-1] * DX) / 5) / local_time_factor;
-                        
-                    // BOOL IF statement about the suspended sediment option
-                    if (suspended_opt == true)
-                    {
-                        if (qy[x][y] > 0) 
-                            qys[x][y] = qy[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
-                        if (qy[x][y] < 0) 
-                            qys[x][y] = qy[x][y] * (Vsusptot[x][y-1] / water_depth[x][y-1]);
-                            
-                        if (qys[x][y] > 0 && std::abs(qys[x][y] * local_time_factor > (Vsusptot[x][y-1] * DX) / 4))
-                            qys[x][y] = 0 - ((Vsusptot[x][y-1] * DX) / 5 / local_time_factor);
-                    }
-                    
-                    // CALCULATE THE VELOCITY OF THE FLOWS
-                    if (qy[x][y] > 0) 
-                        vel_dir[x][y][1] = qy[x][y] / hflow;
-                    if (qy[x][y] < 0)
-                        vel_dir[x][y-1][5] = (0 - qy[x][y]) / hflow;
-                }
+            if ((qx[x][y] > 0 && qx[x][y] * local_time_factor / DX) > (water_depth[x][y] / 4))
+            {
+              qx[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
+            }
                 
-                else // What to do if the water depth is really, really small:
-                {
-                    qy[x][y] = 0;
-                    qys[x][y] = 0;
-                }
-            }   // end of the y-direction water routing block
-        }
+            if (qx[x][y] < 0 && std::abs(qx[x][y] * local_time_factor / DX) > (water_depth[x-1][y] / 4))
+            {
+              qx[x][y] = 0 - ((water_depth[x-1][y] * DX) / 5) / local_time_factor;
+            }
+            // BOOL IF statement about the suspended sediment option
+            //if (isSuspended == true)
+            if (suspended_opt == true)
+            {
+              if (qx[x][y] > 0) 
+              {
+                qxs[x][y] = qx[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
+              }
+              if (qx[x][y] < 0) 
+              {
+                qxs[x][y] = qx[x][y] * (Vsusptot[x-1][y] / water_depth[x-1][y]);
+              }    
+              if (qxs[x][y] > 0 && std::abs(qxs[x][y] * local_time_factor > (Vsusptot[x-1][y] * DX) / 4))
+              {
+                qxs[x][y] = 0 - ((Vsusptot[x-1][y] * DX) / 5 / local_time_factor);
+              }
+            }
+            
+            // CALCULATE THE VELOCITY OF THE FLOWS
+            if (qx[x][y] > 0) 
+            {
+              vel_dir[x][y][7] = qx[x][y] / hflow;
+            }
+            if (qx[x][y] < 0)
+            {
+              vel_dir[x-1][y][3] = (0 - qx[x][y]) / hflow;
+            }
+          }
+          // What to do if the water depth is really, really small:
+          else 
+          {
+              qx[x][y] = 0;
+              qxs[x][y] = 0;
+          }
+        }// end of the X-direction routing code block
+          
+        // =-=-=-=-=-=-=-=-=-=-=-=-=-=
+        // ROUTING IN THE Y-DIRECTION
+        // =-=-=-=-=-=-=-=-=-=-=-=-=-=
+        // check that we are in a cell containing water and not a -9999 cell
+        if ((water_depth[x][y] > 0 || water_depth[x][y-1] > 0) && elev[x][y-1] > -9999)
+        {
+          // find the amount of horizontal flow by comparing the water heights of two neighbouring cells: x and x-1. 
+          double hflow = std::max(elev[x][y] + water_depth[x][y], elev[x][y-1] + water_depth[x][y-1]) -
+                          std::max(elev[x][y], elev[x][y-1]);
+                          
+          if (hflow > hflow_threshold)    // don't bother computing flow if it is so minuscule...
+          {
+            double tempslope = (((elev[x][y-1] + water_depth[x][y-1])) - (elev[x][y] + water_depth[x][y])) / DX;
+        
+            if (y == xmax) tempslope = edgeslope;
+            if (y <= 2) tempslope = 0 - edgeslope; // this deals with the problem of the next-to-edge cells
+            
+            // The Lisflood-FP algorithm developed in Bates et al 2010 - DAV.
+            // calculate discharge out of cells in y direction.
+            qy[x][y] = ((qy[x][y] - (gravity * hflow * local_time_factor * tempslope)) /
+                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qy[x][y]) /
+                            std::pow(hflow, (10/3))));
+            
+            // Below, the lines attempt to stop a situation where there would be too much water 
+            // moving from one cell to another in a single time step, resulting in negative 
+            // discharges. Large instabilities can develop in steep catchments.
+            if (qy[x][y] > 0 && (qy[x][y] / hflow)/std::sqrt(gravity*hflow) > froude_limit) 
+                qy[x][y] = hflow * (std::sqrt(gravity * hflow) * froude_limit);
+                
+            if (qy[x][y] < 0 && std::abs(qy[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit) 
+                qy[x][y] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
+                
+            if ((qy[x][y] > 0 && qy[x][y] * local_time_factor / DX) > (water_depth[x][y] / 4))
+                qy[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
+                
+            if (qy[x][y] < 0 && std::abs(qy[x][y] * local_time_factor / DX) > (water_depth[x][y-1] / 4))
+                qy[x][y] = 0 - ((water_depth[x][y-1] * DX) / 5) / local_time_factor;
+                
+            // BOOL IF statement about the suspended sediment option
+            if (suspended_opt == true)
+            {
+              if (qy[x][y] > 0) 
+              {
+                qys[x][y] = qy[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
+              }
+              if (qy[x][y] < 0) 
+              {
+                qys[x][y] = qy[x][y] * (Vsusptot[x][y-1] / water_depth[x][y-1]);
+              }
+              if (qys[x][y] > 0 && std::abs(qys[x][y] * local_time_factor > (Vsusptot[x][y-1] * DX) / 4))
+              {
+                qys[x][y] = 0 - ((Vsusptot[x][y-1] * DX) / 5 / local_time_factor);
+              }
+            }
+            
+            // CALCULATE THE VELOCITY OF THE FLOWS
+            if (qy[x][y] > 0) 
+            {
+              vel_dir[x][y][1] = qy[x][y] / hflow;
+            }
+            if (qy[x][y] < 0)
+            {
+              vel_dir[x][y-1][5] = (0 - qy[x][y]) / hflow;
+            }
+          }
+          
+          else // What to do if the water depth is really, really small:
+          {
+            qy[x][y] = 0;
+            qys[x][y] = 0;
+          }
+        }   // end of the y-direction water routing block
+      }
     } // endwhile
-} // endfor
+  } // endfor
 }
 
 void LSDCatchmentModel::depth_update()
