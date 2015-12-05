@@ -323,7 +323,7 @@ void LSDCatchmentModel::load_data()
     
     // Load the raw ascii raster data
     TNT::Array2D<double> raw_elev = elevR.get_RasterData_dbl();
-    
+  
     // We want an edge pixel of zeros surrounding the raster data
     // So start the counters at one, rather than zero, this
     // will ensure that elev[0][n] is not written to and left set to zero.
@@ -341,8 +341,14 @@ void LSDCatchmentModel::load_data()
       }
       //xcounter++;
     }
-    // copy needed? -- DAV 2/12/2015
+    
+    // Check that there is an outlet for the catchment water
+    check_DEM_edge_condition();
+    
+    // deep copy needed? -- DAV 2/12/2015
     init_elevs = elev;
+    
+    
     
     //ymax = elevR.get_NRows();
     //xmax = elevR.get_NCols();
@@ -806,11 +812,17 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
 		std::cout << "max discharge for depth calc: " << MIN_Q_MAXVAL << std::endl;
 	}
 	
-    else if (lower == "depth_ero_threshold") 
+    else if (lower == "hflow_threshold") 
     {
 		hflow_threshold = atof(value.c_str());
-		std::cout << "water depth erosion threshold: " << hflow_threshold << std::endl;
-	}
+		std::cout << "Horizontal flow threshold: " << hflow_threshold << std::endl;
+    }
+    
+    else if (lower == "water_depth_erosion_threshold") 
+    {
+		hflow_threshold = atof(value.c_str());
+		std::cout << "Water depth for erosion threshold: " << water_depth_erosion_threshold << std::endl;
+    }
 	
     else if (lower == "slope_on_edge_cell") 
     {
@@ -1651,6 +1663,10 @@ void LSDCatchmentModel::save_data(double tempcycle)
     */
 //  }
 }
+
+// This only currently checks for an edge that is not NODATA on at least one side
+// It does not check that the DEM has its lowest point on this edge. This 
+// should probably be added.
 void LSDCatchmentModel::check_DEM_edge_condition()
 {
   // Originally part of the Ur-loop (buttonclick2 or something)
@@ -1666,16 +1682,42 @@ void LSDCatchmentModel::check_DEM_edge_condition()
   // This is an odd construction, since nActualGridCells[0] is surely always 0?
   std::cout << "Number of grid cells within catchment: " << nActualGridCells[1] << std::endl;
   
+  std::cout << "Checking edge cells for suitable catchment outlet point..." << std::endl;
   //check for -9999's on RH edge of DEM
+  double nodata = -9999;
   double temp = -9999;
-  for (int nnn = 1; nnn <= ymax; nnn++)
-  {
-    if (elev[xmax][nnn] > temp) temp = elev[xmax][nnn];
-  }
   
+  int maxcols = xmax;
+  int maxrows = ymax;
+  
+  // start at 1 because zeroth elements are zeroed previously. 
+  // (i.e. like a zero border surrounding.
+  // [1][1] is the first true elev data value.
+  for (int n = 1; n <= maxrows; n++)
+  {
+    // Check bottom edge (row major!)
+    if (elev[maxrows][n] > nodata) temp = elev[xmax][n];
+    // check top edge
+    if (elev[1][n] > nodata) temp = elev[0][n]; 
+  }
+  for (int n = 1; n <= maxcols; n++)
+  {
+    // check LH edge
+    if (elev[n][1] > nodata) temp = elev[n][1];
+    // check RH edge
+    if (elev[n][maxcols] > nodata) temp = elev[n][maxcols];
+  }
+    
   if (temp < -10)
   {
-    std::cout << "DEM ERROR: LSDCatchmentModel may not function properly, as the right hand column of the DEM is all nodata (-9999) values. This will prevent any water or sediment from leaving the Rh edge of the model/dem" << std::endl;
+    std::cout << "DEM EDGE CONDITION ERROR: LSDCatchmentModel may not function \
+    properly, as the edges of the DEM are all nodata (-9999) values. This will \
+    prevent any water or sediment from leaving the edge of the model domain (DEM)" << std::endl;
+    exit(-1);
+  }
+  else 
+  {
+    std::cout << "Suitable outlet point on edge found. " << std::endl;
   }
 }
 
@@ -1761,8 +1803,8 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
       scan_area();
     }
 
-    call_erosion();
-    call_lateral();
+    //call_erosion();
+    //call_lateral();
     water_flux_out(local_time_factor);
 
     temptotal = temptot;
@@ -2185,12 +2227,15 @@ void LSDCatchmentModel::depth_update()
           }
         }
         tempmaxdepth2[y] = tempmaxdepth;
-        if (tempmaxdepth2[y] > maxdepth) maxdepth = tempmaxdepth2[y];
     }
     // reduction (if paralellism implemented at later date)
-    //for (int y = 1; y <= ymax; y++)
-    //  if (tempmaxdepth2[y] > maxdepth) 
-    //      maxdepth = tempmaxdepth2[y];
+    for (int y = 1; y <= ymax; y++)
+    {
+      if (tempmaxdepth2[y] > maxdepth) 
+      {
+          maxdepth = tempmaxdepth2[y];
+      }
+    }
 }
         
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor)     // DAV - This can be split into subfunctions
@@ -2831,6 +2876,12 @@ double LSDCatchmentModel::erode(double mult_factor)
         std::vector<double> tempbmax2(ymax + 2, 0.0);
         
         // PARALELLISATION GOES HERE
+        // C#
+        // var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
+        // Parallel.For(1, ymax, options, delegate(int y)
+        
+        // C++ with OpenMP
+        // #pragma omp parallel for
         for (int y =1; y <= ymax; y++)
         {
             int inc = 1;
@@ -3199,7 +3250,7 @@ double LSDCatchmentModel::erode(double mult_factor)
                     }
                 }
             }
-            // "We need to do a reduction on tempbmax" - DAV I don't know what this means or does --- It is for the paralellism loops, you deleted them so you don't need it anymore - future version of DAV.
+            // reduction on tempbmax (DAV for parallelism implementation later on)
             for (int y=1; y<=ymax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];   // This is the actual reduction bit
             
             if (tempbmax > ERODEFACTOR)
@@ -3225,7 +3276,7 @@ double LSDCatchmentModel::erode(double mult_factor)
     //Parallel.For(2, ymax, options1, delegate(int y)
     for (int y=2; y<ymax; y++)
     {
-        volatile int inc = 1;
+        int inc = 1;
         while (down_scan[y][inc] > 0)
         {
             int x = down_scan[y][inc];
