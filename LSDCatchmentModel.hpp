@@ -92,8 +92,11 @@ public:
 	/// @author dav
 	void load_data();
 	
-  /// Checks that there is an outlet point on at least one side of the DEM
-  /// and also counts the number of actual grid cells in the catchment
+  /// @brief Checks that there is a real terrain point on at least one side of the DEM
+  /// and also counts the number of actual grid cells in the catchment.
+  /// @details This only currently checks for an edge that is not NODATA on at least one side
+  /// It does not check that the DEM has its lowest point on this edge. This 
+  /// should probably be added.
   void check_DEM_edge_condition();
 	
 	/// Prints the initial values set by user from param file
@@ -221,8 +224,6 @@ public:
 // EROSION COMPONENTS
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-	
 
-	/// @brief Carries out the main erosional and depositional methods
-	/// @return 
 	void sort_active(int x,int y);
 	
 	double d50(int index1);
@@ -242,6 +243,10 @@ public:
   /// @author DAV
 	double erode(double mult_factor);
 	
+  /// @brief carries out the lateral bank erosion.
+  /// @details This is quite computationall expensive and may be
+  /// turned off in environments not susceptible to meandering. (bedrock
+  /// mountain/upland channels for example.
 	void lateral3();
 	
 	void slide_3();
@@ -363,7 +368,7 @@ protected:
 	double gravity = 9.81;
 	const float g = 9.81F;
 	const float kappa = 0.4F;
-	double water_depth_erosion_threshold = 0.01; //duplicated? hflow_threshold?
+	double water_depth_erosion_threshold = 0.01;
 	int input_time_step = 60;
 	int number_of_points = 0;
 	double globalsediq = 0;
@@ -463,11 +468,12 @@ protected:
 	double recirculate_proportion = 1;
 
 	double Csuspmax = 0.05; // max concentration  of SS allowed in a cell (proportion)
-	double hflow_threshold = 0.001;
+	double hflow_threshold = 0.00001;
 
 	// KAtharine
 	int variable_m_value_flag = 0;
 
+  /// TO DO: DAV - these could be read from an input file.
 	/// grain size variables - the sizes
 	double d1=0.0005;
 	double d2=0.001;
