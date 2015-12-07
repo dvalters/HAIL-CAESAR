@@ -127,9 +127,10 @@ public:
 	/// @details dependent on the LSDRaster class calling the overloaded write_raster func
 	void save_data(int typeflag, double tempcycle);
   
-  /// @brief Calls the various save functions depending on the data types to be saved
+  /// @brief Calls the various save functions depending on the data types to be saved (Raster Output)
 	/// @author DAV
-	/// @details dependent on the LSDRaster class calling the overloaded write_raster func
+	/// @details dependent on the LSDRaster class calling the overloaded write_raster func. If you are looking
+  /// for the function that writes the hydrograph/sediment time series, see the write_output() function.
   void save_data(double tempcycle);
   
   void save_data_and_draw_graphics();
@@ -538,7 +539,7 @@ protected:
 	/// Bedrock LSDRaster object
 	LSDRaster bedrockR;
 	/// Water depth LSDRaster object
-	LSDRaster water_depthR;
+	/// LSDRaster water_depthR;
 
 	TNT::Array2D<double> elev; 
 	TNT::Array2D<double> bedrock;
@@ -593,16 +594,22 @@ protected:
 	std::vector<bool> isSuspended;
 	TNT::Array2D<double> Vsusptot;
   // TO DO - do these need swapping
-	std::array<int, 9> deltaX = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
-	std::array<int, 9> deltaY = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
+	//std::array<int, 9> deltaX = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
+	//std::array<int, 9> deltaY = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
+  
+  // swapped
+  
+  std::array<int, 9> deltaX = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
+	std::array<int, 9> deltaY = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
 	//int[] deltaY = new int[9] {0,-1,-1,0,1,1,1,0,-1};   // I leave an old example in for comparison - DAV
+  
 	std::vector<int> nActualGridCells;
 	double Jw_newvol = 0.0;
 	double Jw_oldvol = 0.0;
 	double Jw_lastvol = 0.0;
 	double Jw_stepvol = 0.0;
 	double Jw_hourvol = 0.0;
-	double Jw_hour = 0.0;
+	double Jw_hour = 0.0;                     
 	double Jw_overvol = 0.0;
 	double k_evap = 0.0;
 
