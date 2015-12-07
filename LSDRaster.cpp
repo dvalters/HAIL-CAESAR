@@ -175,6 +175,37 @@ void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// this overloaded function creates a raster filled with no data values, 
+// but the data type is double-precision floating point numbers
+// DAV 2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::create(int nrows, int ncols, double xmin, double ymin,
+            double cellsize, double ndv, Array2D<double> data)
+{
+  NRows = nrows;
+  NCols = ncols;
+  XMinimum = xmin;
+  YMinimum = ymin;
+  DataResolution = cellsize;
+  NoDataValue = ndv;
+  
+  // Using the <double> data member
+  RasterData_dbl = data.copy();
+
+  if (RasterData_dbl.dim1() != NRows)
+  {
+    cout << "LSDRaster line 89 dimension of data is not the same as stated in NRows!" << endl;
+    exit(EXIT_FAILURE);
+  }
+  if (RasterData_dbl.dim2() != NCols)
+  {
+    cout << "LSDRaster line 94 dimension of data is not the same as stated in NRows!" << endl;
+    exit(EXIT_FAILURE);
+  }
+
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Like the above function, but copies the GeoReferencing
 // SMM 2012
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -814,8 +845,8 @@ void LSDRaster::write_raster(string filename, string extension)
        << "\nyllcorner\t" << setprecision(14) << YMinimum
        << "\ncellsize\t" << DataResolution
        << "\nNODATA_value\t" << NoDataValue << endl;
-
-
+    
+    
     for (int i=0; i<NRows; ++i)
     {
       for (int j=0; j<NCols; ++j)
@@ -946,6 +977,58 @@ void LSDRaster::write_raster(string filename, string extension)
   {
     cout << "You did not enter and approprate extension!" << endl
     << "You entered: " << extension << " options are flt, bil and asc" << endl;
+    exit(EXIT_FAILURE);
+   }
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// write_double_raster
+// this function writes a raster. One has to give the filename and extension
+// currently the options are for .asc files only (Sorry!)
+//
+// DAV 2015
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::write_double_raster(string filename, string extension)
+{
+  string string_filename;
+  string dot = ".";
+  string_filename = filename+dot+extension;
+  cout << "The filename is " << string_filename << endl;
+
+  // this first bit of logic is for the asc file.
+  if (extension == "asc")
+  {
+    // open the data file
+    ofstream data_out(string_filename.c_str());
+
+    if( data_out.fail() )
+    {
+      cout << "\nFATAL ERROR: unable to write to " << string_filename << endl;
+      exit(EXIT_FAILURE);
+    }
+
+    data_out <<  "ncols\t" << NCols
+       << "\nnrows\t" << NRows
+       << "\nxllcorner\t" << setprecision(14) << XMinimum
+       << "\nyllcorner\t" << setprecision(14) << YMinimum
+       << "\ncellsize\t" << DataResolution
+       << "\nNODATA_value\t" << NoDataValue << endl;
+    
+    
+    for (int i=0; i<NRows; ++i)
+    {
+      for (int j=0; j<NCols; ++j)
+      {
+        data_out << setprecision(6) << RasterData_dbl[i][j] << " ";
+      }
+      if (i != NRows-1) data_out << endl;
+    }
+    data_out.close();
+  }
+  else
+  {
+    cout << "You did not enter and approprate extension!" << endl
+    << "You entered: " << extension << " options are asc" << endl;
     exit(EXIT_FAILURE);
    }
 }

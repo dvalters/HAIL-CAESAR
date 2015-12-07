@@ -144,6 +144,15 @@ class LSDRaster
   LSDRaster(int nrows, int ncols, float xmin, float ymin,
             float cellsize, float ndv, Array2D<float> data)
       { create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
+  
+  /// @brief Create an LSDRaster from memory, with the elvation
+  /// data stored as double precision floats.
+  /// @return LSDRaster    
+  /// @details Created to maintain compatibility with LSDCatchmentModel
+  /// @author DAV
+  LSDRaster(int nrows, int ncols, double xmin, double ymin,
+            double cellsize, double ndv, Array2D<double> data)
+      { create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }    
 
   /// @brief Create an LSDRaster from memory, includes georeferencing
   /// @return LSDRaster
@@ -257,6 +266,16 @@ class LSDRaster
   /// @author SMM
   /// @date 01/01/12
   void write_raster(string filename, string extension);
+  
+  /// @brief This writes rasters from Arrays of type <double> to ascii format.
+  /// @details Sorry for duplicating a load of code, but I couldn't think
+  /// of a good way to overload the function without passing the raster data array or
+  /// breaking someone elses code. 
+  /// @param filename a string of the filename _without_ the extension.
+  /// @param extension a string of the extension _without_ the leading dot
+  /// @author DAV
+  /// @date 07-12-2015
+  void write_double_raster(string filename, string extension);
 
   /// @brief Checks to see if two rasters have the same dimensions
   /// @detail Does NOT check georeferencing
@@ -2020,6 +2039,8 @@ class LSDRaster
   void create(string filename, string extension);
   void create(int ncols, int nrows, float xmin, float ymin,
               float cellsize, float ndv, Array2D<float> data);
+  void create(int ncols, int nrows, double xmin, double ymin,
+              double cellsize, double ndv, Array2D<double> data);
   void create(int ncols, int nrows, float xmin, float ymin,
               float cellsize, float ndv, Array2D<float> data, map<string,string> GRS);
 
