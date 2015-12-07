@@ -592,6 +592,7 @@ protected:
 	std::vector<double> fallVelocity;
 	std::vector<bool> isSuspended;
 	TNT::Array2D<double> Vsusptot;
+  // TO DO - do these need swapping
 	std::array<int, 9> deltaX = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
 	std::array<int, 9> deltaY = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
 	//int[] deltaY = new int[9] {0,-1,-1,0,1,1,1,0,-1};   // I leave an old example in for comparison - DAV
@@ -652,6 +653,7 @@ protected:
 	bool bedrock_lower_opt = false;
 	bool physical_weather_opt = false;
 	bool chem_weath_opt = false;
+  bool allow_in_out_diff = true;
 	
 	bool soil_j_mean_depends_on = false;
 	bool rainfall_data_on = false;
