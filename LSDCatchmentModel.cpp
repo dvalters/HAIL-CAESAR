@@ -612,10 +612,10 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
         saveinterval = atoi(value.c_str());
         std::cout << "timeseries save interval: " << output_file_save_interval << std::endl;
     }
-    else if (lower == "time_series_interval")   
+    else if (lower == "raster_output_interval")   
     {
         timeseries_interval = atoi(value.c_str());
-        std::cout << "timeseries_interval: " << timeseries_interval << std::endl;
+        std::cout << "raster_output_interval: " << saveinterval << std::endl;
     }
     else if (lower == "elevation_file")         
     {
@@ -657,10 +657,10 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
         write_flowvel_file = (value == "yes") ? true : false;
         std::cout << "write_flowvel_file: " << write_flowvel_file << std::endl;
     }
-    else if (lower == "waterdepth_file")        
+    else if (lower == "waterdepth_outfile_name")        
     {
         waterdepth_fname = value;
-        std::cout << "waterdepth_fname: " << waterdepth_fname << std::endl;
+        std::cout << "waterdepth_outfile_name: " << waterdepth_fname << std::endl;
     }
     else if (lower == "write_waterdepth_file")  
     {
@@ -927,7 +927,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
 void LSDCatchmentModel::initialise_arrays()
 {
     std::cout << "Cartesian ymax (no. of rows): " << ymax << \
-     "Cartesian xmax (no. of cols): " << xmax << std::endl;
+     " Cartesian xmax (no. of cols): " << xmax << std::endl;
     
     elev = TNT::Array2D<double> (ymax+2,xmax+2, 0.0);
     water_depth = TNT::Array2D<double> (ymax+2,xmax+2, 0.0);
@@ -1613,54 +1613,26 @@ void LSDCatchmentModel::save_data(int typeflag, double tempcycle)
 
 void LSDCatchmentModel::save_data(double tempcycle)
 {
-    int x,y,z,inc,nn;
-    
-    std::string FILENAME = "output.dat";
+  if(uniquefilecheck==false) tempcycle=0;
+  // Write Water_depth raster
+  if (write_waterd_file == true)
+  {
+    // TO DO
+    // This will actually write out the border cells which is incorrect technically
+    // Find a way to trim these off.
+    LSDRaster water_depthR(ymax+2, xmax+2, xll, yll, DX, no_data_value, water_depth);
 
-    if(uniquefilecheck==false) tempcycle=0;
+    // Use the LSDRaster object's own method 
+    // Woohoo! Some actual object-oriented programming!
+    water_depthR.write_double_raster(waterdepth_fname, "asc");
+  }
   
-  if (write_waterd_file==true) water_depthR.write_raster(waterdepth_fname, "asc");
-  if (write_elev_file == true) elevR.write_raster(elev_fname, "asc");
-
-  /*
-    // turns file name into days from mins.
-    if(typeflag==1&&tempcycle==0) FILENAME = "waterdepth.txt";
-    if(typeflag==2&&tempcycle==0) FILENAME = "elevdiff.txt";
-    if(typeflag==3&&tempcycle==0) FILENAME = "elev.txt";
-    if(typeflag==4&&tempcycle==0) FILENAME = "grain.txt";
-    if (typeflag == 15 && tempcycle == 0) FILENAME = "d50top.txt";
-    if (typeflag == 16 && tempcycle == 0) FILENAME = "velocity.txt";            // <JOE 20050605>
-    if (typeflag == 17 && tempcycle == 0) FILENAME = "velocity_vectors.txt";    // <JOE 20050605>
-  * */
-
-    // convert the tempcycle to an int, then to a string
-    // DAV: Need to uncomment + translate these at somepoint for the unique filename option to work.
-    //if(typeflag==1&&tempcycle>0) FILENAME = "waterdepth"+Convert.ToString(Convert.ToInt64(tempcycle))+".txt";
-    //if (typeflag == 2 && tempcycle > 0) FILENAME = "elevdiff" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
-    //if (typeflag == 3 && tempcycle > 0) FILENAME = "elev.dat" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
-    //if (typeflag == 4 && tempcycle > 0) FILENAME = "grain.dat" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
-
-    //if (typeflag == 15 && tempcycle > 0) FILENAME = "d50top" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
-    //if (typeflag == 16 && tempcycle > 0) FILENAME = "velocity" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
-    //if (typeflag == 17 && tempcycle > 0) FILENAME = "velocity_vectors" + Convert.ToString(Convert.ToInt64(tempcycle)) + ".txt";
-
-/*
-    if(typeflag>=1&&typeflag<4)
-    {
-    // use the write_raster(FILENAME) call from LSDRaster when you implement the rest of this.
-    if (write_waterd_file==true) water_depthR.write_raster(waterdepth_fname, "asc");
-    if (write_elev_file == true) elevR.write_raster(elev_fname, "asc");
-    
-    //if (write_bedrock_file == true) bedrockR.write_raster(bedrock_fname, "asc");
-    
-    /* SPECIAL CASES
-    Need more thought
-    if (write_elevdiff_file == true) ...
-    if (write_grainsz_file == true) 
-    if (write_bedrock_file == true) 
-    if (write_flowvel_file == true)
-    */
-//  }
+  // Write Elevation raster
+  if (write_elev_file == true)
+  {
+    LSDRaster elev_outR(ymax+2, xmax+2, xll, yll, DX, no_data_value, elev);
+    elev_outR.write_double_raster("output_elevTEST.asc", "asc");
+  }
 }
 
 // This only currently checks for an edge that is not NODATA on at least one side
@@ -2183,7 +2155,9 @@ void LSDCatchmentModel::depth_update()
     double local_time_factor = time_factor;
     
     if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+    {
         local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+    }
     
     std::vector<double> tempmaxdepth2(ymax + 2);
     maxdepth = 0;
@@ -2342,12 +2316,12 @@ void LSDCatchmentModel::calc_J(double cycle)
         // DAV- Experimental fix! subtract 1 as n=1 should be outside the vector index 
         // for spatially uniform rainfall. You actuall want:
         // hourly_rain_data[hour][0]  (n starts at 1 here)
-        double cur_rain_rate = hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1];
+        double cur_rain_rate = hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n];
         // std::cout << cur_rain_rate << std::endl;
         
-        if (hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1] > 0)
+        if (hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n] > 0)
         {
-            local_rain_fall_rate = rain_factor * ((hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1] / 1000) / 3600); 
+            local_rain_fall_rate = rain_factor * ((hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n] / 1000) / 3600); 
             /** divide by 1000 to make m/hr, then by 3600 for m/sec */
         }
 
