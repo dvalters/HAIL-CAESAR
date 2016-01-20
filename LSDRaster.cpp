@@ -11102,4 +11102,72 @@ float LSDRaster::get_threshold_for_floodplain(float bin_width, float peak_thresh
   return threshold;  
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Function to set the threshold value to use in floodplain extraction using QQ plots
+// FJC 16/11/15
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename)
+{
+  //get vector of raster data
+  vector<float> raster_vector; 
+  for (int row = 0; row < NRows; row++) 
+  { 
+    for (int col = 0; col < NCols; col++) 
+    { 
+      if(RasterData[row][col] >= 0) raster_vector.push_back(RasterData[row][col]); 
+    } 
+  }
+  
+  vector<float> quantile_values,normal_variates,mn_values;
+  int N_points = 10000;//values.size();
+  quantile_quantile_analysis(raster_vector, quantile_values, normal_variates, mn_values, N_points);
+  ofstream ofs;
+  ofs.open(q_q_filename.c_str());
+  
+  if(ofs.fail())
+  {
+    cout << "\nFATAL ERROR: unable to write output_file" << endl;
+    exit(EXIT_FAILURE);
+  }
+  ofs << "normal_variate value\n";
+  int n_values = quantile_values.size();
+  for(int i = 0; i<n_values;++i)
+  {
+    ofs << normal_variates[i] << " " << quantile_values[i] << " " << mn_values[i] << "\n";
+  }
+  ofs.close();
+  
+  // Find q-q threshold
+  cout << "\t finding deviation from Gaussian distribution to define q-q threshold" << endl;
+  vector<int> indices;
+  int flag = 0;
+  float threshold_condition=0.99;
+  int threshold_index=0;
+  float threshold=0;
+  for(int i = 0; i<n_values; ++i)
+  {
+    if(normal_variates[i] <= 0)
+    {
+      if(mn_values[i]>threshold_condition*quantile_values[i])
+      {
+        if (flag==0)
+        {
+          flag = 1;
+          threshold_index = i;
+          threshold = quantile_values[i];
+          cout << "Quantile value at threshold: " << quantile_values[i] << " Normal variate: " << normal_variates[i] << endl;
+        }
+      }
+      else flag = 0;
+    }
+  }
+  
+  //float mean = get_mean(raster_vector);
+  //float standard_deviation = get_standard_deviation(raster_vector,mean);
+  //float threshold = mean+normal_variates[threshold_index]*standard_deviation;
+  //cout << "Mean: " << mean << " Standard deviation: " << standard_deviation << " Threshold value is: " << threshold << endl;
+  
+  return threshold;
+}
+
 #endif
