@@ -394,6 +394,16 @@ class LSDRaster
   /// @author SMM
   /// @date 13/11/2014
   bool check_if_point_is_in_raster(float X_coordinate,float Y_coordinate);
+
+  /// @brief Gets the row and column of a point in the raster
+  /// @param X_coordinate the x location of the point
+  /// @param Y_coordinate the y location of the point
+  /// @param row the row of the point, replaced upon running the routine
+  /// @param col the col of the point, replaced upon running the routine
+  /// @author SMM
+  /// @date 22/01/2016
+  void get_row_and_col_of_a_point(float X_coordinate,float Y_coordinate,int& row, int& col);
+
   
   /// @brief This function returns a vector with the X adn Y minimum and max
   ///   values
