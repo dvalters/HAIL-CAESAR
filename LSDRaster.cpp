@@ -8515,6 +8515,8 @@ LSDRaster LSDRaster::clip_to_smaller_raster(LSDRaster& smaller_raster)
   
   cout << "Small Xmin: " << SR_XMinimum << " YMin: " << SR_YMinimum << " Xmax: "
        << SR_XMaximum << " YMax: " << SR_YMaximum << endl;
+       
+  cout << "This data resolution: " << DataResolution << " and smaller raster data resolution: " << SR_DataR << endl;
   
   
   // find the col of old raster that has the same Xlocations as the XLL of smaller raster
@@ -8538,6 +8540,21 @@ LSDRaster LSDRaster::clip_to_smaller_raster(LSDRaster& smaller_raster)
   int YLL_row = NRows - int((SR_YMinimum-YMinimum+0.5*DataResolution)/DataResolution);
   int YUL_row = NRows - int((SR_YMaximum-YMinimum+0.5*DataResolution)/DataResolution);
   
+  // check on the lower row:
+  cout << "Checking lower left row." << endl;
+  cout << "integer subtraction: " << int((SR_YMinimum-YMinimum+0.5*DataResolution)/DataResolution) << endl;
+  cout << "float subtraction: " <<  (SR_YMinimum-YMinimum+0.5*DataResolution)/DataResolution << endl;
+  
+  // this catches a weird rounding error. 
+  double int_sub =  double(int((SR_YMinimum-YMinimum+0.5*DataResolution)/DataResolution));
+  double flt_sub =  (SR_YMinimum-YMinimum+0.5*DataResolution)/DataResolution;
+  
+  if ((flt_sub- int_sub) > 0.9975)
+  {
+    YUL_row = YUL_row+1;
+  }
+  
+  
   // check these rows
   if (YLL_row < 0)
   {
@@ -8548,7 +8565,7 @@ LSDRaster LSDRaster::clip_to_smaller_raster(LSDRaster& smaller_raster)
     YUL_row = NRows-1;
   }
   
-  cout << "Small XLLCol: " << XLL_col << " XLR_col: " << XUL_col << " XLLrow: "
+  cout << "Small XLLCol: " << XLL_col << " XLR_col: " << XUL_col << " YLLrow: "
        << YLL_row << " YUL_row: " << YUL_row << endl;
 
 
