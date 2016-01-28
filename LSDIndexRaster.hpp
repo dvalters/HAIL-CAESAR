@@ -433,6 +433,13 @@ class LSDIndexRaster
   /// @date 22/10/15
   LSDIndexRaster remove_holes_in_patches(int window_radius);
   
+  /// @brief Method to remove small holes in patches from a connected components raster. Holes
+  /// will only be filled if surrounded by pixels with the same CC value.
+  /// @param window_radius radius over which to search to remove holes (size of hole)
+  /// @author FJC
+  /// @date 20/01/16
+  LSDIndexRaster remove_holes_in_patches_connected_components(int window_radius); 
+  
   /// @brief Method to fill in checkerboard pattern from a binary raster.
   /// @author FJC
   /// @date 30/10/15
