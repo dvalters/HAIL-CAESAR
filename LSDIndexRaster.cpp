@@ -2184,6 +2184,86 @@ LSDIndexRaster LSDIndexRaster::remove_holes_in_patches(int window_radius)
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to remove small holes in patches from a connected components raster (holes will only
+// be removed if surrounded by pixels with the same CC value).
+// FJC 20/01/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDIndexRaster::remove_holes_in_patches_connected_components(int window_radius)
+{
+  int pixel_radius = int(window_radius/DataResolution);
+  if (window_radius < DataResolution) pixel_radius = int(DataResolution);
+  cout << "Pixel radius: " << pixel_radius << endl;
+  Array2D<int> RasterArray = RasterData;
+
+  Array2D<int> FilledRaster(NRows, NCols, NoDataValue);
+  //search the neighbours of each pixel for NoData values within the window radius
+  for (int row = 0; row < NRows; row ++)
+  {
+    for (int col = 0; col < NCols; col++)
+    {
+      for (int i =0; i < pixel_radius; i++)
+      {
+        if (RasterArray[row][col] != NoDataValue) FilledRaster[row][col] = RasterArray[row][col];
+        if (RasterArray[row][col] == NoDataValue)
+        {
+          vector<int> counts(8,0);
+          int CC_value, min_row, max_row, min_col, max_col;
+          int flag = 0;
+          for (int i = 1; i <= pixel_radius; i++)
+          {
+            //set exceptions for first or last row
+            min_row = row-i;
+            max_row = row+i;
+            if (min_row < 0) min_row = 0;
+            if (max_row >= NRows) max_row = NRows-1;
+          
+            //set exceptions for first or last col
+            min_col = col-i;
+            max_col = col+i;
+            if (min_col < 0) min_col = 0;
+            if (max_col >= NCols) max_col = NCols-1;
+          
+            //perform these steps if we haven't found any pixels with data yet
+            if (flag == 0)
+            {
+              //check to see whether the top left corner has data for this pixel radius
+              if (RasterArray[min_row][min_col] != NoDataValue)
+              {
+                CC_value = RasterArray[min_row][min_col]; 
+                flag = 1;
+                counts.at(0) = 1; 
+              } 
+            }
+            //we already have the CC value so check surrounding cells
+            if (flag == 1)
+            {
+              if (RasterArray[row][min_col] == CC_value) counts.at(1) = 1; 
+              if (RasterArray[max_row][min_col] == CC_value) counts.at(2) = 1; 
+              if (RasterArray[min_row][col] == CC_value) counts.at(3) = 1; 
+              if (RasterArray[min_row][max_col] == CC_value) counts.at(4) = 1; 
+              if (RasterArray[row][max_col] == CC_value) counts.at(5) = 1; 
+              if (RasterArray[max_row][max_col] == CC_value) counts.at(6) = 1; 
+              if (RasterArray[max_row][col] == CC_value) counts.at(7) = 1;   
+            }
+          }
+          // if surrounding pixels all have the same CC value, then fill in the pixel
+          if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+          {
+            FilledRaster[row][col] = RasterArray[min_row][min_col];
+            //move to the next pixel
+            col++;
+          } 
+        }
+      }
+    }
+  }
+  
+  //create new LSDIndexRaster with the filled patches
+  LSDIndexRaster FilledPatches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledRaster,GeoReferencingStrings);
+  return FilledPatches;  
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to remove checkerboard pattern from an integer raster (at the moment set to run on
 // a raster made up of 0s and 1s).
 // FJC 22/10/15
