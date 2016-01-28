@@ -9172,7 +9172,7 @@ LSDRaster LSDRaster::PeronaMalikFilter(int timesteps, float percentile_for_lambd
   cout << "lambda " << lambda << endl;
   // Now do the nonlinear filtering
   Array2D<float> Topography = get_RasterData();
-  LSDRaster PM_FilteredTopo(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Topography.copy());
+  LSDRaster PM_FilteredTopo(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Topography.copy(),GeoReferencingStrings);
   
   for(int t = 0; t<timesteps; ++t)
   {
