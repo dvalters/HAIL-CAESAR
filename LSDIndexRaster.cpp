@@ -88,6 +88,7 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include <numeric>    
 #include "TNT/tnt.h"
 #include "LSDIndexRaster.hpp"
 #include "LSDRaster.hpp"
@@ -2183,138 +2184,211 @@ LSDIndexRaster LSDIndexRaster::remove_holes_in_patches(int window_radius)
   return FilledPatches;  
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Method to remove small holes in patches from a connected components raster (holes will only
-// be removed if surrounded by pixels with the same CC value).
-// FJC 20/01/16
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDIndexRaster LSDIndexRaster::remove_holes_in_patches_connected_components(int window_radius)
-{
-  int pixel_radius = int(window_radius/DataResolution);
-  if (window_radius < DataResolution) pixel_radius = int(DataResolution);
-  cout << "Pixel radius: " << pixel_radius << endl;
-  Array2D<int> RasterArray = RasterData;
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=                                          
+// Method to remove small holes in patches from a connected components raster (holes will only                                     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// be removed if surrounded by pixels with the same CC value).                                                                     // Method to remove checkerboard pattern from an integer raster (at the moment set to run on
+// FJC 20/01/16                                                                                                                    // a raster made up of 0s and 1s).
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=                                          // FJC 22/10/15
+LSDIndexRaster LSDIndexRaster::remove_holes_in_patches_connected_components(int window_radius)                                     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+{                                                                                                                                  LSDIndexRaster LSDIndexRaster::remove_checkerboard_pattern()
+  int pixel_radius = int(window_radius/DataResolution);                                                                            {
+  if (window_radius < DataResolution) pixel_radius = int(DataResolution);                                                            Array2D<int> RasterArray = RasterData;
+  cout << "Pixel radius: " << pixel_radius << endl;                                                                                  Array2D<int> FilledArray(NRows, NCols, 0);
+  Array2D<int> RasterArray = RasterData.copy();                                                                                      int count = 0;
+                                                                                                                                     //search the neighbours of each pixel for 1 values within the window radius
+  Array2D<int> FilledRaster(NRows, NCols, NoDataValue);                                                                              for (int row = 0; row < NRows; row ++)
+  //search the neighbours of each pixel for NoData values within the window radius                                                   {
+  for (int row = 0; row < NRows; row ++)                                                                                               for (int col = 0; col < NCols; col++)
+  {                                                                                                                                    {
+    for (int col = 0; col < NCols; col++)                                                                                                if (RasterArray[row][col] == 1) FilledArray[row][col] = 1;
+    {                                                                                                                                    if (RasterArray[row][col] == 0)
+      //if (RasterArray[row][col] != NoDataValue) FilledRaster[row][col] = RasterArray[row][col];                                        {    
+      //cout << "Line 2204" << endl;                                                                                                       // set exceptions for end rows and cols
+      if (RasterArray[row][col] == NoDataValue)                                                                                            int min_row = row-1;
+      {                                                                                                                                    int max_row = row+1;
+        vector<int> counts(8,0);                                                                                                           if (min_row < 0) min_row = 0;
+        int CC_value = 0;                                                                                                                  if (max_row >= NRows) max_row = NRows-1;
+        //int flag = 0;                                                                                                                    
+                                                                                                                                           int min_col = col-1;
+        //set exceptions for first or last row                                                                                             int max_col = col+1;
+        //if (row-1 < 0) row++;                                                                                                            if (min_col < 0) min_col = 0;
+        //if (row+1 >= NRows) row++;                                                                                                       if (max_col >= NCols) max_col = NCols-1;
+        //cout << "Line 2214" << endl;                                                                                                     
+                                                                                                                                           // check whether N, S, E, and W pixels are equal to 1
+        //set exceptions for first or last col                                                                                             if (RasterArray[min_row][col]  == 1) count++;               //north
+        //if (col-1 < 0) col++;                                                                                                            if (RasterArray[max_row][col] == 1) count++;               //south
+        //if (col+1 >= NCols) col++;                                                                                                       if (RasterArray[row][min_col]  == 1) count++;               //east
+        //cout << "Line 2219" << endl;                                                                                                     if (RasterArray[row][max_col] == 1) count++;                //west
+                                                                                                                                           if (count == 4)
+        //cout << "Row: " << row << " Col: " << col << endl;                                                                               {
+                                                                                                                                             //fill in pixel
+        //NW direction                                                                                                                       FilledArray[row][col] = 1;
+        for (int i = 1; i < pixel_radius; i++)                                                                                               cout << "Filled in pixel, woohoo" << endl;
+        {                                                                                                                                  }    
+          if (row - i < 0) break;                                                                                                          count = 0;    
+          if (col - i < 0) break;                                                                                                        }
+          if (RasterArray[row-i][col-i] != NoDataValue)                                                                                }
+          {                                                                                                                          }
+            //cout << "setting cc value" << endl;                                                                                    
+            CC_value = RasterArray[row-i][col-i];                                                                                    //create new LSDIndexRaster with the filled patches
+            //cout << "updating vector" << endl;                                                                                     LSDIndexRaster FilledRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledArray,GeoReferencingStrings);
+            counts.at(0) = 1;                                                                                                        return FilledRaster; 
+            //cout << "exiting loop" << endl;                                                                                        
+            break;                                                                                                                 }
+          }                                                                                                                        
+        }                                                                                                                          
+        //cout << "Line 2231" << endl;                                                                                             //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                                                                                                                                   
+        if (CC_value > 0)                                                                                                          #endif
+        {                                                                                                                          
+          //N direction                                                                                                            
+          for (int i = 1; i < pixel_radius; i++)                                                                                   
+          {                                                                                                                        
+            if (row - i < 0) break;                                                                                                
+            if (RasterArray[row-i][col] == CC_value)                                                                               
+            {                                                                                                                      
+              counts.at(1) = 1;                                                                                                    
+              break;                                                                                                               
+            }                                                                                                                      
+          }                                                                                                                        
+                                                                                                                                   
+          //NE direction                                                                                                           
+          for (int i = 1; i < pixel_radius; i++)                                                                                   
+          {                                                                                                                        
+            if (row - i < 0) break;                                                                                                
+            if (col + i > NCols-1) break;                                                                                          
+            if (RasterArray[row-i][col+i] == CC_value)                                                                             
+            {                                                                                                                      
+              counts.at(2) = 1;                                                                                                    
+              break;                                                                                                               
+            }                                                                                                                      
+          }                                                                                                                        
+                                                                                                                                   
+          //E direction                                                                                                            
+          for (int i = 1; i < pixel_radius; i++)                                                                                   
+          {                                                                                                                        
+            if (col + i > NCols-1) break;                                                                                          
+            if (RasterArray[row][col+i] == CC_value)                                                                               
+            {                                                                                                                      
+              counts.at(3) = 1;                                                                                                    
+              break;                                                                                                               
+            }                                                                                                                      
+          }                                                                                                                        
+                                                                                                                                   
+          //SE direction                                                                                                           
+          for (int i = 1; i < pixel_radius; i++)                                                                                   
+          {                                                                                                                        
+            if (row + i > NRows-1) break;                                                                                          
+            if (col +i > NCols-1) break;                                                                                           
+            if (RasterArray[row+i][col+i] == CC_value)                                                                             
+            {                                                                                                                      
+              counts.at(4) = 1;                                                                                                    
+              break;                                                                                                               
+            }                                                                                                                      
+          }                                                                                                                        
+                                                                                                                                   
+          //S direction                                                                                                            
+          for (int i = 1; i < pixel_radius; i++)                                                                                   
+          {                                                                                                                        
+            if (row + i > NRows-1) break;                                                                                          
+            if (RasterArray[row+i][col] == CC_value)                                                                               
+            {                                                                                                                      
+              counts.at(5) = 1;                                                                                                    
+              break;                                                                                                               
+            }                                                                                                                      
+          }                                                                                                                        
+                                                                                                                                   
+          //SW direction                                                                                                           
+          for (int i = 1; i < pixel_radius; i++)                                                                                   
+          {                                                                                                                        
+            if (row + i > NRows-1) break;                                                                                          
+            if (col - i < 0) break;                                                                                                
+            if (RasterArray[row+i][col-i] == CC_value)                                                                             
+            {                                                                                                                      
+              counts.at(6) = 1;                                                                                                    
+              break;                                                                                                               
+            }                                                                                                                      
+          }                                                                                                                        
+                                                                                                                                   
+          //W direction                                                                                                            
+          for (int i = 1; i < pixel_radius; i++)                                                                                   
+          {                                                                                                                        
+            if (col - i < 0) break;                                                                                                
+            if (RasterArray[row][col-i] == CC_value)                                                                               
+            {                                                                                                                      
+              counts.at(7) = 1;                                                                                                    
+              break;                                                                                                               
+            }                                                                                                                      
+          }                                                                                                                        
+        }                                                                                                                          
+                                                                                                                                   
+        // if surrounding pixels all have the same CC value, then fill in the pixel                                                
+        int sum = accumulate(counts.begin(), counts.end(), 0);                                                                     
+        if (sum > 6)                                                                                                               
+        {                                                                                                                          
+          RasterArray[row][col] = CC_value;                                                                                        
+        }                                                                                                                          
+      }                                                                                                                            
+    }                                                                                                                              
+  }                                                                                                                                
+                                                                                                                                   
+  //create new LSDIndexRaster with the filled patches                                                                              
+  LSDIndexRaster FilledPatches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,RasterArray,GeoReferencingStrings);        
+  return FilledPatches;                                                                                                            
+}                                                                                                                                  
 
-  Array2D<int> FilledRaster(NRows, NCols, NoDataValue);
-  //search the neighbours of each pixel for NoData values within the window radius
-  for (int row = 0; row < NRows; row ++)
-  {
-    for (int col = 0; col < NCols; col++)
-    {
-      for (int i =0; i < pixel_radius; i++)
-      {
-        if (RasterArray[row][col] != NoDataValue) FilledRaster[row][col] = RasterArray[row][col];
-        if (RasterArray[row][col] == NoDataValue)
-        {
-          vector<int> counts(8,0);
-          int CC_value, min_row, max_row, min_col, max_col;
-          int flag = 0;
-          for (int i = 1; i <= pixel_radius; i++)
-          {
-            //set exceptions for first or last row
-            min_row = row-i;
-            max_row = row+i;
-            if (min_row < 0) min_row = 0;
-            if (max_row >= NRows) max_row = NRows-1;
-          
-            //set exceptions for first or last col
-            min_col = col-i;
-            max_col = col+i;
-            if (min_col < 0) min_col = 0;
-            if (max_col >= NCols) max_col = NCols-1;
-          
-            //perform these steps if we haven't found any pixels with data yet
-            if (flag == 0)
-            {
-              //check to see whether the top left corner has data for this pixel radius
-              if (RasterArray[min_row][min_col] != NoDataValue)
-              {
-                CC_value = RasterArray[min_row][min_col]; 
-                flag = 1;
-                counts.at(0) = 1; 
-              } 
-            }
-            //we already have the CC value so check surrounding cells
-            if (flag == 1)
-            {
-              if (RasterArray[row][min_col] == CC_value) counts.at(1) = 1; 
-              if (RasterArray[max_row][min_col] == CC_value) counts.at(2) = 1; 
-              if (RasterArray[min_row][col] == CC_value) counts.at(3) = 1; 
-              if (RasterArray[min_row][max_col] == CC_value) counts.at(4) = 1; 
-              if (RasterArray[row][max_col] == CC_value) counts.at(5) = 1; 
-              if (RasterArray[max_row][max_col] == CC_value) counts.at(6) = 1; 
-              if (RasterArray[max_row][col] == CC_value) counts.at(7) = 1;   
-            }
-          }
-          // if surrounding pixels all have the same CC value, then fill in the pixel
-          if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
-          {
-            FilledRaster[row][col] = RasterArray[min_row][min_col];
-            //move to the next pixel
-            col++;
-          } 
-        }
-      }
-    }
-  }
-  
-  //create new LSDIndexRaster with the filled patches
-  LSDIndexRaster FilledPatches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledRaster,GeoReferencingStrings);
-  return FilledPatches;  
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Method to remove checkerboard pattern from an integer raster (at the moment set to run on
-// a raster made up of 0s and 1s).
-// FJC 22/10/15
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDIndexRaster LSDIndexRaster::remove_checkerboard_pattern()
-{
-  Array2D<int> RasterArray = RasterData;
-  Array2D<int> FilledArray(NRows, NCols, 0);
-  int count = 0;
-  //search the neighbours of each pixel for 1 values within the window radius
-  for (int row = 0; row < NRows; row ++)
-  {
-    for (int col = 0; col < NCols; col++)
-    {
-      if (RasterArray[row][col] == 1) FilledArray[row][col] = 1;
-      if (RasterArray[row][col] == 0)
-      {    
-        // set exceptions for end rows and cols
-        int min_row = row-1;
-        int max_row = row+1;
-        if (min_row < 0) min_row = 0;
-        if (max_row >= NRows) max_row = NRows-1;
-        
-        int min_col = col-1;
-        int max_col = col+1;
-        if (min_col < 0) min_col = 0;
-        if (max_col >= NCols) max_col = NCols-1;
-        
-        // check whether N, S, E, and W pixels are equal to 1
-        if (RasterArray[min_row][col]  == 1) count++;               //north
-        if (RasterArray[max_row][col] == 1) count++;               //south
-        if (RasterArray[row][min_col]  == 1) count++;               //east
-        if (RasterArray[row][max_col] == 1) count++;                //west
-        if (count == 4)
-        {
-          //fill in pixel
-          FilledArray[row][col] = 1;
-          cout << "Filled in pixel, woohoo" << endl;
-        }    
-        count = 0;    
-      }
-    }
-  }
-  
-  //create new LSDIndexRaster with the filled patches
-  LSDIndexRaster FilledRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledArray,GeoReferencingStrings);
-  return FilledRaster; 
-  
-}
-
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-#endif
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=                                                                                                                                                                           
+// Method to remove checkerboard pattern from an integer raster (at the moment set to run on                                     
+// a raster made up of 0s and 1s).                                                                                               
+// FJC 22/10/15                                                                                                                  
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=                                        
+LSDIndexRaster LSDIndexRaster::remove_checkerboard_pattern()                                                                     
+{                                                                                                                                
+  Array2D<int> RasterArray = RasterData;                                                                                         
+  Array2D<int> FilledArray(NRows, NCols, 0);                                                                                     
+  int count = 0;                                                                                                                 
+  //search the neighbours of each pixel for 1 values within the window radius                                                    
+  for (int row = 0; row < NRows; row ++)                                                                                         
+  {                                                                                                                              
+    for (int col = 0; col < NCols; col++)                                                                                        
+    {                                                                                                                            
+      if (RasterArray[row][col] == 1) FilledArray[row][col] = 1;                                                                 
+      if (RasterArray[row][col] == 0)                                                                                            
+      {                                                                                                                          
+        // set exceptions for end rows and cols                                                                                  
+        int min_row = row-1;                                                                                                     
+        int max_row = row+1;                                                                                                     
+        if (min_row < 0) min_row = 0;                                                                                            
+        if (max_row >= NRows) max_row = NRows-1;                                                                                 
+                                                                                                                                 
+        int min_col = col-1;                                                                                                     
+        int max_col = col+1;                                                                                                     
+        if (min_col < 0) min_col = 0;                                                                                            
+        if (max_col >= NCols) max_col = NCols-1;                                                                                 
+                                                                                                                                 
+        // check whether N, S, E, and W pixels are equal to 1                                                                    
+        if (RasterArray[min_row][col]  == 1) count++;               //north                                                      
+        if (RasterArray[max_row][col] == 1) count++;               //south                                                       
+        if (RasterArray[row][min_col]  == 1) count++;               //east                                                       
+        if (RasterArray[row][max_col] == 1) count++;                //west                                                       
+        if (count == 4)                                                                                                          
+        {                                                                                                                        
+          //fill in pixel                                                                                                        
+          FilledArray[row][col] = 1;                                                                                             
+          //cout << "Filled in pixel, woohoo" << endl;                                                                           
+        }                                                                                                                        
+        count = 0;                                                                                                               
+      }                                                                                                                          
+    }                                                                                                                            
+  }                                                                                                                              
+                                                                                                                                 
+  //create new LSDIndexRaster with the filled patches                                                                            
+  LSDIndexRaster FilledRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledArray,GeoReferencingStrings);       
+  return FilledRaster;                                                                                                           
+                                                                                                                                 
+}                                                                                                                                
+                                                                                                                                 
+                                                                                                                                 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=                                        
+                                                                                                                                 
+#endif                                                                                                                           
