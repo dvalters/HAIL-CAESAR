@@ -1608,12 +1608,14 @@ void LSDRaster::get_row_and_col_of_a_point(float X_coordinate,float Y_coordinate
   // Get row and column of point
   int col_point = int(X_coordinate_shifted_origin/DataResolution);
   int row_point = (NRows - 1) - int(round(Y_coordinate_shifted_origin/DataResolution));
+  
+  //cout << "Getting row and col, " << row_point << " " << col_point << endl;
 
-  if(col_point < 0 || col_point > NCols-1)
+  if(col_point > 0 && col_point < NCols-1)
   {
     this_col = col_point;
   }
-  if(row_point < 0 || row_point > NRows -1)
+  if(row_point > 0 && row_point < NRows -1)
   {
     this_row = row_point;
   }
