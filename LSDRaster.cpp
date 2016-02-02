@@ -11219,4 +11219,73 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename)
   return threshold;
 }
 
+// Get the lengths in spatial units of each part of the channel network, divided by strahler order.
+// Returns a string containing the comma separated lengths
+// SWDG 17/1/16      
+string LSDRaster::ChannelLengthByOrder(LSDIndexRaster& StreamNetwork, Array2D<int> FlowDir){
+
+  //Declare all the variables needed in this method
+  float two_times_root2 = 2.828427;
+  vector<float> Lengths;
+  vector<float> SortedLengths;
+  vector<int> IDs;
+  vector<int> IDs_sorted;
+  vector<size_t> index_map;
+  int q = 0;
+  float length_sum = 0;
+  map <int,float> Order_Length; //structure to hold pairs of length values with a basin ID as a key
+
+  //Loop over every pixel and record it's stream length and order in two vectors
+  for (int i = 0; i < NRows; ++i){
+    for (int j = 0; j < NCols; ++j){
+
+      if (StreamNetwork.get_data_element(i,j) != NoDataValue){
+        if ((FlowDir[i][j] % 2) != 0 && (FlowDir[i][j] != -1 )){ //is odd but not -1
+          Lengths.push_back(DataResolution * two_times_root2); //diagonal
+          IDs.push_back(StreamNetwork.get_data_element(i,j));
+        }
+        else if (FlowDir[i][j] % 2 == 0){  //is even
+          Lengths.push_back(DataResolution); //cardinal
+          IDs.push_back(StreamNetwork.get_data_element(i,j));
+        }
+      }
+    }
+  }
+
+  //sort our two vectors based on the Basin IDs: has the effect of grouping each order together in 1D space
+  matlab_int_sort(IDs, IDs_sorted, index_map);
+  matlab_float_reorder(Lengths, index_map, SortedLengths);
+
+  // get the first order
+  int start_id = IDs_sorted[0];
+
+  while (q < int(IDs_sorted.size())){
+    if (start_id == IDs_sorted[q]){
+      length_sum += SortedLengths[q];
+      ++q;
+    }
+    else{
+      Order_Length[start_id]=(length_sum);   //record the total length the order as a key
+      length_sum = 0;
+      start_id = IDs_sorted[q];
+    }
+  }
+
+  // Process the final order once the loop is completed
+  Order_Length[start_id]=(length_sum);
+
+
+  // set up iterator to cycle through the map
+  map<int, float>::iterator it;
+
+  stringstream Output;
+
+  for (it = Order_Length.begin(); it != Order_Length.end(); it++){
+    Output << it->second << ",";
+  }
+
+  return Output.str();
+
+}
+
 #endif
