@@ -2013,26 +2013,26 @@ void LSDRaster::DSSampleDiamond(int row, int col, int size, float value)
 
     if (a == -9999 || b == -9999 || c == -9999 || d == -9999)
     {
-		  cout << "got a nodata DSSampleDiamond; row: " << row << " and col: " << col << endl;
+      cout << "got a nodata DSSampleDiamond; row: " << row << " and col: " << col << endl;
 
-		  if (a == -9999)
-		  {
-			  cout << "col - hs: " << col - hs << " and row: " << row << endl;
-		  }
-		  if (b == -9999)
-		  {
-			  cout << "col + hs: " << col + hs << " and row: " << row << endl;
-		  }
-		  if (c == -9999)
-		  {
-			  cout << "col: " << col << " and row - hs: " << row - hs << endl;
-		  }
-		  if (d == -9999)
-		  {
-			  cout << "col: " << col << " and row + hs: " << row + hs << endl;
-		  }
+      if (a == -9999)
+      {
+        cout << "col - hs: " << col - hs << " and row: " << row << endl;
+      }
+      if (b == -9999)
+      {
+        cout << "col + hs: " << col + hs << " and row: " << row << endl;
+      }
+      if (c == -9999)
+      {
+        cout << "col: " << col << " and row - hs: " << row - hs << endl;
+      }
+      if (d == -9999)
+      {
+        cout << "col: " << col << " and row + hs: " << row + hs << endl;
+      }
 
-	  }
+    }
 
     SetWrapSample(row, col, ((a + b + c + d) / 4.0) + value);
 }
@@ -2816,7 +2816,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
       // distance from centre to this point.
       radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
 
-//       if (floor(radial_dist) <= window_radius)
+      //if (floor(radial_dist) <= window_radius)
       if (radial_dist <= window_radius)
       {
         mask[i][j] = 1;
@@ -2883,11 +2883,11 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
     }
   }
 
-	// Move window over DEM, fitting 2nd order polynomial surface to the
-	// elevations within the window.
-	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
-	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
-	int ndv_present = 0;
+  // Move window over DEM, fitting 2nd order polynomial surface to the
+  // elevations within the window.
+  cout << "\n\tRunning 2nd order polynomial fitting" << endl;
+  cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+  int ndv_present = 0;
 
   for(int i=0;i<NRows;++i)
   {
@@ -2922,7 +2922,9 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_surface_metrics(float window_radi
             }
           }
         }
-        // Fit polynomial surface, avoiding nodata values          ==================> Could change this, as can fit polynomial surface as long as there are 6 data points.
+        // Fit polynomial surface, avoiding nodata values
+        // ==================> Could change this, 
+        // as can fit polynomial surface as long as there are 6 data points.
         if(ndv_present == 0)  // test for nodata values within the selection
         {
           Array1D<float> bb(6,0.0);
@@ -3147,28 +3149,27 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
       // distance from centre to this point.
       radial_dist = sqrt(y_kernel[i][j]*y_kernel[i][j] + x_kernel[i][j]*x_kernel[i][j]);
 
-//       if (floor(radial_dist) <= window_radius1)
       if (radial_dist <= window_radius1)
       {
         mask[i][j] = 1;
       }
     }
-	}
-	// FIT POLYNOMIAL SURFACE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO
-	// DETERMINE TOPOGRAPHIC METRICS
-	// Have N simultaneous linear equations, and N unknowns.
-	// => b = Ax, where x is a 1xN array containing the coefficients we need for
-	// surface fitting.
-	// A is constructed using different combinations of x and y, thus we only need
-	// to compute this once, since the window size does not change.
-	// For 2nd order surface fitting, there are 6 coefficients, therefore A is a
-	// 6x6 matrix
-	Array2D<float> A(6,6,0.0);
-	for (int i=0; i<kw; ++i)
-	{
-		for (int j=0; j<kw; ++j)
-		{
-			if (mask[i][j] == 1)
+  }
+  // FIT POLYNOMIAL SURFACE BY LEAST SQUARES REGRESSION AND USE COEFFICIENTS TO
+  // DETERMINE TOPOGRAPHIC METRICS
+  // Have N simultaneous linear equations, and N unknowns.
+  // => b = Ax, where x is a 1xN array containing the coefficients we need for
+  // surface fitting.
+  // A is constructed using different combinations of x and y, thus we only need
+  // to compute this once, since the window size does not change.
+  // For 2nd order surface fitting, there are 6 coefficients, therefore A is a
+  // 6x6 matrix
+  Array2D<float> A(6,6,0.0);
+  for (int i=0; i<kw; ++i)
+  {
+    for (int j=0; j<kw; ++j)
+    {
+      if (mask[i][j] == 1)
       {
         x = x_kernel[i][j];
         y = y_kernel[i][j];
@@ -3214,90 +3215,90 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
     }
   }
 
-	// Move window over DEM, fitting 2nd order polynomial surface to the
-	// elevations within the window.
-	cout << "\n\tRunning 2nd order polynomial fitting" << endl;
-	cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
-	int ndv_present = 0;
+  // Move window over DEM, fitting 2nd order polynomial surface to the
+  // elevations within the window.
+  cout << "\n\tRunning 2nd order polynomial fitting" << endl;
+  cout << "\t\tDEM size = " << NRows << " x " << NCols << endl;
+  int ndv_present = 0;
 
-	for(int i=0;i<NRows;++i)
-	{
-		cout << flush << "\tRow = " << i+1 << " / " << NRows << "    \r";
-		for(int j=0;j<NCols;++j)
-		{
-			// Avoid edges
-			if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
-			{
+  for(int i=0;i<NRows;++i)
+  {
+    cout << flush << "\tRow = " << i+1 << " / " << NRows << "    \r";
+    for(int j=0;j<NCols;++j)
+    {
+      // Avoid edges
+      if((i-kr < 0) || (i+kr+1 > NRows) || (j-kr < 0) || (j+kr+1 > NCols) || RasterData[i][j]==NoDataValue)
+      {
         pheta[i][j]=NoDataValue;
         phi[i][j]=NoDataValue;
-			}
-			else
-			{
-				// clip DEM
-				//zeta_sampler=zeta.copy();
-				for(int i_kernel=0;i_kernel<kw;++i_kernel)
-				{
-			  	for(int j_kernel=0;j_kernel<kw;++j_kernel)
-			  	{
-						data_kernel[i_kernel][j_kernel] =
-									RasterData[i-kr+i_kernel][j-kr+j_kernel];
-						// check for nodata values nearby
-						if(data_kernel[i_kernel][j_kernel]==NoDataValue)
-						{
-							ndv_present=1;
-						}
-			  	}
-				}
-				// Fit polynomial surface, avoiding nodata values          ==================> Could change this, as can fit polynomial surface as long as there are 6 data points.
-				if(ndv_present == 0)  // test for nodata values within the selection
-				{
-					Array1D<float> bb(6,0.0);
-					Array1D<float> coeffs(6);
-					for (int krow=0; krow<kw; ++krow)
-					{
-						for (int kcol=0; kcol<kw; ++kcol)
-						{
-							if (mask[krow][kcol] == 1)
+      
+      else
+      {
+        // clip DEM
+        //zeta_sampler=zeta.copy();
+        for(int i_kernel=0;i_kernel<kw;++i_kernel)
+        {
+          for(int j_kernel=0;j_kernel<kw;++j_kernel)
+          {
+            data_kernel[i_kernel][j_kernel] =
+                  RasterData[i-kr+i_kernel][j-kr+j_kernel];
+            // check for nodata values nearby
+            if(data_kernel[i_kernel][j_kernel]==NoDataValue)
+            {
+              ndv_present=1;
+            }
+          }
+        }
+        // Fit polynomial surface, avoiding nodata values          ==================> Could change this, as can fit polynomial surface as long as there are 6 data points.
+        if(ndv_present == 0)  // test for nodata values within the selection
+        {
+          Array1D<float> bb(6,0.0);
+          Array1D<float> coeffs(6);
+          for (int krow=0; krow<kw; ++krow)
+          {
+            for (int kcol=0; kcol<kw; ++kcol)
+            {
+              if (mask[krow][kcol] == 1)
               {
                 x = x_kernel[krow][kcol];
-					      y = y_kernel[krow][kcol];
-					      zeta = data_kernel[krow][kcol];
-					      // Generate vector bb
-					      bb[0] += zeta*x*x;
-					      bb[1] += zeta*y*y;
-					      bb[2] += zeta*x*y;
-					      bb[3] += zeta*x;
-					      bb[4] += zeta*y;
-					      bb[5] += zeta;
-					    }		// end mask
-            }			// end kernal column
-					}				// end kernal row
-					// Solve matrix equations using LU decomposition using the TNT JAMA
-					// package:
+                y = y_kernel[krow][kcol];
+                zeta = data_kernel[krow][kcol];
+                // Generate vector bb
+                bb[0] += zeta*x*x;
+                bb[1] += zeta*y*y;
+                bb[2] += zeta*x*y;
+                bb[3] += zeta*x;
+                bb[4] += zeta*y;
+                bb[5] += zeta;
+              }    // end mask
+            }      // end kernal column
+          }        // end kernal row
+          // Solve matrix equations using LU decomposition using the TNT JAMA
+          // package:
           // A.coefs = b, where coefs is the coefficients vector.
-					LU<float> sol_A(A);  // Create LU object
-					coeffs = sol_A.solve(bb);
+          LU<float> sol_A(A);  // Create LU object
+          coeffs = sol_A.solve(bb);
 
-			  	//a=coeffs[0];
-			  	//b=coeffs[1];
-			  	//c=coeffs[2];
-			  	d=coeffs[3];
-			  	e=coeffs[4];
-			  	//f=coeffs[5];
-			  	
-			  	// COMPUTING SURFACE NORMAL in spherical polar coordinate (ignore
+          //a=coeffs[0];
+          //b=coeffs[1];
+          //c=coeffs[2];
+          d=coeffs[3];
+          e=coeffs[4];
+          //f=coeffs[5];
+          
+          // COMPUTING SURFACE NORMAL in spherical polar coordinate (ignore
           // radial component)
           pheta[i][j] = atan(sqrt(pow(d,2) + pow(e,2)));
           if(d==0 && e==0) phi[i][j] = NoDataValue;
-    			else if(d==0 && e>0) phi[i][j] = acos(-1)/2;
+          else if(d==0 && e>0) phi[i][j] = acos(-1)/2;
           else if(d==0 && e<0) phi[i][j] = 3*acos(-1)/2;
           else phi[i][j]=atan(e/d);
-				}					// end if statement for no data value
-				ndv_present = 0;
-			}
-		}
-	}
-	// 2) DETERMINE ORIENTATION MATRIX AT EACH POINT, AND THEN SOLVE FOR THE
+        }        // end if statement for no data value
+        ndv_present = 0;
+      }
+    }
+  }
+  // 2) DETERMINE ORIENTATION MATRIX AT EACH POINT, AND THEN SOLVE FOR THE
   // EIGENVALUES.
   // Prepare new kernel
   kr=ceil(window_radius2/DataResolution);      // Set radius of kernel as >= specified radius
@@ -3305,23 +3306,23 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
   // Declare kernel arrays
   Array2D<float> pheta_kernel(kw,kw);
   Array2D<float> phi_kernel(kw,kw);
-	// Build circular mask
-	Array2D<int> mask2(kw,kw,0);
-	float x_kernel_ref,y_kernel_ref;
+  // Build circular mask
+  Array2D<int> mask2(kw,kw,0);
+  float x_kernel_ref,y_kernel_ref;
   for(int i=0;i<kw;++i)
   {
     for(int j=0;j<kw;++j)
     {
-  		x_kernel_ref=(i-kr)*DataResolution;
-     	y_kernel_ref=(j-kr)*DataResolution;
-     	radial_dist = sqrt(y_kernel_ref*y_kernel_ref + x_kernel_ref*x_kernel_ref); // distance from centre to this point.
-//      	if (floor(radial_dist) <= window_radius2)
-     	if (radial_dist <= window_radius2)
-     	{
+      x_kernel_ref=(i-kr)*DataResolution;
+      y_kernel_ref=(j-kr)*DataResolution;
+      radial_dist = sqrt(y_kernel_ref*y_kernel_ref + x_kernel_ref*x_kernel_ref); // distance from centre to this point.
+
+      if (radial_dist <= window_radius2)
+      {
         mask2[i][j] = 1;
-  		}
+      }
     }
-	}
+  }
   
   // Loop over DEM again, this time looking at variability of surface normals
   cout << "Finding eigenvalues for local surface. Search radius = " << kr << "m" << endl;
@@ -3349,15 +3350,15 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
             pheta_kernel[i_kernel][j_kernel]=pheta[i-kr+i_kernel][j-kr+j_kernel];
             phi_kernel[i_kernel][j_kernel]=phi[i-kr+i_kernel][j-kr+j_kernel];
             // check for nodata values nearby
-						if(phi_kernel[i_kernel][j_kernel]==NoDataValue)
-						{
-							ndv_present=1;
-						}
+            if(phi_kernel[i_kernel][j_kernel]==NoDataValue)
+            {
+            	ndv_present=1;
+            }
           }
         }        
         int N=0;
         //         if(ndv_present == 0)  // test for nodata values within the selection
-// 				{
+
           for(int i_kernel=0;i_kernel<kw;++i_kernel)
           {
             for(int j_kernel=0;j_kernel<kw;++j_kernel)
@@ -3399,10 +3400,9 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
       } 
     }
   }
-	
-	
-	// Now create LSDRasters and load into output vector
-	vector<LSDRaster> output_rasters_temp(3,VOID);
+  
+  // Now create LSDRasters and load into output vector
+  vector<LSDRaster> output_rasters_temp(3,VOID);
   vector<LSDRaster> raster_output = output_rasters_temp;
   if(raster_selection[0]==1)
   {
@@ -3798,42 +3798,40 @@ LSDRaster LSDRaster::calculate_polyfit_planform_curvature(Array2D<float>& a, Arr
                                                           Array2D<float>& c, Array2D<float>& d,
                                                           Array2D<float>& e)
 {
-	// create the new planform curvature raster
-	Array2D<float> pl_curvature_data(NRows,NCols,NoDataValue);
-  	float fx, fy, fxx, fyy, fxy, p, q;
+  // create the new planform curvature raster
+  Array2D<float> pl_curvature_data(NRows,NCols,NoDataValue);
+                            float fx, fy, fxx, fyy, fxy, p, q;
 
-	for (int row = 0; row<NRows; row++)
-	{
+  for (int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if (a[row][col] != NoDataValue)
+      {
+        fx = d[row][col];
+        fy = e[row][col];
+        fxx = 2*a[row][col];
+        fyy = 2*b[row][col];
+        fxy = c[row][col];
+        p = fx*fx + fy*fy;
+        q = p + 1;
 
-		for(int col = 0; col<NCols; col++)
-		{
-
-			if (a[row][col] != NoDataValue)
-			{
-				fx = d[row][col];
-			  	fy = e[row][col];
-			  	fxx = 2*a[row][col];
-			  	fyy = 2*b[row][col];
-			  	fxy = c[row][col];
-			  	p = fx*fx + fy*fy;
-			  	q = p + 1;
-
-			  	if (q > 0)
-			  	{
-					pl_curvature_data[row][col] = (fxx*fy*fy - 2*fxy*fx*fy + fyy*fx*fx)/(sqrt(q*q*q));
-				}
-				else
-				{
-					pl_curvature_data[row][col] = NoDataValue;
-				}
-			}
-		}
-	}
+        if (q > 0)
+        {
+          pl_curvature_data[row][col] = (fxx*fy*fy - 2*fxy*fx*fy + fyy*fx*fx)/(sqrt(q*q*q));
+        }
+        else
+        {
+          pl_curvature_data[row][col] = NoDataValue;
+        }
+      }
+    }
+  }
 
 
-	LSDRaster planform_curvature_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
-	                           NoDataValue,pl_curvature_data,GeoReferencingStrings);
-	return planform_curvature_raster;
+  LSDRaster planform_curvature_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                             NoDataValue,pl_curvature_data,GeoReferencingStrings);
+  return planform_curvature_raster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
