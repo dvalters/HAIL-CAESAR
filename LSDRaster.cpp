@@ -3231,7 +3231,7 @@ vector<LSDRaster> LSDRaster::calculate_polyfit_roughness_metrics(float window_ra
       {
         pheta[i][j]=NoDataValue;
         phi[i][j]=NoDataValue;
-      
+      }
       else
       {
         // clip DEM
