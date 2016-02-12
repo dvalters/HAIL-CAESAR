@@ -2266,7 +2266,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     }
   }
 
-  if (jmeaninputfile_opt == true)
+  if (rainfall_data_on == true)
     // Yikes, this was originally hard-coded into the GUI
     // interface in CL... (DAV - Needs a new bool param declaring and setting in the driver file)
   {
