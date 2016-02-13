@@ -398,7 +398,7 @@ protected:
   double mannings = 0.04;
 
   /// no. of rainfall cells
-  int rfnum = 1;
+  int rfnum = 2;
 
   /// set by ncols and nrows
   int xmax, ymax;
@@ -653,7 +653,7 @@ protected:
   /// Option Bools
   bool soildevoption = false;
   bool suspended_opt = false;
-  bool jmeaninputfile_opt = false; // I think this can be safely deprecated now - DV 2/2016 (Dear god I've been working on this code for 2.5 years nearly...)
+  bool jmeaninputfile_opt = false; // This is for reading discharge direct from input file - DV 2/2016 (Dear god I've been working on this code for 2.5 years nearly...)
   bool recirculate_opt = false;
   bool reach_mode_opt = false;
   bool dunes_opt = false;
