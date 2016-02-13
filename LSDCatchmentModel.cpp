@@ -609,12 +609,12 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     else if (lower == "timeseries_save_interval")
     {
-      saveinterval = atoi(value.c_str());
+      output_file_save_interval = atoi(value.c_str());
       std::cout << "timeseries save interval: " << output_file_save_interval << std::endl;
     }
     else if (lower == "raster_output_interval")
     {
-      timeseries_interval = atoi(value.c_str());
+      saveinterval = atoi(value.c_str());
       std::cout << "raster_output_interval: " << saveinterval << std::endl;
     }
     else if (lower == "elevation_file")
@@ -2221,23 +2221,9 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     {
       water_add_amt = ERODEFACTOR;
     }
-
     waterinput += (water_add_amt / local_time_factor) * DX * DX;
-
-    // debug
-    //if (waterinput > 0)
-    //{
-    //std::cout << "waterinput: " << waterinput << std::endl;
-    //}
-    //if (water_add_amt > 0)
-    //{
-    //std::cout << "water_add_amt: " << water_add_amt << std::endl;
-    //}
-
-
     water_depth[i][j] += water_add_amt;
   }
-
   // if the input type flag is 1 then the discharge is input from the hydrograph
   if (cycle >= time_1)
   {
@@ -2266,11 +2252,10 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     }
   }
 
-  if (rainfall_data_on == true)
-    // Yikes, this was originally hard-coded into the GUI
-    // interface in CL... (DAV - Needs a new bool param declaring and setting in the driver file)
+  // DV - This is for reading the dsicharge direct from an input file (which presumably is the rainfll.txt input file?)
+  if (jmeaninputfile_opt == true)
   {
-    j_mean[1] = ((hourly_rain_data[(static_cast<int>(cycle / rain_data_time_step))][1] //check in original
+    j_mean[1] = ((hourly_rain_data[(static_cast<int>(cycle / rain_data_time_step))][0] //check in original
         / std::pow(DX, 2)) / nActualGridCells[1]);
   }
 
@@ -2316,12 +2301,12 @@ void LSDCatchmentModel::calc_J(double cycle)
     // DAV- Experimental fix! subtract 1 as n=1 should be outside the vector index
     // for spatially uniform rainfall. You actuall want:
     // hourly_rain_data[hour][0]  (n starts at 1 here)
-    double cur_rain_rate = hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n];
+    //double cur_rain_rate = hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n];
     // std::cout << cur_rain_rate << std::endl;
-
-    if (hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n] > 0)
+    // DAV - I replaced [n] with [n-1] here as the rainfall data vector dimensions are correct.
+    if (hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1] > 0)
     {
-      local_rain_fall_rate = rain_factor * ((hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n] / 1000) / 3600);
+      local_rain_fall_rate = rain_factor * ((hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1] / 1000) / 3600);
       /** divide by 1000 to make m/hr, then by 3600 for m/sec */
     }
 
