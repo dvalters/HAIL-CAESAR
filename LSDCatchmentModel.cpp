@@ -1631,7 +1631,7 @@ void LSDCatchmentModel::save_data(double tempcycle)
   if (write_elev_file == true)
   {
     LSDRaster elev_outR(ymax+2, xmax+2, xll, yll, DX, no_data_value, elev);
-    elev_outR.write_double_raster("output_elevTEST.asc", "asc");
+    elev_outR.write_double_raster("output_elevTEST", "asc");
   }
 }
 
@@ -1978,7 +1978,7 @@ void LSDCatchmentModel::qroute()
   int inc = 1;
 
   // y is less than xmax? change to i,j to avoid confusion?
-  for (int y=1; y < xmax+1; y++)
+  for (int y=1; y <= ymax+1; y++)
   {
     while (down_scan[y][inc] > 0)
     {
@@ -2159,23 +2159,23 @@ void LSDCatchmentModel::depth_update()
     local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
   }
 
-  std::vector<double> tempmaxdepth2(ymax + 2);
+  std::vector<double> tempmaxdepth2(xmax + 2);
   maxdepth = 0;
-
-  for (int y=1; y<=ymax; y++)
+  // DAV - addition swapped j<=ymax to xmax because of the way down_scan is constructed (see initialise_arrays() )
+  for (int j=1; j<=xmax+1; j++)
   {
     int inc = 1;
     double tempmaxdepth = 0;
-    while (down_scan[y][inc] > 0)
+    while (down_scan[j][inc] > 0)
     {
       //debug
       //std::cout << "Entering the depth update loop" <<std::endl;
-      int x = down_scan[y][inc];
+      int i = down_scan[j][inc];
       inc++;
 
       // UPDATE THE WATER DEPTHS
       //std::cout << "update water depth: " << inc << "\r" << std::flush;
-      water_depth[x][y] += local_time_factor * (qx[x+1][y] - qx[x][y] + qy[x][y+1] - qy[x][y]) / DX;
+      water_depth[i][j] += local_time_factor * (qx[i+1][j] - qx[i][j] + qy[i][j+1] - qy[i][j]) / DX;
       //debug
       //std::cout << "incrementing_depth: " << water_depth[x][y] << std::endl;
 
@@ -2183,28 +2183,28 @@ void LSDCatchmentModel::depth_update()
       if (suspended_opt == true)
       {
         //std::cout << "update SuspSedi: " << std::endl;
-        Vsusptot[x][y] += local_time_factor * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
+        Vsusptot[i][j] += local_time_factor * (qxs[i + 1][j] - qxs[i][j] + qys[i][j + 1] - qys[i][j]) / DX;
       }
 
-      if (water_depth[x][y] > 0)
+      if (water_depth[i][j] > 0)
       {
         // remove any water depths on NODATA cells (This shouldnae happen!)
-        if (elev[x][y] == -9999)
-          water_depth[x][y] = 0;
+        if (elev[i][j] == -9999)
+          water_depth[i][j] = 0;
 
         // calculate the maximum flow depth for this time step.
-        if (water_depth[x][y] > tempmaxdepth)
-          tempmaxdepth = water_depth[x][y];
+        if (water_depth[i][j] > tempmaxdepth)
+          tempmaxdepth = water_depth[i][j];
       }
     }
-    tempmaxdepth2[y] = tempmaxdepth;
+    tempmaxdepth2[j] = tempmaxdepth;
   }
   // reduction (if paralellism implemented at later date)
-  for (int y = 1; y <= ymax; y++)
+  for (int j = 1; j <= xmax; j++)
   {
-    if (tempmaxdepth2[y] > maxdepth)
+    if (tempmaxdepth2[j] > maxdepth)
     {
-      maxdepth = tempmaxdepth2[y];
+      maxdepth = tempmaxdepth2[j];
     }
   }
 }
