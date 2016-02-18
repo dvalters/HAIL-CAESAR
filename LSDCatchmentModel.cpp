@@ -282,10 +282,10 @@ void LSDCatchmentModel::initialise_model_domain_extents()
     std::string str;            // a temporary string for discarding text
 
     // read the georeferencing data and metadata
-    data_in >> str >> xmax;
-    std::cout << "NCols: " << xmax << " str: " << std::endl;
-    data_in >> str >> ymax;
-    std::cout << "NRows: " << ymax << " str: " << std::endl;
+    data_in >> str >> jmax;
+    std::cout << "NCols: " << jmax << " str: " << std::endl;
+    data_in >> str >> imax;
+    std::cout << "NRows: " << imax << " str: " << std::endl;
     data_in >> str >> xll
             >> str >> yll
             >> str >> DX // cell size or grid resolution
@@ -327,12 +327,12 @@ void LSDCatchmentModel::load_data()
     // We want an edge pixel of zeros surrounding the raster data
     // So start the counters at one, rather than zero, this
     // will ensure that elev[0][n] is not written to and left set to zero.
-    // remember this data member is set with dim size equal to xmax + 2 to
+    // remember this data member is set with dim size equal to jmax + 2 to
     // allow the border of zeros
 
-    for (int i=0; i<ymax; i++)
+    for (int i=0; i<imax; i++)
     {
-      for (int j=0; j<xmax; j++)
+      for (int j=0; j<jmax; j++)
       {
         elev[i+1][j+1] = raw_elev[i][j];
       }
@@ -344,10 +344,10 @@ void LSDCatchmentModel::load_data()
     // deep copy needed? -- DAV 2/12/2015
     init_elevs = elev;
 
-    //ymax = elevR.get_NRows();
-    //xmax = elevR.get_NCols();
-    //std::cout << "YMAX: " << ymax << std::endl;
-    //std::cout << "XMAX: " << xmax << std::endl;
+    //imax = elevR.get_NRows();
+    //jmax = elevR.get_NCols();
+    //std::cout << "imax: " << imax << std::endl;
+    //std::cout << "jmax: " << jmax << std::endl;
   }
   catch(...)
   {
@@ -924,42 +924,42 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
 
 // These need moving - initialise_params() is called before load_data()
 // but load_data() determines array sizes based on DEM hdr info...epic programmer fail - DV
-// i.e. don't know xmax and ymax at start of this function call in program flow.
+// i.e. don't know jmax and imax at start of this function call in program flow.
 void LSDCatchmentModel::initialise_arrays()
 {
-  std::cout << "Cartesian ymax (no. of rows): " << ymax << \
-               " Cartesian xmax (no. of cols): " << xmax << std::endl;
+  std::cout << "Cartesian imax (no. of rows): " << imax << \
+               " Cartesian jmax (no. of cols): " << jmax << std::endl;
 
-  elev = TNT::Array2D<double> (ymax+2,xmax+2, 0.0);
-  water_depth = TNT::Array2D<double> (ymax+2,xmax+2, 0.0);
+  elev = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
+  water_depth = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
 
   // Cast to int and then double, what?
   //old_j_mean_store = new double[(int)((maxcycle*60)/input_time_step)+10];
   old_j_mean_store = std::vector<double> (static_cast<int>((maxcycle*60)/input_time_step)+10);
 
-  qx = TNT::Array2D<double> (ymax + 2, xmax + 2, 0.0);
-  qy = TNT::Array2D<double> (ymax + 2, xmax + 2, 0.0);
+  qx = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+  qy = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
 
-  qxs = TNT::Array2D<double> (ymax + 2, xmax + 2, 0.0);
-  qys = TNT::Array2D<double> (ymax + 2, xmax + 2, 0.0);
+  qxs = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+  qys = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
 
-  Vel = TNT::Array2D<double> (ymax + 2, xmax + 2, 0.0);
+  Vel = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
 
-  area = TNT::Array2D<double> (ymax+2, xmax + 2, 0.0);
-  index = TNT::Array2D<int> (ymax +2, xmax + 2, 0);
-  elev_diff = TNT::Array2D<double> (ymax + 2, xmax + 2);
+  area = TNT::Array2D<double> (imax+2, jmax + 2, 0.0);
+  index = TNT::Array2D<int> (imax +2, jmax + 2, 0);
+  elev_diff = TNT::Array2D<double> (imax + 2, jmax + 2);
 
-  bedrock = TNT::Array2D<double> (ymax+2, xmax+2);
-  tempcreep = TNT::Array2D<double> (ymax+2,xmax+2);
-  init_elevs = TNT::Array2D<double> (ymax+2,xmax+2);
+  bedrock = TNT::Array2D<double> (imax+2, jmax+2);
+  tempcreep = TNT::Array2D<double> (imax+2,jmax+2);
+  init_elevs = TNT::Array2D<double> (imax+2,jmax+2);
 
-  vel_dir = TNT::Array3D<double> (ymax+2, xmax+2, 9);
-  strata = TNT::Array3D<double> ( ((ymax+2)*(xmax+2))/LIMIT , 10, G_MAX+1);
-  veg = TNT::Array3D<double> (ymax+1, xmax+1, 4);
+  vel_dir = TNT::Array3D<double> (imax+2, jmax+2, 9);
+  strata = TNT::Array3D<double> ( ((imax+2)*(jmax+2))/LIMIT , 10, G_MAX+1);
+  veg = TNT::Array3D<double> (imax+1, jmax+1, 4);
 
-  grain = TNT::Array2D<double> ( ((2+ymax)*(xmax+2))/LIMIT, G_MAX+1 );
-  cross_scan = TNT::Array2D<int> (ymax+2,xmax+2, 0);
-  down_scan = TNT::Array2D<int> (xmax+2, ymax+2, 0);
+  grain = TNT::Array2D<double> ( ((2+imax)*(jmax+2))/LIMIT, G_MAX+1 );
+  cross_scan = TNT::Array2D<int> (imax+2,jmax+2, 0);
+  down_scan = TNT::Array2D<int> (jmax+2, imax+2, 0);
 
   // line to stop max time step being greater than rain time step
   if (rain_data_time_step < 1) rain_data_time_step = 1;
@@ -978,17 +978,17 @@ void LSDCatchmentModel::initialise_arrays()
 
   temp_grain = std::vector<double> (G_MAX+1);
 
-  inputpointsarray = TNT::Array2D <bool> (ymax + 2, xmax + 2);
+  inputpointsarray = TNT::Array2D <bool> (imax + 2, jmax + 2);
 
-  edge = TNT::Array2D<double> (ymax+1,xmax+1);
-  edge2 = TNT::Array2D<double> (ymax+1,xmax+1);
+  edge = TNT::Array2D<double> (imax+1,jmax+1);
+  edge2 = TNT::Array2D<double> (imax+1,jmax+1);
 
-  Tau = TNT::Array2D<double> (ymax+2,xmax+2);
+  Tau = TNT::Array2D<double> (imax+2,jmax+2);
 
-  catchment_input_x_coord = std::vector<int> (xmax * ymax);
-  catchment_input_y_coord = std::vector<int> (xmax * ymax);
+  catchment_input_x_coord = std::vector<int> (jmax * imax);
+  catchment_input_y_coord = std::vector<int> (jmax * imax);
 
-  area_depth = TNT::Array2D<double> (ymax + 2, xmax + 2);
+  area_depth = TNT::Array2D<double> (imax + 2, jmax + 2);
 
   //dune things - but not implemented in this version
   /*
@@ -996,17 +996,17 @@ void LSDCatchmentModel::initialise_arrays()
     if (dune_mult < 1) dune_mult = 1;
     if (DuneBox.Checked == false) dune_mult = 1; // needed in order to stop it tripping out the memory
 
-    area_depth = new double[xmax + 2, ymax + 2];
-    sand = new double[xmax + 2, ymax + 2];
-    elev2 = new double[(xmax * dune_mult) + 2, (ymax*dune_mult) + 2];
-    sand2 = new double[(xmax * dune_mult) + 2, (ymax * dune_mult) + 2];
+    area_depth = new double[jmax + 2, imax + 2];
+    sand = new double[jmax + 2, imax + 2];
+    elev2 = new double[(jmax * dune_mult) + 2, (imax*dune_mult) + 2];
+    sand2 = new double[(jmax * dune_mult) + 2, (imax * dune_mult) + 2];
     */
 
   dischargeinput = TNT::Array2D<double> (1000,5);
 
   hydrograph = TNT::Array2D<double> ( (maxcycle -(static_cast<int>(cycle/60))) + 1000, 2);
 
-  Vsusptot = TNT::Array2D<double> (ymax+2,xmax+2);
+  Vsusptot = TNT::Array2D<double> (imax+2,jmax+2);
 
   // Grain Arrays
   sum_grain = std::vector<double> (G_MAX+1);
@@ -1028,15 +1028,15 @@ void LSDCatchmentModel::initialise_arrays()
   j_mean = std::vector<double> (rfnum + 1);
   old_j_mean = std::vector<double> (rfnum + 1);
   new_j_mean = std::vector<double> (rfnum + 1);
-  rfarea = TNT::Array2D<int> (ymax + 2, xmax + 2);
+  rfarea = TNT::Array2D<int> (imax + 2, jmax + 2);
   nActualGridCells = std::vector<int> (rfnum + 1);
   catchment_input_counter = std::vector<int> (rfnum + 1);
 
-  sr = TNT::Array3D<double> (ymax + 2, xmax + 2, 10);
-  sl = TNT::Array3D<double> (ymax + 2, xmax + 2, 10);
-  su = TNT::Array3D<double> (ymax + 2, xmax + 2, 10);
-  sd = TNT::Array3D<double> (ymax + 2, xmax + 2, 10);
-  ss = TNT::Array2D<double> (ymax + 2, xmax + 2);
+  sr = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
+  sl = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
+  su = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
+  sd = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
+  ss = TNT::Array2D<double> (imax + 2, jmax + 2);
 
   // Initialise suspended fraction vector
   // Tells program whether sediment is suspended fraction or not
@@ -1091,9 +1091,9 @@ void LSDCatchmentModel::get_area()
   // gets the drainage area
   // Could possible come from one of the other LSDRaster objects
 
-  for(int i=0; i<=ymax; i++)
+  for(int i=0; i<=imax; i++)
   {
-    for(int j=0; j<=xmax; j++)
+    for(int j=0; j<=jmax; j++)
     {
       area_depth[i][j]=1;
       area[i][j] = 0;
@@ -1117,22 +1117,22 @@ void LSDCatchmentModel::get_area4()
   int i, j, n, i2, j2, dir;
 
   // zero load of arrays
-  std::vector<double> tempvalues((ymax+2) *(xmax+2));
-  std::vector<double> tempvalues2((ymax+2) * (xmax+2));
-  std::vector<double> xkey((ymax+2)*(xmax+2));
-  std::vector<double> ykey((ymax+2)*(xmax+2));
+  std::vector<double> tempvalues((imax+2) *(jmax+2));
+  std::vector<double> tempvalues2((imax+2) * (jmax+2));
+  std::vector<double> xkey((imax+2)*(jmax+2));
+  std::vector<double> ykey((imax+2)*(jmax+2));
 
   // I leave in the old C# syntax for now for reference (note the subtle differences) (DAV)
-  //tempvalues = new Double [(xmax+2) *(ymax+2)];
-  //tempvalues2 = new Double[(xmax+2) * (ymax+2)];
-  //xkey = new Double [(xmax+2)*(ymax+2)];
-  //ykey = new Double[(xmax+2) * (ymax+2)];
+  //tempvalues = new Double [(jmax+2) *(imax+2)];
+  //tempvalues2 = new Double[(jmax+2) * (imax+2)];
+  //xkey = new Double [(jmax+2)*(imax+2)];
+  //ykey = new Double[(jmax+2) * (imax+2)];
 
   // then create temp array based on elevs then also one for x values.
   int inc = 1;
-  for (i = 1; i <= ymax; i++)
+  for (i = 1; i <= imax; i++)
   {
-    for (j = 1; j <= xmax; j++)
+    for (j = 1; j <= jmax; j++)
     {
       // tempvalues is just a list of all the elevations in the grid.
       tempvalues[inc] = elev[i][j];
@@ -1177,9 +1177,9 @@ void LSDCatchmentModel::get_area4()
 
   // now does the same for y values, creating a temporary array for the ykeys etc.
   inc = 1;
-  for (i = 1; i <= ymax; i++)
+  for (i = 1; i <= imax; i++)
   {
-    for (j = 1; j <= xmax; j++)
+    for (j = 1; j <= jmax; j++)
     {
       tempvalues2[inc] = elev[i][j];
       ykey[inc] = i;  // row-major, so i is the y coordinate (the row of NRows)
@@ -1212,7 +1212,7 @@ void LSDCatchmentModel::get_area4()
 
 
   // then works through the list of x and y co-ordinates from highest to lowest...
-  for (n = (xmax * ymax); n >= 1; n--)
+  for (n = (jmax * imax); n >= 1; n--)
   {
     //x = (int)(xkey[n]); 1/12/15
     //this.InfoStatusPanel.Text = Convert.ToString(x);
@@ -1245,8 +1245,8 @@ void LSDCatchmentModel::get_area4()
 
         if (j2 < 1) j2 = 1;
         if (i2 < 1) i2 = 1;
-        if (j2 > xmax) j2 = xmax;
-        if (i2 > ymax) i2 = ymax;
+        if (j2 > jmax) j2 = jmax;
+        if (i2 > imax) i2 = imax;
 
         // swap comment lines below for drainage area from D8 or Dinfinity
         // Calculates the total drop (difference) in elevation of surrounding cells
@@ -1271,14 +1271,14 @@ void LSDCatchmentModel::get_area4()
         for (dir = 1; dir <= 8; dir++)//was 1 to 8 +=2
         {
           // Calculate the adjacent coordinates
-          i2 = i + deltaX[dir];
-          j2 = j + deltaY[dir];
+          i2 = i + deltaY[dir];
+          j2 = j + deltaX[dir];
 
           // Make sure we don't go over the edges of the model domain
           if (j2 < 1) j2 = 1;
           if (i2 < 1) i2 = 1;
-          if (j2 > xmax) j2 = xmax;
-          if (i2 > ymax) i2 = ymax;
+          if (j2 > jmax) j2 = jmax;
+          if (i2 > imax) i2 = imax;
 
           // swap comment lines below for drainage area from D8 or Dinfinity
 
@@ -1621,7 +1621,7 @@ void LSDCatchmentModel::save_data(double tempcycle)
     // TO DO
     // This will actually write out the border cells which is incorrect technically
     // Find a way to trim these off.
-    LSDRaster water_depthR(ymax+2, xmax+2, xll, yll, DX, no_data_value, water_depth);
+    LSDRaster water_depthR(imax+2, jmax+2, xll, yll, DX, no_data_value, water_depth);
 
     // Use the LSDRaster object's own method
     // Woohoo! Some actual object-oriented programming!
@@ -1631,7 +1631,7 @@ void LSDCatchmentModel::save_data(double tempcycle)
   // Write Elevation raster
   if (write_elev_file == true)
   {
-    LSDRaster elev_outR(ymax+2, xmax+2, xll, yll, DX, no_data_value, elev);
+    LSDRaster elev_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, elev);
     elev_outR.write_double_raster("output_elevTEST", "asc");
   }
 }
@@ -1644,9 +1644,9 @@ void LSDCatchmentModel::check_DEM_edge_condition()
   // Originally part of the Ur-loop (buttonclick2 or something)
   //nActualGridCells = 0;
   std::cout << "Counting number of actual grid cells in domain (non-NODATA)" << std::endl;
-  for (int i = 1; i <= ymax; i++)
+  for (int i = 1; i <= imax; i++)
   {
-    for (int j = 1; j <= xmax; j++)
+    for (int j = 1; j <= jmax; j++)
     {
       if (elev[i][j] > -9999) nActualGridCells[rfarea[i][j]]++;
     }
@@ -1659,8 +1659,8 @@ void LSDCatchmentModel::check_DEM_edge_condition()
   double nodata = -9999;
   double temp = -9999;
 
-  int maxcols = xmax;
-  int maxrows = ymax;
+  int maxcols = jmax;
+  int maxrows = imax;
 
   // start at 1 because zeroth elements are zeroed previously.
   // (i.e. like a zero border surrounding.
@@ -1737,11 +1737,17 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     double input_output_difference = std::abs(waterinput - waterOut);
     // calculate time step-related variables, make sure they don't fall below the threshold values
     if (maxdepth <= 0.1)
+    {
       maxdepth = 0.1;
+    }
     if (time_factor < (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+    {
       time_factor = (courant_number * (DX / std::sqrt(gravity * (maxdepth))));
+    }
     if (input_output_difference > in_out_difference && time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+    {
       time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+    }
 
     double local_time_factor = time_factor;
     if (local_time_factor > (courant_number * (DX  / std::sqrt(gravity * (maxdepth)))))
@@ -1783,6 +1789,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     output_data(temptotal);  // not sure if this is the best place to put this, but it needs to be done every timestep? - DAV
 
     std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
+    //std::cout << "Water Out (Qw): " << waterOut << "                  \r" << std::flush;
 
     if (cycle >= save_time)
     {
@@ -1810,9 +1817,9 @@ void LSDCatchmentModel::zero_values()
 {
   // To do
 
-  for(int i=0; i <= ymax; i++)
+  for(int i=0; i <= imax; i++)
   {
-    for(int j=0; j <= xmax; j++)
+    for(int j=0; j <= jmax; j++)
     {
       Vel[i][j] = 0;
       area[i][j] = 0;
@@ -1849,7 +1856,7 @@ void LSDCatchmentModel::zero_values()
     }
   }
 
-  for(int i=1; i<((xmax*ymax)/LIMIT); i++)
+  for(int i=1; i<((jmax*imax)/LIMIT); i++)
   {
     for(int j=0; j<=G_MAX; j++)
     {
@@ -1910,13 +1917,13 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)
 
   // Zero the water, but then we set it to the minimum depth - DV
   temptot = 0;
-  for (int i = 1; i <= ymax; i++)
+  for (int i = 1; i <= imax; i++)
   {
     // RH Edge
-    if (water_depth[i][xmax] > water_depth_erosion_threshold)
+    if (water_depth[i][jmax] > water_depth_erosion_threshold)
     {
-      temptot += (water_depth[i][xmax] - water_depth_erosion_threshold) * DX * DX / local_time_factor;
-      water_depth[i][xmax] = water_depth_erosion_threshold;
+      temptot += (water_depth[i][jmax] - water_depth_erosion_threshold) * DX * DX / local_time_factor;
+      water_depth[i][jmax] = water_depth_erosion_threshold;
     }
     // LH Edge
     if (water_depth[i][1] > water_depth_erosion_threshold)
@@ -1926,7 +1933,7 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)
     }
   }
 
-  for (int j = 1; j <= xmax; j++)
+  for (int j = 1; j <= jmax; j++)
   {
     // Top Edge
     if (water_depth[1][j] > water_depth_erosion_threshold)
@@ -1935,10 +1942,10 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)
       water_depth[1][j] = water_depth_erosion_threshold;
     }
     // Bottom Edge
-    if (water_depth[ymax][j] > water_depth_erosion_threshold)
+    if (water_depth[imax][j] > water_depth_erosion_threshold)
     {
-      temptot += (water_depth[ymax][j] - water_depth_erosion_threshold) * DX * DX / local_time_factor;
-      water_depth[ymax][j] = water_depth_erosion_threshold;
+      temptot += (water_depth[imax][j] - water_depth_erosion_threshold) * DX * DX / local_time_factor;
+      water_depth[imax][j] = water_depth_erosion_threshold;
     }
   }
   waterOut = temptot;
@@ -1978,11 +1985,11 @@ void LSDCatchmentModel::qroute()
 
   int inc = 1;
 
-  // y is less than xmax? change to i,j to avoid confusion?
-  // DV -- tempfix changed to xmax, see above comment
-  for (int j=1; j <= xmax+1; j++)
+  // y is less than jmax? change to i,j to avoid confusion?
+  // DV -- tempfix changed to jmax, see above comment
+  for (int j=1; j <= jmax+1; j++)
   {
-    while (down_scan[j][inc] > 0)  //remember down-scan is the essentially the DEM rotated - so it has xmax no. of rows!
+    while (down_scan[j][inc] > 0)  //remember down-scan is the essentially the DEM rotated - so it has jmax no. of rows!
     {
       int i = down_scan[j][inc];
       inc++;
@@ -1990,7 +1997,7 @@ void LSDCatchmentModel::qroute()
       if (elev[i][j] > -9999.0)   // stops the water moving into NODATA value cells
       {
         // =-=-=-=-=-=-=-=-=-=-=-=-=-=
-        // ROUTING IN THE X-DIRECTION
+        // ROUTING IN THE i-DIRECTION
         // =-=-=-=-=-=-=-=-=-=-=-=-=-=
         // check that we are in a cell containing water and not a -9999 cell
         if ((water_depth[i][j] > 0 || water_depth[i-1][j] > 0) && elev[i - 1][j] > -9999)
@@ -2008,75 +2015,75 @@ void LSDCatchmentModel::qroute()
             double tempslope = (((elev[i-1][j] + water_depth[i-1][j])) - (elev[i][j] + water_depth[i][j])) / DX;
 
             // to do : apply this to all edes
-            // DV - fixed this, should have been ymax not xmax
-            if (i == ymax) tempslope = edgeslope;
+            // DV - fixed this, should have been imax not jmax
+            if (i == imax) tempslope = edgeslope;
             if (i <= 2) tempslope = 0 - edgeslope; // this deals with the problem of the next-to-edge cells
 
             // appears to be some variation of the Darcy-Weisbach formula? Should check this - DAV.
             // calculate discharge out of cells in x direction.
-            qx[i][j] = ((qx[i][j] - (gravity * hflow * local_time_factor * tempslope)) /
-                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qx[i][j]) /
+            qy[i][j] = ((qy[i][j] - (gravity * hflow * local_time_factor * tempslope)) /
+                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qy[i][j]) /
                          std::pow(hflow, (10/3))));
 
             // Below, the lines attempt to stop a situation where there would be too much water
             // moving from one cell to another in a single time step, resulting in negative
             // discharges. Large instabilities can develop in steep catchments.
-            if (qx[i][j] > 0 && (qx[i][j] / hflow)/std::sqrt(gravity*hflow) > froude_limit)
+            if (qy[i][j] > 0 && (qy[i][j] / hflow)/std::sqrt(gravity*hflow) > froude_limit)
             {
-              qx[i][j] = hflow * (std::sqrt(gravity * hflow) * froude_limit);
+              qy[i][j] = hflow * (std::sqrt(gravity * hflow) * froude_limit);
             }
-            if (qx[i][j] < 0 && std::abs(qx[i][j] / hflow) / std::sqrt(gravity * hflow) > froude_limit)
+            if (qy[i][j] < 0 && std::abs(qy[i][j] / hflow) / std::sqrt(gravity * hflow) > froude_limit)
             {
-              qx[i][j] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
-            }
-
-            if ((qx[i][j] > 0 && qx[i][j] * local_time_factor / DX) > (water_depth[i][j] / 4))
-            {
-              qx[i][j] = ((water_depth[i][j] * DX) / 5) / local_time_factor;
+              qy[i][j] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
             }
 
-            if (qx[i][j] < 0 && std::abs(qx[i][j] * local_time_factor / DX) > (water_depth[i-1][j] / 4))
+            if ((qy[i][j] > 0 && qy[i][j] * local_time_factor / DX) > (water_depth[i][j] / 4))
             {
-              qx[i][j] = 0 - ((water_depth[i-1][j] * DX) / 5) / local_time_factor;
+              qy[i][j] = ((water_depth[i][j] * DX) / 5) / local_time_factor;
+            }
+
+            if (qy[i][j] < 0 && std::abs(qy[i][j] * local_time_factor / DX) > (water_depth[i-1][j] / 4))
+            {
+              qy[i][j] = 0 - ((water_depth[i-1][j] * DX) / 5) / local_time_factor;
             }
             // BOOL IF statement about the suspended sediment option
             //if (isSuspended == true)
             if (suspended_opt == true)
             {
-              if (qx[i][j] > 0)
+              if (qy[i][j] > 0)
               {
-                qxs[i][j] = qx[i][j] * (Vsusptot[i][j] / water_depth[i][j]);
+                qys[i][j] = qy[i][j] * (Vsusptot[i][j] / water_depth[i][j]);
               }
-              if (qx[i][j] < 0)
+              if (qy[i][j] < 0)
               {
-                qxs[i][j] = qx[i][j] * (Vsusptot[i-1][j] / water_depth[i-1][j]);
+                qys[i][j] = qy[i][j] * (Vsusptot[i-1][j] / water_depth[i-1][j]);
               }
-              if (qxs[i][j] > 0 && std::abs(qxs[i][j] * local_time_factor > (Vsusptot[i-1][j] * DX) / 4))
+              if (qys[i][j] > 0 && std::abs(qys[i][j] * local_time_factor > (Vsusptot[i-1][j] * DX) / 4))
               {
-                qxs[i][j] = 0 - ((Vsusptot[i-1][j] * DX) / 5 / local_time_factor);
+                qys[i][j] = 0 - ((Vsusptot[i-1][j] * DX) / 5 / local_time_factor);
               }
             }
 
             // CALCULATE THE VELOCITY OF THE FLOWS
-            if (qx[i][j] > 0)
+            if (qy[i][j] > 0)
             {
-              vel_dir[i][j][7] = qx[i][j] / hflow;
+              vel_dir[i][j][7] = qy[i][j] / hflow;
             }
-            if (qx[i][j] < 0)
+            if (qy[i][j] < 0)
             {
-              vel_dir[i-1][j][3] = (0 - qx[i][j]) / hflow;
+              vel_dir[i-1][j][3] = (0 - qy[i][j]) / hflow;
             }
           }
           // What to do if the water depth is really, really small:
           else
           {
-            qx[i][j] = 0;
-            qxs[i][j] = 0;
+            qy[i][j] = 0;
+            qys[i][j] = 0;
           }
         }// end of the X-direction routing code block
 
         // =-=-=-=-=-=-=-=-=-=-=-=-=-=
-        // ROUTING IN THE Y-DIRECTION
+        // ROUTING IN THE j-DIRECTION
         // =-=-=-=-=-=-=-=-=-=-=-=-=-=
         // check that we are in a cell containing water and not a -9999 cell
         if ((water_depth[i][j] > 0 || water_depth[i][j-1] > 0) && elev[i][j-1] > -9999)
@@ -2089,62 +2096,62 @@ void LSDCatchmentModel::qroute()
           {
             double tempslope = (((elev[i][j-1] + water_depth[i][j-1])) - (elev[i][j] + water_depth[i][j])) / DX;
 
-            if (j == xmax) tempslope = edgeslope;
+            if (j == jmax) tempslope = edgeslope;
             if (j <= 2) tempslope = 0 - edgeslope; // this deals with the problem of the next-to-edge cells
 
             // The Lisflood-FP algorithm developed in Bates et al 2010 - DAV.
             // calculate discharge out of cells in y direction.
-            qy[i][j] = ((qy[i][j] - (gravity * hflow * local_time_factor * tempslope)) /
-                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qy[i][j]) /
+            qx[i][j] = ((qx[i][j] - (gravity * hflow * local_time_factor * tempslope)) /
+                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qx[i][j]) /
                          std::pow(hflow, (10/3))));
 
             // Below, the lines attempt to stop a situation where there would be too much water
             // moving from one cell to another in a single time step, resulting in negative
             // discharges. Large instabilities can develop in steep catchments.
-            if (qy[i][j] > 0 && (qy[i][j] / hflow)/std::sqrt(gravity*hflow) > froude_limit)
-              qy[i][j] = hflow * (std::sqrt(gravity * hflow) * froude_limit);
+            if (qx[i][j] > 0 && (qx[i][j] / hflow)/std::sqrt(gravity*hflow) > froude_limit)
+              qx[i][j] = hflow * (std::sqrt(gravity * hflow) * froude_limit);
 
-            if (qy[i][j] < 0 && std::abs(qy[i][j] / hflow) / std::sqrt(gravity * hflow) > froude_limit)
-              qy[i][j] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
+            if (qx[i][j] < 0 && std::abs(qx[i][j] / hflow) / std::sqrt(gravity * hflow) > froude_limit)
+              qx[i][j] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
 
-            if ((qy[i][j] > 0 && qy[i][j] * local_time_factor / DX) > (water_depth[i][j] / 4))
-              qy[i][j] = ((water_depth[i][j] * DX) / 5) / local_time_factor;
+            if ((qx[i][j] > 0 && qx[i][j] * local_time_factor / DX) > (water_depth[i][j] / 4))
+              qx[i][j] = ((water_depth[i][j] * DX) / 5) / local_time_factor;
 
-            if (qy[i][j] < 0 && std::abs(qy[i][j] * local_time_factor / DX) > (water_depth[i][j-1] / 4))
-              qy[i][j] = 0 - ((water_depth[i][j-1] * DX) / 5) / local_time_factor;
+            if (qx[i][j] < 0 && std::abs(qx[i][j] * local_time_factor / DX) > (water_depth[i][j-1] / 4))
+              qx[i][j] = 0 - ((water_depth[i][j-1] * DX) / 5) / local_time_factor;
 
             // BOOL IF statement about the suspended sediment option
             if (suspended_opt == true)
             {
-              if (qy[i][j] > 0)
+              if (qx[i][j] > 0)
               {
-                qys[i][j] = qy[i][j] * (Vsusptot[i][j] / water_depth[i][j]);
+                qxs[i][j] = qx[i][j] * (Vsusptot[i][j] / water_depth[i][j]);
               }
-              if (qy[i][j] < 0)
+              if (qx[i][j] < 0)
               {
-                qys[i][j] = qy[i][j] * (Vsusptot[i][j-1] / water_depth[i][j-1]);
+                qxs[i][j] = qx[i][j] * (Vsusptot[i][j-1] / water_depth[i][j-1]);
               }
-              if (qys[i][j] > 0 && std::abs(qys[i][j] * local_time_factor > (Vsusptot[i][j-1] * DX) / 4))
+              if (qxs[i][j] > 0 && std::abs(qxs[i][j] * local_time_factor > (Vsusptot[i][j-1] * DX) / 4))
               {
-                qys[i][j] = 0 - ((Vsusptot[i][j-1] * DX) / 5 / local_time_factor);
+                qxs[i][j] = 0 - ((Vsusptot[i][j-1] * DX) / 5 / local_time_factor);
               }
             }
 
             // CALCULATE THE VELOCITY OF THE FLOWS
-            if (qy[i][j] > 0)
+            if (qx[i][j] > 0)
             {
-              vel_dir[i][j][1] = qy[i][j] / hflow;
+              vel_dir[i][j][1] = qx[i][j] / hflow;
             }
-            if (qy[i][j] < 0)
+            if (qx[i][j] < 0)
             {
-              vel_dir[i][j-1][5] = (0 - qy[i][j]) / hflow;
+              vel_dir[i][j-1][5] = (0 - qx[i][j]) / hflow;
             }
           }
 
           else // What to do if the water depth is really, really small:
           {
-            qy[i][j] = 0;
-            qys[i][j] = 0;
+            qx[i][j] = 0;
+            qxs[i][j] = 0;
           }
         }   // end of the y-direction water routing block
       }
@@ -2162,10 +2169,10 @@ void LSDCatchmentModel::depth_update()
     local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
   }
 
-  std::vector<double> tempmaxdepth2(xmax + 2);
+  std::vector<double> tempmaxdepth2(jmax + 2);
   maxdepth = 0;
-  // DAV - addition swapped j<=ymax to xmax because of the way down_scan is constructed (see initialise_arrays() )
-  for (int j=1; j<=xmax+1; j++)
+  // DAV - addition swapped j<=imax to jmax because of the way down_scan is constructed (see initialise_arrays() )
+  for (int j=1; j<=jmax+1; j++)
   {
     int inc = 1;
     double tempmaxdepth = 0;
@@ -2178,7 +2185,7 @@ void LSDCatchmentModel::depth_update()
 
       // UPDATE THE WATER DEPTHS
       //std::cout << "update water depth: " << inc << "\r" << std::flush;
-      water_depth[i][j] += local_time_factor * (qx[i+1][j] - qx[i][j] + qy[i][j+1] - qy[i][j]) / DX;
+      water_depth[i][j] += local_time_factor * (qy[i+1][j] - qy[i][j] + qx[i][j+1] - qx[i][j]) / DX;
       //debug
       //std::cout << "incrementing_depth: " << water_depth[x][y] << std::endl;
 
@@ -2186,7 +2193,7 @@ void LSDCatchmentModel::depth_update()
       if (suspended_opt == true)
       {
         //std::cout << "update SuspSedi: " << std::endl;
-        Vsusptot[i][j] += local_time_factor * (qxs[i + 1][j] - qxs[i][j] + qys[i][j + 1] - qys[i][j]) / DX;
+        Vsusptot[i][j] += local_time_factor * (qys[i + 1][j] - qys[i][j] + qxs[i][j + 1] - qxs[i][j]) / DX;
       }
 
       if (water_depth[i][j] > 0)
@@ -2203,7 +2210,7 @@ void LSDCatchmentModel::depth_update()
     tempmaxdepth2[j] = tempmaxdepth;
   }
   // reduction (if paralellism implemented at later date)
-  for (int j = 1; j <= xmax; j++)
+  for (int j = 1; j <= jmax; j++)
   {
     if (tempmaxdepth2[j] > maxdepth)
     {
@@ -2234,7 +2241,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     {
       time_1++;
       calc_J(time_1++);  // calc_J is based on the rainfall rate supplied to the cell
-      if (time_factor > max_time_step && new_j_mean[1] > (0.2 / (xmax * ymax * DX * DX)))
+      if (time_factor > max_time_step && new_j_mean[1] > (0.2 / (jmax * imax * DX * DX)))
         // check after the variable rainfall area has been added
         // stops code going too fast when there is actual flow in the channels greater than 0.2cu
       {
@@ -2355,9 +2362,9 @@ void LSDCatchmentModel::get_catchment_input_points()
   {
     catchment_input_counter[n] = 0;
   }
-  for (int i=1; i <= ymax; i++)
+  for (int i=1; i <= imax; i++)
   {
-    for (int j=1; j <= xmax; j++)
+    for (int j=1; j <= jmax; j++)
     {
       if ((area[i][j] * j_mean[rfarea[i][j]] * 3 * DX * DX) > MIN_Q \
           && (area[i][j] * j_mean[rfarea[i][j]] * 3 * DX * DX) < MIN_Q_MAXVAL)
@@ -2382,8 +2389,8 @@ void LSDCatchmentModel::evaporate(double time)
     evap_amount = ERODEFACTOR;
   }
   //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-  //Parallel.For(1, ymax, options, delegate(int y)
-  for (int y=1; y < ymax; y++)
+  //Parallel.For(1, imax, options, delegate(int y)
+  for (int y=1; y < imax; y++)
   {
     int inc = 1;
     while (down_scan[y][inc] > 0)
@@ -2404,27 +2411,33 @@ void LSDCatchmentModel::scan_area()
 {
 
   //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-  //Parallel.For(1, ymax+1, options, delegate(int y)
-  for (int i=1; i <= ymax; i++)
+  //Parallel.For(1, imax+1, options, delegate(int y)
+  for (int i=1; i <= imax; i++)
   {
+
     int inc = 1;
-    for (int j=1; j <= xmax; j++)
+
+    for (int j=1; j <= jmax; j++)
     {
       // zero scan bit..
       down_scan[j][i] = 0;
       // and work out scanned area. // TO DO (DAV) there is some out-of-bounds indexing going on here, check carefully!
       if (water_depth[i][j] > 0
+          || water_depth[i][j - 1] > 0
+          || water_depth[i][j + 1] > 0
           || water_depth[i - 1][j] > 0
           || water_depth[i - 1][j - 1] > 0
           || water_depth[i - 1][j + 1] > 0
           || water_depth[i + 1][j - 1] > 0
           || water_depth[i + 1][j + 1] > 0
-          || water_depth[i][j - 1] > 0
           || water_depth[i + 1][j] > 0
-          || water_depth[i][j + 1] > 0)
+          )
       {
         down_scan[j][inc] = i;
         inc++;
+        // inc will increment everytime there is water found in a cell
+        // upto a maximum of imax
+
         // debug
         //std::cout << "set downscan: "<< down_scan[y][inc] << std::endl;
       }
@@ -2832,16 +2845,16 @@ double LSDCatchmentModel::erode(double mult_factor)
   {
     counter2++;
     tempbmax = 0;
-    std::vector<double> tempbmax2(ymax + 2, 0.0);
+    std::vector<double> tempbmax2(imax + 2, 0.0);
 
     // PARALELLISATION GOES HERE
     // C#
     // var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-    // Parallel.For(1, ymax, options, delegate(int y)
+    // Parallel.For(1, imax, options, delegate(int y)
 
     // C++ with OpenMP
     // #pragma omp parallel for
-    for (int y =1; y <= ymax; y++)
+    for (int y =1; y <= imax; y++)
     {
       int inc = 1;
       while (down_scan[y][inc] > 0) // results in an infinte loop!?
@@ -3210,7 +3223,7 @@ double LSDCatchmentModel::erode(double mult_factor)
         }
       }
       // reduction on tempbmax (DAV for parallelism implementation later on)
-      for (int y=1; y<=ymax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];   // This is the actual reduction bit
+      for (int y=1; y<=imax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];   // This is the actual reduction bit
 
       if (tempbmax > ERODEFACTOR)
       {
@@ -3228,12 +3241,12 @@ double LSDCatchmentModel::erode(double mult_factor)
 
 
   // new temp erode total array.
-  TNT::Array2D<double> erodetot(xmax + 2, ymax + 2);
-  TNT::Array2D<double> erodetot3(xmax + 2, ymax +2);
+  TNT::Array2D<double> erodetot(jmax + 2, imax + 2);
+  TNT::Array2D<double> erodetot3(jmax + 2, imax +2);
 
   //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-  //Parallel.For(2, ymax, options1, delegate(int y)
-  for (int y=2; y<ymax; y++)
+  //Parallel.For(2, imax, options1, delegate(int y)
+  for (int y=2; y<imax; y++)
   {
     int inc = 1;
     while (down_scan[y][inc] > 0)
@@ -3241,7 +3254,7 @@ double LSDCatchmentModel::erode(double mult_factor)
       int x = down_scan[y][inc];
       inc++;
 
-      if (water_depth[x][y] > water_depth_erosion_threshold && x < xmax && x > 1)
+      if (water_depth[x][y] > water_depth_erosion_threshold && x < jmax && x > 1)
       {
         if (index[x][y] == -9999) addGS(x, y);
         for (int n = 1; n <= 9; n++)
@@ -3311,7 +3324,7 @@ double LSDCatchmentModel::erode(double mult_factor)
               slide_GS(x - 1, y, amt, x, y);
             }
           }
-          if (elev[x + 1][y] > elev[x][y] && x < xmax-1)
+          if (elev[x + 1][y] > elev[x][y] && x < jmax-1)
           {
             double amt = 0;
             if (water_depth[x + 1][y] < water_depth_erosion_threshold)
@@ -3321,7 +3334,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (amt > 0)
             {
               amt *= 1 - (veg[x + 1][y][1] * (1 - veg_lat_restriction));
-              if ((elev[x + 1][y] - amt) < bedrock[x + 1][y] || x + 1 == xmax) amt = 0;
+              if ((elev[x + 1][y] - amt) < bedrock[x + 1][y] || x + 1 == jmax) amt = 0;
               if (amt > ERODEFACTOR * 0.1) amt = ERODEFACTOR * 0.1;
               //if (amt > erodetot2 /2) amt = erodetot2 /2;
               elev_update += amt;
@@ -3336,8 +3349,8 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
   }
   // (PARALLELISM GOES HERE)
-  //Parallel.For2(2, ymax, delegate(int y)
-  for (int y = 2; y < ymax; y++)
+  //Parallel.For2(2, imax, delegate(int y)
+  for (int y = 2; y < imax; y++)
   {
     int inc = 1;
     while (down_scan[y][inc] > 0)
@@ -3377,7 +3390,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (amt > 0)
             {
               amt *= 1 - (veg[x][y + 1][1] * (1 - veg_lat_restriction));
-              if ((elev[x][y + 1] - amt) < bedrock[x][y + 1] || y + 1 == ymax) amt = 0;
+              if ((elev[x][y + 1] - amt) < bedrock[x][y + 1] || y + 1 == imax) amt = 0;
               if (amt > ERODEFACTOR * 0.1) amt = ERODEFACTOR * 0.1;
               //if (amt > erodetot2 / 2) amt = erodetot2 / 2;
               elev_update += amt;
@@ -3396,20 +3409,20 @@ double LSDCatchmentModel::erode(double mult_factor)
   //
   //
   // now calculate sediment outputs from all four edges...
-  for (int y = 2; y < ymax; y++)
+  for (int y = 2; y < imax; y++)
   {
-    if (water_depth[xmax][y] > water_depth_erosion_threshold || Vsusptot[xmax][y] > 0)
+    if (water_depth[jmax][y] > water_depth_erosion_threshold || Vsusptot[jmax][y] > 0)
     {
       for (int n = 1; n <= 9; n++)
       {
         if (isSuspended[n])
         {
-          gtot2[n] += Vsusptot[xmax][y];
-          Vsusptot[xmax][y] = 0;
+          gtot2[n] += Vsusptot[jmax][y];
+          Vsusptot[jmax][y] = 0;
         }
         else
         {
-          gtot2[n] += sr[xmax - 1][y][n];
+          gtot2[n] += sr[jmax - 1][y][n];
         }
       }
     }
@@ -3430,20 +3443,20 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
   }
 
-  for (int x = 2; x < xmax; x++)
+  for (int x = 2; x < jmax; x++)
   {
-    if (water_depth[x][ymax] > water_depth_erosion_threshold || Vsusptot[x][ymax] > 0)
+    if (water_depth[x][imax] > water_depth_erosion_threshold || Vsusptot[x][imax] > 0)
     {
       for (int n = 1; n <= 9; n++)
       {
         if (isSuspended[n])
         {
-          gtot2[n] += Vsusptot[x][ymax];
-          Vsusptot[x][ymax] = 0;
+          gtot2[n] += Vsusptot[x][imax];
+          Vsusptot[x][imax] = 0;
         }
         else
         {
-          gtot2[n] += sd[x][ymax - 1][n];
+          gtot2[n] += sd[x][imax - 1][n];
         }
       }
     }
@@ -3488,23 +3501,23 @@ void LSDCatchmentModel::lateral3()
   //int[,] upscale, upscale_edge;
 
   // declare arrays and initialise the size of them
-  TNT::Array2D<double> edge_temp(xmax + 1, ymax + 1, 0.0);
-  TNT::Array2D<double> edge_temp2(xmax + 1, ymax + 1, 0.0);
-  TNT::Array2D<double> water_depth2(xmax + 1, ymax + 1, 0.0);
+  TNT::Array2D<double> edge_temp(jmax + 1, imax + 1, 0.0);
+  TNT::Array2D<double> edge_temp2(jmax + 1, imax + 1, 0.0);
+  TNT::Array2D<double> water_depth2(jmax + 1, imax + 1, 0.0);
 
-  TNT::Array2D<int> upscale( (xmax + 1)*2, (ymax + 1)*2, 0);
-  TNT::Array2D<int> upscale_edge( (xmax + 1)*2, (ymax + 1)*2, 0);
+  TNT::Array2D<int> upscale( (jmax + 1)*2, (imax + 1)*2, 0);
+  TNT::Array2D<int> upscale_edge( (jmax + 1)*2, (imax + 1)*2, 0);
 
-  //edge_temp = new Double[xmax + 1][ymax + 1];
-  //edge_temp2 = new Double[xmax + 1][ymax + 1];
-  //water_depth2 = new Double[xmax + 1][ymax + 1];
-  //upscale = new int[(xmax + 1) * 2][(ymax + 1) * 2];
-  //upscale_edge = new int[(xmax + 1) * 2][(ymax + 1) * 2];
+  //edge_temp = new Double[jmax + 1][imax + 1];
+  //edge_temp2 = new Double[jmax + 1][imax + 1];
+  //water_depth2 = new Double[jmax + 1][imax + 1];
+  //upscale = new int[(jmax + 1) * 2][(imax + 1) * 2];
+  //upscale_edge = new int[(jmax + 1) * 2][(imax + 1) * 2];
 
 
   // first make water depth2 equal to water depth then remove single wet cells frmo water depth2 that have an undue influence..
   double mft = 0.1;// water_depth_erosion_threshold;//MIN_Q;// vel_dir threshold
-  for (int y = 2; y < ymax; y++)
+  for (int y = 2; y < imax; y++)
   {
 
     int inc = 1;
@@ -3514,7 +3527,7 @@ void LSDCatchmentModel::lateral3()
 
       edge_temp[x][y] = 0;
       if (x == 1) x++;
-      if (x == xmax) x--;
+      if (x == jmax) x--;
       inc++;
 
       if (Tau[x][y] > mft)
@@ -3535,10 +3548,10 @@ void LSDCatchmentModel::lateral3()
 
   // first determine which cells are at the edge of the channel
 
-  for (int y = 2; y < ymax; y++)
+  for (int y = 2; y < imax; y++)
   {
 
-    for (int x = 2; x < xmax; x++)
+    for (int x = 2; x < jmax; x++)
     {
 
       edge[x][y] = -9999;
@@ -3585,9 +3598,9 @@ void LSDCatchmentModel::lateral3()
 
   // now determine edge cells on the new grid..
 
-  for (int y = 2; y < ymax * 2; y++)
+  for (int y = 2; y < imax * 2; y++)
   {
-    for (int x = 2; x < xmax * 2; x++)
+    for (int x = 2; x < jmax * 2; x++)
     {
       upscale_edge[x][y] = 0;
       if (upscale[x][y] == 0)
@@ -3606,9 +3619,9 @@ void LSDCatchmentModel::lateral3()
   // now tall up inside and outside on upscaled grid
 
 
-  for (int y = 2; y < ymax * 2; y++)
+  for (int y = 2; y < imax * 2; y++)
   {
-    for (int x = 2; x < xmax * 2; x++)
+    for (int x = 2; x < jmax * 2; x++)
     {
       if (upscale[x][y] == 2)
       {
@@ -3640,9 +3653,9 @@ void LSDCatchmentModel::lateral3()
 
   // now update normal edge array..
 
-  for (int x = 1; x <= xmax; x++)
+  for (int x = 1; x <= jmax; x++)
   {
-    for (int y = 1; y <= ymax; y++)
+    for (int y = 1; y <= imax; y++)
     {
       if (edge[x][y] == 0)
       {
@@ -3665,8 +3678,8 @@ void LSDCatchmentModel::lateral3()
   for (int n = 1; n <= smoothing_times+downstream_shift; n++)
   {
     //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-    //Parallel.For(2, ymax, options, delegate(int y)
-    for (int y=2; y<ymax; y++)
+    //Parallel.For(2, imax, options, delegate(int y)
+    for (int y=2; y<imax; y++)
     {
       int inc = 1;
       while (down_scan[y][inc] > 0)
@@ -3675,9 +3688,9 @@ void LSDCatchmentModel::lateral3()
 
         edge_temp[x][y] = 0;
         if (x == 1) x++;
-        if (x == xmax) x--;
+        if (x == jmax) x--;
         if (y == 1) y++;
-        if (y == ymax) y--;
+        if (y == imax) y--;
         inc++;
 
         if (edge[x][y] > -9999)
@@ -3843,21 +3856,21 @@ void LSDCatchmentModel::lateral3()
           //if(num+water_flag>7&&edge[x,y]>0)edge_temp[x,y]=0;
 
           //remove edge effects
-          if (x < 3 || x > (xmax - 3)) edge_temp[x][y] = 0;
-          if (y < 3 || y > (ymax - 3)) edge_temp[x][y] = 0;
+          if (x < 3 || x > (jmax - 3)) edge_temp[x][y] = 0;
+          if (y < 3 || y > (imax - 3)) edge_temp[x][y] = 0;
 
         }
       }
     }//);
 
-    for (int y = 2; y < ymax; y++)
+    for (int y = 2; y < imax; y++)
     {
       int inc = 1;
       while (down_scan[y][inc] > 0)
       {
         int x = down_scan[y][inc];
         //if (x == 1) x++;
-        //if (x == xmax) x--;
+        //if (x == jmax) x--;
         inc++;
         if (edge[x][y] > -9999)
         {
@@ -3869,9 +3882,9 @@ void LSDCatchmentModel::lateral3()
 
 
   // trial line to remove too high inside bends,,
-  for (int x = 1; x <= xmax; x++)
+  for (int x = 1; x <= jmax; x++)
   {
-    for (int y = 1; y <= ymax; y++)
+    for (int y = 1; y <= imax; y++)
     {
       if (edge[x][y] > -9999)
       {
@@ -3894,8 +3907,8 @@ void LSDCatchmentModel::lateral3()
   {
     counter++;
     //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-    //Parallel.For(2, ymax, options, delegate(int y)
-    for (int y = 2; y < ymax; y++)
+    //Parallel.For(2, imax, options, delegate(int y)
+    for (int y = 2; y < imax; y++)
     {
       int inc = 1;
       while (down_scan[y][inc] > 0)
@@ -3904,7 +3917,7 @@ void LSDCatchmentModel::lateral3()
 
         edge_temp[x][y] = 0;
         if (x == 1) x++;
-        if (x == xmax) x--;
+        if (x == jmax) x--;
         inc++;
         if (water_depth2[x][y] > mft && edge[x][y] == -9999) edge[x][y] = 0;
 
@@ -3931,14 +3944,14 @@ void LSDCatchmentModel::lateral3()
     }//);
 
     tempdiff = 0;
-    for (int y = 2; y < ymax; y++)
+    for (int y = 2; y < imax; y++)
     {
       int inc = 1;
       while (down_scan[y][inc] > 0)
       {
         int x = down_scan[y][inc];
         if (x == 1) x++;
-        if (x == xmax) x--;
+        if (x == jmax) x--;
         inc++;
         if (edge[x][y] > -9999 && water_depth2[x][y] > mft)
         {
@@ -3963,18 +3976,18 @@ void LSDCatchmentModel::creep(double time)
   int x,y;
   double temp;
 
-  for(x=1;x<=xmax;x++)
+  for(x=1;x<=jmax;x++)
   {
-    for(y=1;y<=ymax;y++)
+    for(y=1;y<=imax;y++)
     {
       tempcreep[x][y]=0;
     }
   }
 
 
-  for(x=2;x<xmax;x++)
+  for(x=2;x<jmax;x++)
   {
-    for(y=2;y<ymax;y++)
+    for(y=2;y<imax;y++)
     {
       if(elev[x][y]>bedrock[x][y])
       {
@@ -4079,9 +4092,9 @@ void LSDCatchmentModel::creep(double time)
     }
   }
 
-  for(x=1;x<=xmax;x++)
+  for(x=1;x<=jmax;x++)
   {
-    for(y=1;y<=ymax;y++)
+    for(y=1;y<=imax;y++)
     {
       elev[x][y]+=tempcreep[x][y];
     }
@@ -4097,7 +4110,7 @@ void LSDCatchmentModel::slide_3()
   double factor=std::tan((failureangle*(3.141592654/180)))*DX;
   double diff=0;
 
-  for(y=2;y<ymax;y++)
+  for(y=2;y<imax;y++)
   {
 
     inc=1;
@@ -4105,7 +4118,7 @@ void LSDCatchmentModel::slide_3()
     {
 
       x=down_scan[y][inc];
-      if(x==xmax)x=xmax-1;
+      if(x==jmax)x=jmax-1;
       if(x==1)x=2;
 
       inc++;
@@ -4199,9 +4212,9 @@ void LSDCatchmentModel::slide_5()
 
   if (dunes_opt == true)
   {
-    for (x = 1; x <= xmax; x++)
+    for (x = 1; x <= jmax; x++)
     {
-      for (y = 1; y <= ymax; y++)
+      for (y = 1; y <= imax; y++)
       {
         elev[x][y] -= sand[x][y];
       }
@@ -4213,9 +4226,9 @@ void LSDCatchmentModel::slide_5()
   {
     total = 0;
     inc++;
-    for (y = 2; y < ymax; y++)
+    for (y = 2; y < imax; y++)
     {
-      for (x = 2; x < xmax; x++)
+      for (x = 2; x < jmax; x++)
       {
 
         wet_factor = factor;
@@ -4307,9 +4320,9 @@ void LSDCatchmentModel::slide_5()
 
   if (dunes_opt == true)
   {
-    for (x = 1; x <= xmax; x++)
+    for (x = 1; x <= jmax; x++)
     {
-      for (y = 1; y <= ymax; y++)
+      for (y = 1; y <= imax; y++)
       {
         elev[x][y] += sand[x][y];
       }
@@ -4329,18 +4342,18 @@ void LSDCatchmentModel::soil_erosion(double time)
   double temp;
 
 
-  for (x = 1; x <= xmax; x++)
+  for (x = 1; x <= jmax; x++)
   {
-    for (y = 1; y <= ymax; y++)
+    for (y = 1; y <= imax; y++)
     {
       tempcreep[x][y] = 0;
     }
   }
 
 
-  for (x = 2; x < xmax; x++)
+  for (x = 2; x < jmax; x++)
   {
-    for (y = 2; y < ymax; y++)
+    for (y = 2; y < imax; y++)
     {
       if (elev[x][y] > bedrock[x][y])
       {
@@ -4445,9 +4458,9 @@ void LSDCatchmentModel::soil_erosion(double time)
     }
   }
 
-  for (x = 1; x <= xmax; x++)
+  for (x = 1; x <= jmax; x++)
   {
-    for (y = 1; y <= ymax; y++)
+    for (y = 1; y <= imax; y++)
     {
       elev[x][y] += tempcreep[x][y];
     }
@@ -4457,9 +4470,9 @@ void LSDCatchmentModel::soil_erosion(double time)
 // all based on Van Walleghem et al., 2013 (JGR:ES)
 void LSDCatchmentModel::soil_development()
 {
-  for (int x = 1; x <= xmax; x++)
+  for (int x = 1; x <= jmax; x++)
   {
-    for (int y = 1; y <= ymax; y++)
+    for (int y = 1; y <= imax; y++)
     {
       if (elev[x][y] > -9999) // ensure it is not a no-data point
       {

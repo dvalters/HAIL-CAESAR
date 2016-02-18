@@ -401,7 +401,7 @@ protected:
   int rfnum = 2;
 
   /// set by ncols and nrows
-  int xmax, ymax;
+  int jmax, imax;
   double xll, yll;
   double no_data_value;
 
@@ -596,7 +596,7 @@ protected:
   // TO DO - do these need swapping
   //std::array<int, 9> deltaX = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
   //std::array<int, 9> deltaY = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
-
+//
   // swapped
 
   std::array<int, 9> deltaX = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
