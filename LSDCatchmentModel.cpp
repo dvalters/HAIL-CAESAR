@@ -1967,9 +1967,197 @@ void LSDCatchmentModel::init_water_routing(int flag, double reach_input_amount, 
 // shallow water equations (see Hydrology textbooks) to calculate
 // water transport across the model.
 //
-// Originally implemented in CL in C# by TC
-// Translated here to C++ by DAV for LSD
+// This algorithm was originally implemented in the CAESAR-Lisflood
+// model (2013), and remains broadly unchanged (except it's in C++)
+//
+//
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::qroute()
+{
+  double local_time_factor = time_factor;
+  if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+
+  for (int y=1; y<=jmax; y++)
+  {
+    int inc = 1;
+    while (down_scan[y][inc] > 0)
+    {
+      int x = down_scan[y][inc];
+      inc++;
+
+      if (elev[x][y] > -9999) // to stop moving water in to -9999's on elev
+      {
+        // routing in x direction
+        if ((water_depth[x][y] > 0 || water_depth[x - 1][y] > 0) && elev[x - 1][y] > -9999)  // need to check water and not -9999 on elev
+        {
+          double hflow = std::max(elev[x][y] + water_depth[x][y], elev[x - 1][y] + water_depth[x - 1][y]) -
+              std::max(elev[x - 1][y], elev[x][y]);
+
+          if (hflow > hflow_threshold)
+          {
+            double tempslope = (((elev[x - 1][y] + water_depth[x - 1][y])) -
+                (elev[x][y] + water_depth[x][y])) / DX;
+
+            if (x == imax) tempslope = edgeslope;
+            if (x <= 2) tempslope = 0 - edgeslope;
+
+            //double oldqx = qx[x][y];
+            qx[x][y] = ((qx[x][y] - (gravity * hflow * local_time_factor * tempslope)) /
+                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qx[x][y]) /
+                         std::pow(hflow, (10 / 3))));
+            //if (oldqx != 0) qx[x][y] = (oldqx + qx[x][y]) / 2;
+
+            // need to have these lines to stop too much water moving from one cellt o another - resulting in -ve discharges
+            // whihc causes a large instability to develop - only in steep catchments really
+            if (qx[x][y] > 0 && (qx[x][y] / hflow)/std::sqrt(gravity*hflow) > froude_limit )
+              qx[x][y] = hflow * (std::sqrt(gravity*hflow) * froude_limit );
+
+            if (qx[x][y] < 0 && std::abs(qx[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit )
+              qx[x][y] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit ));
+
+            if (qx[x][y] > 0 && (qx[x][y] * local_time_factor / DX) > (water_depth[x][y] / 4))
+              qx[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
+
+            if (qx[x][y] < 0 && std::abs(qx[x][y] * local_time_factor / DX) > (water_depth[x - 1][y] / 4))
+              qx[x][y] = 0 - ((water_depth[x - 1][y] * DX) / 5) / local_time_factor;
+
+            if (isSuspended[1])
+            {
+
+              if (qx[x][y] > 0) qxs[x][y] = qx[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
+              if (qx[x][y] < 0) qxs[x][y] = qx[x][y] * (Vsusptot[x - 1][y] / water_depth[x - 1][y]);
+
+              if (qxs[x][y] > 0 && qxs[x][y] * local_time_factor > (Vsusptot[x][y] * DX) / 4)
+                qxs[x][y] = ((Vsusptot[x][y] * DX) / 5) / local_time_factor;
+
+              if (qxs[x][y] < 0 && std::abs(qxs[x][y] * local_time_factor) > (Vsusptot[x - 1][y] * DX) / 4)
+                qxs[x][y] = 0 - ((Vsusptot[x - 1][y] * DX) / 5) / local_time_factor;
+            }
+
+            // calc velocity now
+            if (qx[x][y] > 0)
+              vel_dir[x][y][7] = qx[x][y] / hflow;
+            if (qx[x][y] < 0)
+              vel_dir[x - 1][y][3] = (0- qx[x][y]) / hflow;
+
+          }
+          else
+          {
+            qx[x][y] = 0;
+            qxs[x][y] = 0;
+          }
+        }
+
+        //routing in the y direction
+        if ((water_depth[x][y] > 0 || water_depth[x][y - 1] > 0) && elev[x][y - 1] > -9999)
+        {
+          double hflow = std::max(elev[x][y] + water_depth[x][y], elev[x][y - 1] + water_depth[x][y - 1]) -
+              std::max(elev[x][y], elev[x][y - 1]);
+
+          if (hflow > hflow_threshold)
+          {
+            double tempslope = (((elev[x][y - 1] + water_depth[x][y - 1])) -
+                (elev[x][y] + water_depth[x][y])) / DX;
+            if (y == jmax) tempslope = edgeslope;
+            if (y <= 2 ) tempslope = 0 - edgeslope;
+
+            //double oldqy = qy[x][y];
+            qy[x][y] = ((qy[x][y] - (gravity * hflow * local_time_factor * tempslope)) /
+                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qy[x][y]) /
+                         std::pow(hflow, (10 / 3))));
+            //if (oldqy != 0) qy[x][y] = (oldqy + qy[x][y]) / 2;
+
+            // need to have these lines to stop too much water moving from one cellt o another - resulting in -ve discharges
+            // whihc causes a large instability to develop - only in steep catchments really
+            if (qy[x][y] > 0 && (qy[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit ) qy[x][y] = hflow * (std::sqrt(gravity * hflow) * froude_limit );
+            if (qy[x][y] < 0 && std::abs(qy[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit ) qy[x][y] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
+
+            if (qy[x][y] > 0 && (qy[x][y] * local_time_factor / DX) > (water_depth[x][y] / 4)) qy[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
+            if (qy[x][y] < 0 && std::abs(qy[x][y] * local_time_factor / DX) > (water_depth[x][y - 1] / 4)) qy[x][y] = 0 - ((water_depth[x][y - 1] * DX) / 5) / local_time_factor;
+
+
+            if (suspended_opt == true)
+            {
+
+              if (qy[x][y] > 0) qys[x][y] = qy[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
+              if (qy[x][y] < 0) qys[x][y] = qy[x][y] * (Vsusptot[x][y - 1] / water_depth[x][y - 1]);
+
+              if (qys[x][y] > 0 && qys[x][y] * local_time_factor > (Vsusptot[x][y] * DX) / 4) qys[x][y] = ((Vsusptot[x][y] * DX) / 5) / local_time_factor;
+              if (qys[x][y] < 0 && std::abs(qys[x][y] * local_time_factor) > (Vsusptot[x][y - 1] * DX) / 4) qys[x][y] = 0 - ((Vsusptot[x][y - 1] * DX) / 5) / local_time_factor;
+
+            }
+
+            // calc velocity now
+            if (qy[x][y] > 0) vel_dir[x][y][1] = qy[x][y] / hflow;
+            if (qy[x][y] < 0) vel_dir[x][y - 1][5] = (0 - qy[x][y]) / hflow;
+          }
+          else
+          {
+            qy[x][y] = 0;
+            qys[x][y] = 0;
+          }
+        }
+
+      }
+    }
+  }
+
+}
+
+// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// DEPTH UPDATE
+//
+// This function scans the discharge arrays, qx, and qy, and updates
+// the cell's water depth based on the difference between water discahrges
+// in the x and y directions. Note that it only checks x+1 and y+1 because
+// the down_scan array (see the scan_area() routine) tells it which cells
+// flow into which.
+//
+// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::depth_update()
+{
+  double local_time_factor = time_factor;
+  if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+
+  //double [] tempmaxdepth2;
+  //tempmaxdepth2 = new Double[imax + 2];
+
+  std::vector<double> tempmaxdepth2(jmax+2);
+
+  maxdepth = 0;
+  for (int y = 1; y<= jmax; y++)
+  {
+    int inc = 1;
+    double tempmaxdepth = 0;
+    while (down_scan[y][inc] > 0)
+    {
+      int x = down_scan[y][inc];
+      inc++;
+
+      // update water depths
+      water_depth[x][y] += local_time_factor * (qx[x + 1][y] - qx[x][y] + qy[x][y + 1] - qy[x][y]) / DX;
+      // now update SS concs
+      if (suspended_opt == true)
+      {
+        Vsusptot[x][y] += local_time_factor * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
+      }
+
+      if (water_depth[x][y] > 0)
+      {
+        // line to remove any water depth on nodata cells (that shouldnt get there!)
+        if (elev[x][y] == -9999) water_depth[x][y] = 0;
+        // calc max flow depth for time step calc
+        if (water_depth[x][y] > tempmaxdepth) tempmaxdepth = water_depth[x][y];
+      }
+    }
+    tempmaxdepth2[y] = tempmaxdepth;
+  }
+  // reduction for later parallelism implementation DAV
+  for (int y = 1; y <= jmax; y++) if (tempmaxdepth2[y] > maxdepth) maxdepth = tempmaxdepth2[y];
+}
+
+
+/*
 void LSDCatchmentModel::qroute()
 {
   //std::cout << "qroute\r" << std::flush;
@@ -2158,7 +2346,9 @@ void LSDCatchmentModel::qroute()
     } // endwhile
   } // endfor
 }
+*/
 
+/*
 void LSDCatchmentModel::depth_update()
 {
   //std::cout << "depth_update(): " << std::endl;
@@ -2185,7 +2375,7 @@ void LSDCatchmentModel::depth_update()
 
       // UPDATE THE WATER DEPTHS
       //std::cout << "update water depth: " << inc << "\r" << std::flush;
-      water_depth[i][j] += local_time_factor * (qy[i+1][j] - qy[i][j] + qx[i][j+1] - qx[i][j]) / DX;
+      water_depth[i][j] += local_time_factor * (qx[i+1][j] - qx[i][j] + qy[i][j+1] - qy[i][j]) / DX;
       //debug
       //std::cout << "incrementing_depth: " << water_depth[x][y] << std::endl;
 
@@ -2193,7 +2383,7 @@ void LSDCatchmentModel::depth_update()
       if (suspended_opt == true)
       {
         //std::cout << "update SuspSedi: " << std::endl;
-        Vsusptot[i][j] += local_time_factor * (qys[i + 1][j] - qys[i][j] + qxs[i][j + 1] - qxs[i][j]) / DX;
+        Vsusptot[i][j] += local_time_factor * (qxs[i + 1][j] - qxs[i][j] + qys[i][j + 1] - qys[i][j]) / DX;
       }
 
       if (water_depth[i][j] > 0)
@@ -2218,7 +2408,7 @@ void LSDCatchmentModel::depth_update()
     }
   }
 }
-
+*/
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor)     // DAV - This can be split into subfunctions
 {
   for (int z=1; z <= totalinputpoints; z++)
@@ -2412,15 +2602,26 @@ void LSDCatchmentModel::scan_area()
 
   //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
   //Parallel.For(1, imax+1, options, delegate(int y)
-  for (int i=1; i <= imax; i++)
+
+
+  // More efficient to zero down_scan in separate loop here
+  for (int j=1; j<=jmax; j++)
   {
+    for (int i=1; i<=imax; i++)
+    {
+      down_scan[j][i] = 0;
+    }
+  }
 
+
+  // Now do the moving window checking in the proper for loop order? - DV
+  for (int j=1; j <= jmax; j++)
+  {
     int inc = 1;
-
-    for (int j=1; j <= jmax; j++)
+    for (int i=1; i <= imax; i++)
     {
       // zero scan bit..
-      down_scan[j][i] = 0;
+      //down_scan[j][i] = 0;
       // and work out scanned area. // TO DO (DAV) there is some out-of-bounds indexing going on here, check carefully!
       if (water_depth[i][j] > 0
           || water_depth[i][j - 1] > 0
@@ -2436,8 +2637,6 @@ void LSDCatchmentModel::scan_area()
         down_scan[j][inc] = i;
         inc++;
         // inc will increment everytime there is water found in a cell
-        // upto a maximum of imax
-
         // debug
         //std::cout << "set downscan: "<< down_scan[y][inc] << std::endl;
       }
