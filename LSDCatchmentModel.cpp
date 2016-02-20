@@ -763,6 +763,12 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Hydrology and Flow
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "hydro_model_only")
+    {
+      hydro_only = (value == "yes") ? true : false;
+      std::cout << "run hydro model only (NO EROSION): " << hydro_only << std::endl;
+    }
+
     else if (lower == "rainfall_data_on")
     {
       rainfall_data_on = (value == "yes") ? true : false;
@@ -1780,7 +1786,11 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
       scan_area();
     }
 
-    //call_erosion();
+    // Will run hydrological model only if "hydro_model_only" set to yes/true
+    if (!hydro_only)
+    {
+      call_erosion();
+    }
     //call_lateral();
     water_flux_out(local_time_factor);  // temptot is zeroed, then calculated here
 
@@ -2076,7 +2086,7 @@ void LSDCatchmentModel::qroute()
             if (qy[x][y] < 0 && std::abs(qy[x][y] * local_time_factor / DX) > (water_depth[x][y - 1] / 4)) qy[x][y] = 0 - ((water_depth[x][y - 1] * DX) / 5) / local_time_factor;
 
 
-            if (suspended_opt == true)
+            if (isSuspended[1])
             {
 
               if (qy[x][y] > 0) qys[x][y] = qy[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
@@ -3053,7 +3063,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 
     // C++ with OpenMP
     // #pragma omp parallel for
-    for (int y =1; y <= imax; y++)
+    for (int y =1; y < jmax; y++)
     {
       int inc = 1;
       while (down_scan[y][inc] > 0) // results in an infinte loop!?
@@ -3330,39 +3340,46 @@ double LSDCatchmentModel::erode(double mult_factor)
           // "Vegetation is the basic instrument the creator
           //  uses to set all of nature in motion"
           //      - Antoine Lavoisier
-          if (veg[x][y][1] > 0 && tau > vegTauCrit)
-          {
-            // Remove from the vegetaton layer
-            veg[x][y][1] -= mult_factor * time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
-            if (veg[x][y][1] < 0) veg[x][y][1] = 0;
-          }
 
-          // Determine if movement should be restricted due to veg, or because
-          // of bedrock
-          if (veg[x][y][1] > 0.25)   // Arbitrary threshold? - DAV
+          if (vegetation_on == true)
           {
-            // now check if this amount removed from the cell would put it
-            // below the veg layer
-            if (elev[x][y] - temptot1 <= veg[x][y][0])
+            if (veg[x][y][1] > 0 && tau > vegTauCrit)
             {
-              // now remove from the proportion that can be eroded
-              double elevdiff = 0;
-              elevdiff = elev[x][y] - veg[x][y][0];
-              if (elevdiff < 0)  elevdiff = 0;double temptot3 = temptot1;
-              temptot1 = 0;
-
-              for (int n = 1; n <= 9; n++)
-              {
-                temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
-                if(elev[x][y] <= veg[x][y][0]) temp_dist[n] = 0;
-                temptot1 += temp_dist[n];
-              }
-
-              if (temptot1 < 0) temptot1 = 0;
+              // Remove from the vegetaton layer
+              veg[x][y][1] -= mult_factor * time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
+              if (veg[x][y][1] < 0) veg[x][y][1] = 0;
             }
-          }  // Here endeth the veg-block
 
-          if (temptot1 > tempbmax2[y]) tempbmax2[y] = temptot1;   // I have no idea what this is for...
+            // Determine if movement should be restricted due to veg, or because
+            // of bedrock
+            if (veg[x][y][1] > 0.25)   // Arbitrary threshold? - DAV
+            {
+              // now check if this amount removed from the cell would put it
+              // below the veg layer
+              if (elev[x][y] - temptot1 <= veg[x][y][0])
+              {
+                // now remove from the proportion that can be eroded
+                double elevdiff = 0;
+                elevdiff = elev[x][y] - veg[x][y][0];
+                if (elevdiff < 0)  elevdiff = 0;
+
+                double temptot3 = temptot1;
+                temptot1 = 0;
+
+                for (int n = 1; n <= 9; n++)
+                {
+                  temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
+                  if(elev[x][y] <= veg[x][y][0]) temp_dist[n] = 0;
+                  temptot1 += temp_dist[n];
+                }
+
+                if (temptot1 < 0) temptot1 = 0;
+              }
+            }
+            if (temptot1 > tempbmax2[y]) tempbmax2[y] = temptot1;
+          } // Here endeth the veg-block
+
+
           // Too many temp... temp this temp that....need to rename - DAV
 
           // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -3370,6 +3387,7 @@ double LSDCatchmentModel::erode(double mult_factor)
           //
           //
           // Work out what portion of bedload has to go where
+          // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
           if (temptot1 > 0)
           {
             for (int p=1; p <= 8; p+=2)
@@ -3435,13 +3453,15 @@ double LSDCatchmentModel::erode(double mult_factor)
 
 
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-  //  UPDATING GRAINSIZE ETC
+  //  UPDATING GRAINSIZE AND ELEVATION
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // update_grainsize() perhaps?
 
+  // Argh this also updates the elevations! (within the same for loop)
 
   // new temp erode total array.
-  TNT::Array2D<double> erodetot(jmax + 2, imax + 2);
-  TNT::Array2D<double> erodetot3(jmax + 2, imax +2);
+  TNT::Array2D<double> erodetot(jmax + 2, imax + 2);    // erosion difference in x and y directions
+  TNT::Array2D<double> erodetot3(jmax + 2, imax +2);    // erosion in the [x][y] cell
 
   //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
   //Parallel.For(2, imax, options1, delegate(int y)
@@ -3463,7 +3483,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             // updating entrainment of SS
             Vsusptot[x][y] += ss[x][y];
             grain[ index[x][y] ][n] -= ss[x][y];
-            erodetot[x][y] -= ss[x][y];
+            erodetot[x][y] -= ss[x][y];  // Erosion lost to suspended sediment in current cell
 
             // this next part is unusual. You have to stop susp sed deposition on the input cells, otherwies
             // it drops sediment out, but cannot entrain as ss levels in input are too high leading to
@@ -3473,32 +3493,50 @@ double LSDCatchmentModel::erode(double mult_factor)
             {
               // now calc ss to be dropped
               double coeff = (fallVelocity[n] * time_factor) / water_depth[x][y];
-              if (coeff > 1) coeff = 1;
+              if (coeff > 1)
+              {
+                coeff = 1;
+              }
               double Vpdrop = coeff * Vsusptot[x][y];
-              if (Vpdrop > 0.001) Vpdrop = 0.001; //only allow 1mm to be deposited per iteration
+              if (Vpdrop > 0.001)
+              {
+                Vpdrop = 0.001; //only allow 1mm to be deposited per iteration
+              }
+
               grain[index[x][y]][n] += Vpdrop;
-              erodetot[x][y] += Vpdrop;
-              Vsusptot[x][y] -= Vpdrop;
+              erodetot[x][y] += Vpdrop;   // 'erosion' gained from susp sedi droppinng out (positive erosion is deposition...)
+              Vsusptot[x][y] -= Vpdrop;   // remove drop-out SS from the suspended sedi array
               //if (Vsusptot[x][y] < 0) Vsusptot[x][y] = 0; NOT this line.
             }
           }
           else
           {
             //else update grain and elevations for bedload.
+            // Calculate sediment discharge into current cell
             double val1 = (su[x][y][n] + sr[x][y][n] + sd[x][y][n] + sl[x][y][n]);
+            // Calculate sediment discarge in manhattan neighbours
             double val2 = (su[x][y + 1][n] + sd[x][y - 1][n] + sl[x + 1][y][n] + sr[x - 1][y][n]);
             grain[index[x][y]][n] += val2 - val1;
-            erodetot[x][y] += val2 - val1;
-            erodetot3[x][y] += val1;
+            erodetot[x][y] += val2 - val1;  // difference in erosion between x and y dirs
+            erodetot3[x][y] += val1;        // erosion in this cell
           }
         }
 
+
+        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        //  UPDATING ELEVATIONS
+        //
+        //  Update the elevation matrix
+        //
+        // TODO:
+        //
+        // oop - something like elev.update()?
+        // or at least split to function...
+        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         elev[x][y] += erodetot[x][y];
         if (erodetot[x][y] != 0) sort_active(x, y);
 
-        //
-        // test lateral code...
-        //
+        /// test lateral code...
 
         if (erodetot3[x][y] > 0)
         {
@@ -3549,7 +3587,7 @@ double LSDCatchmentModel::erode(double mult_factor)
   }
   // (PARALLELISM GOES HERE)
   //Parallel.For2(2, imax, delegate(int y)
-  for (int y = 2; y < imax; y++)
+  for (int y = 2; y < jmax; y++)
   {
     int inc = 1;
     while (down_scan[y][inc] > 0)
@@ -3565,32 +3603,55 @@ double LSDCatchmentModel::erode(double mult_factor)
           {
             double amt = 0;
             if (water_depth[x][y - 1] < water_depth_erosion_threshold)
+            {
               amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y - 1] * time_factor / DX;
-            else amt = bed_proportion * erodetot3[x][y] * (elev[x][y - 1] - elev[x][y]) / DX *0.1;
+            }
+            else
+            {
+              amt = bed_proportion * erodetot3[x][y] * (elev[x][y - 1] - elev[x][y]) / DX *0.1;
+            }
 
             if (amt > 0)
             {
               amt *= 1 - (veg[x][y - 1][1] * (1 - veg_lat_restriction));
-              if ((elev[x][y - 1] - amt) < bedrock[x][y - 1] || y - 1 == 1) amt = 0;
-              if (amt > ERODEFACTOR * 0.1) amt = ERODEFACTOR * 0.1;
+              if ((elev[x][y - 1] - amt) < bedrock[x][y - 1] || y - 1 == 1)
+              {
+                amt = 0;
+              }
+              if (amt > ERODEFACTOR * 0.1)
+              {
+                amt = ERODEFACTOR * 0.1;
+              }
               //if (amt > erodetot2 / 2) amt = erodetot2 / 2;
               elev_update += amt;
               elev[x][y - 1] -= amt;
               slide_GS(x, y - 1, amt, x, y);
             }
           }
+
           if (elev[x][y + 1] > elev[x][y])
           {
             double amt = 0;
             if (water_depth[x][y + 1] < water_depth_erosion_threshold)
+            {
               amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y + 1] * time_factor / DX;
-            else amt = bed_proportion * erodetot3[x][y] * (elev[x][y + 1] - elev[x][y]) / DX * 0.1;
+            }
+            else
+            {
+              amt = bed_proportion * erodetot3[x][y] * (elev[x][y + 1] - elev[x][y]) / DX * 0.1;
+            }
 
             if (amt > 0)
             {
               amt *= 1 - (veg[x][y + 1][1] * (1 - veg_lat_restriction));
-              if ((elev[x][y + 1] - amt) < bedrock[x][y + 1] || y + 1 == imax) amt = 0;
-              if (amt > ERODEFACTOR * 0.1) amt = ERODEFACTOR * 0.1;
+              if ((elev[x][y + 1] - amt) < bedrock[x][y + 1] || y + 1 == imax)
+              {
+                amt = 0;
+              }
+              if (amt > ERODEFACTOR * 0.1)
+              {
+                amt = ERODEFACTOR * 0.1;
+              }
               //if (amt > erodetot2 / 2) amt = erodetot2 / 2;
               elev_update += amt;
               elev[x][y + 1] -= amt;
@@ -3608,23 +3669,32 @@ double LSDCatchmentModel::erode(double mult_factor)
   //
   //
   // now calculate sediment outputs from all four edges...
-  for (int y = 2; y < imax; y++)
+  //
+  // TODO:
+  // sediment_flux_out(), perhaps?
+  // or even sediment.fluxOut(), if feeling brave?
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+  for (int y = 2; y < jmax; y++)
   {
-    if (water_depth[jmax][y] > water_depth_erosion_threshold || Vsusptot[jmax][y] > 0)
+    // Bottom edge
+    if (water_depth[imax][y] > water_depth_erosion_threshold || Vsusptot[imax][y] > 0)
     {
       for (int n = 1; n <= 9; n++)
       {
         if (isSuspended[n])
         {
-          gtot2[n] += Vsusptot[jmax][y];
-          Vsusptot[jmax][y] = 0;
+          gtot2[n] += Vsusptot[imax][y];
+          Vsusptot[imax][y] = 0;
         }
         else
         {
-          gtot2[n] += sr[jmax - 1][y][n];
+          gtot2[n] += sr[imax - 1][y][n];  // TODO: do these need changed to respective arrays, e.g. sl[][] here?
         }
       }
     }
+    // Top Edge
     if (water_depth[1][y] > water_depth_erosion_threshold || Vsusptot[1][y] > 0)
     {
       for (int n = 1; n <= 9; n++)
@@ -3642,23 +3712,26 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
   }
 
-  for (int x = 2; x < jmax; x++)
+  for (int x = 2; x < imax; x++)
   {
-    if (water_depth[x][imax] > water_depth_erosion_threshold || Vsusptot[x][imax] > 0)
+    // former Top Edge
+    // Right-hand edge
+    if (water_depth[x][jmax] > water_depth_erosion_threshold || Vsusptot[x][jmax] > 0)
     {
       for (int n = 1; n <= 9; n++)
       {
         if (isSuspended[n])
         {
-          gtot2[n] += Vsusptot[x][imax];
-          Vsusptot[x][imax] = 0;
+          gtot2[n] += Vsusptot[x][jmax];
+          Vsusptot[x][jmax] = 0;
         }
         else
         {
-          gtot2[n] += sd[x][imax - 1][n];
+          gtot2[n] += sd[x][jmax - 1][n];
         }
       }
     }
+    // Left hand edge
     if (water_depth[x][1] > water_depth_erosion_threshold || Vsusptot[x][1] > 0)
     {
       for (int n = 1; n <= 9; n++)
@@ -3676,8 +3749,8 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
   }
 
-  /// now update files for outputing sediment and re-circulating...
-  ///
+  // now update files for outputing sediment and re-circulating...
+  //
 
   sediQ = 0;
   for (int n = 1; n <= G_MAX; n++)

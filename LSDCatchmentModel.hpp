@@ -594,13 +594,13 @@ protected:
   std::vector<bool> isSuspended;
   TNT::Array2D<double> Vsusptot;
   // TO DO - do these need swapping
-  //std::array<int, 9> deltaX = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
-  //std::array<int, 9> deltaY = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
+  std::array<int, 9> deltaX = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
+  std::array<int, 9> deltaY = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
 //
   // swapped
 
-  std::array<int, 9> deltaX = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
-  std::array<int, 9> deltaY = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
+  //std::array<int, 9> deltaX = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
+  //std::array<int, 9> deltaY = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
   //int[] deltaY = new int[9] {0,-1,-1,0,1,1,1,0,-1};   // I leave an old example in for comparison - DAV
 
   std::vector<int> nActualGridCells;
@@ -664,6 +664,7 @@ protected:
 
   bool soil_j_mean_depends_on = false;
   bool rainfall_data_on = false;
+  bool hydro_only = false;
   bool vegetation_on = false;
   bool bedrock_layer_on = false;
   bool lateral_erosion_on = false;
