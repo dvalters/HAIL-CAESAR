@@ -77,6 +77,7 @@ float get_mean_ignore_ndv(Array2D<float>& data, float ndv);
 float get_SST(vector<float>& y_data, float mean);
 float get_variance_ignore_ndv(Array2D<float>& data, float ndv, float mean); 
 float get_range_ignore_ndv(Array2D<float>& data, float ndv);
+float get_range_from_vector(vector<float>& y_data, float ndv);
 float get_durbin_watson_statistic(vector<float> residuals);
 float get_standard_deviation(vector<float>& y_data, float mean);
 float get_standard_error(vector<float>& y_data, float standard_deviation);

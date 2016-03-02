@@ -11155,7 +11155,7 @@ float LSDRaster::get_threshold_for_floodplain(float bin_width, float peak_thresh
 // Function to set the threshold value to use in floodplain extraction using QQ plots
 // FJC 16/11/15
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename)
+float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float threshold_condition)
 {
   //get vector of raster data
   vector<float> raster_vector; 
@@ -11186,35 +11186,35 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename)
   }
   ofs.close();
   
+  //get range of values - used to get the threshold value
+  float range = get_range_from_vector(quantile_values, NoDataValue);
+	cout << "Range: " << range << endl;
+    
   // Find q-q threshold
   cout << "\t finding deviation from Gaussian distribution to define q-q threshold" << endl;
-  vector<int> indices;
   int flag = 0;
-  float threshold_condition=0.99;
-  int threshold_index=0;
   float threshold=0;
-  for(int i = 0; i<n_values; ++i)
+
+	for (int i =0; i < n_values; i++)
   {
-    if(normal_variates[i] <= 0)
+    if (normal_variates[i] <= 0)
     {
-      if(mn_values[i]>threshold_condition*quantile_values[i])
-      {
-        if (flag==0)
-        {
-          flag = 1;
-          threshold_index = i;
-          threshold = quantile_values[i];
-          cout << "Quantile value at threshold: " << quantile_values[i] << " Normal variate: " << normal_variates[i] << endl;
-        }
-      }
-      else flag = 0;
+			// get difference between real and normal distributions	
+    	float diff = abs(quantile_values[i] - mn_values[i]);
+			// express as fraction of the range of data
+			float frac_diff = diff/range;
+			if (frac_diff < threshold_condition)
+			{
+				// only get the threshold if this is the first time the condition is fulfilled
+				if (flag == 0)
+				{
+					flag = 1;  
+					threshold = quantile_values[i];
+					cout << "Quantile value at threshold: " << quantile_values[i] << " Normal variate: " <<  normal_variates[i] << endl;
+				}
+			}
     }
   }
-  
-  //float mean = get_mean(raster_vector);
-  //float standard_deviation = get_standard_deviation(raster_vector,mean);
-  //float threshold = mean+normal_variates[threshold_index]*standard_deviation;
-  //cout << "Mean: " << mean << " Standard deviation: " << standard_deviation << " Threshold value is: " << threshold << endl;
   
   return threshold;
 }
