@@ -450,6 +450,39 @@ float get_range_ignore_ndv(Array2D<float>& data, float ndv)
   return range;
 }  
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// gets the range from a vector of data
+// ignores no data values
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float get_range_from_vector(vector<float>& y_data, float ndv)
+{
+  float min = 0;
+  float max = 0;
+  int flag = 0;
+  for (int i =0; i < int(y_data.size()); i++)
+  {
+    if (y_data[i] != ndv)
+    {
+      if (flag == 0)
+      {
+      	min = y_data[i];
+        max = y_data[i];
+        flag = 1;
+      }
+      if (y_data[i] < min)
+      {
+      	min = y_data[i];
+      }
+      if (y_data[i] > max)
+      {
+        max = y_data[i];
+			}
+    }
+	}
+    
+  float range = max-min;
+  return range;    
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the standard deviation from a population of data

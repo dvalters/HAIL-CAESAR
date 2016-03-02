@@ -2367,9 +2367,8 @@ LSDIndexRaster LSDIndexRaster::remove_checkerboard_pattern()
   LSDIndexRaster FilledRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledArray,GeoReferencingStrings);       
   return FilledRaster;                                                                                                           
                                                                                                                                  
-}                                                                                                                                
-                                                                                                                                 
-                                                                                                                                 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=                                        
+}                                                                                                                                                                                                                                                                                                                                                                                                 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
+                                      
                                                                                                                                  
 #endif                                                                                                                           
