@@ -11155,7 +11155,7 @@ float LSDRaster::get_threshold_for_floodplain(float bin_width, float peak_thresh
 // Function to set the threshold value to use in floodplain extraction using QQ plots
 // FJC 16/11/15
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float threshold_condition)
+float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float threshold_condition, int lower_percentile, int upper_percentile)
 {
   //get vector of raster data
   vector<float> raster_vector; 
@@ -11169,7 +11169,7 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
   
   vector<float> quantile_values,normal_variates,mn_values;
   int N_points = 10000;//values.size();
-  quantile_quantile_analysis(raster_vector, quantile_values, normal_variates, mn_values, N_points);
+  quantile_quantile_analysis_defined_percentiles(raster_vector, quantile_values, normal_variates, mn_values, N_points, lower_percentile, upper_percentile);
   ofstream ofs;
   ofs.open(q_q_filename.c_str());
   
@@ -11218,6 +11218,7 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
   
   return threshold;
 }
+
 
 // Get the lengths in spatial units of each part of the channel network, divided by strahler order.
 // Returns a string containing the comma separated lengths
