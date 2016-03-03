@@ -2020,7 +2020,7 @@ class LSDRaster
   /// @param q_q_filename Filename for the txt file with the data to visualise the qq plot
   /// @author FJC
   /// @date 16/11/15                                                  
-  float get_threshold_for_floodplain_QQ(string q_q_filename, float threshold_condition);
+  float get_threshold_for_floodplain_QQ(string q_q_filename, float threshold_condition, int lower_percentile, int upper_percentile);
   
   /// @brief Get the lengths in spatial units of each part of the channel network, divided by strahler order.
   /// @param StreamNetwork Raster of the stream network coded by strahler order.

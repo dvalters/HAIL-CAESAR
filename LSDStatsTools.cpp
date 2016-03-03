@@ -722,6 +722,56 @@ void quantile_quantile_analysis(vector<float>& data, vector<float>& values, vect
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// quantile_quantile_analysis
+// sorts data; produces quartile-quantile comparison against standard normal variate, returning
+// a sorted subsample of N_points, their corresponding normal variate and the reference value 
+// from the standard normal distribution
+// DTM 28/11/2014
+// Modified by FJC 03/03/16 to get the percentiles for the normally distributed model as an
+// argument.
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void quantile_quantile_analysis_defined_percentiles(vector<float>& data, vector<float>& values, vector<float>& standard_normal_variates, vector<float>& mn_values, int N_points, int lower_percentile, int upper_percentile)
+{
+  vector<size_t> index_map;   
+  vector<float> data_sorted;
+  matlab_float_sort(data, data_sorted, index_map);
+  float quantile,x;
+  vector<float> snv,vals;
+  
+  for(int i = 0; i < N_points; ++i)
+  {
+    quantile = (1.+ float(i))/(float(N_points)+1.);
+    x = (sqrt(2)*inverf(quantile*2-1));
+    vals.push_back(get_percentile(data_sorted, quantile*100));
+    snv.push_back(x);
+  }
+  // CONSTRUCTING NORMALLY DISTRIBUTED MODEL
+  // Now get upper quartile and lower quartile boundaries
+  float q_lower_x = get_percentile(snv,lower_percentile);
+  float q_upper_x = get_percentile(snv,upper_percentile);
+  float q_lower_y = get_percentile(vals,lower_percentile);
+  float q_upper_y = get_percentile(vals,upper_percentile);
+  
+  float slope = (q_upper_y-q_lower_y)/(q_upper_x-q_lower_x);
+//   cout << "slope = " << slope << endl;
+  float centerx = (q_lower_x + q_upper_x)/2;
+  float centery = (q_lower_y + q_upper_y)/2;
+  float intercept =centery-slope*centerx; 
+  vector<float> mn_vals;
+  
+  for(int i = 0; i < N_points; ++i)
+  {
+    mn_vals.push_back(intercept+slope*snv[i]);
+  }
+  
+  standard_normal_variates=snv;
+  values = vals;
+  mn_values = mn_vals;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // this function tests for autocorrelation between residuals
 // if the number is less than 2 the residuals show autocorrelation
 // if the number is less than 1 there is clear evidence for autocorrelation
