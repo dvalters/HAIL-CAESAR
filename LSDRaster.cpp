@@ -11194,6 +11194,7 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
   cout << "\t finding deviation from Gaussian distribution to define q-q threshold" << endl;
   int flag = 0;
   float threshold=0;
+	float min_length=200;
 
 	for (int i =0; i < n_values; i++)
   {
@@ -11205,12 +11206,25 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
 			float frac_diff = diff/range;
 			if (frac_diff < threshold_condition)
 			{
-				// only get the threshold if this is the first time the condition is fulfilled
+				// first time the condition is fulfilled
 				if (flag == 0)
 				{
-					flag = 1;  
-					threshold = quantile_values[i];
-					cout << "Quantile value at threshold: " << quantile_values[i] << " Normal variate: " <<  normal_variates[i] << endl;
+					flag = 1; 
+					int count = 0;
+					//search next points to check if they also fulfil the condition
+					for (int j = 1; j <= min_length; j++)
+					{
+						float next_diff = abs(quantile_values[i+j] - mn_values[i+j]);
+						float next_frac = next_diff/range;
+						if (next_frac < threshold_condition) count++;											
+					}
+					//cout << "Count is: " << count << endl;
+					if (count == min_length) 
+					{
+						threshold = quantile_values[i];
+						cout << "Quantile value at threshold: " << quantile_values[i] << " Normal variate: " <<  normal_variates[i] << endl;
+					}
+					else flag = 0;
 				}
 			}
     }
@@ -11218,7 +11232,6 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
   
   return threshold;
 }
-
 
 // Get the lengths in spatial units of each part of the channel network, divided by strahler order.
 // Returns a string containing the comma separated lengths
