@@ -664,6 +664,24 @@ void LSDRaster::read_raster(string filename, string extension)
           }
         }
       }
+      else if (DataType == 5)
+      {
+        double temp;
+        cout << "I am trying to load a double precision raster. Wish me luck!" << endl;
+        for (int i=0; i<NRows; ++i)
+        {
+          for (int j=0; j<NCols; ++j)
+          {
+            ifs_data.read(reinterpret_cast<char*>(&temp), sizeof(temp));
+            
+            data[i][j] = double(temp);
+            if (data[i][j]<-1e10)
+            {
+              data[i][j] = NoDataValue;
+            }
+          }
+        }
+      }
       else if (DataType == 13)
       {
         unsigned long int temp;
