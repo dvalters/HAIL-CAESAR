@@ -88,6 +88,8 @@ using namespace JAMA;
 #define MZ 0
 #define FAC (1.0/MBIG)
 
+#define ROUGHLY_PI 4
+
 float ran3(long *idum)
 {
    //cout << &idum << endl;
