@@ -2762,7 +2762,7 @@ void LSDCatchmentModel::sort_active(int x,int y)
 
 }
 
-void LSDCatchmentModel::addGS(int &x, int &y)
+void LSDCatchmentModel::addGS(int x, int y)
 {
   // needs lock statement to stop two being added at the same time...
   //lock (this) // DAV - This is only for paralllism...
@@ -2786,15 +2786,15 @@ void LSDCatchmentModel::addGS(int &x, int &y)
 
   for (n = 0; n <= 9; n++)
   {
-    strata[grain_array_tot][n][0] = (active) * d1prop;
-    strata[grain_array_tot][n][1] = (active * d2prop);
-    strata[grain_array_tot][n][2] = (active) * d3prop;
-    strata[grain_array_tot][n][3] = (active) * d4prop;
-    strata[grain_array_tot][n][4] = (active) * d5prop;
-    strata[grain_array_tot][n][5] = (active) * d6prop;
-    strata[grain_array_tot][n][6] = (active) * d7prop;
-    strata[grain_array_tot][n][7] = (active) * d8prop;
-    strata[grain_array_tot][n][8] = (active) * d9prop;
+    strata[grain_array_tot][n][0] = active * d1prop;
+    strata[grain_array_tot][n][1] = active * d2prop;
+    strata[grain_array_tot][n][2] = active * d3prop;
+    strata[grain_array_tot][n][3] = active * d4prop;
+    strata[grain_array_tot][n][4] = active * d5prop;
+    strata[grain_array_tot][n][5] = active * d6prop;
+    strata[grain_array_tot][n][6] = active * d7prop;
+    strata[grain_array_tot][n][7] = active * d8prop;
+    strata[grain_array_tot][n][8] = active * d9prop;
 
     if (elev[x][y] - (active * (n + 1)) < (bedrock[x][y] - active))
     {

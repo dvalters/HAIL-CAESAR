@@ -231,7 +231,7 @@ public:
 
   double sand_fraction(int index1);
 
-  void addGS(int &x, int &y);
+  void addGS(int x, int y);
 
   void slide_GS(int x,int y, double amount,int x2, int y2);
 
