@@ -3433,14 +3433,19 @@ double LSDCatchmentModel::erode(double mult_factor)
                     }       // It's curly braces all the way down...
                   }
                 }
-
               }
             }       // Refuge point for curly brace fatigue...
           }
         }
       }
       // reduction on tempbmax (DAV for parallelism implementation later on)
-      for (int y=1; y<=imax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];   // This is the actual reduction bit
+      for (int y=1; y<=jmax; y++)
+      {
+        if (tempbmax2[y] > tempbmax)
+        {
+          tempbmax = tempbmax2[y];   // This is the actual reduction bit
+        }
+      }
 
       if (tempbmax > ERODEFACTOR)
       {
@@ -3460,12 +3465,12 @@ double LSDCatchmentModel::erode(double mult_factor)
   // Argh this also updates the elevations! (within the same for loop)
 
   // new temp erode total array.
-  TNT::Array2D<double> erodetot(jmax + 2, imax + 2);    // erosion difference in x and y directions
-  TNT::Array2D<double> erodetot3(jmax + 2, imax +2);    // erosion in the [x][y] cell
+  TNT::Array2D<double> erodetot(imax + 2, jmax + 2);    // erosion difference in x and y directions
+  TNT::Array2D<double> erodetot3(imax + 2, jmax +2);    // erosion in the [x][y] cell
 
   //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
   //Parallel.For(2, imax, options1, delegate(int y)
-  for (int y=2; y<imax; y++)
+  for (int y=2; y< jmax; y++)
   {
     int inc = 1;
     while (down_scan[y][inc] > 0)
@@ -3473,7 +3478,7 @@ double LSDCatchmentModel::erode(double mult_factor)
       int x = down_scan[y][inc];
       inc++;
 
-      if (water_depth[x][y] > water_depth_erosion_threshold && x < jmax && x > 1)
+      if (water_depth[x][y] > water_depth_erosion_threshold && x < imax && x > 1)
       {
         if (index[x][y] == -9999) addGS(x, y);
         for (int n = 1; n <= 9; n++)
@@ -3561,7 +3566,7 @@ double LSDCatchmentModel::erode(double mult_factor)
               slide_GS(x - 1, y, amt, x, y);
             }
           }
-          if (elev[x + 1][y] > elev[x][y] && x < jmax-1)
+          if (elev[x + 1][y] > elev[x][y] && x < imax-1)
           {
             double amt = 0;
             if (water_depth[x + 1][y] < water_depth_erosion_threshold)
@@ -3571,7 +3576,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (amt > 0)
             {
               amt *= 1 - (veg[x + 1][y][1] * (1 - veg_lat_restriction));
-              if ((elev[x + 1][y] - amt) < bedrock[x + 1][y] || x + 1 == jmax) amt = 0;
+              if ((elev[x + 1][y] - amt) < bedrock[x + 1][y] || x + 1 == imax) amt = 0;
               if (amt > ERODEFACTOR * 0.1) amt = ERODEFACTOR * 0.1;
               //if (amt > erodetot2 /2) amt = erodetot2 /2;
               elev_update += amt;
@@ -3644,7 +3649,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (amt > 0)
             {
               amt *= 1 - (veg[x][y + 1][1] * (1 - veg_lat_restriction));
-              if ((elev[x][y + 1] - amt) < bedrock[x][y + 1] || y + 1 == imax)
+              if ((elev[x][y + 1] - amt) < bedrock[x][y + 1] || y + 1 == jmax)
               {
                 amt = 0;
               }
@@ -3750,7 +3755,6 @@ double LSDCatchmentModel::erode(double mult_factor)
   }
 
   // now update files for outputing sediment and re-circulating...
-  //
 
   sediQ = 0;
   for (int n = 1; n <= G_MAX; n++)
@@ -3762,9 +3766,11 @@ double LSDCatchmentModel::erode(double mult_factor)
     globalsediq += gtot2[n] * DX * DX;
     sum_grain[n] += gtot2[n] * DX * DX; // Gez
   }
-
   return tempbmax;
 }
+
+/// NEW EROSION METHOD (Trying to fix old one)
+
 
 // Does the lateral erosion
 void LSDCatchmentModel::lateral3()
