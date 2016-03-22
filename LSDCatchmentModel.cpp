@@ -2761,7 +2761,40 @@ void LSDCatchmentModel::sort_active(int x,int y)
   }
 
 }
+/* // NEW METHOD for N number of grain sizes
+void LSDCatchmentModel::addGS(int x, int y)
+{
+  int n, q;
+  grain_array_tot++;
+  index[x, y] = grain_array_tot;
 
+  grain[grain_array_tot, 0] = 0;
+  for (n = 1; n <= G_MAX - 1;n++ )
+  {
+      grain[grain_array_tot, n] = active * dprop[n];
+  }
+  grain[grain_array_tot, G_MAX] = 0;
+
+
+  for (n = 0; n <= 9; n++)
+  {
+      for (int n2 = 0; n2 <= G_MAX - 2;n2++ )
+      {
+          strata[grain_array_tot, n, n2] = (active) * dprop[n2+1];
+      }
+
+
+      if (elev[x, y] - (active * (n + 1)) < (bedrock[x, y] - active))
+      {
+          for (q = 0; q <= (G_MAX - 2); q++)
+          {
+              strata[grain_array_tot, n, q] = 0;
+          }
+      }
+  }
+  sort_active(x, y);
+}
+*/
 void LSDCatchmentModel::addGS(int x, int y)
 {
   // needs lock statement to stop two being added at the same time...
@@ -3892,12 +3925,18 @@ double LSDCatchmentModel::erode(double mult_factor)
             double Fs = 0;
             double Di = 0;
             double graintot = 0;
-            if (wilcock == 1)
+            if (wilcock == true)
             {
               d_50 = d50(index[x][y]);
-              if (d_50 < d1) d_50 = d1;
+              if (d_50 < d1)
+              {
+                d_50 = d1;
+              }
               Fs = sand_fraction(index[x][y]);
-              for (int n = 1; n <= G_MAX; n++)graintot += (grain[index[x][y]][n]);
+              for (int n = 1; n <= G_MAX; n++)
+              {
+                graintot += (grain[index[x][y]][n]);
+              }
             }
 
             double temptot1 = 0;
@@ -3960,7 +3999,10 @@ double LSDCatchmentModel::erode(double mult_factor)
                   temp_dist[n] = (water_depth[x][y] * Csuspmax) - Vsusptot[x][y];
                 }
               }
-              if (temp_dist[n] < 0) temp_dist[n] = 0;
+              if (temp_dist[n] < 0)
+              {
+                temp_dist[n] = 0;
+              }
 
               // nwo placed here speeding up reduction of erode repeats.
               temptot1 += temp_dist[n];
@@ -3984,7 +4026,10 @@ double LSDCatchmentModel::erode(double mult_factor)
                 else
                 {
                   temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
-                  if (temp_dist[n] < 0) temp_dist[n] = 0;
+                  if (temp_dist[n] < 0)
+                  {
+                    temp_dist[n] = 0;
+                  }
                 }
                 temptot1 += temp_dist[n];
               }
@@ -4106,7 +4151,7 @@ double LSDCatchmentModel::erode(double mult_factor)
       }
     }
     // we have to do a reduction on tempbmax.
-    for (int y = 1; y <= imax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];
+    for (int y = 1; y <= jmax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];
 
     if (tempbmax > ERODEFACTOR)
     {
