@@ -2685,16 +2685,13 @@ void LSDCatchmentModel::sort_active(int x,int y)
   double coeff;
   int n, z;
 
-
   if (index[x][y] == -9999) addGS(x,y);  // should not be necessary
   xyindex = index[x][y];
 
   total = 0.0;
   for (n=0;n<=G_MAX;n++)
   {
-
     total += grain[xyindex][n];
-
   }
 
   if (total > (active*1.5)) // depositing - create new strata layer and remove bottom one..
@@ -2706,9 +2703,7 @@ void LSDCatchmentModel::sort_active(int x,int y)
     {
       for(n=0;n<=G_MAX-2;n++)
       {
-
         strata[xyindex][z][n]=strata[xyindex][z-1][n];
-
       }
     }
 
@@ -2718,11 +2713,9 @@ void LSDCatchmentModel::sort_active(int x,int y)
     {
       if ((grain[xyindex][n] > 0.0))
       {
-
         amount = coeff * (grain[xyindex][n]);
         strata[xyindex][0][n-1] = amount;
         grain[xyindex][n] -= amount;
-
       }
     }
   }
@@ -4176,7 +4169,11 @@ double LSDCatchmentModel::erode(double mult_factor)
       if (water_depth[x][y] > water_depth_erosion_threshold && x < imax && x > 1)
       {
 
-        if (index[x][y] == -9999) addGS(x, y);
+        if (index[x][y] == -9999)
+        {
+          addGS(x, y);
+        }
+
         for (int n = 1; n <= 9; n++)
         {
           if (n == 1 && isSuspended[n])
@@ -4194,9 +4191,17 @@ double LSDCatchmentModel::erode(double mult_factor)
             {
               // now calc ss to be dropped
               double coeff = (fallVelocity[n] * time_factor) / water_depth[x][y];
-              if (coeff > 1) coeff = 1;
+              if (coeff > 1)
+              {
+                coeff = 1;
+              }
               double Vpdrop = coeff * Vsusptot[x][y];
-              if (Vpdrop > 0.001) Vpdrop = 0.001; //only allow 1mm to be deposited per iteration
+
+              if (Vpdrop > 0.001)
+              {
+                Vpdrop = 0.001; //only allow 1mm to be deposited per iteration
+              }
+
               grain[index[x][y]][n] += Vpdrop;
               erodetot[x][y] += Vpdrop;
               Vsusptot[x][y] -= Vpdrop;
@@ -4207,7 +4212,12 @@ double LSDCatchmentModel::erode(double mult_factor)
           {
             //else update grain and elevations for bedload.
             double val1 = (su[x][y][n] + sr[x][y][n] + sd[x][y][n] + sl[x][y][n]);
+
+            // DV Change this? Indexing is incorrect under new scheme
             double val2 = (su[x][y + 1][n] + sd[x][y - 1][n] + sl[x + 1][y][n] + sr[x - 1][y][n]);
+
+            //double val2 = (su[x][y + 1][n] + sd[x][y - 1][n] + sl[x + 1][y][n] + sr[x - 1][y][n]);
+
             grain[index[x][y]][n] += val2 - val1;
             erodetot[x][y] += val2 - val1;
             erodetot3[x][y] += val1;
@@ -4230,17 +4240,31 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0;
 
             if (water_depth[x - 1][y] < water_depth_erosion_threshold)
+            {
               amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * time_factor /DX;
-            else amt = bed_proportion * erodetot3[x][y] * (elev[x - 1][y] - elev[x][y]) / DX * 0.1;
+            }
+            else
+            {
+              amt = bed_proportion * erodetot3[x][y] * (elev[x - 1][y] - elev[x][y]) / DX * 0.1;
+            }
 
             if (amt > 0)
             {
               amt *= 1 - (veg[x - 1][y][1] * (1 - veg_lat_restriction));
-              if ((elev[x - 1][y] - amt) < bedrock[x - 1][y] || x - 1 == 1) amt = 0;
-              if (amt > ERODEFACTOR * 0.1) amt = ERODEFACTOR * 0.1;
+
+              if ((elev[x - 1][y] - amt) < bedrock[x - 1][y] || x - 1 == 1)
+              {
+                amt = 0;
+              }
+              if (amt > ERODEFACTOR * 0.1)
+              {
+                amt = ERODEFACTOR * 0.1;
+              }
               //if (amt > erodetot2 / 2) amt = erodetot2 / 2;
               elev_update += amt;
               elev[x - 1][y] -= amt;
+
+              // Move grains
               slide_GS(x - 1, y, amt, x, y);
             }
           }
@@ -4248,17 +4272,31 @@ double LSDCatchmentModel::erode(double mult_factor)
           {
             double amt = 0;
             if (water_depth[x + 1][y] < water_depth_erosion_threshold)
+            {
               amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * time_factor / DX;
-            else amt = bed_proportion * erodetot3[x][y] * (elev[x + 1][y] - elev[x][y]) / DX * 0.1;
+            }
+            else
+            {
+              amt = bed_proportion * erodetot3[x][y] * (elev[x + 1][y] - elev[x][y]) / DX * 0.1;
+            }
 
             if (amt > 0)
             {
               amt *= 1 - (veg[x + 1][y][1] * (1 - veg_lat_restriction));
-              if ((elev[x + 1][y] - amt) < bedrock[x + 1][y] || x + 1 == imax) amt = 0;
-              if (amt > ERODEFACTOR * 0.1) amt = ERODEFACTOR * 0.1;
+              if ((elev[x + 1][y] - amt) < bedrock[x + 1][y] || x + 1 == imax)
+              {
+                amt = 0;
+              }
+              if (amt > ERODEFACTOR * 0.1)
+              {
+                amt = ERODEFACTOR * 0.1;
+              }
               //if (amt > erodetot2 /2) amt = erodetot2 /2;
+
               elev_update += amt;
               elev[x + 1][y] -= amt;
+
+              // Move grains
               slide_GS(x + 1, y, amt, x, y);
             }
           }
@@ -4399,11 +4437,18 @@ double LSDCatchmentModel::erode(double mult_factor)
   ///
 
   sediQ = 0;
+
   for (int n = 1; n <= G_MAX; n++)
   {
-    if (temp_grain[n] < 0) temp_grain[n] = 0;
+    if (temp_grain[n] < 0)
+    {
+      temp_grain[n] = 0;
+    }
     if (recirculate_opt == true && reach_mode_opt == true)
-      temp_grain[n] += gtot2[n] * recirculate_proportion; // important to divide input by time factor, so it can be reduced if re-circulating too much...
+    {
+      temp_grain[n] += gtot2[n] * recirculate_proportion;
+      // important to divide input by time factor, so it can be reduced if re-circulating too much...
+    }
     sediQ += gtot2[n] * DX * DX;
     globalsediq += gtot2[n] * DX * DX;
     sum_grain[n] += gtot2[n] * DX * DX; // Gez
