@@ -2525,7 +2525,7 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
 	Takes 2 ints, the zenith angle of the illumination source in degrees
 	and the azimuth angle, of the illumination source in degrees.
 
-	Outputs an LSDIndexRaster showing areas in the shadow of other topography.
+	Outputs an LSDRaster showing areas in the shadow of other topography.
 
 	Martin Hurst
 	February 2015
@@ -2534,7 +2534,7 @@ LSDRaster LSDRaster::TopographicShielding(int AzimuthStep, int ZenithStep)
 LSDRaster LSDRaster::CastShadows(int Azimuth, int ZenithAngle)
 {
   Array2D<float> Shadows = this->Shadows(Azimuth,ZenithAngle);
-  return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows);
+  return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, Shadows,GeoReferencingStrings);
 }
 
 Array2D<float> LSDRaster::Shadows(int Azimuth, int ZenithAngle)
