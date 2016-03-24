@@ -20,7 +20,7 @@
  * inputs.
  *
  * @author Declan Valters
- * @date  2014, 2015
+ * @date  2014, 2015, 2016
  * University of Manchester
  * @contact declan.valters@manchester.ac.uk
  * @version 0.01
@@ -4264,7 +4264,7 @@ double LSDCatchmentModel::erode(double mult_factor)
               elev_update += amt;
               elev[x - 1][y] -= amt;
 
-              // Move grains
+              // Move grains from cell-to-left to current cell
               slide_GS(x - 1, y, amt, x, y);
             }
           }
@@ -4296,7 +4296,7 @@ double LSDCatchmentModel::erode(double mult_factor)
               elev_update += amt;
               elev[x + 1][y] -= amt;
 
-              // Move grains
+              // Move grains from cell-to-right, to current cell
               slide_GS(x + 1, y, amt, x, y);
             }
           }
@@ -4336,6 +4336,8 @@ double LSDCatchmentModel::erode(double mult_factor)
               //if (amt > erodetot2 / 2) amt = erodetot2 / 2;
               elev_update += amt;
               elev[x][y - 1] -= amt;
+
+              // Move grains from cell below to this cell
               slide_GS(x, y - 1, amt, x, y);
             }
           }
@@ -4354,6 +4356,8 @@ double LSDCatchmentModel::erode(double mult_factor)
               //if (amt > erodetot2 / 2) amt = erodetot2 / 2;
               elev_update += amt;
               elev[x][y + 1] -= amt;
+
+              // Move grains from cell above to this cell
               slide_GS(x, y + 1, amt, x, y);
             }
           }
