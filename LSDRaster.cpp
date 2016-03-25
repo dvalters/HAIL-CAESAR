@@ -186,8 +186,8 @@ void LSDRaster::create(int nrows, int ncols, double xmin, double ymin,
   NCols = ncols;
   XMinimum = xmin;
   YMinimum = ymin;
-  DataResolution = cellsize;
-  NoDataValue = ndv;
+  DataResolution = cellsize;   //Converting double to float?
+  NoDataValue = ndv;     // Converting double to int??!
   
   // Using the <double> data member
   RasterData_dbl = data.copy();
