@@ -120,20 +120,11 @@ public:
   /// @details Actually, this is a generic function for printing a 2D vector
   void print_rainfall_data();
 
-  /// @brief Calls the various save functions depending on the data types to be saved
-  /// @deprecated (Replaced with a overloaded method that does not require a
-  ///       flag.
-  /// @author DAV
-  /// @details dependent on the LSDRaster class calling the overloaded write_raster func
-  void save_data(int typeflag, double tempcycle);
-
   /// @brief Calls the various save functions depending on the data types to be saved (Raster Output)
   /// @author DAV
   /// @details dependent on the LSDRaster class calling the overloaded write_raster func. If you are looking
   /// for the function that writes the hydrograph/sediment time series, see the write_output() function.
-  void save_data(double tempcycle);
-
-  void save_data_and_draw_graphics();
+  void save_raster_data();
 
   /// @brief Checks to see if a file exists
   /// @author DAV (Thanks to StackOverflow)
