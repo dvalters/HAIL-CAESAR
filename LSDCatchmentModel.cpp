@@ -1616,19 +1616,9 @@ void LSDCatchmentModel::output_data(double temptotal)
 
 }
 
-void LSDCatchmentModel::save_data_and_draw_graphics()
+void LSDCatchmentModel::save_raster_data()
 {
-
-}
-
-void LSDCatchmentModel::save_data(int typeflag, double tempcycle)
-{
-  //
-}
-
-void LSDCatchmentModel::save_data(double tempcycle)
-{
-  if(uniquefilecheck==false) tempcycle=0;
+  //if(uniquefilecheck==false) tempcycle=0;
   // Write Water_depth raster
   if (write_waterd_file == true)
   {
@@ -1812,7 +1802,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     if (cycle >= save_time)
     {
       // deprecated // save_data_and_draw_graphics(); //similar to above worry?
-      save_data(tempcycle);
+      save_raster_data();
       save_time += saveinterval;
     }
 
@@ -2453,7 +2443,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         // check after the variable rainfall area has been added
         // stops code going too fast when there is actual flow in the channels greater than 0.2cu
       {
-         time_1 + (max_time_step / 60);
+        cycle = time_1 + (max_time_step / 60);
         time_factor = max_time_step;
       }
     } while (time_1 < cycle);
@@ -3709,7 +3699,7 @@ double LSDCatchmentModel::erode(double mult_factor)
     {
       int x = down_scan[y][inc];
       inc++;
-      {    
+      {
         ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         ///
         /// MOVE SEDI IN Y DIRECTION
