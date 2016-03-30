@@ -3513,8 +3513,8 @@ double LSDCatchmentModel::erode(double mult_factor)
   } while(tempbmax > ERODEFACTOR);  // Continue as long as we haven't exceeded max erosion amount
 
   // new temp erode array.
-  TNT::Array2D<double> erodetot(imax + 2, jmax + 2);    // erosion difference in x and y directions
-  TNT::Array2D<double> erodetot3(imax + 2, jmax +2);    // erosion in the [x][y] cell
+  TNT::Array2D<double> erodetot(imax + 2, jmax + 2, 0.0);    // erosion difference in x and y directions
+  TNT::Array2D<double> erodetot3(imax + 2, jmax +2, 0.0);    // erosion in the [x][y] cell
 
   //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
   //Parallel.For(2, ymax, options1, delegate(int y)
