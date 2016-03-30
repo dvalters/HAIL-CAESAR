@@ -1838,13 +1838,7 @@ void LSDCatchmentModel::zero_values()
       water_depth[i][j] = 0;
       index[i][j] = -9999;
       inputpointsarray[i][j] = false;
-      veg[i][j][0] = 0;// elevation
-      veg[i][j][1] = 0; // densitj
-      veg[i][j][2] = 0; // jw density
-      veg[i][j][3] = 0; // height
 
-      edge[i][j] = 0;
-      edge2[i][j] = 0;
 
       //sand[i][j] = 0;
 
@@ -1862,6 +1856,20 @@ void LSDCatchmentModel::zero_values()
 
       Vsusptot[i][j] = 0;
       rfarea[i][j] = 1;
+    }
+  }
+
+  for (int i=0; i<=imax; i++)
+  {
+    for(int j=0; j<=jmax; j++)
+    {
+      veg[i][j][0] = 0;// elevation
+      veg[i][j][1] = 0; // densitj
+      veg[i][j][2] = 0; // jw density
+      veg[i][j][3] = 0; // height
+
+      edge[i][j] = 0;
+      edge2[i][j] = 0;
     }
   }
 
