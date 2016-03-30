@@ -1824,10 +1824,11 @@ void LSDCatchmentModel::print_initial_values()
 void LSDCatchmentModel::zero_values()
 {
   // To do
-
-  for(int i=0; i <= imax; i++)
+  // Should it be jmax/imax + 1 given size?
+  // Potentially uninitialised array values
+  for(int i=0; i <= imax+1; i++)
   {
-    for(int j=0; j <= jmax; j++)
+    for(int j=0; j <= jmax+1; j++)
     {
       Vel[i][j] = 0;
       area[i][j] = 0;
