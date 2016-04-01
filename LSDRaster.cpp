@@ -8543,6 +8543,44 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//
+// Trims the raster array by one pixel around the edge. This was primarily written
+// for the LSDCatchmentModel which has a padding of zeros around most of the surface
+// data arrays. This removes that padding and reduces the size of the array.
+//
+// It also modifies the NCols and NRows data members, reducing them by 2 to account
+// for the new size. Note that it does *not* alter the xll and yll values, because
+// these are not modified during the reading in of the original DEM and padding with zeroes.
+//
+// DAV 2016
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::strip_raster_padding()
+{
+  // Get the dimensions of the array to be trimmed
+
+  // Calculate the dimensions of the trimmed array (n-2, since there is 1px either edge)
+  int trimmed_array_ncols = NCols - 2;
+  int trimmed_array_nrows = NRows - 2;
+
+  Array2D<double> trimmedArray(trimmed_array_nrows, trimmed_array_ncols, 0.0);
+
+  for (int i=0; i<trimmed_array_nrows; ++i)
+  {
+    for (int j=0; j<trimmed_array_ncols; ++j)
+    {
+      trimmedArray[i][j] = RasterData_dbl[i+1][j+1];
+    }
+  }
+  NCols -= 2;
+  NRows -= 2;
+
+  RasterData_dbl = trimmedArray;
+  // Wasn't sure about this simple assignment, thought it might do weird stuff but it seems to be ok?. DAV.
+  // Check the TNT Documentation under "Operator=":
+  // http://math.nist.gov/tnt/tnt_doxygen/class_TNT__Array2D.html#a8
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // THis clips to a smaller raster. The smaller raster does not need
 // to have the same data resolution as the old raster

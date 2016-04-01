@@ -16,7 +16,8 @@
  *
  * Not all the functionallity of CL is implemented in this model. There is
  * no intention to maintain this code in parallel with CAESAR-Lisflood at this
- * stage. Its development is separate from hereon.
+ * stage. Its development is separate from hereon. It was forked from the
+ * CL version 1.8a.
  *
  * It is integrated with the LSDTopoTools package and makes use of several
  * of the LSDTopoTools objects, such as LSDRaster in particular, for reading
@@ -1639,6 +1640,9 @@ void LSDCatchmentModel::save_raster_data()
     // Find a way to trim these off.
     LSDRaster water_depthR(imax+2, jmax+2, xll, yll, DX, no_data_value, water_depth);
 
+    // Strip the padding of zeros round the edge
+    water_depthR.strip_raster_padding();
+
     // Use the LSDRaster object's own method
     // Woohoo! Some actual object-oriented programming!
     water_depthR.write_double_raster(waterdepth_fname, "asc");
@@ -1648,6 +1652,8 @@ void LSDCatchmentModel::save_raster_data()
   if (write_elev_file == true)
   {
     LSDRaster elev_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, elev);
+    // Get rid of the zeros padding the edges of the domain
+    elev_outR.strip_raster_padding();
     elev_outR.write_double_raster("output_elevTEST", "asc");
   }
 }
