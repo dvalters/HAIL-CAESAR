@@ -487,6 +487,16 @@ class LSDRaster
   /// @author SWDG
   /// @date 29/8/13
   LSDRaster LSDRasterTemplate(Array2D<float> InputData);
+  
+  /// @brief Strips the edge rows/columns of a LSDRaster on each side of the array.
+  /// @details This removes 1 pixel/grid cell from each side of an LSDRaster
+  ///  Note that it modifies the original raster and reassigns the RasterData_dbl
+  ///  data member to the new 'trimmed' raster. It then reduces the NCols and NRows
+  ///  values by 2, but does not modify the ll-corner values. It was primarily
+  ///  written for a special case in LSDCatchmentModel but will work with any LSDRaster.
+  /// @author DAV
+  /// @date 01/04/2016
+  void strip_raster_padding();
 
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
