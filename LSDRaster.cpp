@@ -801,7 +801,7 @@ void LSDRaster::read_ascii_raster(string FILENAME)
 
   if( data_in.fail() )
   {
-    cout << "\nFATAL ERROR: the data file \"" << string_filename
+    cout << "\nFATAL ERROR: the data file \"" << FILENAME
         << "\" doesn't exist" << std::endl;
     exit(EXIT_FAILURE);
   }
