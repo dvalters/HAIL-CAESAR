@@ -274,6 +274,13 @@ void LSDRaster::read_raster(string filename, string extension)
     // open the data file
     ifstream data_in(string_filename.c_str());
 
+    if( data_in.fail() )
+    {
+      cout << "\nFATAL ERROR: the data file \"" << string_filename
+          << "\" doesn't exist" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
     //Read in raster data
     string str;			// a temporary string for discarding text
 
@@ -769,7 +776,7 @@ void LSDRaster::read_raster(string filename, string extension)
   }
   else
   {
-    cout << "You did not enter and approprate extension!" << endl
+    cout << "You did not enter and appropriate extension!" << endl
           << "You entered: " << extension << " options are .flt, .asc and .bil" << endl;
     exit(EXIT_FAILURE);
   }
@@ -791,6 +798,13 @@ void LSDRaster::read_ascii_raster(string FILENAME)
 
   // open the data file
   std::ifstream data_in(FILENAME.c_str());
+
+  if( data_in.fail() )
+  {
+    cout << "\nFATAL ERROR: the data file \"" << string_filename
+        << "\" doesn't exist" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   //Read in raster data
   std::string str;			// a temporary string for discarding text
