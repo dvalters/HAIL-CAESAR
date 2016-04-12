@@ -875,8 +875,6 @@ void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,
 
   double UTMEasting, UTMNorthing;
   
-
-
   double a = WGS84_A;
   double eccSquared = UTM_E2;
   double k0 = UTM_K0;
@@ -912,7 +910,7 @@ void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,
   LongOriginRad = LongOrigin * RADIANS_PER_DEGREE;
 
   //compute the UTM Zone from the latitude and longitude
-  //cout << "Zone is  " << ZoneNumber << endl;
+  cout << "Zone is  " << ZoneNumber << endl;
   Zone = ZoneNumber;
   
   eccPrimeSquared = (eccSquared)/(1-eccSquared);
@@ -948,47 +946,102 @@ void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,
 
   Northing = UTMNorthing;
   Easting = UTMEasting;
-/*
 
-
-   const double k0 = 0.9996;
-   double a = Ellipsoids[eId].EquatorialRadius;
-   double ee= Ellipsoids[eId].eccSquared;
-   Long -= int((Long+180)/360)*360;			//ensure longitude within -180.00..179.9
-   double N, T, C, A, M;
-   double LatRad = rad(Lat);
-   double LongRad = rad(Long);
-
-   Zone = int((Long + 186)/6);
-   if( Lat >= 56.0 && Lat < 64.0 && Long >= 3.0 && Long < 12.0 )  Zone = 32;
-   if( Lat >= 72.0 && Lat < 84.0 ){			//Special zones for Svalbard
-      if(      Long >= 0.0  && Long <  9.0 )  Zone = 31;
-      else if( Long >= 9.0  && Long < 21.0 )  Zone = 33;
-      else if( Long >= 21.0 && Long < 33.0 )  Zone = 35;
-      else if( Long >= 33.0 && Long < 42.0 )  Zone = 37;
-   }
-   double LongOrigin = Zone*6 - 183;			//origin in middle of zone
-   double LongOriginRad = rad(LongOrigin);
-
-   double EE = ee/(1-ee);
-
-   N = a/sqrt(1-ee*sin(LatRad)*sin(LatRad));
-   T = tan(LatRad)*tan(LatRad);
-   C = EE*cos(LatRad)*cos(LatRad);
-   A = cos(LatRad)*(LongRad-LongOriginRad);
-
-   M= a*((1 - ee/4    - 3*ee*ee/64 - 5*ee*ee*ee/256  ) *LatRad
-      - (3*ee/8 + 3*ee*ee/32 + 45*ee*ee*ee/1024) *sin(2*LatRad)
-      + (15*ee*ee/256 + 45*ee*ee*ee/1024	  ) *sin(4*LatRad)
-      - (35*ee*ee*ee/3072			  ) *sin(6*LatRad));
-
-   Easting = k0*N*(A+(1-T+C)*A*A*A/6+(5-18*T+T*T+72*C-58*EE)*A*A*A*A*A/120) + 500000.0;
-
-   Northing = k0*(M+N*tan(LatRad)*(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24
-                + (61-58*T+T*T+600*C-330*EE)*A*A*A*A*A*A/720));
-*/                
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// converts LatLong to UTM coords
+// 3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
+// Lat and Long are in degrees;  
+// North latitudes and East Longitudes are positive.
+//
+// Minor modifications for our objects by SMM, 07/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDCoordinateConverterLLandUTM::LLtoUTM_ForceZone(int eId, double Lat, double Long,  
+             double& Northing, double& Easting, int Zone)
+{
+
+  double UTMEasting, UTMNorthing;
+  
+  double a = WGS84_A;
+  double eccSquared = UTM_E2;
+  double k0 = UTM_K0;
+
+  double LongOrigin;
+  double eccPrimeSquared;
+  double N, T, C, A, M;
+  
+        //Make sure the longitude is between -180.00 .. 179.9
+  double LongTemp = (Long+180)-int((Long+180)/360)*360-180;
+
+  double LatRad = Lat*RADIANS_PER_DEGREE;
+  double LongRad = LongTemp*RADIANS_PER_DEGREE;
+  double LongOriginRad;
+  int ZoneNumber;
+
+  ZoneNumber = int((LongTemp + 180)/6) + 1;
+  
+  if( Lat >= 56.0 && Lat < 64.0 && LongTemp >= 3.0 && LongTemp < 12.0 )
+  {
+    ZoneNumber = 32;
+  }
+        // Special zones for Svalbard
+  if( Lat >= 72.0 && Lat < 84.0 ) 
+  {
+    if(      LongTemp >= 0.0  && LongTemp <  9.0 ) ZoneNumber = 31;
+    else if( LongTemp >= 9.0  && LongTemp < 21.0 ) ZoneNumber = 33;
+    else if( LongTemp >= 21.0 && LongTemp < 33.0 ) ZoneNumber = 35;
+    else if( LongTemp >= 33.0 && LongTemp < 42.0 ) ZoneNumber = 37;
+  }
+   
+  if (ZoneNumber != Zone)
+  {
+    cout << "WARNING: the point is located in zone " << ZoneNumber << endl
+         << "but you are forcing the points into Zone " << Zone << endl;
+   } 
+  
+  // +3 puts origin in middle of zone
+  LongOrigin = (Zone - 1)*6 - 180 + 3; 
+  LongOriginRad = LongOrigin * RADIANS_PER_DEGREE;
+  
+  eccPrimeSquared = (eccSquared)/(1-eccSquared);
+
+  N = a/sqrt(1-eccSquared*sin(LatRad)*sin(LatRad));
+  T = tan(LatRad)*tan(LatRad);
+  C = eccPrimeSquared*cos(LatRad)*cos(LatRad);
+  A = cos(LatRad)*(LongRad-LongOriginRad);
+
+  M = a*((1 - eccSquared/4 - 3*eccSquared*eccSquared/64
+                - 5*eccSquared*eccSquared*eccSquared/256) * LatRad 
+               - (3*eccSquared/8 + 3*eccSquared*eccSquared/32
+                  + 45*eccSquared*eccSquared*eccSquared/1024)*sin(2*LatRad)
+               + (15*eccSquared*eccSquared/256
+                  + 45*eccSquared*eccSquared*eccSquared/1024)*sin(4*LatRad) 
+               - (35*eccSquared*eccSquared*eccSquared/3072)*sin(6*LatRad));
+
+  UTMEasting = (double)
+          (k0*N*(A+(1-T+C)*A*A*A/6
+                 + (5-18*T+T*T+72*C-58*eccPrimeSquared)*A*A*A*A*A/120)
+           + 500000.0);
+
+  UTMNorthing = (double)
+          (k0*(M+N*tan(LatRad)
+               *(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24
+                 + (61-58*T+T*T+600*C-330*eccPrimeSquared)*A*A*A*A*A*A/720)));
+
+  if(Lat < 0)
+  {
+    //10000000 meter offset for southern hemisphere
+    UTMNorthing += 10000000.0;
+  }
+
+  Northing = UTMNorthing;
+  Easting = UTMEasting;
+
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // converts UTM coords to LatLong;  3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
@@ -1054,41 +1107,7 @@ void LSDCoordinateConverterLLandUTM::UTMtoLL(int eId, double UTMNorthing, double
                  *D*D*D*D*D/120)
                 / cos(phi1Rad));
   Long = LongOrigin + Long * DEGREES_PER_RADIAN;
- /*
 
-  const double k0 = 0.9996;
-  double a = Ellipsoids[eId].EquatorialRadius;
-  double ee = Ellipsoids[eId].eccSquared;
-  double EE = ee/(1-ee);
-  double e1 = (1-sqrt(1-ee))/(1+sqrt(1-ee));
-  double N1, T1, C1, R1, D, M, mu, phi1Rad;
-  double x = Easting - 500000.0;			//remove 500,000 meter offset for longitude
-  double y = Northing;
-  double LongOrigin = Zone*6 - 183;			//origin in middle of zone
-
-  cout << endl << "converting UTM to latlong: " << endl;
-  cout << "a: " << a << " ee:" << ee << " EE: " << EE << " e1: " << e1 << " x: " << x << " y: " << y << endl;
-
-  M = y / k0;
-  mu = M/(a*(1-ee/4-3*ee*ee/64-5*ee*ee*ee/256));
-  
-  cout << "M: " << M << " mu: " << mu << endl;
-
-  phi1Rad = mu + (3*e1/2-27*e1*e1*e1/32) *sin(2*mu)
-               + (21*e1*e1/16-55*e1*e1*e1*e1/32) *sin(4*mu)
-               + (151*e1*e1*e1/96) *sin(6*mu);
-  N1 = a/sqrt(1-ee*sin(phi1Rad)*sin(phi1Rad));
-  T1 = tan(phi1Rad)*tan(phi1Rad);
-  C1 = EE*cos(phi1Rad)*cos(phi1Rad);
-  R1 = a*(1-ee)/pow(1-ee*sin(phi1Rad)*sin(phi1Rad), 1.5);
-  D = x/(N1*k0);
-
-  Lat = phi1Rad - (N1*tan(phi1Rad)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*EE)*D*D*D*D/24
-                +(61+90*T1+298*C1+45*T1*T1-252*EE-3*C1*C1)*D*D*D*D*D*D/720);
-  Lat = deg(Lat);
-  Long = (D-(1+2*T1+C1)*D*D*D/6+(5-2*C1+28*T1-3*C1*C1+8*EE+24*T1*T1)*D*D*D*D*D/120) / cos(phi1Rad);
-  Long = LongOrigin + deg(Long);
-  */
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1104,9 +1123,6 @@ void LSDCoordinateConverterLLandUTM::DatumConvert(int dIn, double LatIn,
                   double LongIn, double HtIn, 
                   int dTo,  double& LatTo, double& LongTo, double& HtTo)
 {
-
-
-
   double a,ee,N,X,Y,Z,EE,p,b,t;
 
   //--transform to XYZ, using the "In" ellipsoid
@@ -1138,11 +1154,6 @@ void LSDCoordinateConverterLLandUTM::DatumConvert(int dIn, double LatIn,
   LatTo = deg(LatTo);
   LongTo = deg(LongTo);
   LongTo -= 180;
-
-
-
-
-
 }
 
 
