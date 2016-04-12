@@ -241,6 +241,44 @@ class LSDCoordinateConverterLLandUTM
     /// @date 07/12/2014
     void LLtoUTM(int eId, double Lat, double Long,  
              double& Northing, double& Easting, int& Zone);
+
+    /// @brief converts LatLong to UTM coords, but forces the data to a specific zone
+    /// 3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
+    /// Updated by Simon M Mudd
+    /// @param eID the ellipsoid ID. Options are:
+    ///  0 = "Airy1830";
+    ///  1 = "AiryModified";
+    ///  2 = "AustralianNational";
+    ///  3 = "Bessel1841Namibia";
+    ///  4 = "Bessel1841";
+    ///  5 = "Clarke1866";
+    ///  6 = "Clarke1880";
+    ///  7 = "EverestIndia1830";
+    ///  8 = "EverestSabahSarawak";
+    ///  9 = "EverestIndia1956";
+    ///  10 = "EverestMalaysia1969";
+    ///  11 = "EverestMalay_Sing";
+    ///  12 = "EverestPakistan";
+    ///  13 = "Fischer1960Modified";
+    ///  14 = "Helmert1906";
+    ///  15 = "Hough1960";
+    ///  16 = "Indonesian1974";
+    ///  17 = "International1924";
+    ///  18 = "Krassovsky1940";
+    ///  19 = "GRS80";
+    ///  20 = "SouthAmerican1969";
+    ///  21 = "WGS72";
+    ///  22 = "WGS84";
+    /// @param Lat the latitude in decimal degrees
+    /// @param Long the longitude in decimal degrees
+    /// @param Northing in metres. This argument is replaced by the function
+    /// @param Easting in metres. This argument is replaced by the function
+    /// @param Zone the UTM zone. This argument is replaced by the function
+    /// @author SMM, modified from Chuck Gantz
+    /// @date 11/04/2016
+    void LLtoUTM_ForceZone(int eId, double Lat, double Long,  
+             double& Northing, double& Easting, int Zone);
+
   
     /// @brief converts LatLong to UTM coords
     /// 3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
@@ -280,6 +318,8 @@ class LSDCoordinateConverterLLandUTM
     /// @date 07/12/2014
     void UTMtoLL(int eId, double Northing, double Easting, int Zone, bool isNorth,  
              double& Lat, double& Long);
+
+
 
     /// @brief converts LatLongHt in datum dIn, to LatLongHt in datum dTo;  
     /// @detail 2002dec: by Eugene Reimer, from PeterDana equations.
