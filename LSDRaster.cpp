@@ -11303,6 +11303,91 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
   return threshold;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Function to calculate the reliability of floodplain method based on true positives and
+// false postivies. Need to pass in a raster of predicted values and a raster of actual values
+// Predicted values: 1 = floodplain, NoDataValue = not floodplain
+// Actual values: 1 = floodplain, 0 = not floodplain
+// FJC 04/05/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float LSDRaster::CalculateReliability(LSDRaster& ActualRaster)
+{
+	float SumTP = 0;
+	float SumFP = 0;
+	float SumTN = 0;
+	
+	
+	for (int row = 0; row < NRows -1; row++)
+	{
+		for (int col = 0; col < NCols -1; col++)
+		{
+			int ActualValue = ActualRaster.get_data_element(row, col);
+			//cout << ActualValue << endl;
+			// check if it is a true positive
+			if (RasterData[row][col] == 1 && ActualValue == 1)
+			{
+				//cout << "TP" << endl;
+				SumTP++;
+			}
+			// check if it is a false positive
+			if (RasterData[row][col] == 1 && ActualValue == 0)
+			{
+				//cout << "FP" << endl;
+				SumFP++;
+			}
+			// check if it is a true negative
+			if (RasterData[row][col] == NoDataValue && ActualValue ==0)
+			{
+				SumTN++;
+			}
+		}
+	}
+	cout << "Got the total TPs and FPs" << endl;
+	cout << "SumTP = " << SumTP << " SumFP = " << SumFP << " SumTN = " << SumTN << endl;
+
+	//now calculate the reliability
+	float reliability = SumTP/(SumTP + SumFP);
+	return reliability;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Function to calculate the sensitivity of floodplain method based on true positives and
+// false negatives. Need to pass in a raster of predicted values and a raster of actual values
+// Predicted values: 1 = floodplain, NoDataValue = not floodplain
+// Actual values: 1 = floodplain, 0 = not floodplain
+// FJC 04/05/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float LSDRaster::CalculateSensitivity(LSDRaster& ActualRaster)
+{
+	float SumTP = 0;
+	float SumFN = 0;
+	
+	for (int row = 0; row < NRows-1; row++)
+	{
+		for (int col = 0; col < NCols-1; col++)
+		{
+			int ActualValue = ActualRaster.get_data_element(row, col);
+			// check if it is a true positive
+			if (RasterData[row][col] == 1 && ActualValue == 1)
+			{
+				SumTP++;
+			}
+			// check if it is a false negative
+			if (RasterData[row][col] == NoDataValue && ActualValue == 1)
+			{
+				SumFN++;
+			}
+		}
+	}
+	
+	//now calculate the sensitivity
+	float sensitivity = SumTP/(SumTP + SumFN);
+	return sensitivity;
+}
+
+
+
+
 // Get the lengths in spatial units of each part of the channel network, divided by strahler order.
 // Returns a string containing the comma separated lengths
 // SWDG 17/1/16      
