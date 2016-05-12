@@ -124,7 +124,7 @@ public:
   /// @author DAV
   /// @details dependent on the LSDRaster class calling the overloaded write_raster func. If you are looking
   /// for the function that writes the hydrograph/sediment time series, see the write_output() function.
-  void save_raster_data();
+  void save_raster_data(double tempcycle);
 
   /// @brief Checks to see if a file exists
   /// @author DAV (Thanks to StackOverflow)

@@ -1629,7 +1629,7 @@ void LSDCatchmentModel::output_data(double temptotal)
 
 }
 
-void LSDCatchmentModel::save_raster_data()
+void LSDCatchmentModel::save_raster_data(double tempcycle)
 {
   //if(uniquefilecheck==false) tempcycle=0;
   // Write Water_depth raster
@@ -1645,7 +1645,9 @@ void LSDCatchmentModel::save_raster_data()
 
     // Use the LSDRaster object's own method
     // Woohoo! Some actual object-oriented programming!
-    water_depthR.write_double_raster(waterdepth_fname, "asc");
+    std::string current_water_depth_filename = waterdepth_fname + std::to_string((int)tempcycle);
+    
+    water_depthR.write_double_raster(current_water_depth_filename, "asc");
   }
 
   // Write Elevation raster
@@ -1820,7 +1822,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     if (cycle >= save_time)
     {
       // deprecated // save_data_and_draw_graphics(); //similar to above worry?
-      save_raster_data();
+      save_raster_data(std::abs(cycle));
       save_time += saveinterval;
     }
 
