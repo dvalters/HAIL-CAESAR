@@ -276,7 +276,7 @@ void LSDCatchmentModel::print_rainfall_data()
 
 void LSDCatchmentModel::initialise_model_domain_extents()
 {
-  std::string FILENAME = read_fname + dem_read_extension;
+  std::string FILENAME = read_path + "/" + read_fname + dem_read_extension;
 
   if (!does_file_exist(FILENAME))
   {
@@ -318,11 +318,11 @@ void LSDCatchmentModel::initialise_model_domain_extents()
 
 void LSDCatchmentModel::load_data()
 {
-  std::string FILENAME = read_fname + dem_read_extension;
+  std::string DEM_FILENAME = read_path + "/" + read_fname + dem_read_extension;
 
-  if (!does_file_exist(FILENAME))
+  if (!does_file_exist(DEM_FILENAME))
   {
-    std::cout << "No terrain DEM found by name of: " << FILENAME << std::endl
+    std::cout << "No terrain DEM found by name of: " << DEM_FILENAME << std::endl
               << "You must supply a correct path and filename in the input parameter file" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -331,7 +331,7 @@ void LSDCatchmentModel::load_data()
   // object, 'elevR'
   try
   {
-    elevR.read_ascii_raster(FILENAME);
+    elevR.read_ascii_raster(DEM_FILENAME);
     // You have now read in all the headers and the raster data
     // Headers are accessed by elevR.get_Ncols(), elevR.get_NRows() etc
     // Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
@@ -375,19 +375,19 @@ void LSDCatchmentModel::load_data()
   // Load the HYDROINDEX DEM
   if (spatially_var_rainfall == true)
   {
-    FILENAME = hydroindex_fname;
+    std::string HYDROINDEX_FILENAME = read_path + "/" + hydroindex_fname;
     // Check for the file first of all
-    if (!does_file_exist(FILENAME))
+    if (!does_file_exist(HYDROINDEX_FILENAME))
     {
-      std::cout << "No hydroindex DEM found by name of: " << FILENAME << std::endl << "You specified the spatially variable rainfall option, \
+      std::cout << "No hydroindex DEM found by name of: " << HYDROINDEX_FILENAME << std::endl << "You specified the spatially variable rainfall option, \
                    \n but no matching file was found. Try again." << std::endl;
                    exit(EXIT_FAILURE);
     }
     try
     {
-      hydroindexR.read_ascii_raster(FILENAME);
+      hydroindexR.read_ascii_raster(HYDROINDEX_FILENAME);
       rfarea = hydroindexR.get_RasterData_int();
-      std::cout << "The hydroindex: " << FILENAME << " was successfully read." << std::endl;
+      std::cout << "The hydroindex: " << HYDROINDEX_FILENAME << " was successfully read." << std::endl;
     }
     catch (...)
     {
@@ -401,19 +401,19 @@ void LSDCatchmentModel::load_data()
   // Load the BEDROCK DEM
   if (bedrock_layer_on == true)
   {
-    FILENAME = bedrock_data_file;
+    std::string BEDROCK_FILENAME = read_path + "/" + bedrock_data_file;
     // Check for the file first of all
-    if (!does_file_exist(FILENAME))
+    if (!does_file_exist(BEDROCK_FILENAME))
     {
-      std::cout << "No bedrock DEM found by name of: " << FILENAME << std::endl << "You specified to use a separate bedrock layer option, \
+      std::cout << "No bedrock DEM found by name of: " << BEDROCK_FILENAME << std::endl << "You specified to use a separate bedrock layer option, \
                    \n but no matching file was found. Try again." << std::endl;
                    exit(EXIT_FAILURE);
     }
     try
     {
-      bedrockR.read_ascii_raster(FILENAME);
+      bedrockR.read_ascii_raster(BEDROCK_FILENAME);
       bedrock = bedrockR.get_RasterData_dbl();
-      std::cout << "The bedrock file: " << FILENAME << " was successfully read." << std::endl;
+      std::cout << "The bedrock file: " << BEDROCK_FILENAME << " was successfully read." << std::endl;
     }
     catch (...)
     {
@@ -428,16 +428,16 @@ void LSDCatchmentModel::load_data()
   // Remember the format is not the same as a standard ASCII DEM...
   if (rainfall_data_on==true)
   {
-    FILENAME = rainfall_data_file;
+    std::string RAINFALL_FILENAME = read_path + "/" + rainfall_data_file;
     // Check for the file first of all
-    if (!does_file_exist(FILENAME))
+    if (!does_file_exist(RAINFALL_FILENAME))
     {
-      std::cout << "No rainfall data file found by name of: " << FILENAME << std::endl << "You specified to use a rainfall input file, \
+      std::cout << "No rainfall data file found by name of: " << RAINFALL_FILENAME << std::endl << "You specified to use a rainfall input file, \
                    \n but no matching file was found. Try again." << std::endl;
                    exit(EXIT_FAILURE);
     }
-    std::cout << "Ingesting rainfall data file: " << FILENAME << " into hourly_rain_data" << std::endl;
-    hourly_rain_data = read_rainfalldata(FILENAME);
+    std::cout << "Ingesting rainfall data file: " << RAINFALL_FILENAME << " into hourly_rain_data" << std::endl;
+    hourly_rain_data = read_rainfalldata(RAINFALL_FILENAME);
 
     // debug
     if (DEBUG == 1) print_rainfall_data();
@@ -530,7 +530,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
     {
       write_path = value;
       write_path = RemoveControlCharactersFromEndOfString(write_path);
-      std::cout << "dem_read_extension: " << dem_read_extension << std::endl;
+      std::cout << "output write path: " << write_path << std::endl;
     }
     else if (lower == "write_fname")
     {
@@ -632,10 +632,10 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       saveinterval = atof(value.c_str());
       std::cout << "raster_output_interval: " << saveinterval << std::endl;
     }
-    else if (lower == "elevation_file")
+    else if (lower == "write_elevation_file")
     {
       elev_fname = value;
-      std::cout << "elev_fname: " << elev_fname << std::endl;
+      std::cout << "write_elev_fname: " << elev_fname << std::endl;
     }
     else if (lower == "write_elev_file")
     {
@@ -1611,7 +1611,8 @@ void LSDCatchmentModel::output_data(double temptotal)
       // Open the catchment time series file in append mode (ios_base::app)
       // Open it in write mode (ios_base::out)
       // CATCH_FILE is called "catchment.dat" by default (see the .hpp file)
-      std::ofstream timeseriesf(CATCH_FILE, std::ios_base::app | std::ios_base::out);
+      std::string OUTPUT_FILE = write_path + "/" + CATCH_FILE;
+      std::ofstream timeseriesf(OUTPUT_FILE, std::ios_base::app | std::ios_base::out);
 
       // write the current timestep output to the time series file
       timeseriesf << output << std::endl;
@@ -1647,7 +1648,9 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     // Woohoo! Some actual object-oriented programming!
     std::string current_water_depth_filename = waterdepth_fname + std::to_string((int)tempcycle);
     
-    water_depthR.write_double_raster(current_water_depth_filename, "asc");
+    std::string OUTPUT_WATERD_FILE = write_path + "/" + current_water_depth_filename;
+    
+    water_depthR.write_double_raster(OUTPUT_WATERD_FILE, "asc");
   }
 
   // Write Elevation raster
@@ -1656,7 +1659,10 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     LSDRaster elev_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, elev);
     // Get rid of the zeros padding the edges of the domain
     elev_outR.strip_raster_padding();
-    elev_outR.write_double_raster("output_elevTEST", "asc");
+    
+    std::string OUTPUT_ELEV_FILE = write_path + "/" + elev_fname + std::to_string((int)tempcycle);
+    
+    elev_outR.write_double_raster(OUTPUT_ELEV_FILE, "asc");
   }
 }
 
