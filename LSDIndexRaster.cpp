@@ -189,6 +189,42 @@ void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// similar to above but contains no data and has a constant value
+// SMM 2016
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::create(int nrows, int ncols, float xmin, float ymin,
+            float cellsize, int ndv, map<string,string> GRS_map, int ConstValue)
+{
+  //cout << "YOYOYOYOY" << endl;
+  //cout << "NR: " << NRows << " NC: " << NCols << endl;
+
+  NRows = nrows;
+  NCols = ncols;
+  XMinimum = xmin;
+  YMinimum = ymin;
+  DataResolution = cellsize;
+  NoDataValue = ndv;
+  GeoReferencingStrings = GRS_map;
+
+  Array2D<int> TempData(NRows,NCols,ConstValue);
+  
+  RasterData = TempData.copy();
+
+  if (RasterData.dim1() != NRows)
+  {
+    cout << "LSDIndexRaster create::dimension of data is not the same as stated in NRows!" << endl;
+    exit(EXIT_FAILURE);
+  }
+  if (RasterData.dim2() != NCols)
+  {
+    cout << "LSDIndexRaster create::dimension of data is not the same as stated in NRows!" << endl;
+    exit(EXIT_FAILURE);
+  }
+}
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Creates an LSDIndexRaster from an LSDRaster by rounding floats to ints
 // Doesn't work yet
 // MDH, Feb 2015
