@@ -137,6 +137,22 @@ class LSDIndexRaster
             float cellsize, int ndv, Array2D<int> data, map<string,string> GRS_map)
              { create(nrows, ncols, xmin, ymin, cellsize, ndv, data, GRS_map); }
 
+  /// @brief Create an LSDIndexRaster with a constant value.
+  /// @return LSDIndexRaster
+  /// @param nrows An integer of the number of rows.
+  /// @param ncols An integer of the number of columns.
+  /// @param xmin A float of the minimum X coordinate.
+  /// @param ymin A float of the minimum Y coordinate.
+  /// @param cellsize A float of the cellsize.
+  /// @param ndv An integer of the no data value.
+  /// @param GRS_map a map containing information about the georeferencing
+  /// @param ConstValue the value all elements in array have
+  /// containing the data to be written.
+  /// @author SMM
+  /// @date 20/05/16
+  LSDIndexRaster(int nrows, int ncols, float xmin, float ymin,
+            float cellsize, int ndv, map<string,string> GRS_map, int ConstValue)
+             { create(nrows, ncols, xmin, ymin, cellsize, ndv, GRS_map, ConstValue); }
 
   /// @brief Create an LSDIndexRaster from an LSDRaster object, rounding to nearest int
   /// @return LSDIndexRaster
@@ -483,6 +499,9 @@ class LSDIndexRaster
   void create(int ncols, int nrows, float xmin, float ymin,
               float cellsize, int ndv, Array2D<int> data, 
               map<string,string> GRS_map);
+  void create(int nrows, int ncols, float xmin, float ymin,
+              float cellsize, int ndv, map<string,string> GRS_map, 
+              int ConstValue);
   void create(LSDRaster& NonIntLSDRaster);            
   void create(LSDRaster& ARaster, int ConstValue);
 };
