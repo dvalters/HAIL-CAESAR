@@ -218,6 +218,26 @@ void LSDIndexRaster::create(LSDRaster& NonIntLSDRaster)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Creates an LSDIndexRaster by taking the same shape as an LSDRaster
+// and setting everything to a background value
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::create(LSDRaster& ARaster, int ConstValue)
+{
+  NRows = ARaster.get_NRows();
+  NCols = ARaster.get_NCols();
+  XMinimum = ARaster.get_XMinimum();
+  YMinimum = ARaster.get_YMinimum();
+  DataResolution = ARaster.get_DataResolution();
+  NoDataValue = ARaster.get_NoDataValue();
+  GeoReferencingStrings = ARaster.get_GeoReferencingStrings();
+  Array2D<int> RasterDataInt(NRows,NCols,ConstValue);
+  
+  RasterData = RasterDataInt.copy();
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // this function reads a DEM
 // One has to provide both the filename and the extension
 // the '.' between the filename and extension is not included

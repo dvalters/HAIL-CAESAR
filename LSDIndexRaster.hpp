@@ -143,7 +143,16 @@ class LSDIndexRaster
   /// @param NonIntLSDRaster an LSDRaster object containing flaoting point data
   /// @author MDH
   /// @date 17/02/15
-  LSDIndexRaster(LSDRaster& NonIntLSDRaster)   {create(NonIntLSDRaster); }
+  LSDIndexRaster(LSDRaster& NonIntLSDRaster)   { create(NonIntLSDRaster); }
+
+  /// @brief Create an LSDIndexRaster that is the same size as a raster
+  ///  but all values are some constant value
+  /// @param NonIntLSDRaster an LSDRaster object 
+  /// @param CanstValue a value that will be assigned to all data points
+  /// @author SMM
+  /// @date 19/05/16
+  LSDIndexRaster(LSDRaster& ARaster,int ConstValue)   { create(ARaster, ConstValue); }
+  
   
   // Get functions
 
@@ -475,7 +484,7 @@ class LSDIndexRaster
               float cellsize, int ndv, Array2D<int> data, 
               map<string,string> GRS_map);
   void create(LSDRaster& NonIntLSDRaster);            
-
+  void create(LSDRaster& ARaster, int ConstValue);
 };
 
 #endif
