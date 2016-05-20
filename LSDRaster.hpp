@@ -207,6 +207,14 @@ class LSDRaster
   /// @date 01/01/12
   float get_data_element(int row, int column)  { return RasterData[row][column]; }
 
+  /// @brief Sets the raster data at a specified location.
+  /// @param row An integer, the X coordinate of the target cell.
+  /// @param column An integer, the Y coordinate of the target cell.
+  /// @param value The value of the updated raster element
+  /// @author SMM
+  /// @date 19/05/16
+  void set_data_element(int row, int column, float value)  { RasterData[row][column] = value; }
+
   /// Assignment operator.
   LSDRaster& operator=(const LSDRaster& LSDR);
 
