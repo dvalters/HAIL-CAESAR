@@ -927,6 +927,51 @@ void LSDIndexRaster::get_x_and_y_locations(int row, int col, float& x_loc, float
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Function to convert a node position with a row and column to a lat
+// and long coordinate
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::get_lat_and_long_locations(int row, int col, double& lat, 
+                   double& longitude, LSDCoordinateConverterLLandUTM Converter)
+{
+  // get the x and y locations of the node
+  double x_loc,y_loc;
+  get_x_and_y_locations(row, col, x_loc, y_loc);
+  
+  // get the UTM zone of the node
+  int UTM_zone;
+  bool is_North;
+  get_UTM_information(UTM_zone, is_North);
+  //cout << endl << endl << "Line 1034, UTM zone is: " << UTM_zone << endl;
+  
+  
+  if(UTM_zone == NoDataValue)
+  {
+    lat = NoDataValue;
+    longitude = NoDataValue;
+  }
+  else
+  {
+    // set the default ellipsoid to WGS84
+    int eId = 22;
+  
+    double xld = double(x_loc);
+    double yld = double(y_loc);
+  
+    // use the converter to convert to lat and long
+    double Lat,Long;
+    Converter.UTMtoLL(eId, yld, xld, UTM_zone, is_North, Lat, Long);
+          
+  
+    lat = Lat;
+    longitude = Long;
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Method to flatten an LSDRaster and place the non NDV values in a csv file.
 // Each value is placed on its own line, so that it can be read more quickly in python etc.
 // It includes the x and y locations so it can be read by GIS software
@@ -943,10 +988,14 @@ void LSDIndexRaster::FlattenToCSV(string FileName_prefix)
   WriteData.open(FileName.c_str());
   
   WriteData.precision(8);
-  WriteData << "x,y,value" << endl;
-  
+  WriteData << "x,y,value,latitude,longitude" << endl;
+
+  // this is for latitude and longitude
+  LSDCoordinateConverterLLandUTM Converter;
+
   // the x and y locations
   float x_loc, y_loc;
+  double latitude,longitude;
 
   //loop over each cell and if there is a value, write it to the file
   for(int i = 0; i < NRows; ++i)
@@ -956,7 +1005,10 @@ void LSDIndexRaster::FlattenToCSV(string FileName_prefix)
       if (RasterData[i][j] != NoDataValue)
       {
         get_x_and_y_locations(i,j,x_loc,y_loc);
-        WriteData << x_loc << "," << y_loc << "," << RasterData[i][j] << endl;
+    
+        get_lat_and_long_locations(i, j, latitude, longitude, Converter);
+        
+        WriteData << x_loc << "," << y_loc << "," << RasterData[i][j] << "," << latitude << "," << longitude << endl;
       }
     }
   }

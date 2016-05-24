@@ -10811,10 +10811,11 @@ void LSDRaster::FlattenToCSV(string FileName_prefix)
   WriteData.open(FileName.c_str());
   
   WriteData.precision(8);
-  WriteData << "x,y,value" << endl;
+  WriteData << "x,y,value,latitude,longitude" << endl;
   
   // the x and y locations
   float x_loc, y_loc;
+  double latitude,longitude;
 
   //loop over each cell and if there is a value, write it to the file
   for(int i = 0; i < NRows; ++i)
@@ -10824,7 +10825,9 @@ void LSDRaster::FlattenToCSV(string FileName_prefix)
       if (RasterData[i][j] != NoDataValue)
       {
         get_x_and_y_locations(i,j,x_loc,y_loc);
-        WriteData << x_loc << "," << y_loc << "," << RasterData[i][j] << endl;
+        get_lat_and_long_locations(i, j, latitude, longitude, Converter);
+        
+        WriteData << x_loc << "," << y_loc << "," << RasterData[i][j] << "," << latitude << "," << longitude << endl;
       }
     }
   }
