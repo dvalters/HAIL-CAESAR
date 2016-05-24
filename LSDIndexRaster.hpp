@@ -256,6 +256,22 @@ class LSDIndexRaster
   /// @date 22/12/2014
   void get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc);
 
+  /// @brief a function to get the lat and long of a node in the raster
+  /// @detail Assumes WGS84 ellipsiod
+  /// @param row the row of the node
+  /// @param col the col of the node
+  /// @param lat the latitude of the node (in decimal degrees, replaced by function)
+  ///  Note: this is a double, because a float does not have sufficient precision
+  ///  relative to a UTM location (which is in metres)
+  /// @param long the longitude of the node (in decimal degrees, replaced by function)
+  ///  Note: this is a double, because a float does not have sufficient precision
+  ///  relative to a UTM location (which is in metres)
+  /// @param Converter a converter object (from LSDShapeTools)
+  /// @author SMM
+  /// @date 24/05/2015
+  void get_lat_and_long_locations(int row, int col, double& lat, 
+                  double& longitude, LSDCoordinateConverterLLandUTM Converter);
+
   /// @brief Method to flatten an LSDRaster to a text file, with a sigle value on each line. 
   /// @brief Method to flatten an LSDRaster and place the non NDV values in a csv file.
   /// @detail Each value is placed on its own line, so that it can be read more quickly in python etc.
