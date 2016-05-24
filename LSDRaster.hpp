@@ -122,14 +122,14 @@ class LSDRaster
   friend class LSDFlowInfo;
 
   /// @brief The create function. This is default and throws an error.
-  LSDRaster()		       	{ create(); }
+  LSDRaster()             { create(); }
   
   /// @brief Create an LSDRaster from a file.
   /// Uses a filename and file extension
   /// @return LSDRaster
   /// @param filename A String, the file to be loaded.
   /// @param extension A String, the file extension to be loaded.
-  LSDRaster(string filename, string extension)	{ create(filename, extension); }
+  LSDRaster(string filename, string extension)  { create(filename, extension); }
 
   /// @brief Create an LSDRaster from memory.
   /// @return LSDRaster
@@ -174,17 +174,17 @@ class LSDRaster
   // Get functions
 
   /// @return Number of rows as an integer.
-  int get_NRows() const				{ return NRows; }
+  int get_NRows() const        { return NRows; }
   /// @return Number of columns as an integer.
-  int get_NCols() const				{ return NCols; }
+  int get_NCols() const        { return NCols; }
   /// @return Minimum X coordinate as an integer.
-  float get_XMinimum() const			{ return XMinimum; }
+  float get_XMinimum() const      { return XMinimum; }
   /// @return Minimum Y coordinate as an integer.
-  float get_YMinimum() const			{ return YMinimum; }
+  float get_YMinimum() const      { return YMinimum; }
   /// @return Data resolution as an integer.
-  float get_DataResolution() const	{ return DataResolution; }
+  float get_DataResolution() const  { return DataResolution; }
   /// @return No Data Value as an integer.
-  int get_NoDataValue() const			{ return NoDataValue; }
+  int get_NoDataValue() const      { return NoDataValue; }
   /// @return Raster values as a 2D Array.
   Array2D<float> get_RasterData() const { return RasterData.copy(); }
   
@@ -538,7 +538,7 @@ class LSDRaster
   /// @brief Calculates mean relief of a raster, it defaults to a circular kernal
   /// @return The spatially distributed relief
   /// @author JAJ (entered into trunk SMM)
-  /// @date 01/02/2014 	modified 09/06/2014 by SMM
+  /// @date 01/02/2014   modified 09/06/2014 by SMM
   float mean_relief(float kernelsize);
 
   /// @brief Calculates the mean difference between two rasters
@@ -665,38 +665,38 @@ class LSDRaster
   /// @date 11/4/13
   Array2D<float> Shadow(int theta, int phi);
 
-	/// @brief Function to determine areas of a DEM that are in shadow from a 
-	/// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
-	///
-	/// @details Performs a coordinate transformation, rotating the x,y,z coordinates about the
-	/// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith. 
-	/// Shaded cells are then found by tracking in the direction of the radiation source and 
-	/// looking for transformed z values greater than that at the cell of interest which would
-	/// therefore cast a shadow.
+  /// @brief Function to determine areas of a DEM that are in shadow from a 
+  /// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
+  ///
+  /// @details Performs a coordinate transformation, rotating the x,y,z coordinates about the
+  /// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith. 
+  /// Shaded cells are then found by tracking in the direction of the radiation source and 
+  /// looking for transformed z values greater than that at the cell of interest which would
+  /// therefore cast a shadow.
   ///
   /// @param Azimuth of the illumination source in degrees.
   /// @param ZenithAngle of the illumination source in degrees
   /// @return Hillshaded LSDIndexRaster 
   /// @author MDH
   /// @date Feb 2015
-	LSDRaster CastShadows(int Azimuth, int ZenithAngle);
-	
-	/// @brief Function to determine areas of a DEM that are in shadow from a 
-	/// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
-	///
-	/// @details Performs a coordinate transformation, rotating the x,y,z coordinates about the
-	/// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith. 
-	/// Shaded cells are then found by tracking in the direction of the radiation source and 
-	/// looking for transformed z values greater than that at the cell of interest which would
-	/// therefore cast a shadow.
+  LSDRaster CastShadows(int Azimuth, int ZenithAngle);
+  
+  /// @brief Function to determine areas of a DEM that are in shadow from a 
+  /// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
+  ///
+  /// @details Performs a coordinate transformation, rotating the x,y,z coordinates about the
+  /// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith. 
+  /// Shaded cells are then found by tracking in the direction of the radiation source and 
+  /// looking for transformed z values greater than that at the cell of interest which would
+  /// therefore cast a shadow.
   ///
   /// @param Azimuth of the illumination source in degrees.
   /// @param ZenithAngle of the illumination source in degrees
   /// @return Hillshaded 2D Array of ints
   /// @author MDH
   /// @date Feb 2015
-	Array2D<float> Shadows(int Azimuth, int ZenithAngle);
-	
+  Array2D<float> Shadows(int Azimuth, int ZenithAngle);
+  
   /// @brief This function generates a topographic shielding raster using the algorithm 
   /// outlined in Codilean (2006).
   ///
@@ -793,7 +793,7 @@ class LSDRaster
   ///
   /// @details The coefficient matrices are overwritten during the running of this member function.
   ///
-  /// Have N simultaneous linear equations, and N unknowns.	
+  /// Have N simultaneous linear equations, and N unknowns.  
   /// => b = Ax, where x is a 1xN array containing the coefficients we need for
   /// surface fitting.
   /// A is constructed using different combinations of x and y, thus we only need
@@ -874,7 +874,7 @@ class LSDRaster
   /// @author DTM, SMM
   /// @date 01/01/12
   LSDRaster calculate_polyfit_planform_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
-                      	Array2D<float>& d, Array2D<float>& e);
+                        Array2D<float>& d, Array2D<float>& e);
   
   /// @brief  This function calculates the profile curvature based on a polynomial fit.
   ///
@@ -922,7 +922,7 @@ class LSDRaster
   /// @param e coefficeint e.
   /// @return LSDRaster of classified elevation data.
   /// @author DTM
-  /// @date	17/09/2012
+  /// @date  17/09/2012
   LSDIndexRaster calculate_polyfit_classification(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
                                                 Array2D<float>& d, Array2D<float>& e);
 
@@ -1345,7 +1345,7 @@ class LSDRaster
 //  /// @return LSDIndexRaster of predicted channel head locations.
 //  /// @author FC, DTM
 //  /// @date 07/11/13
-//		LSDIndexRaster calculate_pelletier_channel_heads(float window_radius, float tan_curv_threshold, Array2D<float>& tan_curv_array);
+//    LSDIndexRaster calculate_pelletier_channel_heads(float window_radius, float tan_curv_threshold, Array2D<float>& tan_curv_array);
 
   // some tools associated with ridgeline analyis
 
@@ -1709,12 +1709,12 @@ class LSDRaster
   /// @date 16/10/13  
   LSDRaster D_inf_units();
 
-	///@brief Wrapper Function to convert a D-infinity flow raster into spatial units.
+  ///@brief Wrapper Function to convert a D-infinity flow raster into spatial units.
   /// @return LSDRaster of D-inf flow areas in spatial units.
   /// @author MDH (after SWDG)
   /// @date 5/9/14  
-	LSDRaster D_inf_ConvertFlowToArea();
-	
+  LSDRaster D_inf_ConvertFlowToArea();
+  
   /// @brief Function to write the D-infinity flow directions to an LSDRaster.
   /// @param dinflow Array of Flowdirections generated by D_inf_FlowDir().
   /// @return LSDRaster of D-inf flow directions in degrees.
@@ -1722,7 +1722,7 @@ class LSDRaster
   /// @date 26/07/13
   LSDRaster write_dinf_flowdir_to_LSDRaster(Array2D<float> dinflow);
 
-	/// @brief Function to generate upslope contributing area extent from the D-infinity flow directions to an LSDRaster.
+  /// @brief Function to generate upslope contributing area extent from the D-infinity flow directions to an LSDRaster.
   /// @param dinflow LSDRaster of Flowdirections generated by D_inf_FlowDir().
   /// @param i and j indices of pour point node
   /// @return LSDIndexRaster of catchment
@@ -1911,14 +1911,14 @@ class LSDRaster
   /// @return LSDIndexRaster of the mask
   /// @author MDH
   /// @date 27/08/2014
-	LSDIndexRaster Create_Mask(string Condition, float TestValue);
-	
-	/// @brief Function to extract an LSDRaster based on a LSDIndexRaster mask
+  LSDIndexRaster Create_Mask(string Condition, float TestValue);
+  
+  /// @brief Function to extract an LSDRaster based on a LSDIndexRaster mask
   /// @param LSDIndexRaster TheMask
   /// @return masked LSDRaster 
   /// @author MDH
   /// @date 27/08/2014
-	LSDRaster ExtractByMask(LSDIndexRaster Mask);
+  LSDRaster ExtractByMask(LSDIndexRaster Mask);
 
   /// @brief method to locate channel pixels outlined by Lashermes.
   /// 
@@ -2039,19 +2039,19 @@ class LSDRaster
   /// @author FJC
   /// @date 16/11/15                                                  
   float get_threshold_for_floodplain_QQ(string q_q_filename, float threshold_condition, int lower_percentile, int upper_percentile);
-	
-	/// @brief Function to calculate the reliability of floodplain method
-	/// @param ActualRaster raster of actual values
+  
+  /// @brief Function to calculate the reliability of floodplain method
+  /// @param ActualRaster raster of actual values
   /// @author FJC
   /// @date 04/05/16
-	float CalculateReliability(LSDRaster& ActualRaster);
-	
-	/// @brief Function to calculate the sensitivity of floodplain method
-	/// @param ActualRaster raster of actual values
+  float CalculateReliability(LSDRaster& ActualRaster);
+  
+  /// @brief Function to calculate the sensitivity of floodplain method
+  /// @param ActualRaster raster of actual values
   /// @author FJC
   /// @date 04/05/16
-	float CalculateSensitivity(LSDRaster& ActualRaster);
-	
+  float CalculateSensitivity(LSDRaster& ActualRaster);
+  
   
   /// @brief Get the lengths in spatial units of each part of the channel network, divided by strahler order.
   /// @param StreamNetwork Raster of the stream network coded by strahler order.

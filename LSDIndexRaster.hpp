@@ -78,6 +78,7 @@
 #include <vector>
 #include <map>
 #include "TNT/tnt.h"
+#include "LSDShapeTools.hpp"
 //#include "LSDRaster.hpp"
 
 using namespace std;
@@ -254,6 +255,15 @@ class LSDIndexRaster
   /// @param y_loc the y location (Easting) of the node
   /// @author SMM
   /// @date 22/12/2014
+  void get_x_and_y_locations(int row, int col, double& x_loc, double& y_loc);
+
+  /// @brief this gets the x and y location of a node at row and column
+  /// @param row the row of the node
+  /// @param col the column of the node
+  /// @param x_loc the x location (Northing) of the node
+  /// @param y_loc the y location (Easting) of the node
+  /// @author SMM
+  /// @date 22/12/2014
   void get_x_and_y_locations(int row, int col, float& x_loc, float& y_loc);
 
   /// @brief a function to get the lat and long of a node in the raster
@@ -271,6 +281,15 @@ class LSDIndexRaster
   /// @date 24/05/2015
   void get_lat_and_long_locations(int row, int col, double& lat, 
                   double& longitude, LSDCoordinateConverterLLandUTM Converter);
+
+  /// @brief this function gets the UTM_zone and a boolean that is true if
+  /// the map is in the northern hemisphere
+  /// @param UTM_zone the UTM zone. Replaced in function. 
+  /// @param is_North a boolean that is true if the DEM is in the northern hemisphere.
+  ///  replaced in function
+  /// @author SMM
+  /// @date 22/12/2014
+  void get_UTM_information(int& UTM_zone, bool& is_North);
 
   /// @brief Method to flatten an LSDRaster to a text file, with a sigle value on each line. 
   /// @brief Method to flatten an LSDRaster and place the non NDV values in a csv file.
