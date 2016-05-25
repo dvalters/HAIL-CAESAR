@@ -104,7 +104,7 @@ bool SystemEndiannessTest(){
   }
   else{
     cout << "Unable to determine endianness of system." << endl;
-		exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
  
 }
@@ -137,12 +137,12 @@ void ByteSwap(int length, void * ByteData){
 // SWDG 10/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 long getFileSize(FILE *file){
-	long lCurPos, lEndPos;
-	lCurPos = ftell(file);
-	fseek(file, 0, 2);
-	lEndPos = ftell(file);
-	fseek(file, lCurPos, 0);
-	return lEndPos;
+  long lCurPos, lEndPos;
+  lCurPos = ftell(file);
+  fseek(file, 0, 2);
+  lEndPos = ftell(file);
+  fseek(file, lCurPos, 0);
+  return lEndPos;
 }
 
 
@@ -161,28 +161,28 @@ long getFileSize(FILE *file){
 // SWDG 13/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 PointData LoadShapefile(string Filename){
-  	
-	BYTE *ByteData;			// Pointer to our buffered data
-	FILE *file = NULL;		// File pointer
+    
+  BYTE *ByteData;      // Pointer to our buffered data
+  FILE *file = NULL;    // File pointer
 
-	// Open the file in binary mode using the "rb" format string
-	// This also checks if the file exists and/or can be opened for reading correctly
-	if ((file = fopen(Filename.c_str(), "rb")) == NULL){
-		cout << "Could not open specified file" << endl;
-		exit(EXIT_FAILURE);
-  }		
-	else{
-		cout << "File opened successfully" << endl;	
+  // Open the file in binary mode using the "rb" format string
+  // This also checks if the file exists and/or can be opened for reading correctly
+  if ((file = fopen(Filename.c_str(), "rb")) == NULL){
+    cout << "Could not open specified file" << endl;
+    exit(EXIT_FAILURE);
+  }    
+  else{
+    cout << "File opened successfully" << endl;  
   }
   
-	// Get the size of the file in bytes
-	long fileSize = getFileSize(file);
+  // Get the size of the file in bytes
+  long fileSize = getFileSize(file);
 
-	// Allocate space in the buffer for the whole file
-	ByteData = new BYTE[fileSize];
+  // Allocate space in the buffer for the whole file
+  ByteData = new BYTE[fileSize];
 
-	// Read the file in to the buffer
-	fread(ByteData, fileSize, 1, file);
+  // Read the file in to the buffer
+  fread(ByteData, fileSize, 1, file);
 
   //Declare variables used in the method
   int FileLength;
@@ -326,28 +326,28 @@ PointData LoadShapefile(string Filename){
 // SWDG 17/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<PointData> LoadPolyline(string Filename){
-  	
-	BYTE *ByteData;			// Pointer to our buffered data
-	FILE *file = NULL;		// File pointer
+    
+  BYTE *ByteData;      // Pointer to our buffered data
+  FILE *file = NULL;    // File pointer
 
-	// Open the file in binary mode using the "rb" format string
-	// This also checks if the file exists and/or can be opened for reading correctly
-	if ((file = fopen(Filename.c_str(), "rb")) == NULL){
-		cout << "Could not open specified file" << endl;
-		exit(EXIT_FAILURE);
-  }		
-	else{
-		cout << "File opened successfully" << endl;	
+  // Open the file in binary mode using the "rb" format string
+  // This also checks if the file exists and/or can be opened for reading correctly
+  if ((file = fopen(Filename.c_str(), "rb")) == NULL){
+    cout << "Could not open specified file" << endl;
+    exit(EXIT_FAILURE);
+  }    
+  else{
+    cout << "File opened successfully" << endl;  
   }
   
-	// Get the size of the file in bytes
-	long fileSize = getFileSize(file);
+  // Get the size of the file in bytes
+  long fileSize = getFileSize(file);
 
-	// Allocate space in the buffer for the whole file
-	ByteData = new BYTE[fileSize];
+  // Allocate space in the buffer for the whole file
+  ByteData = new BYTE[fileSize];
 
-	// Read the file in to the buffer
-	fread(ByteData, fileSize, 1, file);
+  // Read the file in to the buffer
+  fread(ByteData, fileSize, 1, file);
 
   //Declare variables used in the method
   int FileLength;
@@ -554,63 +554,63 @@ vector<PointData> LoadPolyline(string Filename){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 PointData LoadChannelTree(string Filename, int multistem_option, int trib_number)
 {
-	if((multistem_option != 0) && (multistem_option != 1) && (multistem_option !=2))
+  if((multistem_option != 0) && (multistem_option != 1) && (multistem_option !=2))
   {
     cout << "multistem_option must be 0 (mainstem only), 1 (all tributaries) or 2 (specify channel number).  Setting mainstem only default" << endl;
     multistem_option = 0;
   }
   
   ifstream channel_data_in;
-	channel_data_in.open(Filename.c_str());
+  channel_data_in.open(Filename.c_str());
 
-	if( channel_data_in.fail() )
-	{
-		cout << "\nFATAL ERROR: the channel network file \"" << Filename << "\" doesn't exist" << endl;
-		exit(EXIT_FAILURE);
-	}
+  if( channel_data_in.fail() )
+  {
+    cout << "\nFATAL ERROR: the channel network file \"" << Filename << "\" doesn't exist" << endl;
+    exit(EXIT_FAILURE);
+  }
 
   PointData Points;
 
-	int channel_number;
-	int receiver_cnumber;
-	int recevier_cnode;
+  int channel_number;
+  int receiver_cnumber;
+  int recevier_cnode;
 
-	int node;
-	int row;
-	int col;
+  int node;
+  int row;
+  int col;
 
-	float flow_dist;
-	float elev;
-	float drain_area;
+  float flow_dist;
+  float elev;
+  float drain_area;
 
-	int last_cn = 0;		// this is 1 if this is the first node in a channel
-	int last_receiver_node = -1;
-	int last_receiver_channel = -1;
+  int last_cn = 0;    // this is 1 if this is the first node in a channel
+  int last_receiver_node = -1;
+  int last_receiver_channel = -1;
 
   float XMinimum,YMinimum,DataResolution,NoDataValue;
   int NRows,NCols;
 
-	channel_data_in >> NRows >> NCols >> XMinimum >> YMinimum >> DataResolution >> NoDataValue;
+  channel_data_in >> NRows >> NCols >> XMinimum >> YMinimum >> DataResolution >> NoDataValue;
   float x,y;
-	while( channel_data_in >> channel_number >> receiver_cnumber >> recevier_cnode
-	                       >> node >> row >> col >> flow_dist >> elev >> drain_area)
-	{
-		// get the receiver_channel and receiver node for the first channel (these will be recursive)
-		if (last_receiver_node == -1)
-		{
-			last_receiver_node = recevier_cnode;
-			last_receiver_channel = receiver_cnumber;
-		}
+  while( channel_data_in >> channel_number >> receiver_cnumber >> recevier_cnode
+                         >> node >> row >> col >> flow_dist >> elev >> drain_area)
+  {
+    // get the receiver_channel and receiver node for the first channel (these will be recursive)
+    if (last_receiver_node == -1)
+    {
+      last_receiver_node = recevier_cnode;
+      last_receiver_channel = receiver_cnumber;
+    }
     // now load everything into the PointData object :-)
 
-		if(multistem_option == 0)
-		{
+    if(multistem_option == 0)
+    {
       if(channel_number == 0)
       {
         x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
-  		  y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
+        y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
         Points.X.push_back(x);
-        Points.Y.push_back(y); 		  		
+        Points.Y.push_back(y);           
       }
     }
     else if(multistem_option == 1)
@@ -618,8 +618,8 @@ PointData LoadChannelTree(string Filename, int multistem_option, int trib_number
       x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
       y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
       Points.X.push_back(x);
-      Points.Y.push_back(y); 	
-		}
+      Points.Y.push_back(y);   
+    }
     else if(multistem_option == 2)
     {
       if(channel_number == trib_number)
@@ -627,17 +627,17 @@ PointData LoadChannelTree(string Filename, int multistem_option, int trib_number
         x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
         y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
         Points.X.push_back(x);
-        Points.Y.push_back(y); 	
+        Points.Y.push_back(y);   
       }
-		}
+    }
     else
     {
       if(channel_number == 0)
       {
         x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
-  		  y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
+        y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution; 
         Points.X.push_back(x);
-        Points.Y.push_back(y); 		
+        Points.Y.push_back(y);     
       }
     } 
   }
@@ -681,29 +681,29 @@ void LSDCoordinateConverterLLandUTM::create()
   char t22[] = "WGS84";
   
   // add the ellipsoids to the vector
-  LSDEllipsoid E00( 0, t00,		6377563.396,	299.3249646);
-  LSDEllipsoid E01( 1, t01,		6377340.189,	299.3249646);
-  LSDEllipsoid E02( 2, t02,	6378160,	298.25);
-  LSDEllipsoid E03( 3, t03,	6377483.865,	299.1528128);
-  LSDEllipsoid E04( 4, t04,		6377397.155,	299.1528128);
-  LSDEllipsoid E05( 5, t05,		6378206.4,	294.9786982);
-  LSDEllipsoid E06( 6, t06,		6378249.145,	293.465);
-  LSDEllipsoid E07( 7, t07,	6377276.345,	300.8017);
-  LSDEllipsoid E08( 8, t08,	6377298.556,	300.8017);
-  LSDEllipsoid E09( 9, t09,	6377301.243,	300.8017);
-  LSDEllipsoid E10(10, t10,	6377295.664,	300.8017);	//Dana has no datum that uses this LSDEllipsoid E00!
-  LSDEllipsoid E11(11, t11,	6377304.063,	300.8017);
-  LSDEllipsoid E12(12, t12,	6377309.613,	300.8017);
-  LSDEllipsoid E13(13, t13,	6378155,	298.3);
-  LSDEllipsoid E14(14, t14,		6378200,	298.3);
-  LSDEllipsoid E15(15, t15,		6378270,	297);
-  LSDEllipsoid E16(16, t16,		6378160,	298.247);
-  LSDEllipsoid E17(17, t17,	6378388,	297);
-  LSDEllipsoid E18(18, t18,		6378245,	298.3);
-  LSDEllipsoid E19(19, t19,			6378137,	298.257222101);
-  LSDEllipsoid E20(20, t20,	6378160,	298.25);
-  LSDEllipsoid E21(21, t21,			6378135,	298.26);
-  LSDEllipsoid E22(22, t22,			6378137,	298.257223563);
+  LSDEllipsoid E00( 0, t00,    6377563.396,  299.3249646);
+  LSDEllipsoid E01( 1, t01,    6377340.189,  299.3249646);
+  LSDEllipsoid E02( 2, t02,  6378160,  298.25);
+  LSDEllipsoid E03( 3, t03,  6377483.865,  299.1528128);
+  LSDEllipsoid E04( 4, t04,    6377397.155,  299.1528128);
+  LSDEllipsoid E05( 5, t05,    6378206.4,  294.9786982);
+  LSDEllipsoid E06( 6, t06,    6378249.145,  293.465);
+  LSDEllipsoid E07( 7, t07,  6377276.345,  300.8017);
+  LSDEllipsoid E08( 8, t08,  6377298.556,  300.8017);
+  LSDEllipsoid E09( 9, t09,  6377301.243,  300.8017);
+  LSDEllipsoid E10(10, t10,  6377295.664,  300.8017);  //Dana has no datum that uses this LSDEllipsoid E00!
+  LSDEllipsoid E11(11, t11,  6377304.063,  300.8017);
+  LSDEllipsoid E12(12, t12,  6377309.613,  300.8017);
+  LSDEllipsoid E13(13, t13,  6378155,  298.3);
+  LSDEllipsoid E14(14, t14,    6378200,  298.3);
+  LSDEllipsoid E15(15, t15,    6378270,  297);
+  LSDEllipsoid E16(16, t16,    6378160,  298.247);
+  LSDEllipsoid E17(17, t17,  6378388,  297);
+  LSDEllipsoid E18(18, t18,    6378245,  298.3);
+  LSDEllipsoid E19(19, t19,      6378137,  298.257222101);
+  LSDEllipsoid E20(20, t20,  6378160,  298.25);
+  LSDEllipsoid E21(21, t21,      6378135,  298.26);
+  LSDEllipsoid E22(22, t22,      6378137,  298.257223563);
   
   Ellipse_data_temp.push_back(E00);
   Ellipse_data_temp.push_back(E01);
@@ -769,34 +769,34 @@ void LSDCoordinateConverterLLandUTM::create()
   char T26[] = "WGS72";
   char T27[] = "WGS84";
 
-  LSDDatum D00(0, T00,			eClarke1866,	-5,	135,	172); //NAD27 for Alaska Excluding Aleutians
-  LSDDatum D01( 1, T01,	eClarke1866,	-2,	152,	149); //NAD27 for Aleutians East of 180W
-  LSDDatum D02( 2, T02,	eClarke1866,	2,	204,	105); //NAD27 for Aleutians West of 180W
-  LSDDatum D03( 3, T03,		eClarke1866,	-4,	154,	178); //NAD27 for Bahamas Except SanSalvadorIsland
-  LSDDatum D04( 4, T04,	eClarke1866,	1,	140,	165); //NAD27 for Bahamas SanSalvadorIsland
-  LSDDatum D05( 5, T05,		eClarke1866,	-7,	162,	188); //NAD27 for Canada Alberta BritishColumbia
-  LSDDatum D06( 6, T06,		eClarke1866,	-9,	157,	184); //NAD27 for Canada Manitoba Ontario
-  LSDDatum D07( 7, T07,		eClarke1866,	-22,	160,	190); //NAD27 for Canada NewBrunswick Newfoundland NovaScotia Quebec
-  LSDDatum D08( 8, T08,		eClarke1866,	4,	159,	188); //NAD27 for Canada NorthwestTerritories Saskatchewan
-  LSDDatum D09( 9, T09,			eClarke1866,	-7,	139,	181); //NAD27 for Canada Yukon
-  LSDDatum D10(10, T10,		eClarke1866,	0,	125,	201); //NAD27 for CanalZone (ER: is that Panama??)
-  LSDDatum D11(11, T11,			eClarke1866,	-9,	152,	178); //NAD27 for Cuba
-  LSDDatum D12(12, T12,		eClarke1866,	11,	114,	195); //NAD27 for Greenland (HayesPeninsula)
-  LSDDatum D13(13, T13,		eClarke1866,	-3,	142,	183); //NAD27 for Antigua Barbados Barbuda Caicos Cuba DominicanRep GrandCayman Jamaica Turks
-  LSDDatum D14(14, T14,		eClarke1866,	0,	125,	194); //NAD27 for Belize CostaRica ElSalvador Guatemala Honduras Nicaragua
-  LSDDatum D15(15, T15,		eClarke1866,	-10,	158,	187); //NAD27 for Canada
-  LSDDatum D16(16, T16,		eClarke1866,	-8,	160,	176); //NAD27 for CONUS
-  LSDDatum D17(17, T17,		eClarke1866,	-9,	161,	179); //NAD27 for CONUS East of Mississippi Including Louisiana Missouri Minnesota
-  LSDDatum D18(18, T18,		eClarke1866,	-8,	159,	175); //NAD27 for CONUS West of Mississippi Excluding Louisiana Missouri Minnesota
-  LSDDatum D19(19, T19,		eClarke1866,	-12,	130,	190); //NAD27 for Mexico
-  LSDDatum D20(20, T20,			eGRS80,		0,	0,	0); //NAD83 for Alaska Excluding Aleutians
-  LSDDatum D21(21, T21,		eGRS80,		-2,	0,	4); //NAD83 for Aleutians
-  LSDDatum D22(22, T22,		eGRS80,		0,	0,	0); //NAD83 for Canada
-  LSDDatum D23(23, T23,		eGRS80,		0,	0,	0); //NAD83 for CONUS
-  LSDDatum D24(24, T24,		eGRS80,		1,	1,	-1); //NAD83 for Hawaii
-  LSDDatum D25(25, T25,	eGRS80,		0,	0,	0); //NAD83 for Mexico CentralAmerica
-  LSDDatum D26(26, T26,			eWGS72,		0,	0,	0); //WGS72 for world
-  LSDDatum D27(27, T27,			eWGS84,		0,	0,	0); //WGS84 for world
+  LSDDatum D00(0, T00,      eClarke1866,  -5,  135,  172); //NAD27 for Alaska Excluding Aleutians
+  LSDDatum D01( 1, T01,  eClarke1866,  -2,  152,  149); //NAD27 for Aleutians East of 180W
+  LSDDatum D02( 2, T02,  eClarke1866,  2,  204,  105); //NAD27 for Aleutians West of 180W
+  LSDDatum D03( 3, T03,    eClarke1866,  -4,  154,  178); //NAD27 for Bahamas Except SanSalvadorIsland
+  LSDDatum D04( 4, T04,  eClarke1866,  1,  140,  165); //NAD27 for Bahamas SanSalvadorIsland
+  LSDDatum D05( 5, T05,    eClarke1866,  -7,  162,  188); //NAD27 for Canada Alberta BritishColumbia
+  LSDDatum D06( 6, T06,    eClarke1866,  -9,  157,  184); //NAD27 for Canada Manitoba Ontario
+  LSDDatum D07( 7, T07,    eClarke1866,  -22,  160,  190); //NAD27 for Canada NewBrunswick Newfoundland NovaScotia Quebec
+  LSDDatum D08( 8, T08,    eClarke1866,  4,  159,  188); //NAD27 for Canada NorthwestTerritories Saskatchewan
+  LSDDatum D09( 9, T09,      eClarke1866,  -7,  139,  181); //NAD27 for Canada Yukon
+  LSDDatum D10(10, T10,    eClarke1866,  0,  125,  201); //NAD27 for CanalZone (ER: is that Panama??)
+  LSDDatum D11(11, T11,      eClarke1866,  -9,  152,  178); //NAD27 for Cuba
+  LSDDatum D12(12, T12,    eClarke1866,  11,  114,  195); //NAD27 for Greenland (HayesPeninsula)
+  LSDDatum D13(13, T13,    eClarke1866,  -3,  142,  183); //NAD27 for Antigua Barbados Barbuda Caicos Cuba DominicanRep GrandCayman Jamaica Turks
+  LSDDatum D14(14, T14,    eClarke1866,  0,  125,  194); //NAD27 for Belize CostaRica ElSalvador Guatemala Honduras Nicaragua
+  LSDDatum D15(15, T15,    eClarke1866,  -10,  158,  187); //NAD27 for Canada
+  LSDDatum D16(16, T16,    eClarke1866,  -8,  160,  176); //NAD27 for CONUS
+  LSDDatum D17(17, T17,    eClarke1866,  -9,  161,  179); //NAD27 for CONUS East of Mississippi Including Louisiana Missouri Minnesota
+  LSDDatum D18(18, T18,    eClarke1866,  -8,  159,  175); //NAD27 for CONUS West of Mississippi Excluding Louisiana Missouri Minnesota
+  LSDDatum D19(19, T19,    eClarke1866,  -12,  130,  190); //NAD27 for Mexico
+  LSDDatum D20(20, T20,      eGRS80,    0,  0,  0); //NAD83 for Alaska Excluding Aleutians
+  LSDDatum D21(21, T21,    eGRS80,    -2,  0,  4); //NAD83 for Aleutians
+  LSDDatum D22(22, T22,    eGRS80,    0,  0,  0); //NAD83 for Canada
+  LSDDatum D23(23, T23,    eGRS80,    0,  0,  0); //NAD83 for CONUS
+  LSDDatum D24(24, T24,    eGRS80,    1,  1,  -1); //NAD83 for Hawaii
+  LSDDatum D25(25, T25,  eGRS80,    0,  0,  0); //NAD83 for Mexico CentralAmerica
+  LSDDatum D26(26, T26,      eWGS72,    0,  0,  0); //WGS72 for world
+  LSDDatum D27(27, T27,      eWGS84,    0,  0,  0); //WGS84 for world
   
   Datum_data_temp.push_back(D00);
   Datum_data_temp.push_back(D01);
@@ -841,21 +841,21 @@ void LSDCoordinateConverterLLandUTM::create()
   grid_size = 100000.0;    // 100 km grid
 
   // WGS84 Parameters
-  WGS84_A=6378137.0;		// major axis
-  WGS84_B=6356752.31424518;	// minor axis
-  WGS84_F=0.0033528107;		// ellipsoid flattening
-  WGS84_E=0.0818191908;		// first eccentricity
-  WGS84_EP=0.0820944379;		// second eccentricity
+  WGS84_A=6378137.0;    // major axis
+  WGS84_B=6356752.31424518;  // minor axis
+  WGS84_F=0.0033528107;    // ellipsoid flattening
+  WGS84_E=0.0818191908;    // first eccentricity
+  WGS84_EP=0.0820944379;    // second eccentricity
 
   // UTM Parameters
-  UTM_K0=0.9996;			// scale factor
-  UTM_FE=500000.0;		// false easting
+  UTM_K0=0.9996;      // scale factor
+  UTM_FE=500000.0;    // false easting
   UTM_FN_N=0.0;           // false northing, northern hemisphere
   UTM_FN_S=10000000.0;    // false northing, southern hemisphere
-  UTM_E2=(WGS84_E*WGS84_E);	// e^2
-  UTM_E4=(UTM_E2*UTM_E2);		// e^4
-  UTM_E6=(UTM_E4*UTM_E2);		// e^6
-  UTM_EP2=(UTM_E2/(1-UTM_E2));	// e'^2
+  UTM_E2=(WGS84_E*WGS84_E);  // e^2
+  UTM_E4=(UTM_E2*UTM_E2);    // e^4
+  UTM_E6=(UTM_E4*UTM_E2);    // e^6
+  UTM_EP2=(UTM_E2/(1-UTM_E2));  // e'^2
   
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1135,11 +1135,11 @@ void LSDCoordinateConverterLLandUTM::DatumConvert(int dIn, double LatIn,
   Z = (N*(1-ee) + HtIn) * sin(rad(LatIn));
 
   //--apply delta-terms dX dY dZ
-  //cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;		//==DEBUG
+  //cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;    //==DEBUG
   X+= Datums[dIn].dX - Datums[dTo].dX;
   Y+= Datums[dIn].dY - Datums[dTo].dY;
   Z+= Datums[dIn].dZ - Datums[dTo].dZ;
-  //cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;		//==DEBUG
+  //cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;    //==DEBUG
 
   //--transform back to LatLongHeight, using the "To" ellipsoid
   a = Ellipsoids[Datums[dTo].eId].EquatorialRadius;
