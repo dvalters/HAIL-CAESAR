@@ -10126,17 +10126,17 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
     // copy over the updated raster
     updated_raster = this_sweep_data.copy();
  
-   int begin_ndv = 0;
+    int begin_ndv = 0;
     for(int row = 0; row<NRows; row++)
-      {
-  for(int col = 0; col <NCols; col++)
     {
-      if( updated_raster[row][col] == NoDataValue)
+      for(int col = 0; col <NCols; col++)
+      {
+        if( updated_raster[row][col] == NoDataValue)
         {
-    begin_ndv++;
+          begin_ndv++;
         }
+      }
     }
-        }
     cout << "Line 8285, the updated raster has " << begin_ndv << " no data nodes " << endl;
    
     // now run a sweep
@@ -10169,7 +10169,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
                   if(window_row > 0 && window_row < NRows-1 
                      && window_col > 0 && window_col < NCols-1)
                   {
-        //cout << "wr: " << window_row << " wc: " << window_col << " data: " << updated_raster[window_row][window_col] << endl;
+                    //cout << "wr: " << window_row << " wc: " << window_col << " data: " << updated_raster[window_row][window_col] << endl;
                     if(updated_raster[window_row][window_col] != NoDataValue)
                     {
                       this_window_sum += updated_raster[window_row][window_col];
@@ -10231,7 +10231,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
             }
           }
         }
-  break;
+        break;
       }
       case(2):
       {
@@ -10321,25 +10321,22 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill(int window_width)
 
     int test_ndv = 0;
     for(int row = 0; row<NRows; row++)
-      {
-  for(int col = 0; col <NCols; col++)
     {
-      if( this_sweep_data[row][col] == NoDataValue)
+      for(int col = 0; col <NCols; col++)
+      {
+        if( this_sweep_data[row][col] == NoDataValue)
         {
-    test_ndv++;
+          test_ndv++;
         }
+      }
     }
-        }
 
-  cout << "Line 8452, testing ndv = " << test_ndv<< endl; 
-      
-    
+    cout << "Line 8452, testing ndv = " << test_ndv<< endl; 
     cout << "Line 8445, number of nodata nodes: " << NNoData << endl;
     // increment the sweep number
     nsweep++;
 
   } while(NNoData > 0);
-  
   
   LSDRaster Hole_filled_Raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
                          int(NoDataValue),this_sweep_data,GeoReferencingStrings);
