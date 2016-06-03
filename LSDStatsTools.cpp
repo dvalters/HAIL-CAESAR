@@ -3362,6 +3362,22 @@ string dtoa(float num)
     return converter.str();
 }
 
+// converts a string to a boolean
+bool atobool(string value)
+{
+  bool this_bool = false;
+
+  //string lower_val = value;
+  //lower_val[0] = tolower(value[0]);
+  //if (lower_val[0] == "t" || lower_val[0] == "1")
+  if(value == "True" || value == "true" || value == "TRUE" || value == "1")
+  {
+    this_bool = true;
+  }
+
+  return this_bool;
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // LOG BINNING OF 2D ARRAY
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
