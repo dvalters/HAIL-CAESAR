@@ -260,7 +260,7 @@ vector<float> sample_without_replacement(vector<float> population_vector, int N)
   int Population = population_vector.size(); 
   if(N > Population)
   {
-  	cout << "N>Population size, try again" << endl;
+    cout << "N>Population size, try again" << endl;
     exit(EXIT_FAILURE);
   }
   
@@ -292,7 +292,7 @@ vector<int> sample_without_replacement(vector<int> population_vector, int N)
   int Population = population_vector.size(); 
   if(N > Population)
   {
-  	cout << "N>Population size, try again" << endl;
+    cout << "N>Population size, try again" << endl;
     exit(EXIT_FAILURE);
   }
   
@@ -324,16 +324,16 @@ vector<int> sample_without_replacement(vector<int> population_vector, int N)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_mean(vector<float>& y_data)
 {
-	int n_data_points = y_data.size();
+  int n_data_points = y_data.size();
 
-	float total = 0;
-	float mean;
-	for (int i = 0; i< n_data_points; i++)
-	{
-		total+=y_data[i];
-	}
-	mean = total/float(n_data_points);
-	return mean;
+  float total = 0;
+  float mean;
+  for (int i = 0; i< n_data_points; i++)
+  {
+    total+=y_data[i];
+  }
+  mean = total/float(n_data_points);
+  return mean;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -371,14 +371,14 @@ float get_mean_ignore_ndv(Array2D<float>& data, float ndv)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_SST(vector<float>& y_data, float mean)
 {
-	int n_data_points = y_data.size();
+  int n_data_points = y_data.size();
 
-	float total = 0;
-	for (int i = 0; i< n_data_points; i++)
-	{
-		total+=(y_data[i]-mean)*(y_data[i]-mean);
-	}
-	return total;
+  float total = 0;
+  for (int i = 0; i< n_data_points; i++)
+  {
+    total+=(y_data[i]-mean)*(y_data[i]-mean);
+  }
+  return total;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -467,20 +467,20 @@ float get_range_from_vector(vector<float>& y_data, float ndv)
     {
       if (flag == 0)
       {
-      	min = y_data[i];
+        min = y_data[i];
         max = y_data[i];
         flag = 1;
       }
       if (y_data[i] < min)
       {
-      	min = y_data[i];
+        min = y_data[i];
       }
       if (y_data[i] > max)
       {
         max = y_data[i];
-			}
+      }
     }
-	}
+  }
     
   float range = max-min;
   return range;    
@@ -491,14 +491,14 @@ float get_range_from_vector(vector<float>& y_data, float ndv)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_standard_deviation(vector<float>& y_data, float mean)
 {
-	int n_data_points = y_data.size();
+  int n_data_points = y_data.size();
 
-	float total = 0;
-	for (int i = 0; i< n_data_points; i++)
-	{
-		total+=(y_data[i]-mean)*(y_data[i]-mean);
-	}
-	return sqrt(total/float(n_data_points));
+  float total = 0;
+  for (int i = 0; i< n_data_points; i++)
+  {
+    total+=(y_data[i]-mean)*(y_data[i]-mean);
+  }
+  return sqrt(total/float(n_data_points));
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -507,8 +507,8 @@ float get_standard_deviation(vector<float>& y_data, float mean)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_standard_error(vector<float>& y_data, float standard_deviation)
 {
-	int n_data_points = y_data.size();
-	return standard_deviation/(sqrt(float(n_data_points)));
+  int n_data_points = y_data.size();
+  return standard_deviation/(sqrt(float(n_data_points)));
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -641,19 +641,19 @@ void get_peak_indices(vector<float>& y_data, float threshold, int distance, vect
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<float> get_common_statistics(vector<float>& y_data)
 {
-	int n_data_points = y_data.size();
-	float mean = get_mean(y_data);
-	float SST = get_SST(y_data, mean);
-	float standard_deviation = sqrt(SST/float(n_data_points));
-	float standard_error = standard_deviation/(sqrt(float(n_data_points)));
+  int n_data_points = y_data.size();
+  float mean = get_mean(y_data);
+  float SST = get_SST(y_data, mean);
+  float standard_deviation = sqrt(SST/float(n_data_points));
+  float standard_error = standard_deviation/(sqrt(float(n_data_points)));
 
-	vector<float> common_statistics(4);
-	common_statistics[0] = mean;
-	common_statistics[1] = SST;
-	common_statistics[2] = standard_deviation;
-	common_statistics[3] = standard_error;
+  vector<float> common_statistics(4);
+  common_statistics[0] = mean;
+  common_statistics[1] = SST;
+  common_statistics[2] = standard_deviation;
+  common_statistics[3] = standard_error;
 
-	return common_statistics;
+  return common_statistics;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -665,11 +665,11 @@ vector<float> get_common_statistics(vector<float>& y_data)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_percentile(vector<float>& data, float percentile)
 {
-	int N = data.size();                                               
-	float n = percentile*(float(N)-1)/100;                                
-	int k = int(floor(n));                                             
-	float d = n - floor(n);                                            
-	float percentile_value;                                            
+  int N = data.size();                                               
+  float n = percentile*(float(N)-1)/100;                                
+  int k = int(floor(n));                                             
+  float d = n - floor(n);                                            
+  float percentile_value;                                            
   if(k>=N-1) percentile_value = data[N-1];                             
   else if (k < 0) percentile_value = data[0];                       
   else percentile_value = data[k] + d*(data[k+1]-data[k]);         
@@ -780,25 +780,25 @@ void quantile_quantile_analysis_defined_percentiles(vector<float>& data, vector<
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_durbin_watson_statistic(vector<float> residuals)
 {
-	int n_observations = residuals.size();
+  int n_observations = residuals.size();
 
-	float top_term = 0;
-	float bottom_term = 0;
-	for (int i = 0; i<n_observations; i++)
-	{
-		if (i!=0)
-		{
-			top_term+=(residuals[i]-residuals[i-1])*(residuals[i]-residuals[i-1]);
-		}
-		bottom_term+=residuals[i]*residuals[i];
-	}
+  float top_term = 0;
+  float bottom_term = 0;
+  for (int i = 0; i<n_observations; i++)
+  {
+    if (i!=0)
+    {
+      top_term+=(residuals[i]-residuals[i-1])*(residuals[i]-residuals[i-1]);
+    }
+    bottom_term+=residuals[i]*residuals[i];
+  }
 
-	if(bottom_term == 0)
-	{
-		bottom_term = 1e-10;
-	}
+  if(bottom_term == 0)
+  {
+    bottom_term = 1e-10;
+  }
 
-	return(top_term/bottom_term);
+  return(top_term/bottom_term);
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -807,52 +807,52 @@ float get_durbin_watson_statistic(vector<float> residuals)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 double erfi(double tau)
 {
-	double sum = 0;
-	double N_nodes = 100000;
-	double dtau = tau/N_nodes;
-	//double mini_dtau = dtau/4.0;
-	//double term1,term2, term3, term4, term5;
-	//double a;
-	//double front_term = dtau/90.0;
-	int ii;
+  double sum = 0;
+  double N_nodes = 100000;
+  double dtau = tau/N_nodes;
+  //double mini_dtau = dtau/4.0;
+  //double term1,term2, term3, term4, term5;
+  //double a;
+  //double front_term = dtau/90.0;
+  int ii;
 
-	// trapezoidal rule
-	double xloc_old;
-	double xloc_new = 0.0;
-	for (ii= 0; ii<N_nodes; ii++)
-	{
-		xloc_old = xloc_new;
-		xloc_new = double(ii)*dtau;
-		sum+= 0.5*dtau*(exp(xloc_old*xloc_old) + exp(xloc_new*xloc_new) );
-	}
+  // trapezoidal rule
+  double xloc_old;
+  double xloc_new = 0.0;
+  for (ii= 0; ii<N_nodes; ii++)
+  {
+    xloc_old = xloc_new;
+    xloc_new = double(ii)*dtau;
+    sum+= 0.5*dtau*(exp(xloc_old*xloc_old) + exp(xloc_new*xloc_new) );
+  }
 
-	// simpson's
-	//	double xloc_old;
-	//	double xloc_new = 0.0;
-	//	double xloc_mid;
-	//	front_term = dtau/6;
-	//	for (ii= 0; ii<N_nodes; ii++)
-	//	{
-	//		xloc_old = xloc_new;
-	//		xloc_new = double(ii)*dtau;
-	//		xloc_mid = 0.5*(xloc_old+xloc_new);
-	//		sum+= front_term*(exp(xloc_old*xloc_old) + 4*exp(xloc_mid*xloc_mid) + exp(xloc_new*xloc_new) );
-	//	}
+  // simpson's
+  //  double xloc_old;
+  //  double xloc_new = 0.0;
+  //  double xloc_mid;
+  //  front_term = dtau/6;
+  //  for (ii= 0; ii<N_nodes; ii++)
+  //  {
+  //    xloc_old = xloc_new;
+  //    xloc_new = double(ii)*dtau;
+  //    xloc_mid = 0.5*(xloc_old+xloc_new);
+  //    sum+= front_term*(exp(xloc_old*xloc_old) + 4*exp(xloc_mid*xloc_mid) + exp(xloc_new*xloc_new) );
+  //  }
 
 
-	// boole's
-	//	for (ii = 0; ii<N_nodes; ii++);
-	//	{
-	//		a = dtau*double(ii);
-	//		term1 =  7.0*exp(a*a);
-	//		term2 = 32.0*exp((a+mini_dtau)*(a+mini_dtau));
-	//		term3 = 12.0*exp((a+2.0*mini_dtau)*(a+2.0*mini_dtau));
-	//		term4 = 32.0*exp((a+3.0*mini_dtau)*(a+3.0*mini_dtau));
-	//		term5 =  7.0*exp((a+4.0*mini_dtau)*(a+4.0*mini_dtau));
-	//		sum += front_term*(term1+term2+term3+term4+term5);
-	//	}
+  // boole's
+  //  for (ii = 0; ii<N_nodes; ii++);
+  //  {
+  //    a = dtau*double(ii);
+  //    term1 =  7.0*exp(a*a);
+  //    term2 = 32.0*exp((a+mini_dtau)*(a+mini_dtau));
+  //    term3 = 12.0*exp((a+2.0*mini_dtau)*(a+2.0*mini_dtau));
+  //    term4 = 32.0*exp((a+3.0*mini_dtau)*(a+3.0*mini_dtau));
+  //    term5 =  7.0*exp((a+4.0*mini_dtau)*(a+4.0*mini_dtau));
+  //    sum += front_term*(term1+term2+term3+term4+term5);
+  //  }
 
-	return 2*sum/sqrt(M_PI);
+  return 2*sum/sqrt(M_PI);
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1778,7 +1778,7 @@ double band_matrix::operator () (int i, int j) const
    // k=0 -> diogonal, k<0 lower left part, k>0 upper right part
    
    if(k>=0)   return m_upper[k][i];
-   else	    return m_lower[-k][i];
+   else      return m_lower[-k][i];
 }
 
 // second diag (used in LU decomposition), saved in m_lower
@@ -2035,32 +2035,32 @@ vector<float> slice_vector(vector<float>::iterator first,vector<float>::iterator
 // k is the number of elements in the partition
 // minimum lenght is the minimum length of the segment
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void partition_driver_to_screen(int k, int minimum_length)		// this just prints partitions to screen
+void partition_driver_to_screen(int k, int minimum_length)    // this just prints partitions to screen
 {
-	int n = 2*k;
-	int t = 0;
-	vector<int> p(k,0);
+  int n = 2*k;
+  int t = 0;
+  vector<int> p(k,0);
 
-	partitions_with_minimum_length( n, k, t, minimum_length, p);
+  partitions_with_minimum_length( n, k, t, minimum_length, p);
 
 }
 
 // this version returns the partition vecvecvec
 vector< vector < vector<int> > > partition_driver_to_vecvecvec(int k, int minimum_length)
 {
-	int n = 2*k;
-	int t = 0;
-	vector<int> p(k,0);
+  int n = 2*k;
+  int t = 0;
+  vector<int> p(k,0);
 
-	int max_segments = k/minimum_length;
-	vector< vector < vector<int> > > partitions(max_segments);
+  int max_segments = k/minimum_length;
+  vector< vector < vector<int> > > partitions(max_segments);
 
-	// run the partitioning code
-	cout << "partition_driver_to_vecvecvec, doing partitions" << endl;
-	partitions_with_minimum_length( n, k, t, minimum_length, p, partitions);
-	cout << "partition_driver_to_vecvecvec, finished partitions" << endl;
+  // run the partitioning code
+  cout << "partition_driver_to_vecvecvec, doing partitions" << endl;
+  partitions_with_minimum_length( n, k, t, minimum_length, p, partitions);
+  cout << "partition_driver_to_vecvecvec, finished partitions" << endl;
 
-	return partitions;
+  return partitions;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -2079,17 +2079,17 @@ vector< vector < vector<int> > > partition_driver_to_vecvecvec(int k, int minimu
 void integer_partition(int n, int k, int t, vector<int>& p)
 {
 
-	int j;
+  int j;
 
-	p[t] = k;
-	if (n==k)
-	{
-		partition_print(t,p);
-	}
-	for (j=partitions_min(k,n-k); j>=1; j--)
-	{
-		integer_partition (n-k,j,t+1, p);
-	}
+  p[t] = k;
+  if (n==k)
+  {
+    partition_print(t,p);
+  }
+  for (j=partitions_min(k,n-k); j>=1; j--)
+  {
+    integer_partition (n-k,j,t+1, p);
+  }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -2111,17 +2111,17 @@ void integer_partition(int n, int k, int t, vector<int>& p)
 void partitions_with_minimum_length(int n, int k, int t, int min_length, vector<int>& p)
 {
 
-	int j;
+  int j;
 
-	p[t] = k;
-	if (n==k)
-	{
-		partition_print(t,p);
-	}
-	for (j=partitions_min(k,n-k); j>=min_length; j--)
-	{
-		partitions_with_minimum_length(n-k,j,t+1,min_length,p);
-	}
+  p[t] = k;
+  if (n==k)
+  {
+    partition_print(t,p);
+  }
+  for (j=partitions_min(k,n-k); j>=min_length; j--)
+  {
+    partitions_with_minimum_length(n-k,j,t+1,min_length,p);
+  }
 }
 
 // overloaded function that stores all the partitions
@@ -2129,20 +2129,20 @@ void partitions_with_minimum_length(int n, int k, int t, int min_length, vector<
 // http://www.cplusplus.com/reference/algorithm/next_permutation/
 // http://mdm4u1.wetpaint.com/page/4.3+Permutations+with+Some+Identical+Elements
 void partitions_with_minimum_length(int n, int k, int t, int min_length, vector<int>& p,
-								vector< vector < vector<int> > >& partitions)
+                vector< vector < vector<int> > >& partitions)
 {
 
-	int j;
+  int j;
 
-	p[t] = k;
-	if (n==k)
-	{
-		partition_assign(t, p, partitions);
-	}
-	for (j=partitions_min(k,n-k); j>=min_length; j--)
-	{
-		partitions_with_minimum_length(n-k,j,t+1,min_length,p, partitions);
-	}
+  p[t] = k;
+  if (n==k)
+  {
+    partition_assign(t, p, partitions);
+  }
+  for (j=partitions_min(k,n-k); j>=min_length; j--)
+  {
+    partitions_with_minimum_length(n-k,j,t+1,min_length,p, partitions);
+  }
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2154,14 +2154,14 @@ void partitions_with_minimum_length(int n, int k, int t, int min_length, vector<
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 int partitions_min( int x, int y)
 {
-	if (x<y)
-	{
-		return x;
-	}
-	else
-	{
-		return y;
-	}
+  if (x<y)
+  {
+    return x;
+  }
+  else
+  {
+    return y;
+  }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -2172,15 +2172,15 @@ int partitions_min( int x, int y)
 void partition_assign(int t, vector<int>& p, vector< vector < vector<int> > >& partitions)
 {
 
-	vector< vector<int> > this_nsegments_vecvec = partitions[t-1];
-	vector<int> this_partitions_partitions;
+  vector< vector<int> > this_nsegments_vecvec = partitions[t-1];
+  vector<int> this_partitions_partitions;
 
-	for(int i=1; i<=t; i++)
-	{
-		this_partitions_partitions.push_back( p[i] );
-	}
-	this_nsegments_vecvec.push_back(this_partitions_partitions);
-	partitions[t-1] = this_nsegments_vecvec;
+  for(int i=1; i<=t; i++)
+  {
+    this_partitions_partitions.push_back( p[i] );
+  }
+  this_nsegments_vecvec.push_back(this_partitions_partitions);
+  partitions[t-1] = this_nsegments_vecvec;
 }
 
 
@@ -2191,11 +2191,11 @@ void partition_assign(int t, vector<int>& p, vector< vector < vector<int> > >& p
 void partition_print(int t, vector<int>& p)
 {
 
-	for(int i=1; i<=t; i++)
-	{
-		cout << p[i] << " ";
-	}
-	cout << endl;
+  for(int i=1; i<=t; i++)
+  {
+    cout << p[i] << " ";
+  }
+  cout << endl;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2203,43 +2203,43 @@ void partition_print(int t, vector<int>& p)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void partition_vecvecvec_print(vector< vector < vector<int> > >& partitions)
 {
-	cout << "n_possible_segments: " << partitions.size() << endl;
-	vector< vector <int> > partition_vecvec;
-	for (int i = 0; i< int(partitions.size()); i++)
-	{
-		partition_vecvec = partitions[i];
-		int n_partitions_this_nsegments = partition_vecvec.size();
-		//cout << "n_segments: " << i+1 << " and number of partitions of this n segments: " << n_partitions_this_nsegments << endl;
-		for (int j = 0; j< n_partitions_this_nsegments; j++)
-		{
-			vector<int> individual_partition = partition_vecvec[j];
-			int sz_ind_partition = individual_partition.size();
-			for(int k = 0; k<sz_ind_partition; k++)
-			{
-				cout << individual_partition[k] << " ";
-			}
-			cout << endl;
-		}
-	}
+  cout << "n_possible_segments: " << partitions.size() << endl;
+  vector< vector <int> > partition_vecvec;
+  for (int i = 0; i< int(partitions.size()); i++)
+  {
+    partition_vecvec = partitions[i];
+    int n_partitions_this_nsegments = partition_vecvec.size();
+    //cout << "n_segments: " << i+1 << " and number of partitions of this n segments: " << n_partitions_this_nsegments << endl;
+    for (int j = 0; j< n_partitions_this_nsegments; j++)
+    {
+      vector<int> individual_partition = partition_vecvec[j];
+      int sz_ind_partition = individual_partition.size();
+      for(int k = 0; k<sz_ind_partition; k++)
+      {
+        cout << individual_partition[k] << " ";
+      }
+      cout << endl;
+    }
+  }
 }
 
 
 void partition_vecvecvec_print_with_permutation(vector< vector < vector<int> > >& partitions)
 {
-	cout << "n_possible_segments: " << partitions.size() << endl;
-	vector< vector <int> > partition_vecvec;
-	for (int i = 0; i< int(partitions.size()); i++)
-	{
-		partition_vecvec = partitions[i];
-		int n_partitions_this_nsegments = partition_vecvec.size();
-		cout << "n_segments: " << i+1 << " and number of partitions of this n segments: " << n_partitions_this_nsegments << endl;
-		for (int j = 0; j< n_partitions_this_nsegments; j++)
-		{
-			vector<int> individual_partition = partition_vecvec[j];
-			permute_partitioned_integer_vector(individual_partition);
-			cout << endl;
-		}
-	}
+  cout << "n_possible_segments: " << partitions.size() << endl;
+  vector< vector <int> > partition_vecvec;
+  for (int i = 0; i< int(partitions.size()); i++)
+  {
+    partition_vecvec = partitions[i];
+    int n_partitions_this_nsegments = partition_vecvec.size();
+    cout << "n_segments: " << i+1 << " and number of partitions of this n segments: " << n_partitions_this_nsegments << endl;
+    for (int j = 0; j< n_partitions_this_nsegments; j++)
+    {
+      vector<int> individual_partition = partition_vecvec[j];
+      permute_partitioned_integer_vector(individual_partition);
+      cout << endl;
+    }
+  }
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2250,21 +2250,21 @@ void partition_vecvecvec_print_with_permutation(vector< vector < vector<int> > >
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void permute_partitioned_integer_vector(vector<int> permute_vector)
 {
-	int n_elements = permute_vector.size();
-	//for (int i = 0; i<n_elements; i++)
-	//{
-	//	cout << permute_vector[i] << " ";
-	//}
-	//cout << endl;
+  int n_elements = permute_vector.size();
+  //for (int i = 0; i<n_elements; i++)
+  //{
+  //  cout << permute_vector[i] << " ";
+  //}
+  //cout << endl;
 
-	do
-	{
-		for (int i = 0; i<n_elements; i++)
-		{
-			cout << permute_vector[i] << " ";
-		}
-		cout << endl;
-	} while ( prev_permutation (permute_vector.begin(),permute_vector.end()) );
+  do
+  {
+    for (int i = 0; i<n_elements; i++)
+    {
+      cout << permute_vector[i] << " ";
+    }
+    cout << endl;
+  } while ( prev_permutation (permute_vector.begin(),permute_vector.end()) );
 }
 
 
@@ -2291,38 +2291,38 @@ void permute_partitioned_integer_vector(vector<int> permute_vector)
 // library to reduce the memory usage.
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void calculate_segment_matrices(vector<float>& all_x_data, vector<float>& all_y_data, int minimum_segment_length,
-								float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
-								Array2D<float>& b_array, Array2D<float>& rsquared_array,
-								Array2D<float>& DW_array)
+                float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
+                Array2D<float>& b_array, Array2D<float>& rsquared_array,
+                Array2D<float>& DW_array)
 {
-	int n_data_points = all_x_data.size();
-	if (minimum_segment_length>n_data_points)
-	{
-		cout << "LSDStatsTools find_linear_segments: your segment length is greater than half the number of data points" << endl;
-		cout << "This means that there can only be overlapping segments. Changing segment length to maximum segment length "<< endl;
-		minimum_segment_length = n_data_points;
-	}
+  int n_data_points = all_x_data.size();
+  if (minimum_segment_length>n_data_points)
+  {
+    cout << "LSDStatsTools find_linear_segments: your segment length is greater than half the number of data points" << endl;
+    cout << "This means that there can only be overlapping segments. Changing segment length to maximum segment length "<< endl;
+    minimum_segment_length = n_data_points;
+  }
 
-	// set up the arrays
-	// in the future I might consider using sparse arrays but for now we'll just populate
-	// the empty spots with placeholders
-	float no_data_value = -9999;
-	Array2D<float> temp_array(n_data_points,n_data_points,no_data_value);
-	like_array = temp_array.copy();
-	m_array = temp_array.copy();
-	b_array = temp_array.copy();
-	rsquared_array = temp_array.copy();
-	DW_array = temp_array.copy();
+  // set up the arrays
+  // in the future I might consider using sparse arrays but for now we'll just populate
+  // the empty spots with placeholders
+  float no_data_value = -9999;
+  Array2D<float> temp_array(n_data_points,n_data_points,no_data_value);
+  like_array = temp_array.copy();
+  m_array = temp_array.copy();
+  b_array = temp_array.copy();
+  rsquared_array = temp_array.copy();
+  DW_array = temp_array.copy();
 
-	int start_node = 0;
-	int end_node = n_data_points-1;
+  int start_node = 0;
+  int end_node = n_data_points-1;
 
-	// populate the matrix.
-	// the get segment row function is recursive so it moves down through all the possible
-	// starting nodes
-	//cout << "LINE 518, sigma is: " << sigma << endl;
-	populate_segment_matrix(start_node, end_node, no_data_value, all_x_data, all_y_data, minimum_segment_length,
-							sigma, like_array, m_array,b_array, rsquared_array, DW_array);
+  // populate the matrix.
+  // the get segment row function is recursive so it moves down through all the possible
+  // starting nodes
+  //cout << "LINE 518, sigma is: " << sigma << endl;
+  populate_segment_matrix(start_node, end_node, no_data_value, all_x_data, all_y_data, minimum_segment_length,
+              sigma, like_array, m_array,b_array, rsquared_array, DW_array);
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2336,99 +2336,99 @@ void calculate_segment_matrices(vector<float>& all_x_data, vector<float>& all_y_
 // matrix
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void populate_segment_matrix(int start_node, int end_node, float no_data_value,
-								vector<float>& all_x_data, vector<float>& all_y_data, int minimum_segment_length,
-								float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
-								Array2D<float>& b_array, Array2D<float>& rsquared_array, Array2D<float>& DW_array)
+                vector<float>& all_x_data, vector<float>& all_y_data, int minimum_segment_length,
+                float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
+                Array2D<float>& b_array, Array2D<float>& rsquared_array, Array2D<float>& DW_array)
 {
 
-	if (like_array[start_node][end_node] == no_data_value)
-	{
-		// create the two segments
-		vector<float> segment_x;
-		vector<float> segment_y;
-		vector<float> residuals;
-		vector<float> regression_results;
-		float this_MLE;
+  if (like_array[start_node][end_node] == no_data_value)
+  {
+    // create the two segments
+    vector<float> segment_x;
+    vector<float> segment_y;
+    vector<float> residuals;
+    vector<float> regression_results;
+    float this_MLE;
 
-		// now create iterators to deal with these segments
-		vector<float>::iterator vec_iter_start;
-		vector<float>::iterator vec_iter_end;
+    // now create iterators to deal with these segments
+    vector<float>::iterator vec_iter_start;
+    vector<float>::iterator vec_iter_end;
 
-		// the first step is to get the segment starting on the
-		// first node and ending on the last node
-		// find out how many nodes are in the segment
-		int n_nodes_in_segment = end_node - start_node+1;
+    // the first step is to get the segment starting on the
+    // first node and ending on the last node
+    // find out how many nodes are in the segment
+    int n_nodes_in_segment = end_node - start_node+1;
 
-		// resize the vectors accordingly
-		segment_x.resize(n_nodes_in_segment);
-		segment_y.resize(n_nodes_in_segment);
+    // resize the vectors accordingly
+    segment_x.resize(n_nodes_in_segment);
+    segment_y.resize(n_nodes_in_segment);
 
-		// get the iterators for the start and end of the vectors
-		vec_iter_start = all_x_data.begin()+start_node;
-		vec_iter_end = vec_iter_start+n_nodes_in_segment;
-		segment_x.assign(vec_iter_start,vec_iter_end);
+    // get the iterators for the start and end of the vectors
+    vec_iter_start = all_x_data.begin()+start_node;
+    vec_iter_end = vec_iter_start+n_nodes_in_segment;
+    segment_x.assign(vec_iter_start,vec_iter_end);
 
-		vec_iter_start = all_y_data.begin()+start_node;
-		vec_iter_end = vec_iter_start+n_nodes_in_segment;
-		segment_y.assign(vec_iter_start,vec_iter_end);
+    vec_iter_start = all_y_data.begin()+start_node;
+    vec_iter_end = vec_iter_start+n_nodes_in_segment;
+    segment_y.assign(vec_iter_start,vec_iter_end);
 
-		// do the least squares regression on this segment
-		// cout << "LINE 568, sigma is: " << sigma << endl;
-		regression_results = simple_linear_regression(segment_x, segment_y, residuals);
-		this_MLE = calculate_MLE_from_residuals( residuals, sigma);
+    // do the least squares regression on this segment
+    // cout << "LINE 568, sigma is: " << sigma << endl;
+    regression_results = simple_linear_regression(segment_x, segment_y, residuals);
+    this_MLE = calculate_MLE_from_residuals( residuals, sigma);
 
-		//cout << "LINE 584 doing start: " << start_node << " end: " << end_node << endl;
+    //cout << "LINE 584 doing start: " << start_node << " end: " << end_node << endl;
 
-		like_array[start_node][end_node] = this_MLE;
-		m_array[start_node][end_node] = regression_results[0];
-		b_array[start_node][end_node] = regression_results[1];
-		rsquared_array[start_node][end_node] = regression_results[2];
-		DW_array[start_node][end_node] = regression_results[3];
+    like_array[start_node][end_node] = this_MLE;
+    m_array[start_node][end_node] = regression_results[0];
+    b_array[start_node][end_node] = regression_results[1];
+    rsquared_array[start_node][end_node] = regression_results[2];
+    DW_array[start_node][end_node] = regression_results[3];
 
 
 
-		// now loop through all the end nodes that are allowed that are not the final node.
-		// that is the first end node is first plus the maximum length -1 , and then
-		// the final end node before the end of the data is the last node minus the
-		// maximum length of the segment
-		for (int loop_end = start_node+minimum_segment_length-1; loop_end< end_node-minimum_segment_length+1; loop_end++)
-		{
-			if (like_array[start_node][loop_end] == no_data_value)
-			{
-				// get this segment and resize the vectors
-				n_nodes_in_segment = loop_end - start_node+1;
-				segment_x.resize(n_nodes_in_segment);
-				segment_y.resize(n_nodes_in_segment);
+    // now loop through all the end nodes that are allowed that are not the final node.
+    // that is the first end node is first plus the maximum length -1 , and then
+    // the final end node before the end of the data is the last node minus the
+    // maximum length of the segment
+    for (int loop_end = start_node+minimum_segment_length-1; loop_end< end_node-minimum_segment_length+1; loop_end++)
+    {
+      if (like_array[start_node][loop_end] == no_data_value)
+      {
+        // get this segment and resize the vectors
+        n_nodes_in_segment = loop_end - start_node+1;
+        segment_x.resize(n_nodes_in_segment);
+        segment_y.resize(n_nodes_in_segment);
 
-				// get the iterators for the start and end of the vectors
-				vec_iter_start = all_x_data.begin()+start_node;
-				vec_iter_end = vec_iter_start+n_nodes_in_segment;
-				segment_x.assign(vec_iter_start,vec_iter_end);
+        // get the iterators for the start and end of the vectors
+        vec_iter_start = all_x_data.begin()+start_node;
+        vec_iter_end = vec_iter_start+n_nodes_in_segment;
+        segment_x.assign(vec_iter_start,vec_iter_end);
 
-				vec_iter_start = all_y_data.begin()+start_node;
-				vec_iter_end = vec_iter_start+n_nodes_in_segment;
-				segment_y.assign(vec_iter_start,vec_iter_end);
+        vec_iter_start = all_y_data.begin()+start_node;
+        vec_iter_end = vec_iter_start+n_nodes_in_segment;
+        segment_y.assign(vec_iter_start,vec_iter_end);
 
-				// do the least squares regression on this segment
-				regression_results = simple_linear_regression(segment_x, segment_y, residuals);
-				this_MLE = calculate_MLE_from_residuals( residuals, sigma);
+        // do the least squares regression on this segment
+        regression_results = simple_linear_regression(segment_x, segment_y, residuals);
+        this_MLE = calculate_MLE_from_residuals( residuals, sigma);
 
-				// fill in the matrices
-				like_array[start_node][loop_end] = this_MLE;
-				m_array[start_node][loop_end] = regression_results[0];
-				b_array[start_node][loop_end] = regression_results[1];
-				rsquared_array[start_node][loop_end] = regression_results[2];
-				DW_array[start_node][loop_end] = regression_results[3];
-				//cout << "LINE 612 doing start: " << start_node << " end: " << loop_end << endl;
+        // fill in the matrices
+        like_array[start_node][loop_end] = this_MLE;
+        m_array[start_node][loop_end] = regression_results[0];
+        b_array[start_node][loop_end] = regression_results[1];
+        rsquared_array[start_node][loop_end] = regression_results[2];
+        DW_array[start_node][loop_end] = regression_results[3];
+        //cout << "LINE 612 doing start: " << start_node << " end: " << loop_end << endl;
 
-				// now get the row from the next segment
-				populate_segment_matrix(loop_end+1, end_node, no_data_value,
-										all_x_data, all_y_data, minimum_segment_length,
-										sigma, like_array, m_array,b_array, rsquared_array, DW_array);
-			}
-		}
+        // now get the row from the next segment
+        populate_segment_matrix(loop_end+1, end_node, no_data_value,
+                    all_x_data, all_y_data, minimum_segment_length,
+                    sigma, like_array, m_array,b_array, rsquared_array, DW_array);
+      }
+    }
 
-	}
+  }
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2443,76 +2443,76 @@ void populate_segment_matrix(int start_node, int end_node, float no_data_value,
 // First, it returns
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void best_fit_driver_AIC_for_linear_segments(int minimum_segment_length, float sigma,
-											vector<float> all_x_data, vector<float> all_y_data,
-											vector<float>& max_MLE)
+                      vector<float> all_x_data, vector<float> all_y_data,
+                      vector<float>& max_MLE)
 {
 
-	float norm_sigma = 1.0;
-	Array2D<float> like_array;			// array holding the liklihood values
-	Array2D<float> m_array;			// array holding the m values
-	Array2D<float> b_array;			// array holding the b values
-	Array2D<float> rsquared_array;		// array holding R2 of individual segments
-	Array2D<float> DW_array;			// array holding the durbin-watson statistic of indiviudal segments
+  float norm_sigma = 1.0;
+  Array2D<float> like_array;      // array holding the liklihood values
+  Array2D<float> m_array;      // array holding the m values
+  Array2D<float> b_array;      // array holding the b values
+  Array2D<float> rsquared_array;    // array holding R2 of individual segments
+  Array2D<float> DW_array;      // array holding the durbin-watson statistic of indiviudal segments
 
-	cout << "best_fit_driver_AIC_for_linear_segments, getting like data" <<endl;
-	calculate_segment_matrices(all_x_data, all_y_data, minimum_segment_length,
-								norm_sigma, like_array, m_array, b_array, rsquared_array,DW_array);
-	cout << "best_fit_driver_AIC_for_linear_segments, got like data" <<endl;
+  cout << "best_fit_driver_AIC_for_linear_segments, getting like data" <<endl;
+  calculate_segment_matrices(all_x_data, all_y_data, minimum_segment_length,
+                norm_sigma, like_array, m_array, b_array, rsquared_array,DW_array);
+  cout << "best_fit_driver_AIC_for_linear_segments, got like data" <<endl;
 
-	vector<float> one_sig_max_MLE;
-	vector<float> AIC_of_segments;
-	vector<float> AICc_of_segments;
-	vector< vector<int> > segments_for_each_n_segments;
-	find_max_like_of_segments(minimum_segment_length, like_array,
-								one_sig_max_MLE, segments_for_each_n_segments);
+  vector<float> one_sig_max_MLE;
+  vector<float> AIC_of_segments;
+  vector<float> AICc_of_segments;
+  vector< vector<int> > segments_for_each_n_segments;
+  find_max_like_of_segments(minimum_segment_length, like_array,
+                one_sig_max_MLE, segments_for_each_n_segments);
 
-	max_MLE = change_normalized_like_vector_to_new_sigma(sigma, one_sig_max_MLE);
+  max_MLE = change_normalized_like_vector_to_new_sigma(sigma, one_sig_max_MLE);
 
-	//print_to_screen_most_likeley_segment_lengths( segments_for_each_n_segments,
-	//									one_sig_max_MLE);
+  //print_to_screen_most_likeley_segment_lengths( segments_for_each_n_segments,
+  //                  one_sig_max_MLE);
 
-	// now loop through a variety of sigma values to see what the minimum sigma is
-	float d_sigma = 0.01;
-	vector<float> sigma_values;
-	for(int i = 1; i<=10; i++)
-	{
-		sigma_values.push_back(d_sigma*float(i));
-	}
+  // now loop through a variety of sigma values to see what the minimum sigma is
+  float d_sigma = 0.01;
+  vector<float> sigma_values;
+  for(int i = 1; i<=10; i++)
+  {
+    sigma_values.push_back(d_sigma*float(i));
+  }
 
-	vector<int> best_fit_AIC;
-	vector<int> best_fit_AICc;
-	vector< vector<float> > AIC_for_each_n_segments;
-	vector< vector<float> > AICc_for_each_n_segments;
-	get_n_segments_for_various_sigma(sigma_values, one_sig_max_MLE, all_x_data,
-								      best_fit_AIC, best_fit_AICc, AIC_for_each_n_segments,
-								      AICc_for_each_n_segments);
+  vector<int> best_fit_AIC;
+  vector<int> best_fit_AICc;
+  vector< vector<float> > AIC_for_each_n_segments;
+  vector< vector<float> > AICc_for_each_n_segments;
+  get_n_segments_for_various_sigma(sigma_values, one_sig_max_MLE, all_x_data,
+                      best_fit_AIC, best_fit_AICc, AIC_for_each_n_segments,
+                      AICc_for_each_n_segments);
 
-	print_AIC_and_AICc_to_screen(sigma_values, segments_for_each_n_segments,
-								  best_fit_AIC, best_fit_AICc,
-								  AIC_for_each_n_segments, AICc_for_each_n_segments);
+  print_AIC_and_AICc_to_screen(sigma_values, segments_for_each_n_segments,
+                  best_fit_AIC, best_fit_AICc,
+                  AIC_for_each_n_segments, AICc_for_each_n_segments);
 
 
 
-	vector<float> b_values;
-	vector<float> m_values;
-	vector<float> r2_values;
-	vector<float> DW_values;
+  vector<float> b_values;
+  vector<float> m_values;
+  vector<float> r2_values;
+  vector<float> DW_values;
 
-	// get the m, b, etc from the data
-	int n_sigma_for_printing = 2;
-	int bestfit_segments_node = best_fit_AICc[n_sigma_for_printing];
-	get_properties_of_best_fit_segments(bestfit_segments_node, segments_for_each_n_segments,
-										 m_values, m_array, b_values, b_array,
-										 r2_values, rsquared_array, DW_values, DW_array);
+  // get the m, b, etc from the data
+  int n_sigma_for_printing = 2;
+  int bestfit_segments_node = best_fit_AICc[n_sigma_for_printing];
+  get_properties_of_best_fit_segments(bestfit_segments_node, segments_for_each_n_segments,
+                     m_values, m_array, b_values, b_array,
+                     r2_values, rsquared_array, DW_values, DW_array);
 
-	// now print this data
-	cout << "sigma is: " << sigma_values[n_sigma_for_printing]
-		 << " one_sig MLE: " << one_sig_max_MLE[ best_fit_AICc[n_sigma_for_printing] ]
-		 << " and the number of segments is: " << best_fit_AICc[n_sigma_for_printing]+1 << endl;
-	for (int i = 0; i< best_fit_AICc[n_sigma_for_printing]+1; i++)
-	{
-		cout << m_values[i] << " " << b_values[i] << " " << r2_values[i] << " " << DW_values[i] << endl;
-	}
+  // now print this data
+  cout << "sigma is: " << sigma_values[n_sigma_for_printing]
+     << " one_sig MLE: " << one_sig_max_MLE[ best_fit_AICc[n_sigma_for_printing] ]
+     << " and the number of segments is: " << best_fit_AICc[n_sigma_for_printing]+1 << endl;
+  for (int i = 0; i< best_fit_AICc[n_sigma_for_printing]+1; i++)
+  {
+    cout << m_values[i] << " " << b_values[i] << " " << r2_values[i] << " " << DW_values[i] << endl;
+  }
 
 }
 
@@ -2522,118 +2522,118 @@ void best_fit_driver_AIC_for_linear_segments(int minimum_segment_length, float s
 // two vector of vectors which are the AIC values for the varius values of sigma
 // passed to the function in the sigma values vector
 void get_n_segments_for_various_sigma(vector<float> sigma_values, vector<float> one_sig_max_MLE,
-									  vector<float>& all_x_data,
-								      vector<int>& best_fit_AIC, vector<int>& best_fit_AICc,
-								      vector< vector<float> >& AIC_for_each_n_segments,
-								      vector< vector<float> >& AICc_for_each_n_segments)
+                    vector<float>& all_x_data,
+                      vector<int>& best_fit_AIC, vector<int>& best_fit_AICc,
+                      vector< vector<float> >& AIC_for_each_n_segments,
+                      vector< vector<float> >& AICc_for_each_n_segments)
 {
-	int n_sigma = sigma_values.size();
-	vector<float> empty_vec;
-	vector<float> AIC_of_segments;
-	vector<float> AICc_of_segments;
-	vector< vector<float> > AIC_for_each(n_sigma);
-	vector< vector<float> > AICc_for_each(n_sigma);
-	vector<int> bf_AIC(n_sigma);
-	vector<int> bf_AICc(n_sigma);
+  int n_sigma = sigma_values.size();
+  vector<float> empty_vec;
+  vector<float> AIC_of_segments;
+  vector<float> AICc_of_segments;
+  vector< vector<float> > AIC_for_each(n_sigma);
+  vector< vector<float> > AICc_for_each(n_sigma);
+  vector<int> bf_AIC(n_sigma);
+  vector<int> bf_AICc(n_sigma);
 
-	// loop through the sigma values collecting the AIC and AICc values
-	for (int i = 0; i< n_sigma; i++)
-	{
-		// calcualte the AIC values for this value of sigma
-		calculate_AIC_of_segments_with_normalized_sigma(sigma_values[i], one_sig_max_MLE, all_x_data,
-								AIC_of_segments,AICc_of_segments);
-		AIC_for_each[i] = AIC_of_segments;
-		AICc_for_each[i] = AICc_of_segments;
+  // loop through the sigma values collecting the AIC and AICc values
+  for (int i = 0; i< n_sigma; i++)
+  {
+    // calcualte the AIC values for this value of sigma
+    calculate_AIC_of_segments_with_normalized_sigma(sigma_values[i], one_sig_max_MLE, all_x_data,
+                AIC_of_segments,AICc_of_segments);
+    AIC_for_each[i] = AIC_of_segments;
+    AICc_for_each[i] = AICc_of_segments;
 
-		// now find the minimum AIC and AICc
-		float minimum_AIC = 10000;
-		int min_AIC_segments = 0;
-		float minimum_AICc = 10000;
-		int min_AICc_segments = 0;
+    // now find the minimum AIC and AICc
+    float minimum_AIC = 10000;
+    int min_AIC_segments = 0;
+    float minimum_AICc = 10000;
+    int min_AICc_segments = 0;
 
-		int n_AIC = AIC_of_segments.size();
-		for (int n_seg = 0; n_seg<n_AIC; n_seg++)
-		{
-			if(AIC_of_segments[n_seg] < minimum_AIC)
-			{
-				minimum_AIC = AIC_of_segments[n_seg];
-				min_AIC_segments = n_seg;
-			}
+    int n_AIC = AIC_of_segments.size();
+    for (int n_seg = 0; n_seg<n_AIC; n_seg++)
+    {
+      if(AIC_of_segments[n_seg] < minimum_AIC)
+      {
+        minimum_AIC = AIC_of_segments[n_seg];
+        min_AIC_segments = n_seg;
+      }
 
-			if(AICc_of_segments[n_seg] < minimum_AICc)
-			{
-				minimum_AICc = AICc_of_segments[n_seg];
-				min_AICc_segments = n_seg;
-			}
-		}
+      if(AICc_of_segments[n_seg] < minimum_AICc)
+      {
+        minimum_AICc = AICc_of_segments[n_seg];
+        min_AICc_segments = n_seg;
+      }
+    }
 
-		bf_AIC[i] = min_AIC_segments;
-		bf_AICc[i] = min_AICc_segments;
-	}
+    bf_AIC[i] = min_AIC_segments;
+    bf_AICc[i] = min_AICc_segments;
+  }
 
-	// replace vectors
-	AIC_for_each_n_segments = AIC_for_each;
-	AICc_for_each_n_segments = AICc_for_each;
-	best_fit_AIC = bf_AIC;
-	best_fit_AICc = bf_AICc;
+  // replace vectors
+  AIC_for_each_n_segments = AIC_for_each;
+  AICc_for_each_n_segments = AICc_for_each;
+  best_fit_AIC = bf_AIC;
+  best_fit_AICc = bf_AICc;
 
 }
 
 // this function prints out the segment data to screen
 void print_AIC_and_AICc_to_screen(vector<float> sigma_values, vector< vector<int> > segments_for_each_n_segments,
-								      vector<int> best_fit_AIC, vector<int> best_fit_AICc,
-								      vector< vector<float> > AIC_for_each_n_segments,
-								      vector< vector<float> > AICc_for_each_n_segments)
+                      vector<int> best_fit_AIC, vector<int> best_fit_AICc,
+                      vector< vector<float> > AIC_for_each_n_segments,
+                      vector< vector<float> > AICc_for_each_n_segments)
 {
-	// get the number of sigma values
-	int n_sigs = sigma_values.size();
-	vector<float> AI_values;
-	vector<int> this_minimum;
-	int AI_sz;
-	int n_mins;
+  // get the number of sigma values
+  int n_sigs = sigma_values.size();
+  vector<float> AI_values;
+  vector<int> this_minimum;
+  int AI_sz;
+  int n_mins;
 
 
-	cout << endl << "LSDStatsTools print_AIC_and_AICc_to_screen" << endl;
+  cout << endl << "LSDStatsTools print_AIC_and_AICc_to_screen" << endl;
 
-	// loop through sigma values printing the best fits
-	for (int i = 0; i<n_sigs; i++)
-	{
-		cout << endl << endl << "sigma is: " << sigma_values[i] << endl;
-		AI_values = AIC_for_each_n_segments[i];
-		AI_sz = int(AI_values.size());
-		cout << "Min AIC node is: " << best_fit_AIC[i] << " and AIC values: ";
-		for (int j = 0; j<AI_sz; j++)
-		{
-			cout << AI_values[j] << " ";
-		}
-		cout << endl;
+  // loop through sigma values printing the best fits
+  for (int i = 0; i<n_sigs; i++)
+  {
+    cout << endl << endl << "sigma is: " << sigma_values[i] << endl;
+    AI_values = AIC_for_each_n_segments[i];
+    AI_sz = int(AI_values.size());
+    cout << "Min AIC node is: " << best_fit_AIC[i] << " and AIC values: ";
+    for (int j = 0; j<AI_sz; j++)
+    {
+      cout << AI_values[j] << " ";
+    }
+    cout << endl;
 
-		cout << "the segments lengths are: ";
-		this_minimum = segments_for_each_n_segments[ best_fit_AIC[i] ];
-		n_mins = best_fit_AIC[i]+1;
-		for (int seg = 0; seg<n_mins; seg++)
-		{
-			cout << this_minimum[seg] << " ";
-		}
-		cout << endl;
+    cout << "the segments lengths are: ";
+    this_minimum = segments_for_each_n_segments[ best_fit_AIC[i] ];
+    n_mins = best_fit_AIC[i]+1;
+    for (int seg = 0; seg<n_mins; seg++)
+    {
+      cout << this_minimum[seg] << " ";
+    }
+    cout << endl;
 
-		cout << "Min AICc node is: " << best_fit_AICc[i] << " and AICc values: ";
-		AI_values = AICc_for_each_n_segments[i];
-		for (int j = 0; j<AI_sz; j++)
-		{
-			cout << AI_values[j] << " ";
-		}
-		cout << endl;
+    cout << "Min AICc node is: " << best_fit_AICc[i] << " and AICc values: ";
+    AI_values = AICc_for_each_n_segments[i];
+    for (int j = 0; j<AI_sz; j++)
+    {
+      cout << AI_values[j] << " ";
+    }
+    cout << endl;
 
-		cout << "the segments lengths are: ";
-		this_minimum = segments_for_each_n_segments[ best_fit_AICc[i] ];
-		n_mins = best_fit_AICc[i]+1;
-		for (int seg = 0; seg<n_mins; seg++)
-		{
-			cout << this_minimum[seg] << " ";
-		}
-		cout << endl;
-	}
+    cout << "the segments lengths are: ";
+    this_minimum = segments_for_each_n_segments[ best_fit_AICc[i] ];
+    n_mins = best_fit_AICc[i]+1;
+    for (int seg = 0; seg<n_mins; seg++)
+    {
+      cout << this_minimum[seg] << " ";
+    }
+    cout << endl;
+  }
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2642,43 +2642,43 @@ void print_AIC_and_AICc_to_screen(vector<float> sigma_values, vector< vector<int
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 Array2D<float> normalize_like_matrix_to_sigma_one(float sigma, Array2D<float>& like_array)
 {
-	// get dimensions of the like array
-	int nRows = like_array.dim1();
-	int nCols = like_array.dim2();
-	float no_data_value = -9999;
-	float sigsquared = sigma*sigma;
-	Array2D<float> sig1_like_array = like_array.copy();
+  // get dimensions of the like array
+  int nRows = like_array.dim1();
+  int nCols = like_array.dim2();
+  float no_data_value = -9999;
+  float sigsquared = sigma*sigma;
+  Array2D<float> sig1_like_array = like_array.copy();
 
-	for (int row = 0; row<nRows; row++)
-	{
-		for(int col = 0; col<nCols; col++)
-		{
-			if(sig1_like_array[row][col] != no_data_value)
-			{
-				sig1_like_array[row][col] = pow(sig1_like_array[row][col],sigsquared);
-			}
-		}
-	}
+  for (int row = 0; row<nRows; row++)
+  {
+    for(int col = 0; col<nCols; col++)
+    {
+      if(sig1_like_array[row][col] != no_data_value)
+      {
+        sig1_like_array[row][col] = pow(sig1_like_array[row][col],sigsquared);
+      }
+    }
+  }
 
-	return sig1_like_array;
+  return sig1_like_array;
 }
 
 // this normalizes but with vector data, for use with MLE vector for segments
 vector<float> normalize_like_vector_to_sigma_one(float sigma, vector<float> like_vector)
 {
-	// get dimensions of the like vector
-	int ndata = like_vector.size();
-	float sigsquared = sigma*sigma;
-	vector<float> sig1_like_vector(ndata);
+  // get dimensions of the like vector
+  int ndata = like_vector.size();
+  float sigsquared = sigma*sigma;
+  vector<float> sig1_like_vector(ndata);
 
-	for (int i = 0; i<ndata; i++)
-	{
+  for (int i = 0; i<ndata; i++)
+  {
 
-		sig1_like_vector[i] = pow(like_vector[i],sigsquared);
+    sig1_like_vector[i] = pow(like_vector[i],sigsquared);
 
-	}
+  }
 
-	return sig1_like_vector;
+  return sig1_like_vector;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2686,41 +2686,41 @@ vector<float> normalize_like_vector_to_sigma_one(float sigma, vector<float> like
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 Array2D<float> change_normalized_like_matrix_to_new_sigma(float sigma, Array2D<float>& sig1_like_array)
 {
-	// get dimensions of the like array
-	int nRows = sig1_like_array.dim1();
-	int nCols = sig1_like_array.dim2();
-	float no_data_value = -9999;
-	float one_over_sigsquared = 1/(sigma*sigma);
-	Array2D<float> like_array = sig1_like_array.copy();
+  // get dimensions of the like array
+  int nRows = sig1_like_array.dim1();
+  int nCols = sig1_like_array.dim2();
+  float no_data_value = -9999;
+  float one_over_sigsquared = 1/(sigma*sigma);
+  Array2D<float> like_array = sig1_like_array.copy();
 
-	for (int row = 0; row<nRows; row++)
-	{
-		for(int col = 0; col<nCols; col++)
-		{
-			if(like_array[row][col] != no_data_value)
-			{
-				like_array[row][col] = pow(like_array[row][col],one_over_sigsquared);
-			}
-		}
-	}
+  for (int row = 0; row<nRows; row++)
+  {
+    for(int col = 0; col<nCols; col++)
+    {
+      if(like_array[row][col] != no_data_value)
+      {
+        like_array[row][col] = pow(like_array[row][col],one_over_sigsquared);
+      }
+    }
+  }
 
-	return like_array;
+  return like_array;
 }
 
 // this does the same as above except for vector data
 vector<float> change_normalized_like_vector_to_new_sigma(float sigma, vector<float> sig1_like_vector)
 {
-	// get dimensions of the like vector
-	int ndata = sig1_like_vector.size();
-	float one_over_sigsquared = 1/(sigma*sigma);
-	vector<float> like_vector(ndata);
+  // get dimensions of the like vector
+  int ndata = sig1_like_vector.size();
+  float one_over_sigsquared = 1/(sigma*sigma);
+  vector<float> like_vector(ndata);
 
-	for (int i = 0; i<ndata; i++)
-	{
-		like_vector[i] = pow(sig1_like_vector[i],one_over_sigsquared);
-	}
+  for (int i = 0; i<ndata; i++)
+  {
+    like_vector[i] = pow(sig1_like_vector[i],one_over_sigsquared);
+  }
 
-	return like_vector;
+  return like_vector;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -2729,76 +2729,76 @@ vector<float> change_normalized_like_vector_to_new_sigma(float sigma, vector<flo
 // of individual segments calcualted by the calculate_segment_matrices function
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void find_max_like_of_segments(int minimum_segment_length, Array2D<float>& like_array,
-								vector<float>& max_MLE, vector< vector<int> >& segments_for_each_n_segments)
+                vector<float>& max_MLE, vector< vector<int> >& segments_for_each_n_segments)
 {
-	// first get the number of nodes
-	int n_data_points = like_array.dim1();
-	if (minimum_segment_length>n_data_points)
-	{
-		cout << "LSDStatsTools find_max_AIC_of_segments: your segment length is greater than the number of data points" << endl;
-		cout << "This means that there can only be overlapping segments. Changing segment length to minimum segment length "<< endl;
-		minimum_segment_length = n_data_points;
-	}
+  // first get the number of nodes
+  int n_data_points = like_array.dim1();
+  if (minimum_segment_length>n_data_points)
+  {
+    cout << "LSDStatsTools find_max_AIC_of_segments: your segment length is greater than the number of data points" << endl;
+    cout << "This means that there can only be overlapping segments. Changing segment length to minimum segment length "<< endl;
+    minimum_segment_length = n_data_points;
+  }
 
-	// get the maximum number of segments
-	int max_n_segments = n_data_points/minimum_segment_length;
+  // get the maximum number of segments
+  int max_n_segments = n_data_points/minimum_segment_length;
 
-	// initialize a vector for holding the MLE of each n_segments
-	vector<float> MLE_for_segments(max_n_segments,0.0);
+  // initialize a vector for holding the MLE of each n_segments
+  vector<float> MLE_for_segments(max_n_segments,0.0);
 
-	// initialize a vecvec for holding the MLE segment partition
-	vector< vector <int> > most_likely_segments(max_n_segments);
+  // initialize a vecvec for holding the MLE segment partition
+  vector< vector <int> > most_likely_segments(max_n_segments);
 
-	// create the partition data element
-	//cout << "find_max_like_of_segments, getting partitions" << endl;
-	vector< vector < vector<int> > > partitions = partition_driver_to_vecvecvec(n_data_points, minimum_segment_length);
-	//cout << "find_max_like_of_segments, got partitions" << endl;
+  // create the partition data element
+  //cout << "find_max_like_of_segments, getting partitions" << endl;
+  vector< vector < vector<int> > > partitions = partition_driver_to_vecvecvec(n_data_points, minimum_segment_length);
+  //cout << "find_max_like_of_segments, got partitions" << endl;
 
-	// now loop through the number of segments, calucalting the maximum likelihood each time
-	vector< vector <int> > partition_vecvec;
-	float this_MLE;
-	int start_node,end_node;
-	for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
-	{
+  // now loop through the number of segments, calucalting the maximum likelihood each time
+  vector< vector <int> > partition_vecvec;
+  float this_MLE;
+  int start_node,end_node;
+  for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
+  {
 
-		partition_vecvec = partitions[n_elem];
-		int n_partitions_this_nsegments = partition_vecvec.size();
-		//cout << "n_segments: " << n_elem+1 << " and number of partitions of this n segments: " << n_partitions_this_nsegments << endl;
-		for (int n_partition = 0; n_partition< n_partitions_this_nsegments; n_partition++)
-		{
-			//cout << "number of partitions: " << n_partition+1 << " of " << n_partitions_this_nsegments << endl;
-			vector<int> individual_partition = partition_vecvec[n_partition];
-			int n_elements = individual_partition.size();
+    partition_vecvec = partitions[n_elem];
+    int n_partitions_this_nsegments = partition_vecvec.size();
+    //cout << "n_segments: " << n_elem+1 << " and number of partitions of this n segments: " << n_partitions_this_nsegments << endl;
+    for (int n_partition = 0; n_partition< n_partitions_this_nsegments; n_partition++)
+    {
+      //cout << "number of partitions: " << n_partition+1 << " of " << n_partitions_this_nsegments << endl;
+      vector<int> individual_partition = partition_vecvec[n_partition];
+      int n_elements = individual_partition.size();
 
-			do
-			{
-				// calcualte the MLE for this particular permutation
-				this_MLE = 1;
-				start_node = 0;
-				for (int i = 0; i<n_elements; i++)
-				{
-					end_node = start_node+individual_partition[i]-1;
-					//cout << "start node: " << start_node << " " << " end node: " << end_node
-					//     << " and like: " << like_array[start_node][end_node] << endl;
-					this_MLE = this_MLE*like_array[start_node][end_node];
-					start_node = end_node+1;
-				}
-				//cout << "This MLE: " << this_MLE << " seg MLE: " << MLE_for_segments[n_elem] << endl;
+      do
+      {
+        // calcualte the MLE for this particular permutation
+        this_MLE = 1;
+        start_node = 0;
+        for (int i = 0; i<n_elements; i++)
+        {
+          end_node = start_node+individual_partition[i]-1;
+          //cout << "start node: " << start_node << " " << " end node: " << end_node
+          //     << " and like: " << like_array[start_node][end_node] << endl;
+          this_MLE = this_MLE*like_array[start_node][end_node];
+          start_node = end_node+1;
+        }
+        //cout << "This MLE: " << this_MLE << " seg MLE: " << MLE_for_segments[n_elem] << endl;
 
-				// now test if this MLE is better than the the best MLE so far for this number of
-				// partitions
-				if( this_MLE > MLE_for_segments[n_elem] )
-				{
-					//cout << "element is: " << n_elem << " new MLE" << endl;
-					MLE_for_segments[n_elem] = this_MLE;
-					most_likely_segments[n_elem] = individual_partition;
-				}
-			} while ( prev_permutation (individual_partition.begin(),individual_partition.end()) );
+        // now test if this MLE is better than the the best MLE so far for this number of
+        // partitions
+        if( this_MLE > MLE_for_segments[n_elem] )
+        {
+          //cout << "element is: " << n_elem << " new MLE" << endl;
+          MLE_for_segments[n_elem] = this_MLE;
+          most_likely_segments[n_elem] = individual_partition;
+        }
+      } while ( prev_permutation (individual_partition.begin(),individual_partition.end()) );
 
-		}
-	}
-	segments_for_each_n_segments = most_likely_segments;
-	max_MLE = MLE_for_segments;
+    }
+  }
+  segments_for_each_n_segments = most_likely_segments;
+  max_MLE = MLE_for_segments;
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2808,48 +2808,48 @@ void find_max_like_of_segments(int minimum_segment_length, Array2D<float>& like_
 // this function returns the m, b, r^2 and D-W values for the best fit segments
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void get_properties_of_best_fit_segments(int bestfit_segments_node, vector< vector<int> >& segments_for_each_n_segments,
-										 vector<float>& m_values, Array2D<float>& m_array,
-										 vector<float>& b_values, Array2D<float>& b_array,
-										 vector<float>& r2_values, Array2D<float>& rsquared_array,
-										 vector<float>& DW_values, Array2D<float>& DW_array)
+                     vector<float>& m_values, Array2D<float>& m_array,
+                     vector<float>& b_values, Array2D<float>& b_array,
+                     vector<float>& r2_values, Array2D<float>& rsquared_array,
+                     vector<float>& DW_values, Array2D<float>& DW_array)
 {
 
 
-	int n_segments = bestfit_segments_node+1; 		// this converts from 0-based indexing to
-													// the actual number of segments
+  int n_segments = bestfit_segments_node+1;     // this converts from 0-based indexing to
+                          // the actual number of segments
 
-	// initialize temp_vectors
-	vector<float> m(n_segments);
-	vector<float> b(n_segments);
-	vector<float> r2(n_segments);
-	vector<float> DW(n_segments);
+  // initialize temp_vectors
+  vector<float> m(n_segments);
+  vector<float> b(n_segments);
+  vector<float> r2(n_segments);
+  vector<float> DW(n_segments);
 
-	// the start node and end node, used to index into the arrays
-	int start_node,end_node;
+  // the start node and end node, used to index into the arrays
+  int start_node,end_node;
 
-	// get the segment lengths
-	vector<int> individual_partition = segments_for_each_n_segments[bestfit_segments_node];
+  // get the segment lengths
+  vector<int> individual_partition = segments_for_each_n_segments[bestfit_segments_node];
 
-	// now loop through the segments
-	start_node = 0;
-	for (int i = 0; i<n_segments; i++)
-	{
-		end_node = start_node+individual_partition[i]-1;
-		cout << "start node: " << start_node << " " << " end node: " << end_node
-		     << " m: " << m_array[start_node][end_node] << " b: " << b_array[start_node][end_node]
-		     << " r^2: " << rsquared_array[start_node][end_node]
-		     << " DW: " << DW_array[start_node][end_node] << endl;
-		m[i] = m_array[start_node][end_node];
-		b[i] = b_array[start_node][end_node];
-		r2[i] = rsquared_array[start_node][end_node];
-		DW[i] = DW_array[start_node][end_node];
-		start_node = end_node+1;
-	}
+  // now loop through the segments
+  start_node = 0;
+  for (int i = 0; i<n_segments; i++)
+  {
+    end_node = start_node+individual_partition[i]-1;
+    cout << "start node: " << start_node << " " << " end node: " << end_node
+         << " m: " << m_array[start_node][end_node] << " b: " << b_array[start_node][end_node]
+         << " r^2: " << rsquared_array[start_node][end_node]
+         << " DW: " << DW_array[start_node][end_node] << endl;
+    m[i] = m_array[start_node][end_node];
+    b[i] = b_array[start_node][end_node];
+    r2[i] = rsquared_array[start_node][end_node];
+    DW[i] = DW_array[start_node][end_node];
+    start_node = end_node+1;
+  }
 
-	m_values = m;
-	b_values = b;
-	r2_values = r2;
-	DW_values = DW;
+  m_values = m;
+  b_values = b;
+  r2_values = r2;
+  DW_values = DW;
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2858,42 +2858,42 @@ void get_properties_of_best_fit_segments(int bestfit_segments_node, vector< vect
 // this function calculates AIC and AICc of segments taking the maximum_MLE based on a sigma of one
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void calculate_AIC_of_segments_with_normalized_sigma(float sigma,
-								vector<float>& one_sigma_max_MLE, vector<float>& all_x_data,
-								vector<float>& AIC_of_segments,vector<float>& AICc_of_segments)
+                vector<float>& one_sigma_max_MLE, vector<float>& all_x_data,
+                vector<float>& AIC_of_segments,vector<float>& AICc_of_segments)
 {
 
-	// recast the MLE_vector
-	vector<float> new_sig_MLE = change_normalized_like_vector_to_new_sigma(sigma, one_sigma_max_MLE);
+  // recast the MLE_vector
+  vector<float> new_sig_MLE = change_normalized_like_vector_to_new_sigma(sigma, one_sigma_max_MLE);
 
-	// initialize the vector holding the Aikake Information Criterion
-	// and then calcualte the AIC and the AICc
-	vector<float> AIC(one_sigma_max_MLE.size(),0.0);
-	vector<float> AICc(one_sigma_max_MLE.size(),0.0);
-	for (int n_elem = 0; n_elem< int(one_sigma_max_MLE.size()); n_elem++)
-	{
-		float AICk = (float(n_elem)+1);
-		float AICn = float(all_x_data.size());
-		// if the MLE is 0 or less, this will throw an error. This only happens if the fit
-		// is terrible so in this case set AIC and AICc to a large positive number
-		if(new_sig_MLE[n_elem]<= 0)
-		{
-			AIC[n_elem] = 9999;
-			AICc[n_elem] = 9999;
-		}
-		else
-		{
-			//cout << "n_segs: " << n_elem+1
-			//	 << " MLE: " <<  new_sig_MLE[n_elem] << " log: "
-			//	 << log( new_sig_MLE[n_elem]) << " 2nd term: "
-			//	 << -2*log( new_sig_MLE[n_elem]) << endl;
-			AIC[n_elem] = 2*AICk-2*log( new_sig_MLE[n_elem]);
-			AICc[n_elem] = AIC[n_elem] + 2*AICk*(AICk+1)/(AICn-AICk-1);
-		}
-		//cout << "AIC: " << AIC[n_elem] << " and AICc: " << AICc[n_elem] << endl << endl;
+  // initialize the vector holding the Aikake Information Criterion
+  // and then calcualte the AIC and the AICc
+  vector<float> AIC(one_sigma_max_MLE.size(),0.0);
+  vector<float> AICc(one_sigma_max_MLE.size(),0.0);
+  for (int n_elem = 0; n_elem< int(one_sigma_max_MLE.size()); n_elem++)
+  {
+    float AICk = (float(n_elem)+1);
+    float AICn = float(all_x_data.size());
+    // if the MLE is 0 or less, this will throw an error. This only happens if the fit
+    // is terrible so in this case set AIC and AICc to a large positive number
+    if(new_sig_MLE[n_elem]<= 0)
+    {
+      AIC[n_elem] = 9999;
+      AICc[n_elem] = 9999;
+    }
+    else
+    {
+      //cout << "n_segs: " << n_elem+1
+      //   << " MLE: " <<  new_sig_MLE[n_elem] << " log: "
+      //   << log( new_sig_MLE[n_elem]) << " 2nd term: "
+      //   << -2*log( new_sig_MLE[n_elem]) << endl;
+      AIC[n_elem] = 2*AICk-2*log( new_sig_MLE[n_elem]);
+      AICc[n_elem] = AIC[n_elem] + 2*AICk*(AICk+1)/(AICn-AICk-1);
+    }
+    //cout << "AIC: " << AIC[n_elem] << " and AICc: " << AICc[n_elem] << endl << endl;
 
-	}
-	AIC_of_segments = AIC;
-	AICc_of_segments = AICc;
+  }
+  AIC_of_segments = AIC;
+  AICc_of_segments = AICc;
 
 }
 
@@ -2901,28 +2901,28 @@ void calculate_AIC_of_segments_with_normalized_sigma(float sigma,
 // this function prints the most likeley segment lengths to screen
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void print_to_screen_most_likeley_segment_lengths( vector< vector<int> > segments_for_each_n_segments,
-										vector<float> MLE_for_segments)
+                    vector<float> MLE_for_segments)
 {
 
-	// loop through the number of segments, printing the
-	// most likeley segment lengths to screen
-	cout << endl << "printing most likeley segment lenghts: " << endl;
-	for (int n_elem = 0; n_elem< int(segments_for_each_n_segments.size()); n_elem++)
-	{
-		cout << "n elements: " << n_elem << " and MLE: " << MLE_for_segments[n_elem] << endl;
-		vector<int> individual_partition = segments_for_each_n_segments[n_elem];
-		cout << "segment lengths: " << individual_partition.size() << endl;
-		if ( int(individual_partition.size()) != n_elem+1)
-		{
-			cout << "LINE 707 statstools something is wrong n partitions is incorrect" << endl;
-		}
+  // loop through the number of segments, printing the
+  // most likeley segment lengths to screen
+  cout << endl << "printing most likeley segment lenghts: " << endl;
+  for (int n_elem = 0; n_elem< int(segments_for_each_n_segments.size()); n_elem++)
+  {
+    cout << "n elements: " << n_elem << " and MLE: " << MLE_for_segments[n_elem] << endl;
+    vector<int> individual_partition = segments_for_each_n_segments[n_elem];
+    cout << "segment lengths: " << individual_partition.size() << endl;
+    if ( int(individual_partition.size()) != n_elem+1)
+    {
+      cout << "LINE 707 statstools something is wrong n partitions is incorrect" << endl;
+    }
 
-		for (int i = 0; i<=n_elem; i++)
-		{
-			cout << individual_partition[i] << " ";
-		}
-	}
-	cout << endl << "finished printing most likeley segment lengths" << endl;
+    for (int i = 0; i<=n_elem; i++)
+    {
+      cout << individual_partition[i] << " ";
+    }
+  }
+  cout << endl << "finished printing most likeley segment lengths" << endl;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2930,119 +2930,119 @@ void print_to_screen_most_likeley_segment_lengths( vector< vector<int> > segment
 // of individual segfments calcualted by the calculate_segment_matrices function
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void find_max_AIC_of_segments(int minimum_segment_length, vector<float>& all_x_data, vector<float>& all_y_data,
-								Array2D<float>& like_array,
-								vector<float>& max_MLE, vector<float>& AIC_of_segments,
-								vector<float>& AICc_of_segments, vector< vector<int> >& segments_for_each_n_segments)
+                Array2D<float>& like_array,
+                vector<float>& max_MLE, vector<float>& AIC_of_segments,
+                vector<float>& AICc_of_segments, vector< vector<int> >& segments_for_each_n_segments)
 {
-	// first get the number of nodes
-	int n_data_points = all_x_data.size();
-	if (minimum_segment_length>n_data_points)
-	{
-		cout << "LSDStatsTools find_max_AIC_of_segments: your segment length is greater than the number of data points" << endl;
-		cout << "This means that there can only be overlapping segments. Changing segment length to minimum segment length "<< endl;
-		minimum_segment_length = n_data_points;
-	}
+  // first get the number of nodes
+  int n_data_points = all_x_data.size();
+  if (minimum_segment_length>n_data_points)
+  {
+    cout << "LSDStatsTools find_max_AIC_of_segments: your segment length is greater than the number of data points" << endl;
+    cout << "This means that there can only be overlapping segments. Changing segment length to minimum segment length "<< endl;
+    minimum_segment_length = n_data_points;
+  }
 
-	// get the maximum number of segments
-	int max_n_segments = n_data_points/minimum_segment_length;
+  // get the maximum number of segments
+  int max_n_segments = n_data_points/minimum_segment_length;
 
-	// initialize a vector for holding the MLE of each n_segments
-	vector<float> MLE_for_segments(max_n_segments,0.0);
+  // initialize a vector for holding the MLE of each n_segments
+  vector<float> MLE_for_segments(max_n_segments,0.0);
 
-	// initialize a vecvec for holding the MLE segment partition
-	vector< vector <int> > most_likely_segments(max_n_segments);
+  // initialize a vecvec for holding the MLE segment partition
+  vector< vector <int> > most_likely_segments(max_n_segments);
 
-	// create the partition data element
-	vector< vector < vector<int> > > partitions = partition_driver_to_vecvecvec(n_data_points, minimum_segment_length);
+  // create the partition data element
+  vector< vector < vector<int> > > partitions = partition_driver_to_vecvecvec(n_data_points, minimum_segment_length);
 
-	// now loop through the number of segments, calucalting the maximum likelihood each time
-	vector< vector <int> > partition_vecvec;
-	float this_MLE;
-	int start_node,end_node;
-	for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
-	{
+  // now loop through the number of segments, calucalting the maximum likelihood each time
+  vector< vector <int> > partition_vecvec;
+  float this_MLE;
+  int start_node,end_node;
+  for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
+  {
 
-		partition_vecvec = partitions[n_elem];
-		int n_partitions_this_nsegments = partition_vecvec.size();
-		//cout << "n_segments: " << n_elem+1 << " and number of partitions of this n segments: " << n_partitions_this_nsegments << endl;
-		for (int n_partition = 0; n_partition< n_partitions_this_nsegments; n_partition++)
-		{
-			vector<int> individual_partition = partition_vecvec[n_partition];
-			int n_elements = individual_partition.size();
+    partition_vecvec = partitions[n_elem];
+    int n_partitions_this_nsegments = partition_vecvec.size();
+    //cout << "n_segments: " << n_elem+1 << " and number of partitions of this n segments: " << n_partitions_this_nsegments << endl;
+    for (int n_partition = 0; n_partition< n_partitions_this_nsegments; n_partition++)
+    {
+      vector<int> individual_partition = partition_vecvec[n_partition];
+      int n_elements = individual_partition.size();
 
-			do
-			{
-				// calcualte the MLE for this particular permutation
-				this_MLE = 1;
-				start_node = 0;
-				for (int i = 0; i<n_elements; i++)
-				{
-					end_node = start_node+individual_partition[i]-1;
-					//cout << "start node: " << start_node << " " << " end node: " << end_node
-					//     << " and like: " << like_array[start_node][end_node] << endl;
-					this_MLE = this_MLE*like_array[start_node][end_node];
-					start_node = end_node+1;
-				}
-				//cout << "This MLE: " << this_MLE << " seg MLE: " << MLE_for_segments[n_elem] << endl;
+      do
+      {
+        // calcualte the MLE for this particular permutation
+        this_MLE = 1;
+        start_node = 0;
+        for (int i = 0; i<n_elements; i++)
+        {
+          end_node = start_node+individual_partition[i]-1;
+          //cout << "start node: " << start_node << " " << " end node: " << end_node
+          //     << " and like: " << like_array[start_node][end_node] << endl;
+          this_MLE = this_MLE*like_array[start_node][end_node];
+          start_node = end_node+1;
+        }
+        //cout << "This MLE: " << this_MLE << " seg MLE: " << MLE_for_segments[n_elem] << endl;
 
-				// now test if this MLE is better than the the best MLE so far for this number of
-				// partitions
-				if( this_MLE > MLE_for_segments[n_elem] )
-				{
-					//cout << "element is: " << n_elem << " new MLE" << endl;
-					MLE_for_segments[n_elem] = this_MLE;
-					most_likely_segments[n_elem] = individual_partition;
-				}
-			} while ( prev_permutation (individual_partition.begin(),individual_partition.end()) );
+        // now test if this MLE is better than the the best MLE so far for this number of
+        // partitions
+        if( this_MLE > MLE_for_segments[n_elem] )
+        {
+          //cout << "element is: " << n_elem << " new MLE" << endl;
+          MLE_for_segments[n_elem] = this_MLE;
+          most_likely_segments[n_elem] = individual_partition;
+        }
+      } while ( prev_permutation (individual_partition.begin(),individual_partition.end()) );
 
-		}
-	}
+    }
+  }
 
-	// initialize the vector holding the Aikake Information Criterion
-	// and then calcualte the AIC and the AICc
-	vector<float> AIC(partitions.size(),0.0);
-	vector<float> AICc(partitions.size(),0.0);
-	for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
-	{
-		cout << "n elements: " << n_elem << " and MLE: " << MLE_for_segments[n_elem] << endl;
-		vector<int> individual_partition = most_likely_segments[n_elem];
-		cout << "segment lengths: " << individual_partition.size() << endl;
-		if ( int(individual_partition.size()) != n_elem+1)
-		{
-			cout << "LINE 707 statstools something is wrong n partitions is incorrect" << endl;
-		}
+  // initialize the vector holding the Aikake Information Criterion
+  // and then calcualte the AIC and the AICc
+  vector<float> AIC(partitions.size(),0.0);
+  vector<float> AICc(partitions.size(),0.0);
+  for (int n_elem = 0; n_elem< int(partitions.size()); n_elem++)
+  {
+    cout << "n elements: " << n_elem << " and MLE: " << MLE_for_segments[n_elem] << endl;
+    vector<int> individual_partition = most_likely_segments[n_elem];
+    cout << "segment lengths: " << individual_partition.size() << endl;
+    if ( int(individual_partition.size()) != n_elem+1)
+    {
+      cout << "LINE 707 statstools something is wrong n partitions is incorrect" << endl;
+    }
 
-		for (int i = 0; i<=n_elem; i++)
-		{
-			cout << individual_partition[i] << " ";
-		}
-		cout << endl;
+    for (int i = 0; i<=n_elem; i++)
+    {
+      cout << individual_partition[i] << " ";
+    }
+    cout << endl;
 
-		float AICk = (float(n_elem)+1);
-		float AICn = float(all_x_data.size());
-		// if the MLE is 0 or less, this will throw an error. This only happens if the fit
-		// is terrible so in this case set AIC and AICc to a large positive number
-		if(MLE_for_segments[n_elem]<= 0)
-		{
-			AIC[n_elem] = 9999;
-			AICc[n_elem] = 9999;
-		}
-		else
-		{
-			cout << "MLE: " << MLE_for_segments[n_elem] << " log: "
-				 << log(MLE_for_segments[n_elem]) << " 2nd term: "
-				 << -2*log(MLE_for_segments[n_elem]) << endl;
-			AIC[n_elem] = 2*AICk-2*log(MLE_for_segments[n_elem]);
-			AICc[n_elem] = AIC[n_elem] + 2*AICk*(AICk+1)/(AICn-AICk-1);
-		}
-		cout << "AIC: " << AIC[n_elem] << " and AICc: " << AICc[n_elem] << endl << endl;
+    float AICk = (float(n_elem)+1);
+    float AICn = float(all_x_data.size());
+    // if the MLE is 0 or less, this will throw an error. This only happens if the fit
+    // is terrible so in this case set AIC and AICc to a large positive number
+    if(MLE_for_segments[n_elem]<= 0)
+    {
+      AIC[n_elem] = 9999;
+      AICc[n_elem] = 9999;
+    }
+    else
+    {
+      cout << "MLE: " << MLE_for_segments[n_elem] << " log: "
+         << log(MLE_for_segments[n_elem]) << " 2nd term: "
+         << -2*log(MLE_for_segments[n_elem]) << endl;
+      AIC[n_elem] = 2*AICk-2*log(MLE_for_segments[n_elem]);
+      AICc[n_elem] = AIC[n_elem] + 2*AICk*(AICk+1)/(AICn-AICk-1);
+    }
+    cout << "AIC: " << AIC[n_elem] << " and AICc: " << AICc[n_elem] << endl << endl;
 
-	}
+  }
 
-	segments_for_each_n_segments = most_likely_segments;
-	max_MLE = MLE_for_segments;
-	AIC_of_segments = AIC;
-	AICc_of_segments = AICc;
+  segments_for_each_n_segments = most_likely_segments;
+  max_MLE = MLE_for_segments;
+  AIC_of_segments = AIC;
+  AICc_of_segments = AICc;
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -3051,122 +3051,122 @@ void find_max_AIC_of_segments(int minimum_segment_length, vector<float>& all_x_d
 // this is a function that generates linear segments randomly. Each segment has a
 // slope and intercept.
 void generate_random_segments(float sigma, int minimum_n_nodes, int mean_segment_length, int segment_range,
-							  float dx, float offset_range, float m_range,
-							 vector<float>& x_data, vector<float>& y_data,
-							 vector<int>& segment_lengths, vector<float>& slope, vector<float>& intercept)
+                float dx, float offset_range, float m_range,
+               vector<float>& x_data, vector<float>& y_data,
+               vector<int>& segment_lengths, vector<float>& slope, vector<float>& intercept)
 {
 
-	if (segment_range > 2*mean_segment_length)
-	{
-		cout << "generate_random_segments LSDStatstools.cpp, segment range will result in negative segment lengths" << endl;
-		cout << " changing to maximum segment length allowed" << endl;
-		segment_range = 2*mean_segment_length -2;
-	}
-	long seed = time(NULL);
+  if (segment_range > 2*mean_segment_length)
+  {
+    cout << "generate_random_segments LSDStatstools.cpp, segment range will result in negative segment lengths" << endl;
+    cout << " changing to maximum segment length allowed" << endl;
+    segment_range = 2*mean_segment_length -2;
+  }
+  long seed = time(NULL);
 
-	// set up data vectors
-	vector<float> empty_vec;
-	vector<float> segment_x_data;
-	vector<float> segment_y_data;
-	vector<float> all_x_data;
-	vector<float> all_y_data;
-	vector<int>    nodes_in_segments;
-	vector<float> slope_of_segments;
-	vector<float> intercept_of_segments;
+  // set up data vectors
+  vector<float> empty_vec;
+  vector<float> segment_x_data;
+  vector<float> segment_y_data;
+  vector<float> all_x_data;
+  vector<float> all_y_data;
+  vector<int>    nodes_in_segments;
+  vector<float> slope_of_segments;
+  vector<float> intercept_of_segments;
 
-	// first get the segment lengths
-	int total_nodes = 0;
-	int this_segment_length;
-	while (total_nodes < minimum_n_nodes)
-	{
-		this_segment_length = int (float(segment_range)*ran3(&seed))
-		                      + mean_segment_length-int(0.5*float(segment_range));
+  // first get the segment lengths
+  int total_nodes = 0;
+  int this_segment_length;
+  while (total_nodes < minimum_n_nodes)
+  {
+    this_segment_length = int (float(segment_range)*ran3(&seed))
+                          + mean_segment_length-int(0.5*float(segment_range));
 
-		nodes_in_segments.push_back(this_segment_length);
-		total_nodes+=this_segment_length;
-		cout << "this segment length is: " << this_segment_length << " and total nodes: " << total_nodes << endl;
-	}
+    nodes_in_segments.push_back(this_segment_length);
+    total_nodes+=this_segment_length;
+    cout << "this segment length is: " << this_segment_length << " and total nodes: " << total_nodes << endl;
+  }
 
-	// now loop through each segment adding x and y data
-	int n_segments = nodes_in_segments.size();
-	float old_x = 0;
-	float old_y = 0;
-	float this_m, this_offset;
-	for (int i = 0; i<n_segments; i++)
-	{
+  // now loop through each segment adding x and y data
+  int n_segments = nodes_in_segments.size();
+  float old_x = 0;
+  float old_y = 0;
+  float this_m, this_offset;
+  for (int i = 0; i<n_segments; i++)
+  {
 
-		segment_x_data = empty_vec;
-		segment_y_data = empty_vec;
+    segment_x_data = empty_vec;
+    segment_y_data = empty_vec;
 
-		if (i == 0)
-		{
-			segment_x_data.push_back(0.0);
-			segment_y_data.push_back(0.0);
-		}
-		else
-		{
-			this_offset = ran3(&seed)*offset_range;
-			segment_x_data.push_back(old_x+dx);
-			segment_y_data.push_back(old_y+this_offset);
-			old_x += dx;
-			old_y += this_offset;
-		}
+    if (i == 0)
+    {
+      segment_x_data.push_back(0.0);
+      segment_y_data.push_back(0.0);
+    }
+    else
+    {
+      this_offset = ran3(&seed)*offset_range;
+      segment_x_data.push_back(old_x+dx);
+      segment_y_data.push_back(old_y+this_offset);
+      old_x += dx;
+      old_y += this_offset;
+    }
 
-		// get the slope of this segment
-		this_m = ran3(&seed)*m_range;
-		slope_of_segments.push_back(this_m);
+    // get the slope of this segment
+    this_m = ran3(&seed)*m_range;
+    slope_of_segments.push_back(this_m);
 
-		// loop through the segment nodes, adding segments as one goes.
-		int nodes_this_seg = nodes_in_segments[i];
-		for(int node = 1; node<nodes_this_seg; node++)
-		{
-			segment_x_data.push_back(old_x+dx);
-			old_x = old_x+dx;
+    // loop through the segment nodes, adding segments as one goes.
+    int nodes_this_seg = nodes_in_segments[i];
+    for(int node = 1; node<nodes_this_seg; node++)
+    {
+      segment_x_data.push_back(old_x+dx);
+      old_x = old_x+dx;
 
-			segment_y_data.push_back(this_m*dx+old_y);
-			old_y = this_m*dx+old_y;
-		}
+      segment_y_data.push_back(this_m*dx+old_y);
+      old_y = this_m*dx+old_y;
+    }
 
-		vector<float> residuals;
-		vector<float> lr = simple_linear_regression(segment_x_data, segment_y_data, residuals);
-		cout << "Imposed m: " << this_m << " and regressed m: " << lr[0] << " and b: " << lr[1] << endl;
-		intercept_of_segments.push_back(lr[1]);
+    vector<float> residuals;
+    vector<float> lr = simple_linear_regression(segment_x_data, segment_y_data, residuals);
+    cout << "Imposed m: " << this_m << " and regressed m: " << lr[0] << " and b: " << lr[1] << endl;
+    intercept_of_segments.push_back(lr[1]);
 
-		// add the segment to all_x_data
-		for(int node = 0; node<nodes_this_seg; node++)
-		{
-			all_x_data.push_back(segment_x_data[node]);
-			all_y_data.push_back(segment_y_data[node]);
-		}
-
-
-	}
-
-	// now superimpose noise
-	cout << endl << endl;
-	cout << "n_nodes: " << total_nodes << " and in all_x_data: " << all_x_data.size() << endl;
-	for(int node = 0; node<total_nodes; node++)
-	{
-		all_y_data[node] += sigma*(ran3(&seed)-0.5);
-		cout << all_x_data[node] << " " << all_y_data[node] << endl;
-	}
-	cout << endl << endl;
-
-	cout << endl << endl << "n_segments: " << n_segments << endl;
-	for (int i = 0; i< n_segments; i++)
-	{
-		cout << "segment: " << i << " has " << nodes_in_segments[i]
-		     << "  with slope: " << slope_of_segments[i]
-		     << " and intercept: " << intercept_of_segments[i] << endl;
-	}
+    // add the segment to all_x_data
+    for(int node = 0; node<nodes_this_seg; node++)
+    {
+      all_x_data.push_back(segment_x_data[node]);
+      all_y_data.push_back(segment_y_data[node]);
+    }
 
 
-	// replace data in vectors passed to function
-	x_data = all_x_data;
-	y_data = all_y_data;
-	slope = slope_of_segments;
-	intercept = intercept_of_segments;
-	segment_lengths = nodes_in_segments;
+  }
+
+  // now superimpose noise
+  cout << endl << endl;
+  cout << "n_nodes: " << total_nodes << " and in all_x_data: " << all_x_data.size() << endl;
+  for(int node = 0; node<total_nodes; node++)
+  {
+    all_y_data[node] += sigma*(ran3(&seed)-0.5);
+    cout << all_x_data[node] << " " << all_y_data[node] << endl;
+  }
+  cout << endl << endl;
+
+  cout << endl << endl << "n_segments: " << n_segments << endl;
+  for (int i = 0; i< n_segments; i++)
+  {
+    cout << "segment: " << i << " has " << nodes_in_segments[i]
+         << "  with slope: " << slope_of_segments[i]
+         << " and intercept: " << intercept_of_segments[i] << endl;
+  }
+
+
+  // replace data in vectors passed to function
+  x_data = all_x_data;
+  y_data = all_y_data;
+  slope = slope_of_segments;
+  intercept = intercept_of_segments;
+  segment_lengths = nodes_in_segments;
 
 
 }
@@ -3190,113 +3190,113 @@ void generate_random_segments(float sigma, int minimum_n_nodes, int mean_segment
 // fit no longer outweighs the increased number of segments.
 void find_linear_segments(vector<float>& all_x_data, vector<float>& all_y_data, int segment_length)
 {
-	int n_data_points = all_x_data.size();				// get the number of data points
-	if (segment_length>n_data_points)
-	{
-		cout << "LSDStatsTools find_linear_segments: your segment length is greater than half the number of data points" << endl;
-		cout << "This means that there can only be overlapping segments. Changing segment length to maximum segment length "<< endl;
-		segment_length = int(float(n_data_points)/2);
-	}
+  int n_data_points = all_x_data.size();        // get the number of data points
+  if (segment_length>n_data_points)
+  {
+    cout << "LSDStatsTools find_linear_segments: your segment length is greater than half the number of data points" << endl;
+    cout << "This means that there can only be overlapping segments. Changing segment length to maximum segment length "<< endl;
+    segment_length = int(float(n_data_points)/2);
+  }
 
-	vector<float> segment_slopes;
-	vector<float> segment_intercepts;
-	vector<float> segment_r2;
-	vector<float> segment_DW_stat;
-	vector<float> regression_data;
-	vector<float> residuals;
+  vector<float> segment_slopes;
+  vector<float> segment_intercepts;
+  vector<float> segment_r2;
+  vector<float> segment_DW_stat;
+  vector<float> regression_data;
+  vector<float> residuals;
 
-	vector<int> calibrated_segment_start;
-	vector<int> calibrated_segment_end;
+  vector<int> calibrated_segment_start;
+  vector<int> calibrated_segment_end;
 
-	float slope_threshold = 0.1;			// the threshold difference in slopes, beyond which
-										// a breakpoint is identified
-	float intercept_threshold = 0.1;		// the threshold difference in intercept, beyond which
-										// a breakpoint is identified
-	float slope_difference;			// difference in slope across a span that is the length of the segment
-	float intercept_difference;		// difference in intercept across a span that is the length of the segment
+  float slope_threshold = 0.1;      // the threshold difference in slopes, beyond which
+                    // a breakpoint is identified
+  float intercept_threshold = 0.1;    // the threshold difference in intercept, beyond which
+                    // a breakpoint is identified
+  float slope_difference;      // difference in slope across a span that is the length of the segment
+  float intercept_difference;    // difference in intercept across a span that is the length of the segment
 
-	// set up the scanning. The number of regressions will be n_data_points-segment_length+1
-	int n_segments = n_data_points - segment_length +1;
-	for (int segment = 0; segment<n_segments; segment++)
-	{
-		// first get segment
-		// NOTE there must be a better way to do this using the STL
-		// THIS BIT NEEDS TO BE LOOKED AT LATER
-		vector<float> segment_x;
-		vector<float> segment_y;
-		for(int i = 0; i<segment_length; i++)
-		{
-			segment_x.push_back(all_x_data[segment+i]);
-			segment_y.push_back(all_y_data[segment+i]);
-		}
+  // set up the scanning. The number of regressions will be n_data_points-segment_length+1
+  int n_segments = n_data_points - segment_length +1;
+  for (int segment = 0; segment<n_segments; segment++)
+  {
+    // first get segment
+    // NOTE there must be a better way to do this using the STL
+    // THIS BIT NEEDS TO BE LOOKED AT LATER
+    vector<float> segment_x;
+    vector<float> segment_y;
+    for(int i = 0; i<segment_length; i++)
+    {
+      segment_x.push_back(all_x_data[segment+i]);
+      segment_y.push_back(all_y_data[segment+i]);
+    }
 
-		// now do regression on the segments
-		regression_data = simple_linear_regression(segment_x, segment_y, residuals);
+    // now do regression on the segments
+    regression_data = simple_linear_regression(segment_x, segment_y, residuals);
 
-		// add the regrssion data to the vectors
-		segment_slopes.push_back(regression_data[0]);
-		segment_intercepts.push_back(regression_data[1]);
-		segment_r2.push_back(regression_data[2]);
-		segment_DW_stat.push_back(regression_data[3]);
+    // add the regrssion data to the vectors
+    segment_slopes.push_back(regression_data[0]);
+    segment_intercepts.push_back(regression_data[1]);
+    segment_r2.push_back(regression_data[2]);
+    segment_DW_stat.push_back(regression_data[3]);
 
-		// print to screen
-		cout << segment << " " << regression_data[0] << " " << regression_data[1] << " ";
-		cout << regression_data[2] << " " << regression_data[3] << endl;
-	}
+    // print to screen
+    cout << segment << " " << regression_data[0] << " " << regression_data[1] << " ";
+    cout << regression_data[2] << " " << regression_data[3] << endl;
+  }
 
-	// now loop through segments seeing if there is a transition.
-	// we look for non overlapping data.
-	// the first break point has to be beyond the end of the first segment, so start looking there
-	int start = 0;
-	for (int segment = segment_length; segment < n_segments; segment++)
-	{
-		slope_difference = fabs(segment_slopes[segment] - segment_slopes[segment-segment_length]);
-		intercept_difference = fabs(segment_intercepts[segment] - segment_intercepts[segment-segment_length]);
+  // now loop through segments seeing if there is a transition.
+  // we look for non overlapping data.
+  // the first break point has to be beyond the end of the first segment, so start looking there
+  int start = 0;
+  for (int segment = segment_length; segment < n_segments; segment++)
+  {
+    slope_difference = fabs(segment_slopes[segment] - segment_slopes[segment-segment_length]);
+    intercept_difference = fabs(segment_intercepts[segment] - segment_intercepts[segment-segment_length]);
 
-		if (slope_difference > slope_threshold || intercept_difference > intercept_threshold)
-		{
-			calibrated_segment_start.push_back(start);
-			calibrated_segment_end.push_back(segment-1);
-			start = segment;
-		}
-	}
-	calibrated_segment_start.push_back(start);
-	calibrated_segment_end.push_back(n_segments-1);
+    if (slope_difference > slope_threshold || intercept_difference > intercept_threshold)
+    {
+      calibrated_segment_start.push_back(start);
+      calibrated_segment_end.push_back(segment-1);
+      start = segment;
+    }
+  }
+  calibrated_segment_start.push_back(start);
+  calibrated_segment_end.push_back(n_segments-1);
 
-	vector<float> calibrated_segment_slopes;
-	vector<float> calibrated_segment_intercepts;
-	vector<float> calibrated_segment_r2;
-	vector<float> calibrated_segment_DW_stat;
+  vector<float> calibrated_segment_slopes;
+  vector<float> calibrated_segment_intercepts;
+  vector<float> calibrated_segment_r2;
+  vector<float> calibrated_segment_DW_stat;
 
-	// get the number of calibrated segments
-	int n_calibrated_segments = calibrated_segment_start.size();
+  // get the number of calibrated segments
+  int n_calibrated_segments = calibrated_segment_start.size();
 
-	// now get these segements and do regression on each one
-	for (int calib_segment = 0; calib_segment<n_calibrated_segments; calib_segment++)
-	{
-		vector<float> calib_x;
-		vector<float> calib_y;
+  // now get these segements and do regression on each one
+  for (int calib_segment = 0; calib_segment<n_calibrated_segments; calib_segment++)
+  {
+    vector<float> calib_x;
+    vector<float> calib_y;
 
-		int calib_start = calibrated_segment_start[calib_segment];
-		int calib_end =  calibrated_segment_end[calib_segment];
+    int calib_start = calibrated_segment_start[calib_segment];
+    int calib_end =  calibrated_segment_end[calib_segment];
 
-		for (int i = calib_start; i<=calib_end; i++)
-		{
-			calib_x.push_back(all_x_data[i]);
-			calib_y.push_back(all_y_data[i]);
-		}
+    for (int i = calib_start; i<=calib_end; i++)
+    {
+      calib_x.push_back(all_x_data[i]);
+      calib_y.push_back(all_y_data[i]);
+    }
 
-		regression_data = simple_linear_regression(calib_x, calib_y, residuals);
-		calibrated_segment_slopes.push_back(regression_data[0]);
-		calibrated_segment_intercepts.push_back(regression_data[1]);
-		calibrated_segment_r2.push_back(regression_data[2]);
-		calibrated_segment_DW_stat.push_back(regression_data[3]);
+    regression_data = simple_linear_regression(calib_x, calib_y, residuals);
+    calibrated_segment_slopes.push_back(regression_data[0]);
+    calibrated_segment_intercepts.push_back(regression_data[1]);
+    calibrated_segment_r2.push_back(regression_data[2]);
+    calibrated_segment_DW_stat.push_back(regression_data[3]);
 
-		// print to screen
-		cout << endl << "and now for the claibrated segments" << endl;
-		cout << calib_segment << " " << regression_data[0] << " " << regression_data[1] << " ";
-		cout << regression_data[2] << " " << regression_data[3] << endl;
-	}
+    // print to screen
+    cout << endl << "and now for the claibrated segments" << endl;
+    cout << calib_segment << " " << regression_data[0] << " " << regression_data[1] << " ";
+    cout << regression_data[2] << " " << regression_data[3] << endl;
+  }
 
 
 }
@@ -3305,47 +3305,47 @@ void find_linear_segments(vector<float>& all_x_data, vector<float>& all_y_data, 
 // get the least squared maximum likelihood estimator
 float calculate_MLE(vector<float>& measured, vector<float>& modelled, vector<float>& sigma)
 {
-	// get the number of samples
-	int n_samples = measured.size();
-	float MLE_tot = 1;
-	for (int i = 0; i<n_samples; i++)
-	{
-		//cout << "exp term: " << -0.5*(measured[i]-modelled[i])*(measured[i]-modelled[i])/
-		//							 sigma[i]*sigma[i] << endl;
-		MLE_tot = MLE_tot*exp(-0.5*(measured[i]-modelled[i])*(measured[i]-modelled[i])/
-									 (sigma[i]*sigma[i]));
-	}
-	return MLE_tot;
+  // get the number of samples
+  int n_samples = measured.size();
+  float MLE_tot = 1;
+  for (int i = 0; i<n_samples; i++)
+  {
+    //cout << "exp term: " << -0.5*(measured[i]-modelled[i])*(measured[i]-modelled[i])/
+    //               sigma[i]*sigma[i] << endl;
+    MLE_tot = MLE_tot*exp(-0.5*(measured[i]-modelled[i])*(measured[i]-modelled[i])/
+                   (sigma[i]*sigma[i]));
+  }
+  return MLE_tot;
 }
 
 // get the least squared maximum likelihood estimator
 float calculate_MLE(vector<float>& measured, vector<float>& modelled, float sigma)
 {
-	// get the number of samples
-	int n_samples = measured.size();
-	float MLE_tot = 1;
-	for (int i = 0; i<n_samples; i++)
-	{
-		MLE_tot = MLE_tot*exp(-0.5* (measured[i]-modelled[i])*(measured[i]-modelled[i])/
-									 (sigma*sigma));
-	}
-	return MLE_tot;
+  // get the number of samples
+  int n_samples = measured.size();
+  float MLE_tot = 1;
+  for (int i = 0; i<n_samples; i++)
+  {
+    MLE_tot = MLE_tot*exp(-0.5* (measured[i]-modelled[i])*(measured[i]-modelled[i])/
+                   (sigma*sigma));
+  }
+  return MLE_tot;
 }
 
 // get the least squared maximum likelihood estimator based on residuals
 float calculate_MLE_from_residuals(vector<float>& residuals, float sigma)
 {
-	//cout << "sigma is: " << sigma << endl;
+  //cout << "sigma is: " << sigma << endl;
 
-	// get the number of samples
-	int n_samples = residuals.size();
-	float MLE_tot = 1;
-	for (int i = 0; i<n_samples; i++)
-	{
-		MLE_tot = MLE_tot*exp(-0.5* (residuals[i]*residuals[i])/
-									 (sigma*sigma));
-	}
-	return MLE_tot;
+  // get the number of samples
+  int n_samples = residuals.size();
+  float MLE_tot = 1;
+  for (int i = 0; i<n_samples; i++)
+  {
+    MLE_tot = MLE_tot*exp(-0.5* (residuals[i]*residuals[i])/
+                   (sigma*sigma));
+  }
+  return MLE_tot;
 }
 
 string itoa(int num)
@@ -3409,9 +3409,9 @@ void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, floa
 
   // Finding max contributing area to use as upper limit for the bins
   float max_X = 0;
-	float min_X = 0;
-	for (int row = 0; row < NRows; row++)
-	{
+  float min_X = 0;
+  for (int row = 0; row < NRows; row++)
+  {
     for(int col = 0; col < NCols; col++)
     {
       if (InputArrayX[row][col] > max_X)
@@ -3447,20 +3447,20 @@ void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, floa
 
   // These will be copied into their respective function output vectors
   vector<float> MeanX(NBins,0.0);
-	vector<float> MeanY(NBins,0.0);
+  vector<float> MeanY(NBins,0.0);
   vector<float> mid_points(NBins,NoDataValue);
 
   // vector<vector> objects house data in each bin.
   vector< vector<float> > binned_data_X;
   vector< vector<float> > binned_data_Y;
 
-  	// create the vector of vectors.  Nested vectors will store data within that
+    // create the vector of vectors.  Nested vectors will store data within that
   // bin.
   vector<float> empty_vector;
   for(int i = 0; i<NBins; i++)
   {
-	  binned_data_X.push_back(empty_vector);
-	  binned_data_Y.push_back(empty_vector);
+    binned_data_X.push_back(empty_vector);
+    binned_data_Y.push_back(empty_vector);
   }
 
   // Bin Data into logarithmically spaced bins
@@ -3512,29 +3512,29 @@ void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, floa
   vector<float> StandardErrorY(NBins,0.0);
 
   // iterators to move through vec<vec>
-	vector<float>::iterator vec_iterator_X;
+  vector<float>::iterator vec_iterator_X;
   vector<float>::iterator vec_iterator_Y;
 
   // Getting the standard deviation of each bin.  First get sum of the squared
   // deviations from the mean
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
-	  if (number_observations[bin_id] != 0)
+    if (number_observations[bin_id] != 0)
     {
-		  // for the independent variable X...
+      // for the independent variable X...
       vec_iterator_X = binned_data_X[bin_id].begin();
-		  while (vec_iterator_X != binned_data_X[bin_id].end())
-		  {
-			  float Xi = (*vec_iterator_X);
+      while (vec_iterator_X != binned_data_X[bin_id].end())
+      {
+        float Xi = (*vec_iterator_X);
         StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
         vec_iterator_X++;
       }
 
       // ...and for the dependent variable Y
       vec_iterator_Y = binned_data_Y[bin_id].begin();
-		  while (vec_iterator_Y != binned_data_Y[bin_id].end())
-		  {
-			  float Yi = (*vec_iterator_Y);
+      while (vec_iterator_Y != binned_data_Y[bin_id].end())
+      {
+        float Yi = (*vec_iterator_Y);
         StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
         vec_iterator_Y++;
       }
@@ -3587,14 +3587,14 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
                       vector<float>&  StandardDeviationY_output,int NoDataValue)
 {
   
-	int n_data = InputVectorY.size();
+  int n_data = InputVectorY.size();
   float max_X = InputVectorX[n_data-1];
-	float min_X = InputVectorX[1];
+  float min_X = InputVectorX[1];
 
-	//cout << "LSDStatsTools line 1757, n_data_X: " << n_data << " and Y: " << InputVectorX.size() << endl;
+  //cout << "LSDStatsTools line 1757, n_data_X: " << n_data << " and Y: " << InputVectorX.size() << endl;
 
   for (int i = 0; i < n_data; ++i)
-	{
+  {
     if (InputVectorX[i] > max_X)
     {
       max_X = InputVectorX[i];
@@ -3618,20 +3618,20 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
 
   // These will be copied into their respective function output vectors
   vector<float> MeanX(NBins,0.0);
-	vector<float> MeanY(NBins,0.0);
+  vector<float> MeanY(NBins,0.0);
   vector<float> mid_points(NBins,NoDataValue);
 
   // vector<vector> objects house data in each bin.
   vector< vector<float> > binned_data_X;
   vector< vector<float> > binned_data_Y;
 
-	// create the vector of vectors.  Nested vectors will store data within that
+  // create the vector of vectors.  Nested vectors will store data within that
   // bin.
   vector<float> empty_vector;
   for(int i = 0; i<NBins; i++)
   {
-	  binned_data_X.push_back(empty_vector);
-	  binned_data_Y.push_back(empty_vector);
+    binned_data_X.push_back(empty_vector);
+    binned_data_Y.push_back(empty_vector);
   }
 
   // Bin Data into logarithmically spaced bins
@@ -3646,8 +3646,8 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
         // Get bin_id for this particular value of X
         int bin_id = int(((log10(X))-lower_limit)/log_bin_width);
 
-		//cout << "LINE 1818, bin id: " << bin_id << " i: " << i << " XDsz: " << X_data.size() << " YDsz: " << Y_data.size() << endl;
-		//cout << "LINE 1819, bdxsz: " << binned_data_X.size() << " bdysz: " << binned_data_Y.size() << endl << endl;
+    //cout << "LINE 1818, bin id: " << bin_id << " i: " << i << " XDsz: " << X_data.size() << " YDsz: " << Y_data.size() << endl;
+    //cout << "LINE 1819, bdxsz: " << binned_data_X.size() << " bdysz: " << binned_data_Y.size() << endl << endl;
         // Store X and corresponding Y into this bin, for their respective
         // vector<vector> object
         binned_data_X[bin_id].push_back(X);
@@ -3681,20 +3681,20 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
   vector<float> StandardDeviationY(NBins,0.0);
   
   // iterators to move through vec<vec>
-	vector<float>::iterator vec_iterator_X;
+  vector<float>::iterator vec_iterator_X;
   vector<float>::iterator vec_iterator_Y;
 
   // Getting the standard deviation of each bin.  First get sum of the squared
   // deviations from the mean
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
-	  if (number_observations[bin_id] != 0)
+    if (number_observations[bin_id] != 0)
     {
-		  // for the independent variable X...
+      // for the independent variable X...
       vec_iterator_X = binned_data_X[bin_id].begin();
 
       while (vec_iterator_X != binned_data_X[bin_id].end())
-		  {
+      {
         float Xi = (*vec_iterator_X);
         StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
         vec_iterator_X++;
@@ -3703,9 +3703,9 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
       // ...and for the dependent variable Y
       vec_iterator_Y = binned_data_Y[bin_id].begin();
       
-		  while (vec_iterator_Y != binned_data_Y[bin_id].end())
-		  {
-			  float Yi = (*vec_iterator_Y);
+      while (vec_iterator_Y != binned_data_Y[bin_id].end())
+      {
+        float Yi = (*vec_iterator_Y);
         StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
         vec_iterator_Y++;
       }
@@ -3760,15 +3760,15 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
                   float& bin_lower_limit, float NoDataValue)
 {
 
-	// Finding max contributing area to use as upper limit for the bins
-	int n_data = InputVectorY.size();
+  // Finding max contributing area to use as upper limit for the bins
+  int n_data = InputVectorY.size();
   float max_X = InputVectorX[n_data-1];
-	float min_X = InputVectorX[1];
+  float min_X = InputVectorX[1];
 
-	cout << "LSDStatsTools line 1757, n_data_X: " << InputVectorX.size() << " and Y: " << InputVectorY.size() << endl;
+  cout << "LSDStatsTools line 1757, n_data_X: " << InputVectorX.size() << " and Y: " << InputVectorY.size() << endl;
 
   for (int i = 0; i < n_data; ++i)
-	{
+  {
     if (InputVectorX[i] > max_X)
     {
       max_X = InputVectorX[i];
@@ -3797,20 +3797,20 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
 
   // These will be copied into their respective function output vectors
   vector<float> MeanX(NBins,0.0);
-	vector<float> MeanY(NBins,0.0);
+  vector<float> MeanY(NBins,0.0);
   vector<float> mid_points(NBins,NoDataValue);
 
   // vector<vector> objects house data in each bin.
   vector< vector<float> > binned_data_X;
   vector< vector<float> > binned_data_Y;
 
-	// create the vector of vectors.  Nested vectors will store data within that
+  // create the vector of vectors.  Nested vectors will store data within that
   // bin.
   vector<float> empty_vector;
   for(int i = 0; i<NBins; i++)
   {
-	  binned_data_X.push_back(empty_vector);
-	  binned_data_Y.push_back(empty_vector);
+    binned_data_X.push_back(empty_vector);
+    binned_data_Y.push_back(empty_vector);
   }
 
   // Bin Data into logarithmically spaced bins
@@ -3827,8 +3827,8 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
         //cout << "X: " << X << " Y: " << Y << " bin_id: " << bin_id << endl;
         if (bin_id >= 0)
         {
-		      //cout << "LINE 1818, bin id: " << bin_id << " i: " << i << " XDsz: " << X_data.size() << " YDsz: " << Y_data.size() << endl;
-		      //cout << "LINE 1819, bdxsz: " << binned_data_X.size() << " bdysz: " << binned_data_Y.size() << endl << endl;
+          //cout << "LINE 1818, bin id: " << bin_id << " i: " << i << " XDsz: " << X_data.size() << " YDsz: " << Y_data.size() << endl;
+          //cout << "LINE 1819, bdxsz: " << binned_data_X.size() << " bdysz: " << binned_data_Y.size() << endl << endl;
           // Store X and corresponding Y into this bin, for their respective
           // vector<vector> object
           binned_data_X[bin_id].push_back(X);
@@ -3867,20 +3867,20 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   vector<float> StandardErrorY(NBins,0.0);
   vector<float> MedianY(NBins,0.0);
   // iterators to move through vec<vec>
-	vector<float>::iterator vec_iterator_X;
+  vector<float>::iterator vec_iterator_X;
   vector<float>::iterator vec_iterator_Y;
 
   // Getting the standard deviation of each bin.  First get sum of the squared
   // deviations from the mean
   for (int bin_id = 0; bin_id < NBins; bin_id++)
   {
-	  if (number_observations[bin_id] != 0)
+    if (number_observations[bin_id] != 0)
     {
-		  // for the independent variable X...
+      // for the independent variable X...
       vec_iterator_X = binned_data_X[bin_id].begin();
 
       while (vec_iterator_X != binned_data_X[bin_id].end())
-		  {
+      {
         float Xi = (*vec_iterator_X);
         StandardDeviationX[bin_id] += (Xi - MeanX[bin_id]) * (Xi - MeanX[bin_id]);
         vec_iterator_X++;
@@ -3889,9 +3889,9 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
       // ...and for the dependent variable Y
       vec_iterator_Y = binned_data_Y[bin_id].begin();
       
-		  while (vec_iterator_Y != binned_data_Y[bin_id].end())
-		  {
-			  float Yi = (*vec_iterator_Y);
+      while (vec_iterator_Y != binned_data_Y[bin_id].end())
+      {
+        float Yi = (*vec_iterator_Y);
         StandardDeviationY[bin_id] += (Yi - MeanY[bin_id]) * (Yi - MeanY[bin_id]);
         vec_iterator_Y++;
         YDataVector.push_back(Yi);
@@ -4001,14 +4001,14 @@ void RemoveSmallBins(vector<float>& MeanX_output, vector<float>& MeanY_output, v
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void print_histogram(vector<float> input_values, float bin_width, string filename)
 {
-	// Finding max contributing area to use as upper limit for the bins
+  // Finding max contributing area to use as upper limit for the bins
   int n_data = input_values.size();
   float max_X = input_values[0];
-	float min_X = input_values[0];
+  float min_X = input_values[0];
 
   // Loop through to find the min and max of the dataset
   for (int i = 0; i < n_data; ++i)
-	{
+  {
     if (input_values[i] > max_X)
     {
       max_X = input_values[i];
@@ -4034,7 +4034,7 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
   vector<float> bin_upper_lim(NBins,0.0);
   vector<float> probability_density(NBins,0);
 
-	// create the vector of vectors.  Nested vectors will store data within that
+  // create the vector of vectors.  Nested vectors will store data within that
   // bin.
   vector<float> empty_vector;
   float midpoint_value, lower_lim_value, upper_lim_value;
@@ -4074,7 +4074,7 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
   if(ofs.fail())
   {
     cout << "\nFATAL ERROR: unable to write output_file" << endl;
-		exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
   
   ofs << "Midpoint LowerLim UpperLim Count ProbabilityDensity\n";
@@ -4093,14 +4093,14 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
 // DTM 12/02/2015
 void calculate_histogram(vector<float> input_values, float bin_width, vector<float>& Midpoints, vector<float>& LLims, vector<float>& ULims, vector<int>& Count, vector<float>& ProbabilityDensity)
 {
-	// Finding max contributing area to use as upper limit for the bins
+  // Finding max contributing area to use as upper limit for the bins
   int n_data = input_values.size();
   float max_X = input_values[0];
-	float min_X = input_values[0];
+  float min_X = input_values[0];
 
   // Loop through to find the min and max of the dataset
   for (int i = 0; i < n_data; ++i)
-	{
+  {
     if (input_values[i] > max_X)
     {
       max_X = input_values[i];
@@ -4125,7 +4125,7 @@ void calculate_histogram(vector<float> input_values, float bin_width, vector<flo
   vector<float> bin_upper_lim(NBins,0.0);
   vector<float> probability_density(NBins,0);
 
-	// create the vector of vectors.  Nested vectors will store data within that
+  // create the vector of vectors.  Nested vectors will store data within that
   // bin.
   vector<float> empty_vector;
   float midpoint_value, lower_lim_value, upper_lim_value;
@@ -4232,7 +4232,7 @@ void calculate_histogram_fixed_limits(vector<float> input_values, float bin_widt
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float max, float bin_width, vector<float>& mid_points, vector< vector<float> >& binned_data)
 {
-	
+  
   // Defining the upper limit, lower limit and width of the bins
   float upper_limit = ceil(max/bin_width)*bin_width;
   float lower_limit = floor(min/bin_width)*bin_width;
@@ -4280,11 +4280,11 @@ void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float m
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void log_bin_data(vector<float>& vector1, vector<float>& vector2, float log_bin_width, vector<float>& bin_mid_points, vector<float>& bin_vector1_mean, vector<float>& bin_vector2_mean, vector< vector<float> >& binned_data, const float NoDataValue)
 {
-	int n_data = vector1.size();
+  int n_data = vector1.size();
   float max_X = vector2[n_data-1];
-	float min_X = vector2[1];
+  float min_X = vector2[1];
   for (int i = 0; i < n_data; ++i)
-	{
+  {
     if (vector2[i] > max_X)
     {
       max_X = vector2[i];
@@ -4299,18 +4299,18 @@ void log_bin_data(vector<float>& vector1, vector<float>& vector2, float log_bin_
   float lower_limit = floor((log10(min_X)/log_bin_width))*log_bin_width;
   int NBins = int( (upper_limit - lower_limit)/log_bin_width )+1;
   // These will be copied into their respective function output vectors
-	vector<float> mid_points(NBins,NoDataValue);
+  vector<float> mid_points(NBins,NoDataValue);
   vector<float> binned_vector1_mean(NBins,NoDataValue);
   vector<float> binned_vector2_mean(NBins,NoDataValue);
   vector< vector<float> > binned_vector1;
   vector< vector<float> > binned_vector2;
-	// create the vector of vectors.  Nested vectors will store data within that
+  // create the vector of vectors.  Nested vectors will store data within that
   // bin.
   vector<float> empty_vector;
   for(int i = 0; i<NBins; i++)
   {
-	  binned_vector1.push_back(empty_vector);
-	  binned_vector2.push_back(empty_vector);
+    binned_vector1.push_back(empty_vector);
+    binned_vector2.push_back(empty_vector);
   }
   // Bin Data into logarithmically spaced bins
   for (int i = 0; i < n_data; ++i)
@@ -4350,10 +4350,10 @@ void log_bin_data(vector<float>& vector1, vector<float>& vector2, float log_bin_
   }
   // Copy output into output vectors
   bin_mid_points = mid_points;
-	binned_data = binned_vector1;
-	bin_vector1_mean = binned_vector1_mean;
-	bin_vector2_mean = binned_vector2_mean;
-	cout << "\t\t\t\t\t\t log binning complete!" << endl;
+  binned_data = binned_vector1;
+  bin_vector1_mean = binned_vector1_mean;
+  bin_vector2_mean = binned_vector2_mean;
+  cout << "\t\t\t\t\t\t log binning complete!" << endl;
 }
 
 
@@ -4487,7 +4487,7 @@ vector<int> Unique(Array2D<int> InputArray, int NoDataValue){
   
   //get array dimensions for looping
   int Rows = InputArray.dim1();
-	int Cols = InputArray.dim2();
+  int Cols = InputArray.dim2();
   
   //make list of unique values in each array
   for (int i = 0; i < Rows; ++i){
@@ -4515,7 +4515,7 @@ vector<float> Unique(Array2D<float> InputArray, int NoDataValue){
   
   //get array dimensions for looping
   int Rows = InputArray.dim1();
-	int Cols = InputArray.dim2();
+  int Cols = InputArray.dim2();
   
   //make list of unique values in each array
   for (int i = 0; i < Rows; ++i){
@@ -4706,14 +4706,14 @@ void get_distribution_stats(vector<float>& y_data, float& mean, float& median, f
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 double get_QuadraticMean(vector<double> input_values, double bin_width)
 {
-	// Finding max contributing area to use as upper limit for the bins
+  // Finding max contributing area to use as upper limit for the bins
   int n_data = input_values.size();
   double max_X = input_values[0];
-	double min_X = input_values[0];
+  double min_X = input_values[0];
 
   // Loop through to find the min and max of the dataset
   for (int i = 0; i < n_data; ++i)
-	{
+  {
     if (input_values[i] > max_X)
     {
       max_X = input_values[i];
@@ -4738,7 +4738,7 @@ double get_QuadraticMean(vector<double> input_values, double bin_width)
   vector<double> bin_upper_lim(NBins,0.0);
   vector<double> probability_density(NBins,0);
 
-	// create the vector of vectors.  Nested vectors will store data within that
+  // create the vector of vectors.  Nested vectors will store data within that
   // bin.
   vector<double> empty_vector;
   double midpoint_value, lower_lim_value, upper_lim_value;
@@ -4780,7 +4780,7 @@ double get_QuadraticMean(vector<double> input_values, double bin_width)
 // This might be better off somewhere else
 //
 // To be used on a parameter file of the format:
-// 	Name: 100		comments etc.
+//   Name: 100    comments etc.
 // Which sets parameter as "Name" and value as "100"
 //
 // This just does one line at a time; you need a wrapper function to get all
@@ -4790,76 +4790,76 @@ double get_QuadraticMean(vector<double> input_values, double bin_width)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void parse_line(ifstream &infile, string &parameter, string &value)
 {
-	char c;
-	char buff[128];
-	int pos = 0;
-	int word = 0;
+  char c;
+  char buff[128];
+  int pos = 0;
+  int word = 0;
 
-	while ( infile.get(c) )	
-	{
-		if (pos >= 128)
-		{
-			cout << "Buffer overrun, word too long in parameter line: " << endl;
-			string line;
-			getline(infile, line);
-			cout << "\t" << buff << " ! \n" << line << endl;
-			exit(1);
-		}
-		// preceeding whitespace
-		if (c == '#')
-		{
-			if (word == 0)
-			{
-				parameter = "NULL";
-				value = "NULL";
-			}
-			if (word == 1)
-				value = "NULL";
-			word = 2;
-		}
+  while ( infile.get(c) )  
+  {
+    if (pos >= 128)
+    {
+      cout << "Buffer overrun, word too long in parameter line: " << endl;
+      string line;
+      getline(infile, line);
+      cout << "\t" << buff << " ! \n" << line << endl;
+      exit(1);
+    }
+    // preceeding whitespace
+    if (c == '#')
+    {
+      if (word == 0)
+      {
+        parameter = "NULL";
+        value = "NULL";
+      }
+      if (word == 1)
+        value = "NULL";
+      word = 2;
+    }
 
-		if ((c == ' ' || c == '\t') && pos == 0)
-			continue;
-		else if ( (c == ':' && word == 0) || ( (c == ' ' || c == '\n' || c == '\t') && word == 1))
-		{
-			while (buff[pos-1] == ' ' || buff[pos-1] == '\t')
-				--pos;		// Trailing whitespace
-			buff[pos] = '\0';	// Append Null char
-			if (word == 0)
-				parameter = buff;	// Assign buffer contents
-			else if (word == 1)
-				value = buff;
-			++word;
-			pos = 0;		// Rewind buffer
-		}
-		else if ( c == '\n' && word == 0 )
-		{
-			parameter = "NULL";
-			buff[pos] = '\0';
-			value = buff;
-			++word;
-		}
-		else if (word < 2)
-		{
-			buff[pos] = c;
-			++pos;
-		}
+    if ((c == ' ' || c == '\t') && pos == 0)
+      continue;
+    else if ( (c == ':' && word == 0) || ( (c == ' ' || c == '\n' || c == '\t') && word == 1))
+    {
+      while (buff[pos-1] == ' ' || buff[pos-1] == '\t')
+        --pos;    // Trailing whitespace
+      buff[pos] = '\0';  // Append Null char
+      if (word == 0)
+        parameter = buff;  // Assign buffer contents
+      else if (word == 1)
+        value = buff;
+      ++word;
+      pos = 0;    // Rewind buffer
+    }
+    else if ( c == '\n' && word == 0 )
+    {
+      parameter = "NULL";
+      buff[pos] = '\0';
+      value = buff;
+      ++word;
+    }
+    else if (word < 2)
+    {
+      buff[pos] = c;
+      ++pos;
+    }
 
-		if (c == '\n')
-			break;
-	}
-	if (word == 0)
-	{
-		parameter = "NULL";
-		value = "NULL";
-	}
+    if (c == '\n')
+      break;
+  }
+  if (word == 0)
+  {
+    parameter = "NULL";
+    value = "NULL";
+  }
 }
 
 // Method to get the maximum value in a 2D array of floats - SWDG 12/6/14
 float Get_Maximum(Array2D<float> Input, float NDV){
 
   float max = 0;
-	for (int i = 0; i < Input.dim1(); ++i){
+  for (int i = 0; i < Input.dim1(); ++i){
     for(int j = 0; j < Input.dim2(); ++j){
       if (Input[i][j] > max && Input[i][j] != NDV){
         max = Input[i][j];
@@ -4873,7 +4873,7 @@ float Get_Maximum(Array2D<float> Input, float NDV){
 float Get_Maximum(Array2D<int> Input, float NDV){
 
   int max = 0;
-	for (int i = 0; i < Input.dim1(); ++i){
+  for (int i = 0; i < Input.dim1(); ++i){
     for(int j = 0; j < Input.dim2(); ++j){
       if (Input[i][j] > max && Input[i][j] != NDV){
         max = Input[i][j];
@@ -5004,22 +5004,22 @@ int Get_Minimum_Index(Array2D<int> Input, int NDV)
 
 //Routine to count the number of values in an array - MDH 27/8/14
 int Get_Value_Count(Array2D<float> Input, int NDV) {
-	int count = 0;
-	for (int i = 0; i < Input.dim1(); ++i) {
-   	for(int j = 0; j < Input.dim2(); ++j) {
-   	   if (Input[i][j] != NDV) count += 1;
-	}	}
-	return count;
+  int count = 0;
+  for (int i = 0; i < Input.dim1(); ++i) {
+     for(int j = 0; j < Input.dim2(); ++j) {
+        if (Input[i][j] != NDV) count += 1;
+  }  }
+  return count;
 }
 
 //Routine to count the number of values in an array - MDH 27/8/14
 int Get_Value_Count(Array2D<int> Input, int NDV) {
-	int count = 0;
-	for (int i = 0; i < Input.dim1(); ++i) {
-   	for(int j = 0; j < Input.dim2(); ++j) {
-   	   if (Input[i][j] != NDV) count += 1;
-	}	}
-	return count;
+  int count = 0;
+  for (int i = 0; i < Input.dim1(); ++i) {
+     for(int j = 0; j < Input.dim2(); ++j) {
+        if (Input[i][j] != NDV) count += 1;
+  }  }
+  return count;
 }
 
 //Method to flatten a 2D array into a 1D vector
