@@ -223,52 +223,52 @@ double erfi(double tau);
 
 // these look for linear segments within a data series.
 void populate_segment_matrix(int start_node, int end_node, float no_data_value,
-								vector<float>& all_x_data, vector<float>& all_y_data, int maximum_segment_length,
-								float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
-								Array2D<float>& b_array, Array2D<float>& rsquared_array,
-								Array2D<float>& DW_array);
+                vector<float>& all_x_data, vector<float>& all_y_data, int maximum_segment_length,
+                float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
+                Array2D<float>& b_array, Array2D<float>& rsquared_array,
+                Array2D<float>& DW_array);
 void calculate_segment_matrices(vector<float>& all_x_data, vector<float>& all_y_data, int maximum_segment_length,
-								float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
-								Array2D<float>& b_array, Array2D<float>& rsquared_array,
-								Array2D<float>& DW_array);
+                float sigma, Array2D<float>& like_array, Array2D<float>& m_array,
+                Array2D<float>& b_array, Array2D<float>& rsquared_array,
+                Array2D<float>& DW_array);
 void find_max_like_of_segments(int minimum_segment_length, Array2D<float>& like_array,
-								vector<float>& max_MLE, vector< vector<int> >& segments_for_each_n_segments);
+                vector<float>& max_MLE, vector< vector<int> >& segments_for_each_n_segments);
 void find_max_AIC_of_segments(int minimum_segment_length, vector<float>& all_x_data, vector<float>& all_y_data,
-								Array2D<float>& like_array,
-								vector<float>& max_MLE, vector<float>& AIC_of_segments,
-								vector<float>& AICc_of_segments, vector< vector<int> >& segments_for_each_n_segments);
+                Array2D<float>& like_array,
+                vector<float>& max_MLE, vector<float>& AIC_of_segments,
+                vector<float>& AICc_of_segments, vector< vector<int> >& segments_for_each_n_segments);
 void calculate_AIC_of_segments_with_normalized_sigma(float sigma,
-								vector<float>& one_sigma_max_MLE, vector<float>& all_x_data,
-								vector<float>& AIC_of_segments,vector<float>& AICc_of_segments);
+                vector<float>& one_sigma_max_MLE, vector<float>& all_x_data,
+                vector<float>& AIC_of_segments,vector<float>& AICc_of_segments);
 
 // the below function is the main driver for the segment fitting code.
 void best_fit_driver_AIC_for_linear_segments(int minimum_segment_length, float sigma,
-											vector<float> all_x_data, vector<float> all_y_data,
-											vector<float>& max_MLE);
+                      vector<float> all_x_data, vector<float> all_y_data,
+                      vector<float>& max_MLE);
 
 // this gets the number of segments for several different values of sigma bassed in the vector sigma_values
 void get_n_segments_for_various_sigma(vector<float> sigma_values, vector<float> one_sig_max_MLE,
-									  vector<float>& all_x_data,
-								      vector<int>& best_fit_AIC, vector<int>& best_fit_AICc,
-								      vector< vector<float> >& AIC_for_each_n_segments,
-								      vector< vector<float> >& AICc_for_each_n_segments);
+                    vector<float>& all_x_data,
+                      vector<int>& best_fit_AIC, vector<int>& best_fit_AICc,
+                      vector< vector<float> >& AIC_for_each_n_segments,
+                      vector< vector<float> >& AICc_for_each_n_segments);
 
 // this prints full AIC and AICc information to screen
 void print_AIC_and_AICc_to_screen(vector<float> sigma_values, vector< vector<int> > segments_for_each_n_segments,
-								      vector<int> best_fit_AIC, vector<int> best_fit_AICc,
-								      vector< vector<float> > AIC_for_each_n_segments,
-								      vector< vector<float> > AICc_for_each_n_segments);
+                      vector<int> best_fit_AIC, vector<int> best_fit_AICc,
+                      vector< vector<float> > AIC_for_each_n_segments,
+                      vector< vector<float> > AICc_for_each_n_segments);
 
 // this prints information about the most likeley segments to screen
 void print_to_screen_most_likeley_segment_lengths( vector< vector<int> > segments_for_each_n_segments,
-										vector<float> MLE_for_segments);
+                    vector<float> MLE_for_segments);
 
 // this returns the m, b, r2 and DW stats of each segment
 void get_properties_of_best_fit_segments(int bestfit_segments_node, vector< vector<int> >& segments_for_each_n_segments,
-										 vector<float>& m_values, Array2D<float>& m_array,
-										 vector<float>& b_values, Array2D<float>& b_array,
-										 vector<float>& r2_values, Array2D<float>& rsquared_array,
-										 vector<float>& DW_values, Array2D<float>& DW_array);
+                     vector<float>& m_values, Array2D<float>& m_array,
+                     vector<float>& b_values, Array2D<float>& b_array,
+                     vector<float>& r2_values, Array2D<float>& rsquared_array,
+                     vector<float>& DW_values, Array2D<float>& DW_array);
 
 // these functions manipulate likelihood matrices and vectors for use with the segment tool
 Array2D<float> normalize_like_matrix_to_sigma_one(float sigma, Array2D<float>& like_array);
@@ -285,7 +285,7 @@ int partitions_min( int x, int y);
 void partition_print(int t, vector<int>& p);
 void partitions_with_minimum_length(int n, int k, int t, int min_length, vector<int>& p);
 void partitions_with_minimum_length(int n, int k, int t, int min_length, vector<int>& p,
-								vector< vector < vector<int> > >& partitions);
+                vector< vector < vector<int> > >& partitions);
 void integer_partition(int n, int k, int t, vector<int>& p);
 void partition_driver_to_screen(int n, int minimum_length);
 vector< vector < vector<int> > > partition_driver_to_vecvecvec(int k, int minimum_length);
