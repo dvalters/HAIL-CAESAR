@@ -3367,11 +3367,14 @@ bool atobool(string value)
 {
   bool this_bool = false;
 
+
+  //cout << "The value is: " << value << endl;
   //string lower_val = value;
   //lower_val[0] = tolower(value[0]);
   //if (lower_val[0] == "t" || lower_val[0] == "1")
   if(value == "True" || value == "true" || value == "TRUE" || value == "1")
   {
+    //cout << "Hey I found a true!!" << endl;
     this_bool = true;
   }
 
