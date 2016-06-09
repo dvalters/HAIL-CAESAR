@@ -144,7 +144,7 @@ Array2D<double> reverse_array_rows(Array2D<double> data_array)
 {
   int n_rows = data_array.dim1();
   int n_cols = data_array.dim2();
-  
+
   Array2D<double> reversed_data(n_rows,n_cols,0.0);
 
   for(int row = 0; row<n_rows; row++)
@@ -162,7 +162,7 @@ Array2D<double> revetrse_array_cols(Array2D<double> data_array)
 {
   int n_rows = data_array.dim1();
   int n_cols = data_array.dim2();
-  
+
   Array2D<double> reversed_data(n_rows,n_cols,0.0);
 
   for(int row = 0; row<n_rows; row++)
@@ -182,7 +182,7 @@ Array2D<float> reverse_array_rows(Array2D<float> data_array)
 {
   int n_rows = data_array.dim1();
   int n_cols = data_array.dim2();
-  
+
   Array2D<float> reversed_data(n_rows,n_cols,0.0);
 
   for(int row = 0; row<n_rows; row++)
@@ -200,7 +200,7 @@ Array2D<float> revetrse_array_cols(Array2D<float> data_array)
 {
   int n_rows = data_array.dim1();
   int n_cols = data_array.dim2();
-  
+
   Array2D<float> reversed_data(n_rows,n_cols,0.0);
 
   for(int row = 0; row<n_rows; row++)
@@ -220,7 +220,7 @@ Array2D<int> reverse_array_rows(Array2D<int> data_array)
 {
   int n_rows = data_array.dim1();
   int n_cols = data_array.dim2();
-  
+
   Array2D<int> reversed_data(n_rows,n_cols,0.0);
 
   for(int row = 0; row<n_rows; row++)
@@ -238,7 +238,7 @@ Array2D<int> revetrse_array_cols(Array2D<int> data_array)
 {
   int n_rows = data_array.dim1();
   int n_cols = data_array.dim2();
-  
+
   Array2D<int> reversed_data(n_rows,n_cols,0.0);
 
   for(int row = 0; row<n_rows; row++)
@@ -257,13 +257,13 @@ Array2D<int> revetrse_array_cols(Array2D<int> data_array)
 vector<float> sample_without_replacement(vector<float> population_vector, int N)
 {
   vector<float> sample_vector;
-  int Population = population_vector.size(); 
+  int Population = population_vector.size();
   if(N > Population)
   {
     cout << "N>Population size, try again" << endl;
     exit(EXIT_FAILURE);
   }
-  
+
   int sample_count = 0;
   float random_number,Population_remaining;
   long seed;
@@ -274,28 +274,28 @@ vector<float> sample_without_replacement(vector<float> population_vector, int N)
     seed = time(NULL);
     random_number = ran3(&seed);
     vector_ref = floor(random_number*Population_remaining);
-    
+
     if(vector_ref == Population_remaining)
     {
       vector_ref = Population_remaining - 1;
     }
-    
+
     sample_vector.push_back(population_vector[vector_ref]);
     population_vector.erase(population_vector.begin()+vector_ref);
     ++sample_count;
-  }                                                               
+  }
   return sample_vector;
 }
 vector<int> sample_without_replacement(vector<int> population_vector, int N)
 {
   vector<int> sample_vector;
-  int Population = population_vector.size(); 
+  int Population = population_vector.size();
   if(N > Population)
   {
     cout << "N>Population size, try again" << endl;
     exit(EXIT_FAILURE);
   }
-  
+
   int sample_count = 0;
   float random_number,Population_remaining;
   long seed;
@@ -306,16 +306,16 @@ vector<int> sample_without_replacement(vector<int> population_vector, int N)
     seed = time(NULL);
     random_number = ran3(&seed);
     vector_ref = floor(random_number*Population_remaining);
-    
+
     if(vector_ref == Population_remaining)
     {
       vector_ref = Population_remaining - 1;
     }
-    
+
     sample_vector.push_back(population_vector[vector_ref]);
     population_vector.erase(population_vector.begin()+vector_ref);
     ++sample_count;
-  }                                                               
+  }
   return sample_vector;
 }
 
@@ -409,7 +409,7 @@ float get_variance_ignore_ndv(Array2D<float>& data, float ndv, float mean)
 
   variance = total/float(count);
   return variance;
-}  
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the range from a population of data
@@ -450,7 +450,7 @@ float get_range_ignore_ndv(Array2D<float>& data, float ndv)
 
   range = max-min;
   return range;
-}  
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the range from a vector of data
@@ -481,9 +481,9 @@ float get_range_from_vector(vector<float>& y_data, float ndv)
       }
     }
   }
-    
+
   float range = max-min;
-  return range;    
+  return range;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -522,16 +522,16 @@ vector<float> difference(vector<float>& y_data)
 {
   vector<float> diff;
   for (int i = 0; i < int(y_data.size())-1; i++)
-  {    
+  {
     float difference = y_data[i+1] - y_data[i];
     diff.push_back(difference);
   }
-  
-  return diff;  
+
+  return diff;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// This function gets the main peaks from a vector of y data.  User must set a y-threshold 
+// This function gets the main peaks from a vector of y data.  User must set a y-threshold
 // which the amplitude of the peak must be above, and a distance between peaks (smaller
 // peaks very close to a large one will be removed).
 // It returns the indices of the input vector which represent the peaks.
@@ -550,14 +550,14 @@ void get_peak_indices(vector<float>& y_data, float threshold, int distance, vect
 
   // append 0 to start of vector - use this to identify rising limbs
   vector<float> diff_rising(diff);
-  vector<float>::iterator it; 
+  vector<float>::iterator it;
   it = diff_rising.begin();
   diff_rising.insert(it, 0.0);
-  
+
   // append 0 to end of vector - use this to identify falling limbs
   vector<float> diff_falling(diff);
   diff_falling.push_back(0.0);
-  
+
   for (int i = 0; i < int(diff_rising.size()); i++)
   {
     if(diff_falling[i] < 0 && diff_rising[i] > 0 && y_data[i] > threshold)    //identifies peaks using neighbour differences
@@ -565,21 +565,21 @@ void get_peak_indices(vector<float>& y_data, float threshold, int distance, vect
       peak_indices_temp.push_back(i);
       peak_values_temp.push_back(y_data[i]);
       //cout << "Potential peak value: " << y_data[i] << " Peak index: " << i << endl;
-    }  
+    }
   }
-  
+
   if (int(peak_indices_temp.size()) > 1)
   {
     //initialise vectors for sorting
     vector<float> peak_values_sorted;
     vector<int> peak_indices_sorted;
     vector<size_t> index_map;
-    
+
     //sort peak indices by maximum value
     matlab_float_sort(peak_values_temp,  peak_values_sorted, index_map);
     matlab_int_reorder(peak_indices_temp, index_map, peak_indices_sorted);
     reverse(peak_indices_sorted.begin(), peak_indices_sorted.end());
-    
+
     //get binary vector of peak locations
     vector<int> check_peaks;
     check_peaks.resize(int(y_data.size()), 0);
@@ -588,12 +588,12 @@ void get_peak_indices(vector<float>& y_data, float threshold, int distance, vect
     {
       // set binary to 1 if we are at a peak
       find_it = find(peak_indices_temp.begin(), peak_indices_temp.end(), i);
-      if (find_it != peak_indices_temp.end()) 
+      if (find_it != peak_indices_temp.end())
       {
         check_peaks[i] = 1;
       }
     }
-    
+
     // loop through peaks from highest - lowest removing peaks within min distance
     for (int i = 0; i < int(peak_indices_sorted.size()); i++)
     {
@@ -603,26 +603,26 @@ void get_peak_indices(vector<float>& y_data, float threshold, int distance, vect
         int min_dist = peak_indices_sorted[i] - distance;
         int max_dist = peak_indices_sorted[i] + distance;
         if (min_dist < 0) min_dist = 0;
-        if (max_dist >= int(check_peaks.size())) max_dist = int(check_peaks.size()) - 1;  
+        if (max_dist >= int(check_peaks.size())) max_dist = int(check_peaks.size()) - 1;
         for (int j = min_dist; j <= max_dist; j++)
         {
           //remove peaks within the specified distance from the highest peak
           check_peaks[j] = 0;
           check_peaks[peak_indices_sorted[i]] = 1;
         }
-      }      
+      }
     }
     for (int i = 0; i < int(check_peaks.size()); i++)
     {
       if (check_peaks[i] == 1)
       {
         //copy to final vector
-        peak_indices.push_back(i); 
+        peak_indices.push_back(i);
         //cout << "Removed small peaks, Peak value: " << y_data[i] << " Peak index: " << i << endl;
       }
     }
   }
-  else 
+  else
   {
     peak_indices = peak_indices_temp;
   }
@@ -665,32 +665,32 @@ vector<float> get_common_statistics(vector<float>& y_data)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float get_percentile(vector<float>& data, float percentile)
 {
-  int N = data.size();                                               
-  float n = percentile*(float(N)-1)/100;                                
-  int k = int(floor(n));                                             
-  float d = n - floor(n);                                            
-  float percentile_value;                                            
-  if(k>=N-1) percentile_value = data[N-1];                             
-  else if (k < 0) percentile_value = data[0];                       
-  else percentile_value = data[k] + d*(data[k+1]-data[k]);         
-  return percentile_value;   
+  int N = data.size();
+  float n = percentile*(float(N)-1)/100;
+  int k = int(floor(n));
+  float d = n - floor(n);
+  float percentile_value;
+  if(k>=N-1) percentile_value = data[N-1];
+  else if (k < 0) percentile_value = data[0];
+  else percentile_value = data[k] + d*(data[k+1]-data[k]);
+  return percentile_value;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // quantile_quantile_analysis
 // sorts data; produces quartile-quantile comparison against standard normal variate, returning
-// a sorted subsample of N_points, their corresponding normal variate and the reference value 
+// a sorted subsample of N_points, their corresponding normal variate and the reference value
 // from the standard normal distribution
 // DTM 28/11/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void quantile_quantile_analysis(vector<float>& data, vector<float>& values, vector<float>& standard_normal_variates, vector<float>& mn_values, int N_points)
 {
-  vector<size_t> index_map;   
+  vector<size_t> index_map;
   vector<float> data_sorted;
   matlab_float_sort(data, data_sorted, index_map);
   float quantile,x;
   vector<float> snv,vals;
-  
+
   for(int i = 0; i < N_points; ++i)
   {
     quantile = (1.+ float(i))/(float(N_points)+1.);
@@ -704,19 +704,19 @@ void quantile_quantile_analysis(vector<float>& data, vector<float>& values, vect
   float q75x = get_percentile(snv,75);
   float q25y = get_percentile(vals,25);
   float q75y = get_percentile(vals,75);
-  
+
   float slope = (q75y-q25y)/(q75x-q25x);
 //   cout << "slope = " << slope << endl;
   float centerx = (q25x + q75x)/2;
   float centery = (q25y + q75y)/2;
-  float intercept =centery-slope*centerx; 
+  float intercept =centery-slope*centerx;
   vector<float> mn_vals;
-  
+
   for(int i = 0; i < N_points; ++i)
   {
     mn_vals.push_back(intercept+slope*snv[i]);
   }
-  
+
   standard_normal_variates=snv;
   values = vals;
   mn_values = mn_vals;
@@ -727,7 +727,7 @@ void quantile_quantile_analysis(vector<float>& data, vector<float>& values, vect
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // quantile_quantile_analysis
 // sorts data; produces quartile-quantile comparison against standard normal variate, returning
-// a sorted subsample of N_points, their corresponding normal variate and the reference value 
+// a sorted subsample of N_points, their corresponding normal variate and the reference value
 // from the standard normal distribution
 // DTM 28/11/2014
 // Modified by FJC 03/03/16 to get the percentiles for the normally distributed model as an
@@ -735,12 +735,12 @@ void quantile_quantile_analysis(vector<float>& data, vector<float>& values, vect
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void quantile_quantile_analysis_defined_percentiles(vector<float>& data, vector<float>& values, vector<float>& standard_normal_variates, vector<float>& mn_values, int N_points, int lower_percentile, int upper_percentile)
 {
-  vector<size_t> index_map;   
+  vector<size_t> index_map;
   vector<float> data_sorted;
   matlab_float_sort(data, data_sorted, index_map);
   float quantile,x;
   vector<float> snv,vals;
-  
+
   for(int i = 0; i < N_points; ++i)
   {
     quantile = (1.+ float(i))/(float(N_points)+1.);
@@ -754,19 +754,19 @@ void quantile_quantile_analysis_defined_percentiles(vector<float>& data, vector<
   float q_upper_x = get_percentile(snv,upper_percentile);
   float q_lower_y = get_percentile(vals,lower_percentile);
   float q_upper_y = get_percentile(vals,upper_percentile);
-  
+
   float slope = (q_upper_y-q_lower_y)/(q_upper_x-q_lower_x);
 //   cout << "slope = " << slope << endl;
   float centerx = (q_lower_x + q_upper_x)/2;
   float centery = (q_lower_y + q_upper_y)/2;
-  float intercept =centery-slope*centerx; 
+  float intercept =centery-slope*centerx;
   vector<float> mn_vals;
-  
+
   for(int i = 0; i < N_points; ++i)
   {
     mn_vals.push_back(intercept+slope*snv[i]);
   }
-  
+
   standard_normal_variates=snv;
   values = vals;
   mn_values = mn_vals;
@@ -863,12 +863,58 @@ double erfi(double tau)
 double Gauss_rand(int Nrand, double GaussAdd, double GaussFac)
 {
   double sum = 0;
-  
+
   for (int i=1; i <= Nrand; i++)
   {
     sum = sum + rand();
   }
   return (GaussFac * sum - GaussAdd);
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Use the Marsaglia polar method to generate random numbers drawn from a normal distribution
+// with a given mean and minimum values. Set allowNegative to false to stop output values from
+// dropping below zero.
+//
+// Extreme values can fall below or above the boundaries in < 3 sigma of cases.
+//
+// Seed for random number will fail post 2038. I will instruct my firstborn to resolve this
+// problem.
+//
+// SWDG 9/6/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+float getGaussianRandom(float minimum, float mean, bool allowNegative){
+
+  float s = 0;
+  float u = 0;
+  float v = 0;
+
+  while (s == 0.0 || s >= 1.0){
+
+    //get random values from a uniform distribution between -1 and 1
+    long seed1 = time(NULL);
+    u = (ran3(&seed1) * 2.0) - 1.0;
+
+    long seed2= time(NULL);
+    v = (ran3(&seed2) * 2.0) - 1.0;
+
+    s = (u * u) + (v * v);
+
+  }
+
+  float z = v * sqrt((-2.0 * log(s)) / s);
+
+  z = (z * ((mean - minimum) / 3.0)) + mean;
+
+  if (z < 0.0 && allowNegative == false){
+    // recurse until a non negative value is generated.
+    getGaussianRandom(minimum, mean, allowNegative);
+  }
+  else{
+    return z;
+  }
+
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -966,7 +1012,7 @@ void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, 
   }
   R_squared = SS_xy*SS_xy/(SS_xx*SS_yy);
   gradient = SS_xy/SS_xx;
-  intercept = y_mean - gradient*x_mean; 
+  intercept = y_mean - gradient*x_mean;
 }
 
 
@@ -982,9 +1028,9 @@ double interp1D_ordered(vector<double>& x, vector<double>& y, double x_interp_lo
   // loop through x vector to find the interpolation point
   unsigned int n_nodes = x.size();
   unsigned int y_nodes = y.size();
-  
+
   double y_interp = y[0];
-  
+
   if(n_nodes != y_nodes)
   {
     cout << "Trying to interpolate but the vectors are not the same size!" << endl;
@@ -1003,24 +1049,24 @@ double interp1D_ordered(vector<double>& x, vector<double>& y, double x_interp_lo
     {
       cout << "Interpolation point is outside bounds (too small) of x vector!" << endl;
       cout << "Defaulting to y[0]" << endl;
-      y_interp = y[0];    
+      y_interp = y[0];
     }
     else if (x_interp_loc > x[n_nodes-1])
     {
       cout << "Interpolation point is outside bounds (too big) of x vector!" << endl;
       cout << "Defaulting to y[n_nodes-1]" << endl;
-      y_interp = y[n_nodes-1];        
+      y_interp = y[n_nodes-1];
     }
     else
     {
       int i = 0;
-      
+
       // increment the vector until you get to the right node
-      do 
+      do
       {
-        i++;      
+        i++;
       } while(x_interp_loc > x[i]);
-      
+
       // we are now at the correct node. Get the interpolant
       //cout << "xi loc: " << x_interp_loc << " and x: " << x[i] << endl;
       //cout << "i: " << i << " x[i] " << x[i] << " x[i-1]: " << x[i-1]
@@ -1036,7 +1082,7 @@ vector<double> interp1D_ordered(vector<double>& x, vector<double>& y, vector<dou
 {
   // initiate the vector for holding interpolation
   vector<double> y_interp;
-  
+
   // loop through the interpolating points
   int n_nodes = int(x_interp_loc.size());
   for(int i = 0; i<n_nodes; i++)
@@ -1056,9 +1102,9 @@ float interp1D_ordered(vector<float>& x, vector<float>& y, float x_interp_loc)
   // loop through x vector to find the interpolation point
   unsigned int n_nodes = x.size();
   unsigned int y_nodes = y.size();
-  
+
   float y_interp = y[0];
-  
+
   if(n_nodes != y_nodes)
   {
     cout << "Trying to interpolate but the vectors are not the same size!" << endl;
@@ -1077,24 +1123,24 @@ float interp1D_ordered(vector<float>& x, vector<float>& y, float x_interp_loc)
     {
       cout << "Interpolation point is outside bounds (too small) of x vector!" << endl;
       cout << "Defaulting to y[0]" << endl;
-      y_interp = y[0];    
+      y_interp = y[0];
     }
     else if (x_interp_loc > x[n_nodes-1])
     {
       cout << "Interpolation point is outside bounds (too big) of x vector!" << endl;
       cout << "Defaulting to y[n_nodes-1]" << endl;
-      y_interp = y[n_nodes-1];        
+      y_interp = y[n_nodes-1];
     }
     else
     {
       int i = 0;
-      
+
       // increment the vector until you get to the right node
-      do 
+      do
       {
-        i++;      
+        i++;
       } while(x_interp_loc > x[i]);
-      
+
       // we are now at the correct node. Get the interpolant
       //cout << "xi loc: " << x_interp_loc << " and x: " << x[i] << endl;
       //cout << "i: " << i << " x[i] " << x[i] << " x[i-1]: " << x[i-1]
@@ -1110,7 +1156,7 @@ vector<float> interp1D_ordered(vector<float>& x, vector<float>& y, vector<float>
 {
   // initiate the vector for holding interpolation
   vector<float> y_interp;
-  
+
   // loop through the interpolating points
   int n_nodes = int(x_interp_loc.size());
   for(int i = 0; i<n_nodes; i++)
@@ -1130,25 +1176,25 @@ vector<float> interp1D_ordered(vector<float>& x, vector<float>& y, vector<float>
 //
 // SMM 3/12/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-vector<double> interp1D_spline_ordered(vector<double>& x_data, vector<double>& y_data, 
+vector<double> interp1D_spline_ordered(vector<double>& x_data, vector<double>& y_data,
                                        vector<double>& x_interp_locs)
 {
   // set up spline
   spline s;
   s.set_points(x_data,y_data);
-  
+
   // initiate the interpolated vector
   vector<double> y_interpolated;
-  
+
   // loop through interpolation points
   int n_interp = int(x_interp_locs.size());
   for(int i = 0; i<n_interp; i++)
   {
     y_interpolated.push_back( s(x_interp_locs[i]) );
   }
-  
+
   return y_interpolated;
-}   
+}
 
 
 
@@ -1163,11 +1209,11 @@ float interp1D_unordered(vector<float> x, vector<float> y, float x_interp_loc)
   vector<float> x_sorted;
   vector<float> y_sorted;
   vector<size_t> index_map;
-  
+
   // sort the vectors
   matlab_float_sort(x,  x_sorted, index_map);
   matlab_float_reorder(y, index_map, y_sorted);
-  
+
   float y_interp = interp1D_ordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
@@ -1178,11 +1224,11 @@ vector<float> interp1D_unordered(vector<float> x, vector<float> y, vector<float>
   vector<float> x_sorted;
   vector<float> y_sorted;
   vector<size_t> index_map;
-  
+
   // sort the vectors
   matlab_float_sort(x,  x_sorted, index_map);
   matlab_float_reorder(y, index_map, y_sorted);
-  
+
   vector<float> y_interp = interp1D_ordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
@@ -1201,7 +1247,7 @@ double interp1D_unordered(vector<double> x, vector<double> y, double x_interp_lo
 
   matlab_double_sort(x,  x_sorted, index_map);
   matlab_double_reorder(y, index_map, y_sorted);
-  
+
   double y_interp = interp1D_ordered(x_sorted,y_sorted,x_interp_loc);
   return y_interp;
 }
@@ -1231,14 +1277,14 @@ vector<double> interp1D_unordered(vector<double> x, vector<double> y, vector<dou
 //
 // SMM 3/12/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-vector<double> interp1D_spline_unordered(vector<double> x_data, vector<double> y_data, 
+vector<double> interp1D_spline_unordered(vector<double> x_data, vector<double> y_data,
                                        vector<double>& x_interp_locs)
 {
   // initiate the sorted vectors
   vector<double> x_sorted;
   vector<double> y_sorted;
   vector<size_t> index_map;
-  
+
   // sort the vectors
   matlab_double_sort(x_data,  x_sorted, index_map);
   matlab_double_reorder(y_data, index_map, y_sorted);
@@ -1255,32 +1301,32 @@ vector<double> interp1D_spline_unordered(vector<double> x_data, vector<double> y
 // SMM 03/12/2014
 // see equations here: http://en.wikipedia.org/wiki/Bilinear_interpolation
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D<double> data, 
+double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D<double> data,
                         double x_interp, double y_interp)
 {
   double interpolated_point = -9999;
   //int n_index;
-  
+
   int ndv_index = -9999;
   int x_index = ndv_index;
   int y_index = ndv_index;
-  
+
   // first check bounds
   int n_xlocs = int(x_locs.size());
   int n_ylocs = int(y_locs.size());
-  
+
   if(data.dim1() != n_xlocs || data.dim2() != n_ylocs)
   {
     cout << "Trying to do bilinear interpolation but data is not the same size" << endl
          << "as the x and y location vectors" << endl
          << "returning ndv = -9999" << endl;
   }
-  else 
+  else
   {
     // first we need to check if either of the data vectors are reversed
     bool is_x_reversed = false;
     bool is_y_reversed = false;
-    
+
     // reverse to positive order if reversed
     if( x_locs[0] > x_locs[1])
     {
@@ -1292,8 +1338,8 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
       is_y_reversed = true;
       reverse(y_locs.begin(),y_locs.end());
     }
-  
-  
+
+
     // first find the index of the x data
     if(x_interp < x_locs[0])
     {
@@ -1308,16 +1354,16 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
     else
     {
       int i = 0;
-      
+
       // increment the vector until you get to the right node
-      do 
+      do
       {
         i++;
-        //cout << "lat: " << x_interp << " i: " << i << " lat[i]: " << x_locs[i] << endl;      
+        //cout << "lat: " << x_interp << " i: " << i << " lat[i]: " << x_locs[i] << endl;
       } while(x_interp > x_locs[i]);
       x_index = i;
     }
-    
+
     // now get the index of the y data
     if(y_interp < y_locs[0])
     {
@@ -1333,19 +1379,19 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
     else
     {
       int i = 0;
-      
+
       // increment the vector until you get to the right node
-      do 
+      do
       {
-        i++;  
-        //cout << "long: " << x_interp << " i: " << i << " long[i]: " << y_locs[i] << endl;          
+        i++;
+        //cout << "long: " << x_interp << " i: " << i << " long[i]: " << y_locs[i] << endl;
       } while(y_interp > y_locs[i]);
       y_index = i;
     }
-    
+
     double x1,x2,y1,y2;
     int xib, xis, yib, yis;
-    
+
     // now restore vector order if it has been reversed
     if( is_x_reversed ==true)
     {
@@ -1354,23 +1400,23 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
       x2 = x_locs[x_index];
       x1 = x_locs[x_index-1];
       xib = x_index;
-      xis = x_index-1;      
+      xis = x_index-1;
     }
     else
     {
       x2 = x_locs[x_index];
       x1 = x_locs[x_index-1];
       xib = x_index;
-      xis = x_index-1;       
+      xis = x_index-1;
     }
     if( is_y_reversed ==true)
     {
       reverse(y_locs.begin(),y_locs.end());
       y_index = n_ylocs-y_index;
       y2 = y_locs[y_index];
-      y1 = y_locs[y_index-1]; 
+      y1 = y_locs[y_index-1];
       yib = y_index;
-      yis = y_index-1;     
+      yis = y_index-1;
     }
     else
     {
@@ -1379,32 +1425,32 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
       yib = y_index;
       yis = y_index-1;
     }
-    
+
     // some debugging couts
     //cout << "Data at end: " << data[n_xlocs-1][n_ylocs-1] << endl;
     //cout << "x_index is: " << x_index << " and y_index is: " << y_index << endl;
     //cout << "x1: " << x1 << " x2: " << x2 << " y1: " << y1 << " y2: " << y2 << endl;
     //cout << "xib: " << xib << " xis: " << xis << " yib: " << yib << " yis: " << yis << endl;
-    
+
     // now you need to calculate the interpolated point
     // see  http://en.wikipedia.org/wiki/Bilinear_interpolation
     double Q11 = data[xis][yis];
     double Q21 = data[xib][yis];
     double Q12 = data[xis][yib];
     double Q22 = data[xib][yib];
-    
+
     //cout << "Q11: " << Q11 << " Q21: " << Q21 << " Q12: " << Q12 << " Q22: " << Q22 << endl;
-    
+
     double R1 = ((x2-x_interp)/(x2-x1))*Q11 + ((x_interp-x1)/(x2-x1))*Q21;
     double R2 = ((x2-x_interp)/(x2-x1))*Q12 + ((x_interp-x1)/(x2-x1))*Q22;
-    
+
     interpolated_point = ((y2-y_interp)/(y2-y1))*R1 + ((y_interp-y1)/(y2-y1))*R2;
-    
+
   }
-  
+
   return interpolated_point;
 
-}                       
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
@@ -1413,32 +1459,32 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
 // Float version
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<float> data, 
+float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<float> data,
                         float x_interp, float y_interp)
 {
   float interpolated_point = -9999;
   //int n_index;
-  
+
   int ndv_index = -9999;
   int x_index = ndv_index;
   int y_index = ndv_index;
-  
+
   // first check bounds
   int n_xlocs = int(x_locs.size());
   int n_ylocs = int(y_locs.size());
-  
+
   if(data.dim1() != n_xlocs || data.dim2() != n_ylocs)
   {
     cout << "Trying to do bilinear interpolation but data is not the same size" << endl
          << "as the x and y location vectors" << endl
          << "returning ndv = -9999" << endl;
   }
-  else 
+  else
   {
     // first we need to check if either of the data vectors are reversed
     bool is_x_reversed = false;
     bool is_y_reversed = false;
-    
+
     // reverse to positive order if reversed
     if( x_locs[0] > x_locs[1])
     {
@@ -1450,8 +1496,8 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
       is_y_reversed = true;
       reverse(y_locs.begin(),y_locs.end());
     }
-  
-  
+
+
     // first find the index of the x data
     if(x_interp < x_locs[0])
     {
@@ -1466,16 +1512,16 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
     else
     {
       int i = 0;
-      
+
       // increment the vector until you get to the right node
-      do 
+      do
       {
         i++;
-        //cout << "lat: " << x_interp << " i: " << i << " lat[i]: " << x_locs[i] << endl;      
+        //cout << "lat: " << x_interp << " i: " << i << " lat[i]: " << x_locs[i] << endl;
       } while(x_interp > x_locs[i]);
       x_index = i;
     }
-    
+
     // now get the index of the y data
     if(y_interp < y_locs[0])
     {
@@ -1491,19 +1537,19 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
     else
     {
       int i = 0;
-      
+
       // increment the vector until you get to the right node
-      do 
+      do
       {
-        i++;  
-        //cout << "long: " << x_interp << " i: " << i << " long[i]: " << y_locs[i] << endl;          
+        i++;
+        //cout << "long: " << x_interp << " i: " << i << " long[i]: " << y_locs[i] << endl;
       } while(y_interp > y_locs[i]);
       y_index = i;
     }
-    
+
     float x1,x2,y1,y2;
     int xib, xis, yib, yis;
-    
+
     // now restore vector order if it has been reversed
     if( is_x_reversed ==true)
     {
@@ -1512,23 +1558,23 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
       x2 = x_locs[x_index];
       x1 = x_locs[x_index-1];
       xib = x_index;
-      xis = x_index-1;      
+      xis = x_index-1;
     }
     else
     {
       x2 = x_locs[x_index];
       x1 = x_locs[x_index-1];
       xib = x_index;
-      xis = x_index-1;       
+      xis = x_index-1;
     }
     if( is_y_reversed ==true)
     {
       reverse(y_locs.begin(),y_locs.end());
       y_index = n_ylocs-y_index;
       y2 = y_locs[y_index];
-      y1 = y_locs[y_index-1]; 
+      y1 = y_locs[y_index-1];
       yib = y_index;
-      yis = y_index-1;     
+      yis = y_index-1;
     }
     else
     {
@@ -1537,32 +1583,32 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
       yib = y_index;
       yis = y_index-1;
     }
-    
+
     // some debugging couts
     //cout << "Data at end: " << data[n_xlocs-1][n_ylocs-1] << endl;
     //cout << "x_index is: " << x_index << " and y_index is: " << y_index << endl;
     //cout << "x1: " << x1 << " x2: " << x2 << " y1: " << y1 << " y2: " << y2 << endl;
     //cout << "xib: " << xib << " xis: " << xis << " yib: " << yib << " yis: " << yis << endl;
-    
+
     // now you need to calculate the interpolated point
     // see  http://en.wikipedia.org/wiki/Bilinear_interpolation
     float Q11 = data[xis][yis];
     float Q21 = data[xib][yis];
     float Q12 = data[xis][yib];
     float Q22 = data[xib][yib];
-    
+
     //cout << "Q11: " << Q11 << " Q21: " << Q21 << " Q12: " << Q12 << " Q22: " << Q22 << endl;
-    
+
     float R1 = ((x2-x_interp)/(x2-x1))*Q11 + ((x_interp-x1)/(x2-x1))*Q21;
     float R2 = ((x2-x_interp)/(x2-x1))*Q12 + ((x_interp-x1)/(x2-x1))*Q22;
-    
+
     interpolated_point = ((y2-y_interp)/(y2-y1))*R1 + ((y_interp-y1)/(y2-y1))*R2;
-    
+
   }
-  
+
   return interpolated_point;
 
-}                       
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
@@ -1580,9 +1626,9 @@ float interp2D_bilinear(vector<float>& x_locs, vector<float>& y_locs, Array2D<fl
 Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y){
 
   int np = X.size(); //number of points in the dataset
-  
+
   //declare vectors used in calculations
-  vector<float> a(Y); //copy vector Y into a -> WHY? 
+  vector<float> a(Y); //copy vector Y into a -> WHY?
   vector<float> b((np-1),0.0);
   vector<float> d((np-1),0.0);
   vector<float> alpha((np-1),0.0);
@@ -1591,7 +1637,7 @@ Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y){
   vector<float> z(np,0.0);
   vector<float> L(np,0.0);
   L[0] = 1.0;
-  
+
   //Output array
   Array2D<float> Splines((np-1),5);
 
@@ -1600,16 +1646,16 @@ Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y){
     h.push_back(X[i+1] - X[i]);
   }
 
-  for (int i = 1; i < (np-1); ++i){           
-    alpha[i] = 3/h[i]*(a[i+1]-a[i]) - 3/h[i-1]*(a[i]-a[i-1]);      
+  for (int i = 1; i < (np-1); ++i){
+    alpha[i] = 3/h[i]*(a[i+1]-a[i]) - 3/h[i-1]*(a[i]-a[i-1]);
   }
 
-  for (int i = 1; i < (np-1); ++i){   
+  for (int i = 1; i < (np-1); ++i){
     L[i] = 2*(X[i+1]-X[i-1]) - h[i-1]*u[i-1];
     u[i] = h[i]/L[i];
-    z[i] = (alpha[i]-h[i-1]*z[i-1])/L[i];    
+    z[i] = (alpha[i]-h[i-1]*z[i-1])/L[i];
   }
-  
+
   L[np-1] = 1.0;
   z[np-1] = 0.0;
   c[np-1] = 0.0;
@@ -1619,26 +1665,26 @@ Array2D<float> CalculateCubicSplines(vector<float> X, vector<float> Y){
     b[j] = (a[j+1]-a[j])/h[j] - (h[j]*(c[j+1]+2*c[j]))/3;
     d[j] = (c[j+1]-c[j])/(3*h[j]);
   }
-  
-  for (int i = 0; i < (np-1); ++i){  
+
+  for (int i = 0; i < (np-1); ++i){
     Splines[i][0] = a[i];
     Splines[i][1] = b[i];
     Splines[i][2] = c[i];
     Splines[i][3] = d[i];
-    Splines[i][4] = X[i]; 
+    Splines[i][4] = X[i];
   }
-  
+
   return Splines;
 }
 
-                                    
+
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Spline plotting function which calls CalculateCubicSplines() to generate a  pair of
 // X and Y vectors containing coordinates to plot a spline curve from a given set of data.
 //
-// Call this with vectors of X and Y data, a resolution (used to get the number of points 
+// Call this with vectors of X and Y data, a resolution (used to get the number of points
 // between each data point for the output curve) and Spline_X and Spline_Y, which are passed in
 // by reference and are overwritten with the resulting sets of coordinates.
 
@@ -1655,40 +1701,40 @@ void PlotCubicSplines(vector<float> X, vector<float> Y, int SplineResolution, ve
   float x0;
   float x1;
   float h;
-  
+
   //Call the cubic splines function to get the splines data as an array
   Array2D<float> Splines = CalculateCubicSplines(X, Y);
 
   int n = Splines.dim1(); // This is one fewer than the number of points in the dataset
-  
+
   //check there will be enough partitions between each pair of points for the plotting
   int perSpline = SplineResolution/n; // integer division
-  if (perSpline < 3){perSpline = 3;} 
-  
+  if (perSpline < 3){perSpline = 3;}
+
   for (int i = 0; i < n-1; ++i){
     x0 = Splines[i][4];
     x1 = Splines[i+1][4];
-    vector<float> x = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given    
-    
+    vector<float> x = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given
+
     //calculate x and y values for points along the spline curve between each set of points
-    for (int q = 0; q != int(x.size()); ++q){ 
+    for (int q = 0; q != int(x.size()); ++q){
       Spline_X.push_back(x[q]);
       h = (x[q] - x0);
-      Spline_Y.push_back(Splines[i][0] + Splines[i][1] * h + Splines[i][2]*(h*h) + (Splines[i][3]*(h*h*h)));    
+      Spline_Y.push_back(Splines[i][0] + Splines[i][1] * h + Splines[i][2]*(h*h) + (Splines[i][3]*(h*h*h)));
     }
   }
-    
+
   //calculate x and y values for the curve between the final pair of points
-  x0 = Splines[n-1][4]; 
+  x0 = Splines[n-1][4];
   x1 = X[n];
   vector<float> x2 = linspace(x0, x1, perSpline); //vector of evenly spaced values between the max and min given
-    
+
   for (int q = 0; q != int(x2.size()); ++q){
     Spline_X.push_back(x2[q]);
     h = (x2[q] - x0);
     Spline_Y.push_back(Splines[n-1][0] + Splines[n-1][1] * h + Splines[n-1][2]*(h*h) + (Splines[n-1][3]*(h*h*h)));
-  }    
-  
+  }
+
 }
 
 
@@ -1760,11 +1806,11 @@ double & band_matrix::operator () (int i, int j)
    assert( (i>=0) && (i<dim()) && (j>=0) && (j<dim()) );
    assert( (-num_lower()<=k) && (k<=num_upper()) );
    // k=0 -> diogonal, k<0 lower left part, k>0 upper right part
-   
+
    if(k>=0)
    {
      return m_upper[k][i];
-   }   
+   }
    else
    {
      return m_lower[-k][i];
@@ -1776,7 +1822,7 @@ double band_matrix::operator () (int i, int j) const
    assert( (i>=0) && (i<dim()) && (j>=0) && (j<dim()) );
    assert( (-num_lower()<=k) && (k<=num_upper()) );
    // k=0 -> diogonal, k<0 lower left part, k>0 upper right part
-   
+
    if(k>=0)   return m_upper[k][i];
    else      return m_lower[-k][i];
 }
@@ -1918,33 +1964,33 @@ std::vector<double> band_matrix::lu_solve(const std::vector<double>& b,
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void spline::set_points(const std::vector<double>& x,
-                          const std::vector<double>& y, bool cubic_spline) 
+                          const std::vector<double>& y, bool cubic_spline)
 {
    assert(x.size()==y.size());
    m_x=x;
    m_y=y;
    int   n=x.size();
    // TODO sort x and y, rather than returning an error
-   for(int i=0; i<n-1; i++) 
+   for(int i=0; i<n-1; i++)
    {
       assert(m_x[i]<m_x[i+1]);
    }
-   
+
    // cubic spline interpolation
-   if(cubic_spline==true) 
-   { 
+   if(cubic_spline==true)
+   {
       // setting up the matrix and right hand side of the equation system
       // for the parameters b[]
       band_matrix A(n,1,1);
       std::vector<double>  rhs(n);
-      for(int i=1; i<n-1; i++) 
+      for(int i=1; i<n-1; i++)
       {
          A(i,i-1)=1.0/3.0*(x[i]-x[i-1]);
          A(i,i)=2.0/3.0*(x[i+1]-x[i-1]);
          A(i,i+1)=1.0/3.0*(x[i+1]-x[i]);
          rhs[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
       }
-      
+
       // boundary conditions, zero curvature b[0]=b[n-1]=0
       A(0,0)=2.0;
       A(0,1)=0.0;
@@ -1965,13 +2011,13 @@ void spline::set_points(const std::vector<double>& x,
          m_c[i]=(y[i+1]-y[i])/(x[i+1]-x[i])
                 - 1.0/3.0*(2.0*m_b[i]+m_b[i+1])*(x[i+1]-x[i]);
       }
-   } 
+   }
    else
    { // linear interpolation
       m_a.resize(n);
       m_b.resize(n);
       m_c.resize(n);
-      for(int i=0; i<n-1; i++) 
+      for(int i=0; i<n-1; i++)
       {
          m_a[i]=0.0;
          m_b[i]=0.0;
@@ -2005,7 +2051,7 @@ double spline::operator() (double x) const
    {
       // extrapolation to the right
       interpol=((m_b[n-1])*h + m_c[n-1])*h + m_y[n-1];
-   } 
+   }
    else
    {
       // interpolation
@@ -3427,7 +3473,7 @@ void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, floa
       }
     }
   }
-  
+
   // Defining the upper limit, lower limit and width of the bins
   float upper_limit = ceil((log10(max_X)/log_bin_width))*log_bin_width;
   float lower_limit;
@@ -3439,8 +3485,8 @@ void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, floa
   {
     lower_limit = 0;
   }
-  int NBins = int(((upper_limit - lower_limit)/log_bin_width) + 1); 
-  
+  int NBins = int(((upper_limit - lower_limit)/log_bin_width) + 1);
+
   // Looping through all the rows and columns and calculating which bin the
   // contributing area is in, and putting the slope in this bin
 
@@ -3481,18 +3527,18 @@ void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, floa
         if (bin_id < 0)
         {
           bin_id = 0;
-        }  
+        }
         // Store X and corresponding Y into this bin, for their respective
         // vector<vector> object
-        binned_data_X[bin_id].push_back(X); 
+        binned_data_X[bin_id].push_back(X);
         binned_data_Y[bin_id].push_back(Y);
         Y_data[bin_id] += Y;
         X_data[bin_id] += X;
-        ++number_observations[bin_id]; 
+        ++number_observations[bin_id];
       }
     }
   }
-   
+
   // Calculating the midpoint in x direction of each bin and the mean of x and y
   // in each bin.  Probably want to plot MeanX vs MeanY, rather than midpoint of
   // x vs Mean Y to be most robust.  At the moment the program returns both.
@@ -3507,7 +3553,7 @@ void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, floa
       MeanX[bin_id] = X_data[bin_id]/number_observations[bin_id];
     }
   }
-  
+
   // These will be copied into their respective function output vectors
   vector<float> StandardDeviationX(NBins,0.0);
   vector<float> StandardDeviationY(NBins,0.0);
@@ -3554,7 +3600,7 @@ void log_bin_data(Array2D<float>& InputArrayX, Array2D<float>& InputArrayY, floa
       StandardErrorX[bin_id] = StandardDeviationX[bin_id]/sqrt(number_observations[bin_id]);
       StandardErrorY[bin_id] = StandardDeviationY[bin_id]/sqrt(number_observations[bin_id]);
     }
-  } 
+  }
   // Copy output into output vectors
   MeanX_output = MeanX;
   MeanY_output = MeanY;
@@ -3589,7 +3635,7 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
                       vector<float>& midpoints_output, vector<float>&  StandardDeviationX_output,
                       vector<float>&  StandardDeviationY_output,int NoDataValue)
 {
-  
+
   int n_data = InputVectorY.size();
   float max_X = InputVectorX[n_data-1];
   float min_X = InputVectorX[1];
@@ -3682,7 +3728,7 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
   // These will be copied into their respective function output vectors
   vector<float> StandardDeviationX(NBins,0.0);
   vector<float> StandardDeviationY(NBins,0.0);
-  
+
   // iterators to move through vec<vec>
   vector<float>::iterator vec_iterator_X;
   vector<float>::iterator vec_iterator_Y;
@@ -3705,7 +3751,7 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
 
       // ...and for the dependent variable Y
       vec_iterator_Y = binned_data_Y[bin_id].begin();
-      
+
       while (vec_iterator_Y != binned_data_Y[bin_id].end())
       {
         float Yi = (*vec_iterator_Y);
@@ -3735,7 +3781,7 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// BINNING OF 1D VECTOR 
+// BINNING OF 1D VECTOR
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Takes vectors for two corresponding variables (e.g. drainage area and slope)
 // and sorts into bins of a specified bin width.
@@ -3749,7 +3795,7 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
 // WARNING - will not work on vectors with negative values (e.g. hilltop curvature). If using
 // vector of negative values take the absolute values before passing to function.
 //
-// Modified by FC 30/09/13 to calculate the range of the 95th percentile for each bin - 
+// Modified by FC 30/09/13 to calculate the range of the 95th percentile for each bin -
 // used for channel head prediction through chi segment fitting.  Changed from log binning to
 // regular binning.
 // Modified by FC 13/01/13 to calculate the median of each bin and return the standard error.
@@ -3757,9 +3803,9 @@ void log_bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, floa
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bin_width,
                   vector<float>&  MeanX_output, vector<float>& MeanY_output,
-                  vector<float>& midpoints_output, vector<float>& MedianY_output, 
+                  vector<float>& midpoints_output, vector<float>& MedianY_output,
                   vector<float>&  StandardDeviationX_output,vector<float>&  StandardDeviationY_output,
-                  vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, vector<int>& number_observations_output, 
+                  vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, vector<int>& number_observations_output,
                   float& bin_lower_limit, float NoDataValue)
 {
 
@@ -3786,7 +3832,7 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
   float upper_limit = ceil(max_X/bin_width)*bin_width;
   float lower_limit = floor(min_X/bin_width)*bin_width;
   if (lower_limit < 0 || isnan(lower_limit) == 1)
-  { 
+  {
     lower_limit = 0;
   }
   int NBins = int( (upper_limit - lower_limit)/bin_width )+1;
@@ -3891,7 +3937,7 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
 
       // ...and for the dependent variable Y
       vec_iterator_Y = binned_data_Y[bin_id].begin();
-      
+
       while (vec_iterator_Y != binned_data_Y[bin_id].end())
       {
         float Yi = (*vec_iterator_Y);
@@ -3899,11 +3945,11 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
         vec_iterator_Y++;
         YDataVector.push_back(Yi);
       }
-      
+
       //find the median of the dependent variable Y
       sort(YDataVector.begin(), YDataVector.end());
       int YDataSize = YDataVector.size();
-      MedianY.push_back(YDataVector[floor(YDataSize/2)]);     
+      MedianY.push_back(YDataVector[floor(YDataSize/2)]);
     }
   }
 
@@ -3933,14 +3979,14 @@ void bin_data(vector<float>& InputVectorX, vector<float>& InputVectorY, float bi
 }
 
 
-//look for bins with very few (or no) data points output from the log binning function and removes them to avoid 
-//plotting several empty bins at 0,0 in some cases. 
-//pass in a threshold fraction *above* which all bins will be kept. Pass in 0 to remove only empty bins. 
+//look for bins with very few (or no) data points output from the log binning function and removes them to avoid
+//plotting several empty bins at 0,0 in some cases.
+//pass in a threshold fraction *above* which all bins will be kept. Pass in 0 to remove only empty bins.
 //SWDG 6/11/13
 void RemoveSmallBins(vector<float>& MeanX_output, vector<float>& MeanY_output, vector<float>& midpoints_output,
                      vector<float>& StandardDeviationX_output, vector<float>& StandardDeviationY_output,
                      vector<float>& StandardErrorX_output, vector<float>& StandardErrorY_output, vector<int>& number_observations, float bin_threshold){
-                                                                                      
+
   // temp vectors to store all the kept data
   vector<float> MeanX_output_temp;
   vector<float> MeanY_output_temp;
@@ -3967,7 +4013,7 @@ void RemoveSmallBins(vector<float>& MeanX_output, vector<float>& MeanY_output, v
       StandardDeviationY_output_temp.push_back(StandardDeviationY_output[q]);
       StandardErrorX_output_temp.push_back(StandardErrorX_output[q]);
       StandardErrorY_output_temp.push_back(StandardErrorY_output[q]);
-      number_observations_temp.push_back(number_observations[q]);     
+      number_observations_temp.push_back(number_observations[q]);
     }
   }
 
@@ -3981,7 +4027,7 @@ void RemoveSmallBins(vector<float>& MeanX_output, vector<float>& MeanY_output, v
   StandardErrorY_output.clear();
   number_observations.clear();
 
-  // swap temp data which contains no zeros back into the original emptied 
+  // swap temp data which contains no zeros back into the original emptied
   // vectors, so they can be returned by reference.
   MeanX_output.swap(MeanX_output_temp);
   MeanY_output.swap(MeanY_output_temp);
@@ -3994,7 +4040,7 @@ void RemoveSmallBins(vector<float>& MeanX_output, vector<float>& MeanY_output, v
 
 }
 
-// 
+//
 // //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // // calculate_histogram
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -4016,14 +4062,14 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
     {
       max_X = input_values[i];
     }
-    if (input_values[i] < min_X)    
+    if (input_values[i] < min_X)
     {
       min_X = input_values[i];
     }
   }
 //  cout << min_X << " " << max_X << endl;
   // Defining the upper limit, lower limit and the bin width.
-  // Extend range by one bin at each end so that the histogram is bounded by 
+  // Extend range by one bin at each end so that the histogram is bounded by
   // zeros for plotting
   float upper_limit = (ceil(max_X/bin_width)+1)*bin_width;
   float lower_limit = (floor(min_X/bin_width)-1)*bin_width;
@@ -4060,37 +4106,37 @@ void print_histogram(vector<float> input_values, float bin_width, string filenam
   {
     midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
     lower_lim_value = lower_limit + float(i)*bin_width;
-    upper_lim_value = float(i+1)*bin_width;  
-    
+    upper_lim_value = float(i+1)*bin_width;
+
     bin_midpoints[i]= midpoint_value;
     bin_lower_lim[i]= lower_lim_value;
     bin_upper_lim[i]= upper_lim_value;
-    
-    probability_density[i] = number_observations[i]/float(n_data-n_nan);    
+
+    probability_density[i] = number_observations[i]/float(n_data-n_nan);
   }
 
   // Print histogram to file
   cout << "\t printing histogram to " << filename << endl;
   ofstream ofs;
   ofs.open(filename.c_str());
-  
+
   if(ofs.fail())
   {
     cout << "\nFATAL ERROR: unable to write output_file" << endl;
     exit(EXIT_FAILURE);
   }
-  
+
   ofs << "Midpoint LowerLim UpperLim Count ProbabilityDensity\n";
   for(int i = 0; i < NBins; ++i)
   {
     ofs << bin_midpoints[i] << " " << bin_lower_lim[i] << " " << bin_upper_lim[i] << " " << number_observations[i] << " " << probability_density[i] << "\n";
   }
-  
+
   ofs.close();
 
 }
 
-                                
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Improved histogram functions
 // DTM 12/02/2015
@@ -4108,13 +4154,13 @@ void calculate_histogram(vector<float> input_values, float bin_width, vector<flo
     {
       max_X = input_values[i];
     }
-    if (input_values[i] < min_X)    
+    if (input_values[i] < min_X)
     {
       min_X = input_values[i];
     }
   }
   // Defining the upper limit, lower limit and the bin width.
-  // Extend range by one bin at each end so that the histogram is bounded by 
+  // Extend range by one bin at each end so that the histogram is bounded by
   // zeros for plotting
   float upper_limit = (ceil(max_X/bin_width)+1)*bin_width;
   float lower_limit = (floor(min_X/bin_width)-1)*bin_width;
@@ -4151,13 +4197,13 @@ void calculate_histogram(vector<float> input_values, float bin_width, vector<flo
   {
     midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
     lower_lim_value = lower_limit + float(i)*bin_width;
-    upper_lim_value = float(i+1)*bin_width;  
-    
+    upper_lim_value = float(i+1)*bin_width;
+
     bin_midpoints[i]= midpoint_value;
     bin_lower_lim[i]= lower_lim_value;
     bin_upper_lim[i]= upper_lim_value;
-    
-    probability_density[i] = number_observations[i]/float(n_data-n_nan);    
+
+    probability_density[i] = number_observations[i]/float(n_data-n_nan);
   }
   // Copy vectors to output
   Midpoints=bin_midpoints;
@@ -4201,17 +4247,17 @@ void calculate_histogram_fixed_limits(vector<float> input_values, float bin_widt
     }
   }
   for(int i = 0; i<NBins; i++)
-  { 
+  {
     midpoint_value = lower_limit + (float(i)+0.5)*bin_width;
     lower_lim_value = lower_limit + float(i)*bin_width;
-    upper_lim_value = float(i+1)*bin_width;  
-    
+    upper_lim_value = float(i+1)*bin_width;
+
     bin_midpoints[i]= midpoint_value;
     bin_lower_lim[i]= lower_lim_value;
     bin_upper_lim[i]= upper_lim_value;
-    
+
     probability_density[i] = number_observations[i]/float(n_data-n_nan);
-  
+
   }
   // Copy vectors to output
   Midpoints=bin_midpoints;
@@ -4222,8 +4268,8 @@ void calculate_histogram_fixed_limits(vector<float> input_values, float bin_widt
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-         
- 
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // bin_data
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -4235,7 +4281,7 @@ void calculate_histogram_fixed_limits(vector<float> input_values, float bin_widt
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void bin_data(vector<float>& vector1, vector<float>& vector2, float min, float max, float bin_width, vector<float>& mid_points, vector< vector<float> >& binned_data)
 {
-  
+
   // Defining the upper limit, lower limit and width of the bins
   float upper_limit = ceil(max/bin_width)*bin_width;
   float lower_limit = floor(min/bin_width)*bin_width;
@@ -4345,7 +4391,7 @@ void log_bin_data(vector<float>& vector1, vector<float>& vector2, float log_bin_
       binned_vector1_mean[bin_id] = get_mean(binned_vector1[bin_id]);
       binned_vector2_mean[bin_id] = get_mean(binned_vector2[bin_id]);
     }
-    else 
+    else
     {
       binned_vector1_mean[bin_id] = NoDataValue;
       binned_vector2_mean[bin_id] = NoDataValue;
@@ -4482,16 +4528,16 @@ void matlab_int_reorder(std::vector<int> & unordered, std::vector<size_t> const 
 
 //Overloaded function to take in an array of integers and return a vector of the
 //unique values found in the array, excluding the passed in NoDataValue.
-//SWDG 12/11/13 
+//SWDG 12/11/13
 vector<int> Unique(Array2D<int> InputArray, int NoDataValue){
 
-  // set up output vector                                   
+  // set up output vector
   vector<int> UniqueValues;
-  
+
   //get array dimensions for looping
   int Rows = InputArray.dim1();
   int Cols = InputArray.dim2();
-  
+
   //make list of unique values in each array
   for (int i = 0; i < Rows; ++i){
     for (int j = 0; j < Cols; ++j){
@@ -4513,13 +4559,13 @@ vector<int> Unique(Array2D<int> InputArray, int NoDataValue){
 //SWDG 12/11/13
 vector<float> Unique(Array2D<float> InputArray, int NoDataValue){
 
-  // set up output vector                                   
+  // set up output vector
   vector<float> UniqueValues;
-  
+
   //get array dimensions for looping
   int Rows = InputArray.dim1();
   int Cols = InputArray.dim2();
-  
+
   //make list of unique values in each array
   for (int i = 0; i < Rows; ++i){
     for (int j = 0; j < Cols; ++j){
@@ -4540,7 +4586,7 @@ vector<float> Unique(Array2D<float> InputArray, int NoDataValue){
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Simple linear spacing algorithm to return a vector of evenly spaced floats
-// between a min and max range (inclusive). Equivalent to np.linspace() in python 
+// between a min and max range (inclusive). Equivalent to np.linspace() in python
 // and linspace in Matlab.
 //
 // Found at: http://dsj23.wordpress.com/2013/02/13/matlab-linspace-function-written-in-c/
@@ -4556,14 +4602,14 @@ vector<float> linspace(float min, float max, int n){
     iterator += 1;
   }
   result.insert(result.begin() + iterator, max);
-  
+
   return result;
 }
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Convert a bearing with 0/360 degrees at north to radians with 0/2pi radians at east - 
+// Convert a bearing with 0/360 degrees at north to radians with 0/2pi radians at east -
 // used in Hilltop flow routing
 // SWDG 6/9/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -4648,21 +4694,21 @@ vector<float> BoxPlot(vector<float> data){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to generate Statistical distribution. - DTM
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void get_distribution_stats(vector<float>& y_data, float& mean, float& median, float& UpperQuartile, float& LowerQuartile, float& MaxValue) 
+void get_distribution_stats(vector<float>& y_data, float& mean, float& median, float& UpperQuartile, float& LowerQuartile, float& MaxValue)
 {
     // Mean
   int n_data_points = y_data.size();
   MaxValue = 0;
     float total = 0;
-    
+
   for (int i = 0; i< n_data_points; i++)
     {
         total+=y_data[i];
-     
+
     }
-    
+
     mean = total/float(n_data_points);
-    
+
     // Get other statistics
     // Sort vector
   vector<size_t> index_map;
@@ -4702,7 +4748,7 @@ void get_distribution_stats(vector<float>& y_data, float& mean, float& median, f
   }
   // Max
   MaxValue = y_data[n_data_points-1];
-} 
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to calculate the quadratic mean. - DTM
@@ -4721,13 +4767,13 @@ double get_QuadraticMean(vector<double> input_values, double bin_width)
     {
       max_X = input_values[i];
     }
-    if (input_values[i] < min_X)    
+    if (input_values[i] < min_X)
     {
       min_X = input_values[i];
     }
   }
   // Defining the upper limit, lower limit and the bin width.
-  // Extend range by one bin at each end so that the histogram is bounded by 
+  // Extend range by one bin at each end so that the histogram is bounded by
   // zeros for plotting
   double upper_limit = (ceil(max_X/bin_width)+1)*bin_width;
   double lower_limit = (floor(min_X/bin_width)-1)*bin_width;
@@ -4754,20 +4800,20 @@ double get_QuadraticMean(vector<double> input_values, double bin_width)
     int bin_id = int((X-lower_limit)/bin_width);
     ++number_observations[bin_id];
   }
-  
+
   for(int i = 0; i<NBins; i++)
   {
     midpoint_value = lower_limit + (double(i)+0.5)*bin_width;
     lower_lim_value = lower_limit + double(i)*bin_width;
-    upper_lim_value = double(i+1)*bin_width;  
-    
+    upper_lim_value = double(i+1)*bin_width;
+
     bin_midpoints[i]= midpoint_value;
     bin_lower_lim[i]= lower_lim_value;
     bin_upper_lim[i]= upper_lim_value;
-    
-    probability_density[i] = number_observations[i]/double(n_data);    
+
+    probability_density[i] = number_observations[i]/double(n_data);
   }
-  
+
   double QuadraticMean = 0;
   for(int i = 0; i<NBins; i++)
   {
@@ -4798,7 +4844,7 @@ void parse_line(ifstream &infile, string &parameter, string &value)
   int pos = 0;
   int word = 0;
 
-  while ( infile.get(c) )  
+  while ( infile.get(c) )
   {
     if (pos >= 128)
     {
@@ -4890,13 +4936,13 @@ float Get_Maximum(Array2D<int> Input, float NDV){
 int Get_Maximum_Index(Array2D<float> Input, int NDV)
 {
   float max = 0;
-  int maxi = 0; 
+  int maxi = 0;
   int maxj = 0;
-  for (int i = 0; i < Input.dim1(); ++i) 
+  for (int i = 0; i < Input.dim1(); ++i)
   {
-    for(int j = 0; j < Input.dim2(); ++j) 
+    for(int j = 0; j < Input.dim2(); ++j)
     {
-      if (Input[i][j] > max && Input[i][j] != NDV) 
+      if (Input[i][j] > max && Input[i][j] != NDV)
       {
         max = Input[i][j];
         maxi = i;
@@ -4910,13 +4956,13 @@ int Get_Maximum_Index(Array2D<float> Input, int NDV)
 // Method to get the index of the maximum value in a 2D array of ints - MDH 28/8/14
 int Get_Maximum_Index(Array2D<int> Input, int NDV) {
   float max = 0;
-  int maxi = 0; 
+  int maxi = 0;
   int maxj = 0;
-  for (int i = 0; i < Input.dim1(); ++i) 
+  for (int i = 0; i < Input.dim1(); ++i)
   {
-     for(int j = 0; j < Input.dim2(); ++j) 
+     for(int j = 0; j < Input.dim2(); ++j)
      {
-       if (Input[i][j] > max && Input[i][j] != NDV) 
+       if (Input[i][j] > max && Input[i][j] != NDV)
        {
          max = Input[i][j];
          maxi = i;
@@ -4942,7 +4988,7 @@ float Get_Minimum(Array2D<float> Input, int NDV)
       }
     }
   }
-   
+
   return min;
 }
 
@@ -4960,7 +5006,7 @@ float Get_Minimum(Array2D<int> Input, int NDV)
       }
     }
   }
-   
+
   return min;
 }
 
@@ -4980,7 +5026,7 @@ int Get_Minimum_Index(Array2D<float> Input, int NDV)
         mini = i;
         minj = j;
       }
-    } 
+    }
   }
   return mini*Input.dim2() + minj;
 }
@@ -5000,7 +5046,7 @@ int Get_Minimum_Index(Array2D<int> Input, int NDV)
         mini = i;
         minj = j;
       }
-    } 
+    }
   }
   return mini*Input.dim2() + minj;
 }
@@ -5030,7 +5076,7 @@ int Get_Value_Count(Array2D<int> Input, int NDV) {
 //SWDG 12/6/14
 vector<int> Flatten(Array2D<int> Input){
 
-  vector<int> flat;     
+  vector<int> flat;
   for (int i = 0; i < Input.dim1(); ++i){
     for (int j = 0; j < Input.dim2(); ++j){
       flat.push_back(Input[i][j]);
@@ -5045,7 +5091,7 @@ vector<int> Flatten(Array2D<int> Input){
 //SWDG 12/6/14
 vector<float> Flatten(Array2D<float> Input){
 
-  vector<float> flat;     
+  vector<float> flat;
   for (int i = 0; i < Input.dim1(); ++i){
     for (int j = 0; j < Input.dim2(); ++j){
       flat.push_back(Input[i][j]);
@@ -5060,7 +5106,7 @@ vector<float> Flatten(Array2D<float> Input){
 //SWDG 12/6/14
 vector<int> Flatten_Without_Nodata(Array2D<int> Input, float NDV){
 
-  vector<int> flat;     
+  vector<int> flat;
   for (int i = 0; i < Input.dim1(); ++i){
     for (int j = 0; j < Input.dim2(); ++j){
       if (Input[i][j] != NDV){
@@ -5077,7 +5123,7 @@ vector<int> Flatten_Without_Nodata(Array2D<int> Input, float NDV){
 //SWDG 12/6/14
 vector<float> Flatten_Without_Nodata(Array2D<float> Input, float NDV){
 
-  vector<float> flat;     
+  vector<float> flat;
   for (int i = 0; i < Input.dim1(); ++i){
     for (int j = 0; j < Input.dim2(); ++j){
       if (Input[i][j] != NDV){
@@ -5139,18 +5185,18 @@ float PKS(float z){
   }
 
   if (z == 0.0) { return 0.0;}
-  
+
   if (z < 1.18){
-  
-    float y = exp(-1.23370055013616983/pow(z,2)); 
+
+    float y = exp(-1.23370055013616983/pow(z,2));
     return 2.25675833419102515 * sqrt(-log(y)) * (y + pow(y,9) + pow(y,25) + pow(y,49));
   }
   else{
-   
+
    double x = exp(-2.0 * pow(z,2));
    //double u = ((x - pow(x,4) + pow(x,9)));
-   return 2.0 * (x - pow(x,4) + pow(x,9)); 
-  
+   return 2.0 * (x - pow(x,4) + pow(x,9));
+
   }
 
 }
@@ -5161,7 +5207,7 @@ float PKS(float z){
 //d is the KS statistic value
 //p is the p-value. In numerical recipes it is provided as a value subtracted from
 //1, this code has been modified to present value the without this subtraction
-//so that it matches the result from the scipy implementation. 
+//so that it matches the result from the scipy implementation.
 //SWDG 26/6/14
 void KStwo(vector<float> Data1, vector<float> Data2, float& d, double& p){
 
@@ -5177,37 +5223,37 @@ void KStwo(vector<float> Data1, vector<float> Data2, float& d, double& p){
   float en;
   float fn1 = 0.0;
   float fn2 = 0.0;
-  
+
   d = 0.0;
 
   while (j1 < n1 && j2 < n2){
-    
+
     if ((d1 = Data1[j1]) <= (d2 = Data2[j2])) {
-      
+
       do{
         fn1 = ++j1/en1;
       } while (j1 < n1 && d1 == Data1[j1]);
-        
+
     }
-  
+
     if (d2 <= d1){
-      
+
       do{
         fn2 = ++j2/en2;
       } while (j2 < n2 && d2 == Data2[j2]);
-      
+
     }
     if ((dt = abs(fn2-fn1)) > d) { d = dt; }
-  
+
   } //close while
 
-  en = sqrt(en1 * en2 / (en1 + en2));    
+  en = sqrt(en1 * en2 / (en1 + en2));
   p = PKS((en + 0.12 + 0.11 / en) * d );
 
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
-// This function returns the value of the normal distribution for a given 
+// This function returns the value of the normal distribution for a given
 // value of x
 // used to calculate p values for various statistical tests
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
@@ -5229,7 +5275,7 @@ float pValueNormalDistribution(float Z)
   //float pos_z, neg_z;
   float mu = 0;
   float sigma = 1.0;
-  
+
   // if Z is negative, you double the value at Z to get p
   if (Z < 0)
   {
@@ -5239,7 +5285,7 @@ float pValueNormalDistribution(float Z)
   {
     p = (1-NormalDistributionAtX(mu,sigma,Z));
   }
-  
+
   return p;
 
 }
@@ -5250,7 +5296,7 @@ float pValueNormalDistribution(float Z)
 // to see if two populations have the same median
 // see http://www.statstutor.ac.uk/resources/uploaded/mannwhitney.pdf
 // It returns the U value
-// SMM 
+// SMM
 // 20/11/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
@@ -5258,41 +5304,41 @@ float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
   // get the size of the samples
   unsigned int sizeA = sampleA.size();
   unsigned int sizeB = sampleB.size();
-  
+
   // now make two vectors with keys to the samples
   vector<int> keyA(sizeA,0);
   vector<int> keyB(sizeB,1);
-  
+
   // initiate vectors for concatenating
   vector<float> all_samples = sampleA;
   vector<int> all_samples_indices = keyA;
-  
-  // concatenate the two vectors. Now sample A will contain 
-  // the concatenated data set. 
+
+  // concatenate the two vectors. Now sample A will contain
+  // the concatenated data set.
   all_samples.insert( all_samples.end(), sampleB.begin(), sampleB.end() );
-  all_samples_indices.insert( all_samples_indices.end(), 
+  all_samples_indices.insert( all_samples_indices.end(),
                               keyB.begin(), keyB.end() );
-  
+
   //for(int i = 0; i<int(all_samples.size()); i++)
   //{
   //  cout << "samp["<<i<< "]: " << all_samples[i] << " and indices: " << all_samples_indices[i] << endl;
   //}
-  
-  // initiate vectors for sorting 
-  vector<float> sorted_samples;  
+
+  // initiate vectors for sorting
+  vector<float> sorted_samples;
   vector<int> sorted_indices;
-  vector<size_t> index_map;                          
-  
+  vector<size_t> index_map;
+
   // now do a matlab sort on all samples
   matlab_float_sort(all_samples, sorted_samples, index_map);
-  
+
   // now reorganise the indices based on the sorted vec
   matlab_int_reorder(all_samples_indices, index_map, sorted_indices);
-                           
+
   // initiate vectors for rankings
   vector<float> ranks;
   vector<int> number_in_groups;
-  
+
   // now get the rankings
   rank_vector_with_groups(sorted_samples, ranks, number_in_groups);
   int n_groups = int(number_in_groups.size());
@@ -5301,7 +5347,7 @@ float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
   //int n_data = int(ranks.size());
   //for(int i = 0; i< n_data; i++)
   //{
-  //  cout << "data["<<i<<"]: " << sorted_samples[i] << " rank: " << ranks[i] 
+  //  cout << "data["<<i<<"]: " << sorted_samples[i] << " rank: " << ranks[i]
   //       << " sorted_index: " << sorted_indices[i] << endl;
   //}
 
@@ -5310,7 +5356,7 @@ float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
   //  cout << "Group of " << number_in_groups[i] << endl;
   //}
 
-  
+
   // now loop through the ranked vector, getting the sum of group 1
   int n_sample_A = int(sampleA.size());
   int n_sample_B = int(sampleB.size());
@@ -5328,29 +5374,29 @@ float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
     {
       sum_sample2+=ranks[i];
       //cout << "SR2: " << sum_sample2 << endl;
-    }    
+    }
   }
-  
+
   //cout << "sum_ranks1: " << sum_sample1 << " sum_ranks2: " << sum_sample2 << endl;
-  
+
   // now calculate the U values
   // see: http://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
   float U_1 = float(n_sample_A*n_sample_B)+float(n_sample_A*(n_sample_A+1))*0.5-sum_sample1;
   float U_2 = float(n_sample_A*n_sample_B)+float(n_sample_B*(n_sample_B+1))*0.5-sum_sample2;
-  
+
   float sumU = U_1+U_2;
   float multiplen = float(n_sample_A*n_sample_B);
   if (sumU != multiplen)
   {
     cout << "Something has gone wrong since the sum of the ranks does not"
          << " equal the multplile of the number of elements" << endl
-         << "U_1: " << U_1 << " U_2: " << U_2 << " n1: " << n_sample_A 
+         << "U_1: " << U_1 << " U_2: " << U_2 << " n1: " << n_sample_A
          << " n2: " << n_sample_B << endl;
   }
-  
-  //cout << "U_1: " << U_1 << " U_2: " << U_2 << " n1: " << n_sample_A 
-  //     << " n2: " << n_sample_B << endl;  
-  
+
+  //cout << "U_1: " << U_1 << " U_2: " << U_2 << " n1: " << n_sample_A
+  //     << " n2: " << n_sample_B << endl;
+
   float U;
   if (U_1 < U_2)
   {
@@ -5360,12 +5406,12 @@ float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
   {
     U = U_2;
   }
-  
+
   // now we need to get the mean and standard deviation for the normal approximation
   float mean = 0.5*float(n_sample_A*n_sample_B);
-                          
+
   // now get the group term in the standard deviation
-  //int n_groups = int(number_in_groups.size());  
+  //int n_groups = int(number_in_groups.size());
   float group_sum = 0;
   for(int g = 0; g<n_groups; g++)
   {
@@ -5376,28 +5422,28 @@ float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
   float std_dev_U;
   if (group_sum == 0)
   {
-    std_dev_U = sqrt((float(n_sample_A*n_sample_B)*float(total_samples+1))/12.0); 
+    std_dev_U = sqrt((float(n_sample_A*n_sample_B)*float(total_samples+1))/12.0);
   }
   else
   {
     float std_dev_U_first_term = float(n_sample_A*n_sample_B)/
                     float(total_samples*(total_samples-1));
-    float std_dev_U_second_term = float(total_samples*total_samples*total_samples-total_samples)/12.0;                 
+    float std_dev_U_second_term = float(total_samples*total_samples*total_samples-total_samples)/12.0;
     std_dev_U = sqrt(std_dev_U_first_term*(std_dev_U_second_term- group_sum));
   }
   //cout << "mean is: " << mean << " and std_dev_u is: " << std_dev_U << endl;
-  
+
   float z_value = (U - mean) /std_dev_U;
   //cout << "Z_value is: " << z_value << endl;
   float p_value = pValueNormalDistribution(z_value);
-   
-   
+
+
   //cout << "U: " << U << " and p: " << p_value << endl;
-   
+
   return p_value;
-  
-  
-  
+
+
+
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -5405,28 +5451,28 @@ float MannWhitneyUTest(vector<float>& sampleA, vector<float>& sampleB)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This function returns a rank list and a vector that contains a list of
 // how many elements are in each group of repeated data
-// SMM 
+// SMM
 // 20/11/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void rank_vector_with_groups(vector<float> sorted_data, 
+void rank_vector_with_groups(vector<float> sorted_data,
                              vector<float>& ranks, vector<int>& number_in_groups)
 {
 
   // now go through the sorted list, getting the ranks.
   unsigned int total_samples = sorted_data.size();
-  
+
   // initiate some vectors for managing the ranked lists
   vector<float> normalised_ranks(total_samples);
   vector<int> repeat_group_sizes;
   vector<int>::iterator viter;
-  
+
   float last_sample = -10000;
   //float this_group = -10000;
   int n_in_this_group = 1;
   float this_sample;
   //float this_rank;
   float group_ranksum;
-  
+
   // loop through the sorted list checking for ties
   for(int i = 0; i<int(total_samples); i++)
   {
@@ -5435,7 +5481,7 @@ void rank_vector_with_groups(vector<float> sorted_data,
     {
       n_in_this_group++;
       //cout << "n_in_this_group: " << n_in_this_group << endl;
-      
+
       // if it is a new group, push back the group sizes vector
       if (n_in_this_group == 2)
       {
@@ -5449,7 +5495,7 @@ void rank_vector_with_groups(vector<float> sorted_data,
         //cout << "incrementing group, " << (*viter) << endl;
         (*viter)=n_in_this_group;
       }
-      
+
       // now reset the ranks
       group_ranksum = 0;
       for (int g = 0; g<n_in_this_group; g++)
@@ -5467,25 +5513,25 @@ void rank_vector_with_groups(vector<float> sorted_data,
       n_in_this_group = 1;
       normalised_ranks[i] = float(i+1);
     }
-    
-    last_sample = this_sample;      
-      
-      
+
+    last_sample = this_sample;
+
+
   }
 
   ranks = normalised_ranks;
   number_in_groups = repeat_group_sizes;
 
-}                             
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//Takes an integer vector of data and an integer vector of key values and 
+//Takes an integer vector of data and an integer vector of key values and
 //returns a map of the counts of each value tied to its key.
 //
 //Assumes that key_values contains all of the values in Data.
-//eg Data should be flattened with NoDataValues excluded and 
+//eg Data should be flattened with NoDataValues excluded and
 //Key_Values should be created using Unique(Data)
 //SWDG 5/6/15
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -5498,14 +5544,14 @@ void Count_Instances(vector<int> Data, vector<int> Key_Values, map<int,int>& Dat
 
   //loop over the data and increment each value for the corresponding key
   for (int q = 0; q < int(Data.size());++q){
-    ++DataMap[Data[q]]; 
+    ++DataMap[Data[q]];
   }
 
 }
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
-// This gets the size of a file. 
+// This gets the size of a file.
 // From http://stackoverflow.com/questions/5840148/how-can-i-get-a-files-size-in-c
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 int get_file_size(string filename) // path to file
@@ -5530,9 +5576,9 @@ int get_file_size(string filename) // path to file
 string ReadTextFile(ifstream& File){
 
   string Lines = "";        //All lines
-    
+
   if (File)
-  {                      //Check if everything is good  
+  {                      //Check if everything is good
     while (File.good ())
     {
       string TempLine;                  //Temp line
@@ -5545,8 +5591,8 @@ string ReadTextFile(ifstream& File){
   else
   {
     return "";
-  }  
-} 
+  }
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 // This function removes control characters from the end of a string
@@ -5554,29 +5600,29 @@ string ReadTextFile(ifstream& File){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 string RemoveControlCharactersFromEndOfString(string toRemove)
 {
-  int len =  toRemove.length();  
-  if(len != 0)  
-  {  
-    if (iscntrl(toRemove[len-1]))  
-    { 
-      //cout << "Bloody hell, here is another control character! Why Microsoft? Why?" << endl; 
-      toRemove.erase(len-1);  
-    }  
-  }  
+  int len =  toRemove.length();
+  if(len != 0)
+  {
+    if (iscntrl(toRemove[len-1]))
+    {
+      //cout << "Bloody hell, here is another control character! Why Microsoft? Why?" << endl;
+      toRemove.erase(len-1);
+    }
+  }
   return toRemove;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
-// This function removes control characters 
+// This function removes control characters
 // These get introduced if you use the DOS format in your parameter file
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 string RemoveControlCharacters(string toRemove)
 {
-  string substr = toRemove; 
-      
+  string substr = toRemove;
+
   // remove constrol characters
   substr.erase(remove_if(substr.begin(), substr.end(), ::iscntrl), substr.end());
-  
+
   return substr;
 }
 
@@ -5586,11 +5632,11 @@ string RemoveControlCharacters(string toRemove)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 string RemoveSpaces(string toRemove)
 {
-  string substr = toRemove; 
-      
+  string substr = toRemove;
+
   // remove constrol characters
   substr.erase(remove_if(substr.begin(), substr.end(), ::isspace), substr.end());
-  
+
   return substr;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -5601,16 +5647,16 @@ string RemoveSpaces(string toRemove)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 string ReformatPath(string old_path)
 {
-  
+
   cout << "The old path was: " << old_path << endl;
   string path = old_path;
   //path.replace( path.begin(), path.end(), "\\", "/"); // replace all '//' to '/'
   //path.replace( path.begin(), path.end(), "\\", "/"); // replace all '\\' to '/'
   cout << "The new path is: " << path << endl;
-  
+
   cout << "THIS DOES NOT WORK!!!!!!!! LINE 5296 LSDStatstools" << endl;
-  
-  
+
+
   return path;
 }
 
@@ -5627,7 +5673,7 @@ float inverfc(float p)
   if (p >= 2.0)
   {
     cout << "ERROR - arguement outside permitted range - returning arbitrary value = 100\n";
-    return 100;    
+    return 100;
   }
   if (p <= 0.0)
   {
@@ -5649,9 +5695,9 @@ float inverf(float p)
 {
   return inverfc(1.-p);
 }
- 
+
 // DISJOINT SET STUFF
-DisjointSet::DisjointSet() : elements(0), sets(0) {};  
+DisjointSet::DisjointSet() : elements(0), sets(0) {};
 
 DisjointSet::~DisjointSet(){
   for(int i = 0; i < int(DSnodes.size()); ++i) delete DSnodes[i];
@@ -5674,7 +5720,7 @@ DSnode* DisjointSet::Find(DSnode* node){ //Find with path compression
   else{
     node->parent = Find(node->parent);
     return node->parent;
-  } 
+  }
 }
 
 void DisjointSet::Union(DSnode* node1, DSnode* node2){
@@ -5727,7 +5773,7 @@ int DisjointSet::SetCount(){
 int DisjointSet::Reduce(){
   int j=0;
   for(int i = 0; i < elements; ++i) if(DSnodes[i]->parent == DSnodes[i]) DSnodes[i]->i_node = j++;
-  return j; 
+  return j;
 }
 
 void DisjointSet::Reset(){
@@ -5735,6 +5781,3 @@ void DisjointSet::Reset(){
 }
 
 #endif
-
-
-
