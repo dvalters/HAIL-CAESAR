@@ -4440,7 +4440,7 @@ LSDRaster LSDRaster::calculate_slope_angles()
     {
       if(RasterData[row][col] != NoDataValue)
       {
-        slope_angle[i][j] = atan(RasterData[row][col]);
+        slope_angle[row][col] = atan(RasterData[row][col]);
       }
     }
   }
