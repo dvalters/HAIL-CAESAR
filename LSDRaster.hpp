@@ -123,7 +123,7 @@ class LSDRaster
 
   /// @brief The create function. This is default and throws an error.
   LSDRaster()             { create(); }
-  
+
   /// @brief Create an LSDRaster from a file.
   /// Uses a filename and file extension
   /// @return LSDRaster
@@ -144,15 +144,15 @@ class LSDRaster
   LSDRaster(int nrows, int ncols, float xmin, float ymin,
             float cellsize, float ndv, Array2D<float> data)
       { create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
-  
+
   /// @brief Create an LSDRaster from memory, with the elvation
   /// data stored as double precision floats.
-  /// @return LSDRaster    
+  /// @return LSDRaster
   /// @details Created to maintain compatibility with LSDCatchmentModel
   /// @author DAV
   LSDRaster(int nrows, int ncols, double xmin, double ymin,
             double cellsize, double ndv, Array2D<double> data)
-      { create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }    
+      { create(nrows, ncols, xmin, ymin, cellsize, ndv, data); }
 
   /// @brief Create an LSDRaster from memory, includes georeferencing
   /// @return LSDRaster
@@ -168,7 +168,7 @@ class LSDRaster
   ///containing the data to be written.
   LSDRaster(int nrows, int ncols, float xmin, float ymin,
       float cellsize, float ndv, Array2D<float> data, map<string,string> temp_GRS)
-  { create(nrows, ncols, xmin, ymin, cellsize, ndv, data, temp_GRS); } 
+  { create(nrows, ncols, xmin, ymin, cellsize, ndv, data, temp_GRS); }
 
 
   // Get functions
@@ -187,15 +187,15 @@ class LSDRaster
   int get_NoDataValue() const      { return NoDataValue; }
   /// @return Raster values as a 2D Array.
   Array2D<float> get_RasterData() const { return RasterData.copy(); }
-  
+
   /// @brief Get the raw raster data, double format
-  /// @author DAV  
+  /// @author DAV
   Array2D<double> get_RasterData_dbl() const { return RasterData_dbl.copy(); }
-  
+
   /// @brief Get the raw raster data, integer format
-  /// @author DAV  
+  /// @author DAV
   Array2D<int> get_RasterData_int() const { return RasterData_int.copy(); }
-  
+
   /// @return map containing the georeferencing strings
   map<string,string> get_GeoReferencingStrings() const { return GeoReferencingStrings; }
 
@@ -241,9 +241,9 @@ class LSDRaster
   /// @brief Reads a raster from an ascii file for use in LSDCatchmentModel
   /// @bug You can't return a TNT::Array properly in a function. See google for details.
   /// @author DAV
-  /// @return Returns a 2D Array of the raster file. 
+  /// @return Returns a 2D Array of the raster file.
   TNT::Array2D<double> get_ascii_raster(string FILENAME);
-  
+
   /// @brief reads a raster from an ascii file, populates an LSDRaster object array
   /// @author DAV
   /// @details This method takes a filename (the .asc file).
@@ -274,11 +274,11 @@ class LSDRaster
   /// @author SMM
   /// @date 01/01/12
   void write_raster(string filename, string extension);
-  
+
   /// @brief This writes rasters from Arrays of type <double> to ascii format.
   /// @details Sorry for duplicating a load of code, but I couldn't think
   /// of a good way to overload the function without passing the raster data array or
-  /// breaking someone elses code. 
+  /// breaking someone elses code.
   /// @param filename a string of the filename _without_ the extension.
   /// @param extension a string of the extension _without_ the leading dot
   /// @author DAV
@@ -287,27 +287,27 @@ class LSDRaster
 
   /// @brief Checks to see if two rasters have the same dimensions
   /// @detail Does NOT check georeferencing
-  /// @param Compare_raster: the raster to compare 
+  /// @param Compare_raster: the raster to compare
   /// @author SMM
   /// @date 04/05/2015
   bool does_raster_have_same_dimensions(LSDRaster& Compare_raster);
 
   /// @brief Checks to see if two rasters have the same dimensions
   /// @detail Does NOT check georeferencing
-  /// @param Compare_raster: the raster to compare 
+  /// @param Compare_raster: the raster to compare
   /// @author SMM
   /// @date 04/05/2015
   bool does_raster_have_same_dimensions(LSDIndexRaster& Compare_raster);
 
 
   /// @brief Checks to see if two rasters have the same georeferencing
-  /// @param Compare_raster: the raster to compare 
+  /// @param Compare_raster: the raster to compare
   /// @author SMM
   /// @date 02/03/2015
   bool does_raster_have_same_dimensions_and_georeferencing(LSDRaster& Compare_raster);
 
   /// @brief Checks to see if two rasters have the same georeferencing
-  /// @param Compare_raster: the raster to compare 
+  /// @param Compare_raster: the raster to compare
   /// @author SMM
   /// @date 02/03/2015
   bool does_raster_have_same_dimensions_and_georeferencing(LSDIndexRaster& Compare_raster);
@@ -316,7 +316,7 @@ class LSDRaster
   /// @brief Method which takes a new xmin and ymax value and modifys the GeoReferencingStrings
   /// map_info line to contain these new values.
   ///
-  /// @details Intended for use in the rastertrimmer methods and is called from within these methods. 
+  /// @details Intended for use in the rastertrimmer methods and is called from within these methods.
   /// Modifying georeferencing information by hand is messy and should be avoided if
   /// at all possible.
   /// @param NewXmin floating point value of the new minimum x value in the raster.
@@ -351,10 +351,10 @@ class LSDRaster
   /// @author SMM
   /// @date 6/11/14
   int Find_UTM_central_meridian(int UTM_zone);
-  
+
   /// @brief this function gets the UTM_zone and a boolean that is true if
   /// the map is in the northern hemisphere
-  /// @param UTM_zone the UTM zone. Replaced in function. 
+  /// @param UTM_zone the UTM zone. Replaced in function.
   /// @param is_North a boolean that is true if the DEM is in the northern hemisphere.
   ///  replaced in function
   /// @author SMM
@@ -392,7 +392,7 @@ class LSDRaster
   /// @param Converter a converter object (from LSDShapeTools)
   /// @author SMM
   /// @date 22/12/2014
-  void get_lat_and_long_locations(int row, int col, double& lat, 
+  void get_lat_and_long_locations(int row, int col, double& lat,
                   double& longitude, LSDCoordinateConverterLLandUTM Converter);
 
   /// @brief this check to see if a point is within the raster
@@ -412,7 +412,7 @@ class LSDRaster
   /// @date 22/01/2016
   void get_row_and_col_of_a_point(float X_coordinate,float Y_coordinate,int& row, int& col);
 
-  
+
   /// @brief This function returns a vector with the X adn Y minimum and max
   ///   values
   /// @return XYMinMax a vector with four elements
@@ -423,15 +423,15 @@ class LSDRaster
   /// @author SMM
   /// @date 3/7/2015
   vector<float> get_XY_MinMax();
-  
-  ///@brief This function returns the raster data as a vector 
-  ///@return vector<float> with raster data 
-  ///@author FJC 
-  ///@date 06/11/15 
-  vector<float> get_RasterData_vector(); 
-  
-  /// @brief rewrite all the data array values with random numbers (with a 
-  /// uniform distribution). 
+
+  ///@brief This function returns the raster data as a vector
+  ///@return vector<float> with raster data
+  ///@author FJC
+  ///@date 06/11/15
+  vector<float> get_RasterData_vector();
+
+  /// @brief rewrite all the data array values with random numbers (with a
+  /// uniform distribution).
   /// @param range is the range of values.
   /// @author SMM
   /// @date 18/02/14
@@ -455,8 +455,8 @@ class LSDRaster
   /// @brief Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
   /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
   ///  Similar to RasterTrimmer but has a pixel buffer. Useful for CRN data since
-  ///   sometimes the channel in the DEM does not correspond exactly with the 
-  ///   data point. 
+  ///   sometimes the channel in the DEM does not correspond exactly with the
+  ///   data point.
   /// @details Ideal for use with chi analysis tools which output basin and chi m value rasters
   /// which can be predominantly no data. As an example, a 253 Mb file can be reduced to
   /// ~5 Mb with no loss or resampling of data.\n
@@ -466,13 +466,13 @@ class LSDRaster
   /// @date 18/03/15
   LSDRaster RasterTrimmerPadded(int padded_pixels);
 
-  /// @brief Takes a raster and trims nodata from around the edges to 
+  /// @brief Takes a raster and trims nodata from around the edges to
   /// result in a rectangular LSDRaster
   /// @return A trimmed LSDRaster object.
   /// @author SMM
   /// @date 5/11/14
   LSDRaster RasterTrimmerSpiral();
-  
+
   /// @brief This returns a clipped raster that has the same dimensions as the
   ///  smaller raster
   /// @param smaller_raster the raster to which the bigger raster should be
@@ -495,7 +495,7 @@ class LSDRaster
   /// @author SWDG
   /// @date 29/8/13
   LSDRaster LSDRasterTemplate(Array2D<float> InputData);
-  
+
   /// @brief Strips the edge rows/columns of a LSDRaster on each side of the array.
   /// @details This removes 1 pixel/grid cell from each side of an LSDRaster
   ///  Note that it modifies the original raster and reassigns the RasterData_dbl
@@ -528,11 +528,11 @@ class LSDRaster
   /// @author JAJ (entered into trunk SMM)
   /// @date 01/02/2014 modified 09/06/2014 by SMM
   float mean_elevation(void);
-  
+
   /// @brief Calculates max elevation of a raster
   /// @return The spatially distributed relief
   /// @author JAJ (entered into trunk SMM)
-  /// @date 01/02/2014 
+  /// @date 01/02/2014
   float max_elevation(void);
 
   /// @brief Calculates mean relief of a raster, it defaults to a circular kernal
@@ -565,7 +565,7 @@ class LSDRaster
   /// @date 16/02/2014
   float WrapSample(int row, int col);
 
-  /// @brief This sets a value in the data array withthe added feature that it 
+  /// @brief This sets a value in the data array withthe added feature that it
   /// wraps beyond NRows and NCols.
   /// @param The row of data to be reset.
   /// @param The column of the data to be reset.
@@ -575,62 +575,62 @@ class LSDRaster
   void SetWrapSample(int row, int col, float value);
 
   /// @brief This sets the corners of features as the first step in the diamond
-  /// square algorithm. 
+  /// square algorithm.
   /// @param The first parameter is the feature size. This needs to be a power of 2, but
   /// this is set by the parent DiamondSquare function (that is, this function should not
-  /// be called independantly. 
-  /// @param The scale is effectivly the maximum relief of the surface to be produced by the 
+  /// be called independantly.
+  /// @param The scale is effectivly the maximum relief of the surface to be produced by the
   /// algorithm.
   /// @author SMM
   /// @date 16/02/2014
   void DSSetFeatureCorners(int featuresize, float scale);
 
-  /// @brief This is the square sampling step of the diamond square algorithm: it takes 
+  /// @brief This is the square sampling step of the diamond square algorithm: it takes
   /// the average of the four corners and adds a random number to set the centrepoint
-  /// of a square. 
+  /// of a square.
   /// @param The row of the centrepoint.
   /// @param The column of the centrepoint.
   /// @param The size of this square (in pixels, must be divisible by 2).
   /// @param The random value added to the average of the four corners.
   /// @author SMM
-  /// @date 16/02/2014 
+  /// @date 16/02/2014
   void DSSampleSquare(int row,int col, int size, float value);
-  
-  /// @brief This is the diamond sampling step of the diamond square algorithm: it takes 
+
+  /// @brief This is the diamond sampling step of the diamond square algorithm: it takes
   /// the average of the four corners and adds a random number to set the centrepoint
-  /// of a diamond. 
+  /// of a diamond.
   /// @param The row of the centrepoint.
   /// @param The column of the centrepoint.
   /// @param The size of this diamond (in pixels, must be divisible by 2).
   /// @param The random value added to the average of teh four corners.
   /// @author SMM
-  /// @date 16/02/2014 
+  /// @date 16/02/2014
   void DSSampleDiamond(int row, int col, int size, float value);
 
   /// @brief This is the sampling function for the diamond square algorithm: it
   /// runs both a diamond and a square sampling for each step.
   ///
-  /// @param The stepsize, which is the size of the diamonds and the squares. 
+  /// @param The stepsize, which is the size of the diamonds and the squares.
   /// @param The scale which sets the maxmum relief within a particular square or
   /// diamond and is scaled by the stepsize (that is smaller squares have smaller scales).
   ///
   /// @author SMM
-  /// @date 16/02/2014 
+  /// @date 16/02/2014
   void DiamondSquare_SampleStep(int stepsize, float scale);
- 
+
   /// @brief This is the driving function for the diamond square algorithm.
   /// @details The driving function takes the current raster and then pads it
   /// in each direction to have rows and columns that are the nearest powers
   /// of 2. The xllocation and yllocation data values are preserved. The function
   /// returns a pseudo fractal landscape generated with the diamond square algorithm
-  /// 
+  ///
   /// @param feature order is an interger n where the feature size consists of 2^n nodes.
   /// If the feature order is set bigger than the dimensions of the parent raster then
   /// this will default to the order of the parent raster.
   /// @param Scale is a floating point number that sets the maximum relief of the resultant raster.
   /// @return Returns a diamond square pseudo-fractal surface in and LSDRaster object.
   /// @author SMM
-  /// @date 16/02/2014 
+  /// @date 16/02/2014
   LSDRaster DiamondSquare(int feature_order, float scale);
 
   // Functions relating to shading, shadowing and shielding
@@ -665,28 +665,28 @@ class LSDRaster
   /// @date 11/4/13
   Array2D<float> Shadow(int theta, int phi);
 
-  /// @brief Function to determine areas of a DEM that are in shadow from a 
-  /// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
+  /// @brief Function to determine areas of a DEM that are in shadow from a
+  /// given radiation source defined by an Azimuth and Zenith following Codilean (2006).
   ///
   /// @details Performs a coordinate transformation, rotating the x,y,z coordinates about the
-  /// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith. 
-  /// Shaded cells are then found by tracking in the direction of the radiation source and 
+  /// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith.
+  /// Shaded cells are then found by tracking in the direction of the radiation source and
   /// looking for transformed z values greater than that at the cell of interest which would
   /// therefore cast a shadow.
   ///
   /// @param Azimuth of the illumination source in degrees.
   /// @param ZenithAngle of the illumination source in degrees
-  /// @return Hillshaded LSDIndexRaster 
+  /// @return Hillshaded LSDIndexRaster
   /// @author MDH
   /// @date Feb 2015
   LSDRaster CastShadows(int Azimuth, int ZenithAngle);
-  
-  /// @brief Function to determine areas of a DEM that are in shadow from a 
-  /// given radiation source defined by an Azimuth and Zenith following Codilean (2006). 
+
+  /// @brief Function to determine areas of a DEM that are in shadow from a
+  /// given radiation source defined by an Azimuth and Zenith following Codilean (2006).
   ///
   /// @details Performs a coordinate transformation, rotating the x,y,z coordinates about the
-  /// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith. 
-  /// Shaded cells are then found by tracking in the direction of the radiation source and 
+  /// Azimuth and Zenith such that the coordinates are aligned with the Azimuth and Zenith.
+  /// Shaded cells are then found by tracking in the direction of the radiation source and
   /// looking for transformed z values greater than that at the cell of interest which would
   /// therefore cast a shadow.
   ///
@@ -696,11 +696,11 @@ class LSDRaster
   /// @author MDH
   /// @date Feb 2015
   Array2D<float> Shadows(int Azimuth, int ZenithAngle);
-  
-  /// @brief This function generates a topographic shielding raster using the algorithm 
+
+  /// @brief This function generates a topographic shielding raster using the algorithm
   /// outlined in Codilean (2006).
   ///
-  /// @details Creating a raster of values between 0 and 1 of shadowed cells which can 
+  /// @details Creating a raster of values between 0 and 1 of shadowed cells which can
   /// be used as a scaling factor in Cosmo analysis.
   ///
   /// Goes further than the original algorithm allowing a theoretical theta,
@@ -719,9 +719,9 @@ class LSDRaster
   /// @date 11/4/13
   LSDRaster TopographicShielding(int theta_step, int phi_step);
   LSDRaster TopographicShielding();
-  
+
   /// @brief Surface polynomial fitting and extraction of topographic metrics
-  /// 
+  ///
   /// @detail A six term polynomial surface is fitted to all the points that lie
   /// within circular neighbourhood that is defined by the designated window
   /// radius.  The user also inputs a binary raster, which tells the program
@@ -750,12 +750,12 @@ class LSDRaster
   /// @author DTM
   /// @date 28/03/2014
   vector<LSDRaster> calculate_polyfit_surface_metrics(float window_radius, vector<int> raster_selection);
-    
+
   /// @brief Surface polynomial fitting and extraction of roughness metrics
-  /// 
-  /// @detail 
+  ///
+  /// @detail
   /// A six term polynomial surface is fitted to all the points that lie within
-  /// circular neighbourhood that is defined by the designated window radius. 
+  /// circular neighbourhood that is defined by the designated window radius.
   /// This surface is used to determine the orientation of the surface normal
   /// vector at each cell.  The algorithm then searches through the grid again,
   /// using a second search window to look for the local variability in normal
@@ -793,7 +793,7 @@ class LSDRaster
   ///
   /// @details The coefficient matrices are overwritten during the running of this member function.
   ///
-  /// Have N simultaneous linear equations, and N unknowns.  
+  /// Have N simultaneous linear equations, and N unknowns.
   /// => b = Ax, where x is a 1xN array containing the coefficients we need for
   /// surface fitting.
   /// A is constructed using different combinations of x and y, thus we only need
@@ -827,7 +827,7 @@ class LSDRaster
   /// @author FC
   /// @date 24/03/13
   LSDRaster calculate_polyfit_elevation(Array2D<float>& f);
-  
+
   /// @brief  This function calculates the slope based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -838,7 +838,7 @@ class LSDRaster
   /// @author DTM, SMM
   /// @date 01/01/12
   LSDRaster calculate_polyfit_slope(Array2D<float>& d, Array2D<float>& e);
-  
+
   /// @brief  This function calculates the aspect based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -875,7 +875,7 @@ class LSDRaster
   /// @date 01/01/12
   LSDRaster calculate_polyfit_planform_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
                         Array2D<float>& d, Array2D<float>& e);
-  
+
   /// @brief  This function calculates the profile curvature based on a polynomial fit.
   ///
   /// @details the window is determined by the calculate_polyfit_coefficient_matrices
@@ -905,7 +905,7 @@ class LSDRaster
   /// @date 01/01/12
   LSDRaster calculate_polyfit_tangential_curvature(Array2D<float>& a, Array2D<float>& b, Array2D<float>& c,
                              Array2D<float>& d, Array2D<float>& e);
-  
+
   /// @brief This function identifies approximate position of stationary points within
   /// discrete surface using a threshold slope.
   ///
@@ -934,33 +934,33 @@ class LSDRaster
   /// @author DTM
   /// @date 30/04/13
   LSDRaster get_hilltop_curvature(LSDRaster& curvature, LSDRaster& Hilltops);
-  
+
   /// @brief Removes positive hilltop curvature values
   /// @details Modifies the hilltop curvature raster to remove pixels with
   /// positive curvature caused by noise
   /// @param hilltop_curvature hilltop curvature input raster
   /// @return LSDRaster of hilltop curvature with positive values removed
   /// @author FJC
-  /// @date 24/03/14 
+  /// @date 24/03/14
   LSDRaster remove_positive_hilltop_curvature(LSDRaster& hilltop_curvature);
 
-  /// @brief Gets the percentage of bedrock ridges 
-  /// @details Uses the hilltop curvature raster and the roughness raster. If the 
-  /// roughness value is greater than the threshold (set to 0.015) then the pixel 
-  /// is designated bedrock. 
-  /// @param roughness roughness input raster 
-  /// @param hilltop_curvature hilltop curvature input raster 
-  /// @param threshold threshold value to be designated bedrock 
-  /// @return float with percentage bedrock pixels 
-  /// @author FJC 
-  /// @date 01/04/15   
-  float get_percentage_bedrock_ridgetops(LSDRaster&roughness, LSDRaster& hilltop_curvature, float threshold); 
+  /// @brief Gets the percentage of bedrock ridges
+  /// @details Uses the hilltop curvature raster and the roughness raster. If the
+  /// roughness value is greater than the threshold (set to 0.015) then the pixel
+  /// is designated bedrock.
+  /// @param roughness roughness input raster
+  /// @param hilltop_curvature hilltop curvature input raster
+  /// @param threshold threshold value to be designated bedrock
+  /// @return float with percentage bedrock pixels
+  /// @author FJC
+  /// @date 01/04/15
+  float get_percentage_bedrock_ridgetops(LSDRaster&roughness, LSDRaster& hilltop_curvature, float threshold);
 
   /// @brief Calculates slope angle in radians. Needs the slope raster
   /// @return LSDRaster containing the slope angle in radians. For use in trigonometric
   /// calculations
   /// @author SMM
-  /// @date 13/11/14 
+  /// @date 13/11/14
   LSDRaster calculate_slope_angles();
 
   /// @brief Calculates the water supply rate required for saturation of the hillslope
@@ -971,15 +971,15 @@ class LSDRaster
   /// @param ConstributingArea the contributing area raster, should be in m^2
   /// @param SlopeAngle the angle of the slope (you need to use the function calculate_slope_angles)
   ///  to get this
-  /// @return Water_supply_rate_for_saturation a raster holding the water supply 
-  /// rate required for saturation. The units will be the same as hydraulic 
+  /// @return Water_supply_rate_for_saturation a raster holding the water supply
+  /// rate required for saturation. The units will be the same as hydraulic
   /// conductivity but the lenght unit must be metres (to match contributing area)
   /// @author SMM
-  /// @date 13/11/14 
+  /// @date 13/11/14
   LSDRaster calculate_water_supply_rate_for_saturation(float soil_thick,
                   float K, LSDRaster& ContributingArea, LSDRaster& SlopeAngle);
 
-  /// @brief This calculates the factor of safety if the soil is completely 
+  /// @brief This calculates the factor of safety if the soil is completely
   /// saturated
   /// @details Factor of safety <1 == unstable
   /// @param C_r root cohesion in N/m^2
@@ -989,10 +989,10 @@ class LSDRaster
   /// @param SlopeAngle the angle of the slope (you need to use the function calculate_slope_angles)
   ///  to get this
   /// @return Factor_of_safety The factor of safety when the soil is saturated
-  /// rate required for saturation. The units will be the same as hydraulic 
+  /// rate required for saturation. The units will be the same as hydraulic
   /// conductivity but the lenght unit must be metres (to match contributing area)
   /// @author SMM
-  /// @date 13/11/14 
+  /// @date 13/11/14
   LSDRaster calculate_factor_of_safety_at_saturation(float C_r, float rho_s,
                          float soil_thick, float tan_phi, LSDRaster& SlopeAngle);
 
@@ -1012,7 +1012,7 @@ class LSDRaster
   /// @date 13/09/2012
   void calculate_polyfit_directional_cosines(Array2D<float>& d, Array2D<float>& e, Array2D<float>& l,
                                              Array2D<float>& m, Array2D<float>& n);
-  
+
   /// @brief Find eigenvalues for orientation matrix
   /// @param window_radius
   /// @param l coefficeint l.
@@ -1048,7 +1048,7 @@ class LSDRaster
   /// @return LSDIndexRaster of rock exposure.
   /// @author DTM
   LSDRaster calculate_REI(Array2D<float>& a_plane, Array2D<float>& b_plane, float CriticalSlope);
-  
+
   /// @brief Create the REI raster (imporoved wrapper)
   /// Rock exposure index defined as areas with local slope exceeding some
   /// critical slope as defined by DiBiase et al. (2012)
@@ -1234,7 +1234,7 @@ class LSDRaster
   /// @author Martin Hurst
   /// @date 12/3/13
   LSDRaster fill(float& MinSlope);
-    
+
   // multidirection flow routing
   /// @brief Generate a flow area raster using a multi direction algorithm.
   ///
@@ -1250,7 +1250,7 @@ class LSDRaster
   /// @author SWDG
   /// @date 18/4/13 - 24/4/13
   LSDRaster MDFlow(vector<string> BoundaryConditions);
-  
+
   /// @brief Generate a flow area raster using a multi direction algorithm.
   ///
   /// @details Computes the proportion of all downslope flows for each cell in the input
@@ -1268,7 +1268,7 @@ class LSDRaster
   /// @author SWDG
   /// @date 18/4/13
   LSDRaster FreemanMDFlow();
-  
+
   /// @brief Route flow from one source pixel using FreemanMDFlow.  Adapted from SWDG's
   /// code above.
   /// @param i_source -> the row index of the source pixel
@@ -1276,12 +1276,12 @@ class LSDRaster
   /// @author DTM
   /// @date 07/11/2013
   LSDRaster FreemanMDFlow_SingleSource(int i_source,int j_source);
-  
+
   /// @brief Extracts a multi-pixel channel network, as opposed to a single thread
   /// channel, using method outlined in Pelletier, 2013, WRR; A robust, two-parameter
-  /// method for the extraction of drainage networks from high-resolution digital 
+  /// method for the extraction of drainage networks from high-resolution digital
   ///elevation models (DEMs): Evaluation using synthetic and real-world DEMs
-  /// 
+  ///
   /// @detail First runs Freeman MD flow routing algorithm from previously identified
   /// source.  Then removes all pixels from the channel network if the ratio of
   /// discharge to upstream channel heads is below a user-specified threshold
@@ -1292,7 +1292,7 @@ class LSDRaster
   /// @author DTM
   /// @date 22/05/2014
   LSDRaster FMDChannelsFromChannelHeads(vector<int>& channel_heads_rows, vector<int>& channel_heads_cols, float R_threshold);
-  
+
   /// @brief Generate a flow area raster using a multi direction algorithm.
   ///
   /// @details Computes the proportion of all downslope flows for each cell in the input
@@ -1310,7 +1310,7 @@ class LSDRaster
   /// @author SWDG
   /// @date 18/4/13
   LSDRaster QuinnMDFlow();
-  
+
   /// @brief Generate a flow area raster using a multi 2-direction algorithm.
   ///
   /// @details Computes the proportion of all downslope flows for each cell in the input
@@ -1367,7 +1367,7 @@ class LSDRaster
   /// @author SWDG
   /// @date 04/2013
   LSDRaster RidgeSmoother(int WindowRadius);
-  
+
   /// @brief Pass a buffer over a ridge LSDRaster object to increase sampling area.
   ///
   /// @details Buffers equally in all directions, so use with care to avoid
@@ -1406,13 +1406,13 @@ class LSDRaster
   /// @brief Write the area(in spatial units) of each basin to the basin's pixels.
   ///
   /// @details Big optimisation following the Drainage density's design pattern.
-  /// Works by flattening the raster into a 1D vector, sorting it and summing 
+  /// Works by flattening the raster into a 1D vector, sorting it and summing
   /// each run of Basin IDs. Gives a fast count of the number of pixels per basin,
   /// which is multiplied by the cellsize to get an area in spatial units.
   /// @param Basins LSDIndexRaster of drainage basins to measure.
   /// @return LSDRaster of basin areas.
   /// @author SWDG
-  /// @date 20/11/2013  
+  /// @date 20/11/2013
   LSDRaster BasinArea(LSDIndexRaster Basins);
 
   /// @brief Convert a basin, given by a basin ID, into a chain of xy coordinates for
@@ -1420,7 +1420,7 @@ class LSDRaster
   ///
   /// @details Produces a generalised polygon and will not cope well with complex geometries.
   /// \n\n
-  /// Needs to be updated to write data into an esri ascii format so the files can 
+  /// Needs to be updated to write data into an esri ascii format so the files can
   /// be loaded into arc. Currently writes to a text file called chain.txt.
   /// @param Basins IndexRaster of basins
   /// @param BasinOfInterest integer of the basin ID to be converted.
@@ -1430,13 +1430,13 @@ class LSDRaster
 
   /// @brief Punch basins out of an LSDRaster to create DEMs of a single catchment.
   ///
-  /// @details Writes files in the user supplied format (flt or asc) and returns a vector 
+  /// @details Writes files in the user supplied format (flt or asc) and returns a vector
   /// of LSDRasters so they can be loaded into other functions.
   /// Updated 24/9/13 to return a vector of LSDRasters - SWDG.
   /// @param basin_ids Vector of basins to punch out.
   /// @param BasinArray Basin outlines used to punch out the LSDRasters.
-  /// @return Vector of output filenames. 
-  /// @author SWDG 
+  /// @return Vector of output filenames.
+  /// @author SWDG
   /// @date 27/8/13
   vector<LSDRaster> BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray);
 
@@ -1445,7 +1445,7 @@ class LSDRaster
   ///
   /// @details Requires that both rasters share a spatial extent.
   /// @param Cutter an LSDRaster to be used as the template.
-  /// @return LSDRaster of the data cut to the other ratser's shape. 
+  /// @return LSDRaster of the data cut to the other ratser's shape.
   /// @author SWDG
   /// @date 06/07/15
   LSDRaster CookieCutRaster(LSDRaster Cutter);
@@ -1453,7 +1453,7 @@ class LSDRaster
   /// @brief Collect all basin average metrics into a single file.
   ///
   /// @details File is written with the format: \n\n
-  /// "basin_id slope elevation aspect area drainage_density hilltop_curvature 
+  /// "basin_id slope elevation aspect area drainage_density hilltop_curvature
   /// hillslope_length mean_slope hilltop_relief hilltop_aspect E* R* LH_bins LH_splines LH_density"
   /// @param Basins LSDIndexRaster of drainage basins to sample.
   /// @param Slope
@@ -1466,9 +1466,9 @@ class LSDRaster
   /// @param MeanSlope
   /// @param Relief
   /// @param MeanAspect
-  /// @param LH_drainage_density Hillslope length for each basin calculated 
-  /// as in Tucker et al 2001 - Added 6/11/13 SWDG. 
-  /// @param LH_Data Array of LH data generated from the Boomerang plotting 
+  /// @param LH_drainage_density Hillslope length for each basin calculated
+  /// as in Tucker et al 2001 - Added 6/11/13 SWDG.
+  /// @param LH_Data Array of LH data generated from the Boomerang plotting
   /// function and compiled using the BasinMetrics Driver - Added 1/11/13 SWDG.
   /// @param CriticalSlope Threshold value for E* and R* values.
   /// @param RasterFilename Filename of the input raster data.
@@ -1478,9 +1478,9 @@ class LSDRaster
                               LSDRaster& Area, LSDRaster& DrainageDensity, LSDRaster& Cht, LSDRaster& HillslopeLength,
                               LSDRaster& MeanSlope, LSDRaster& Relief, LSDRaster& MeanAspect, LSDRaster& LH_drainage_density,
                               Array2D<float> LH_Data, float CriticalSlope, string RasterFilename);
-  
+
   /// @brief Takes a raster and a corresponding index raster, and calculates the mean, sd
-  /// and standard error by index.  Returns four vectors: mean, st.dev., st.err and 
+  /// and standard error by index.  Returns four vectors: mean, st.dev., st.err and
   /// Number of points for each category.
   /// @param input index raster
   /// @param output vector with mean values
@@ -1489,15 +1489,15 @@ class LSDRaster
   /// @param output vector with number of points
   /// @author DTM
   /// @date 28/11/2013
-  void raster_statistics_by_index(LSDIndexRaster& IndexRaster, vector<float>& mean_vector, 
+  void raster_statistics_by_index(LSDIndexRaster& IndexRaster, vector<float>& mean_vector,
           vector<float>& sd_vector, vector<float>& serr_vector, vector<int>& Npts_vector);
-  
+
 
   /// @brief Generate data in two text files to create a boomerang plot as in Roering et al [2007].
   ///
   /// @details Should now do all it needs to do: if it gets any more complex I'll look at
-  /// refactoring it into a few methods. 
-  /// The latest addition is to take a bin_threshold to allow different sizes of bins to be 
+  /// refactoring it into a few methods.
+  /// The latest addition is to take a bin_threshold to allow different sizes of bins to be
   /// removed from the final analysis - SWDG 11/11/13.
   /// @param Slope LSDRaster of slope.
   /// @param D_inf D-infinity Flowarea LSDRaster.
@@ -1508,7 +1508,7 @@ class LSDRaster
   /// @return A pair of floats containing the two LH values in the order LH(bins), LH(splines).
   /// @author SWDG
   /// @date 27/8/13
-  pair<float,float> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename, 
+  pair<float,float> Boomerang(LSDRaster& Slope, LSDRaster& D_inf, string RasterFilename,
           float log_bin_width = 0.1, int SplineResolution = 200, float bin_threshold = 0.05);
 
   /// @brief Calculate drainage density of a set of input basins.
@@ -1517,8 +1517,8 @@ class LSDRaster
   /// Now only traverses the DEM 3 times regardless of the number of input basins,
   /// previously traversed the DEM (2*No of Basins + 2) times. \n\n
   /// Works by creating a pair of vectors of basin IDs and stream length for each pixel
-  /// which are then sorted by basin ID and summed in order to calculate DD in a single 
-  /// pass over the DEM.    
+  /// which are then sorted by basin ID and summed in order to calculate DD in a single
+  /// pass over the DEM.
   /// @param StreamNetwork LSDIndexRaster of the stream network.
   /// @param Basins LSDIndexRaster of the basins to be analysed.
   /// @param FlowDir Array2D of flowdirections generated by FlowInfo.get_FlowDirection().
@@ -1527,37 +1527,37 @@ class LSDRaster
   /// @date 19/11/13
   LSDRaster DrainageDensity(LSDIndexRaster& StreamNetwork, LSDIndexRaster& Basins, Array2D<int> FlowDir);
 
-  /// @brief Calculate drainage density of a DEM. 
-  /// @details Calculated as flow length/raster area  
-  /// @param StreamNetwork LSDIndexRaster of the stream network. 
-  /// @param FlowDir Array2D of flowdirections generated by FlowInfo.get_FlowDirection(). 
-  /// @return float with drainage density of raster 
-  /// @author FJC 
-  /// @date 27/03/15  
-  float get_drainage_density_of_raster(LSDIndexRaster& StreamNetwork, Array2D<int> FlowDir); 
+  /// @brief Calculate drainage density of a DEM.
+  /// @details Calculated as flow length/raster area
+  /// @param StreamNetwork LSDIndexRaster of the stream network.
+  /// @param FlowDir Array2D of flowdirections generated by FlowInfo.get_FlowDirection().
+  /// @return float with drainage density of raster
+  /// @author FJC
+  /// @date 27/03/15
+  float get_drainage_density_of_raster(LSDIndexRaster& StreamNetwork, Array2D<int> FlowDir);
 
-  /// @brief Simple method to calculate drainage density for each basin and then 
+  /// @brief Simple method to calculate drainage density for each basin and then
   /// convert these values into a hillslope length raster.
   ///
-  /// @details The LH value is calculated using LH = 1/2*DD [Tucker et al 2001].  
+  /// @details The LH value is calculated using LH = 1/2*DD [Tucker et al 2001].
   /// @param StreamNetwork LSDIndexRaster of the stream network.
   /// @param Basins LSDIndexRaster of the basins to be analysed.
   /// @param FlowDir Array2D of flowdirections generated by FlowInfo.get_FlowDirection().
-  /// @return Raster of basin average hillslope lengths. 
+  /// @return Raster of basin average hillslope lengths.
   /// @author SWDG
-  /// @date 7/11/13 
-  LSDRaster HillslopeLengthFromDrainageDensity(LSDIndexRaster& StreamNetwork, 
+  /// @date 7/11/13
+  LSDRaster HillslopeLengthFromDrainageDensity(LSDIndexRaster& StreamNetwork,
                              LSDIndexRaster& Basins, Array2D<int> FlowDir);
 
   /// @brief Method to export thinned vector field data to a text file.
   ///
-  /// @details The file is written with the format "i j Magnitude Direction".  
+  /// @details The file is written with the format "i j Magnitude Direction".
   /// @param Magnitude LSDRaster of the vector's magnitude.
   /// @param Direction LSDRaster of the vector's direction.
   /// @param output_file Filename for the output text file.
   /// @param step Integer value used to thin the data, 1 preserves all the data, 2 keeps every second point and so on.
   /// @author SWDG
-  /// @date 20/1/14   
+  /// @date 20/1/14
   void GetVectors(LSDRaster Magnitude, LSDRaster Direction, string output_file, int step);
 
   // Smoothing tools
@@ -1584,9 +1584,9 @@ class LSDRaster
   /// @return Filtered LSDRaster object.
   /// @author MDH, DTM
   /// @date February 2012
-  LSDRaster NonLocalMeansFilter(int WindowRadius=2, int SimilarityRadius=2, 
+  LSDRaster NonLocalMeansFilter(int WindowRadius=2, int SimilarityRadius=2,
                                 int DegreeFiltering=2, float Sigma=1.25);
-   
+
   /// @brief Creates a buffer around an array (of size SimilarityRadius) and
   /// gives the new border mirror symmetric values of the original array reflected
   /// across the boundary.
@@ -1625,9 +1625,9 @@ class LSDRaster
   ///  @author David Milodowski
   ///  @date Feb 2015
   LSDRaster GaussianFilter(float sigma, int kr = 0);
-  
+
   ///  @brief Filters the raster using a Perona-Malik non-linear diffusion filter
-  /// 
+  ///
   ///  @details This follows the algorithm descibed in Passalacqua et al. (2010), A
   ///  geometric framework for channel network extraction from lidar: Nonlinear diffusion
   ///  and geodesic paths, J. Geophys. Res., 115(F1), F01002, doi:10.1029/2009JF001254.
@@ -1694,7 +1694,7 @@ class LSDRaster
   /// @param FlowDir_array Array of Flowdirections generated by D_inf_FlowDir().
   /// @author SWDG
   /// @date 26/07/13
-  void D_infAccum(int i, int j, Array2D<float> CountGrid, Array2D<float> Flowarea_Raster, 
+  void D_infAccum(int i, int j, Array2D<float> CountGrid, Array2D<float> Flowarea_Raster,
                   Array2D<float> FlowDir_array);
 
   /// @brief Wrapper Function to create a D-infinity flow area raster with one function call.
@@ -1706,15 +1706,15 @@ class LSDRaster
   /// @brief Wrapper Function to create a D-infinity flow area raster, in spatial units, with one function call.
   /// @return LSDRaster of D-inf flow areas in spatial units.
   /// @author SWDG
-  /// @date 16/10/13  
+  /// @date 16/10/13
   LSDRaster D_inf_units();
 
   ///@brief Wrapper Function to convert a D-infinity flow raster into spatial units.
   /// @return LSDRaster of D-inf flow areas in spatial units.
   /// @author MDH (after SWDG)
-  /// @date 5/9/14  
+  /// @date 5/9/14
   LSDRaster D_inf_ConvertFlowToArea();
-  
+
   /// @brief Function to write the D-infinity flow directions to an LSDRaster.
   /// @param dinflow Array of Flowdirections generated by D_inf_FlowDir().
   /// @return LSDRaster of D-inf flow directions in degrees.
@@ -1729,12 +1729,12 @@ class LSDRaster
   /// @author MDH (after SWDG)
   /// @date 26/08/14
   LSDIndexRaster D_inf_watershed(LSDRaster D_inf_FlowDir, int PourRow, int PourCol);
-  
+
   /// @brief Function to calculate the topographic index, a moisture
   /// distribution indicator
   ///
   /// @details Calculates the topographic index, defined as ln(A/S) (Kirkby,
-  /// 1975), where A is the accumulation area and S is the slope.  This is an 
+  /// 1975), where A is the accumulation area and S is the slope.  This is an
   /// indicator of the distribution of moisture within the topography.
   /// @param LSDRaster of Accumulations Area, calculated ideally with D-inf
   /// @param LSDRaster of Slope
@@ -1745,44 +1745,44 @@ class LSDRaster
 
   /// @brief Method to turn a point shapefile into an LSDIndexRaster.
   ///
-  /// @details Can be used to turn a shapefile of channel heads into a sources raster. Does not do 
+  /// @details Can be used to turn a shapefile of channel heads into a sources raster. Does not do
   /// any bounds checking or shapefile type checking.
   /// @param FileName The path and filename of the shapefile to be loaded, must include the file extension.
   /// @return An LSDIndexRaster converted from a point shapefile.
   /// @author SWDG
-  /// @date 13/3/14                     
+  /// @date 13/3/14
   LSDIndexRaster PointShapefileToRaster(string FileName);
-  
+
   /// @brief Method to turn a polyline shapefile into an LSDIndexRaster.
   ///
-  /// @details Can be used to turn a shapefile of a river network into a raster. Does not do 
+  /// @details Can be used to turn a shapefile of a river network into a raster. Does not do
   /// any bounds checking or shapefile type checking.
   ///
-  /// Works by calculating points along each line spaced by less than the data resolution. 
-  /// This has the effect of flaggin every raster cell along a polyline. 
+  /// Works by calculating points along each line spaced by less than the data resolution.
+  /// This has the effect of flaggin every raster cell along a polyline.
   /// @param FileName The path and filename of the shapefile to be loaded, must include the file extension.
   /// @return An LSDIndexRaster converted from a polyline shapefile.
   /// @author SWDG
-  /// @date 21/3/14     
+  /// @date 21/3/14
   LSDIndexRaster PolylineShapefileToRaster(string FileName);
-  
-  /// @brief Method to resample an LSDRaster to a lower resolution. 
+
+  /// @brief Method to resample an LSDRaster to a lower resolution.
   /// @param OutputResolution the resolution in spatial units to be resampled to.
   /// @return An LSDRaster resampled to the OutputResolution.
   /// @author SWDG
-  /// @date 17/3/14   
+  /// @date 17/3/14
   LSDRaster Resample(float OutputResolution);
-  
+
   /// @brief creates a circular mask for neighbourhood statistics
-  ///  
+  ///
   /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
   ///   0 Square neighbourhood
   ///   1 Circular window
-  /// @param window radius of mask 
+  /// @param window radius of mask
   /// @param int neighbourhood_switch -> see above
   /// @return a binary array with the mask
-  /// @author DTM 
-  /// @date 20/06/2014 
+  /// @author DTM
+  /// @date 20/06/2014
   Array2D<int> create_mask(float window_radius,  int neighbourhood_switch);
 
   /// @brief gets mean value for specified circular neighbourhood
@@ -1790,11 +1790,11 @@ class LSDRaster
   /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
   ///   0 Square neighbourhood
   ///   1 Circular window
-  /// @param float window_radius -> radius of neighbourhood 
+  /// @param float window_radius -> radius of neighbourhood
   /// @param int neighbourhood_switch -> see above
-  /// @return an LSDRaster with the mean value of cells in neightbourhood 
-  /// @author DTM 
-  /// @date 20/06/2014   
+  /// @return an LSDRaster with the mean value of cells in neightbourhood
+  /// @author DTM
+  /// @date 20/06/2014
   LSDRaster neighbourhood_statistics_spatial_average(float window_radius, int neighbourhood_switch);
 
   /// @brief gets mean & standard deviation value specified circular neighbourhood
@@ -1802,13 +1802,13 @@ class LSDRaster
   /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
   ///   0 Square neighbourhood
   ///   1 Circular window
-  /// @param float window_radius -> radius of neighbourhood 
+  /// @param float window_radius -> radius of neighbourhood
   /// @param int neighbourhood_switch -> see above
-  /// @return vector<LSDRaster> with 2 LSDRasters, the first with the mean value 
+  /// @return vector<LSDRaster> with 2 LSDRasters, the first with the mean value
   /// of cells in neighbourhood, the second with the standard deviation
-  /// @author DTM 
-  /// @date 24/09/2014    
-  vector<LSDRaster> neighbourhood_statistics_spatial_average_and_SD(float window_radius, 
+  /// @author DTM
+  /// @date 24/09/2014
+  vector<LSDRaster> neighbourhood_statistics_spatial_average_and_SD(float window_radius,
                                                     int neighbourhood_switch);
 
   /// @brief gets relief within value specified circular neighbourhood
@@ -1816,17 +1816,17 @@ class LSDRaster
   /// @details The second argument (neighbourhood_switch) specifies the neighbourhood type:
   ///   0 Square neighbourhood
   ///   1 Circular window
-  /// @param float window_radius -> radius of neighbourhood 
+  /// @param float window_radius -> radius of neighbourhood
   /// @param int neighbourhood_switch -> see above
   /// @return LSDRasters contianing the relief within a neighbourhood
-  /// @author SMM 
-  /// @date 16/11/2014    
-  LSDRaster neighbourhood_statistics_local_relief(float window_radius, 
+  /// @author SMM
+  /// @date 16/11/2014
+  LSDRaster neighbourhood_statistics_local_relief(float window_radius,
                                                     int neighbourhood_switch);
-  
-  /// @brief tests neighbourhood for the fraction of values for which the specified 
+
+  /// @brief tests neighbourhood for the fraction of values for which the specified
   /// condition is met.
-  ///   
+  ///
   /// The second argument (neighbourhood_switch) specifies the neighbourhood type:
   ///   0 Square neighbourhood
   ///   1 Circular window
@@ -1838,16 +1838,16 @@ class LSDRaster
   ///   3 >=
   ///   4 <
   ///   5 <=
-  /// @param float window_radius -> radius of neighbourhood 
+  /// @param float window_radius -> radius of neighbourhood
   /// @param int neighbourhood_switch -> see above
   /// @param int condition_switch -> see above
-  /// @param float test_value -> the value to test against in the conditional statement  
-  /// @return an LSDRaster with the fraction of cells in neightbourhood for which condition statement is true  
-  /// @author DTM 
-  /// @date 20/06/2014 
-  LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch, 
+  /// @param float test_value -> the value to test against in the conditional statement
+  /// @return an LSDRaster with the fraction of cells in neightbourhood for which condition statement is true
+  /// @author DTM
+  /// @date 20/06/2014
+  LSDRaster neighbourhood_statistics_fraction_condition(float window_radius, int neighbourhood_switch,
                     int condition_switch,  float test_value);
-  
+
 
   /// @brief Function to change border pixels to nodata
   /// @param int border_width
@@ -1858,7 +1858,7 @@ class LSDRaster
   /// @date 29/05/2014
   LSDRaster border_with_nodata(int border_width, int irregular_switch = 0);
 
-  /// @brief This function creates a mask that has the value of 1 for cells 
+  /// @brief This function creates a mask that has the value of 1 for cells
   /// that are either on the edge or bordered by nodata (from their 9 neighbors)
   /// @return and LSDIndexRaster with the mask
   /// @author SMM
@@ -1884,8 +1884,8 @@ class LSDRaster
   /// @detail The routine sweeps the raster looking for nodata and filling
   ///  this nodata with an average value from surrounding nodes. The sweeping
   ///  changes directions, four sweep directions in all (+ rows, - rows, + cols, -cols)
-  ///  and it alternates between these directions until the raster is filled. 
-  /// @param window_size the number of pixles around the centre pixel to take the 
+  ///  and it alternates between these directions until the raster is filled.
+  /// @param window_size the number of pixles around the centre pixel to take the
   ///  spatial average
   /// @author SMM
   /// @date 09/12/2014
@@ -1898,13 +1898,13 @@ class LSDRaster
   ///  changes directions, four sweep directions in all (+ rows, - rows, + cols, -cols)
   ///  and it alternates between these directions until the raster is filled.
   ///  The routine is particularly useful for data with holes that is to be
-  ///  prepared for spectral analysis. 
-  /// @param window_size the number of pixles around the centre pixel to take the 
+  ///  prepared for spectral analysis.
+  /// @param window_size the number of pixles around the centre pixel to take the
   ///  spatial average
   /// @author SMM
   /// @date 09/12/2014
   LSDRaster alternating_direction_nodata_fill_with_trimmer(int window_width);
-  
+
   /// @brief Function to create a masked LSDIndexRaster raster based on a conditional statement
   /// @param string Condition ("<", ">", "==", "!=")
   /// @param float TestValue The value that the condition is tested against
@@ -1912,28 +1912,28 @@ class LSDRaster
   /// @author MDH
   /// @date 27/08/2014
   LSDIndexRaster Create_Mask(string Condition, float TestValue);
-  
+
   /// @brief Function to extract an LSDRaster based on a LSDIndexRaster mask
   /// @param LSDIndexRaster TheMask
-  /// @return masked LSDRaster 
+  /// @return masked LSDRaster
   /// @author MDH
   /// @date 27/08/2014
   LSDRaster ExtractByMask(LSDIndexRaster Mask);
 
   /// @brief method to locate channel pixels outlined by Lashermes.
-  /// 
+  ///
   /// @detail picks departure from gaussian behaviour, then uses this as a threshold to create a binary dataset.
-  /// Lashermes, B., E. Foufoula-Georgiou, and W. E. Dietrich (2007), Channel network extraction from high resolution topography using wavelets, Geophys. Res. Lett., 34, L23S04, doi:10.1029/2007GL031140. 
+  /// Lashermes, B., E. Foufoula-Georgiou, and W. E. Dietrich (2007), Channel network extraction from high resolution topography using wavelets, Geophys. Res. Lett., 34, L23S04, doi:10.1029/2007GL031140.
   /// @param string q_q_file A text file containing data to produce a q_q_plot.
-  /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
+  /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold
   /// @author DTM
-  /// @date 11/02/2015 
+  /// @date 11/02/2015
   LSDIndexRaster IsolateChannelsLashermesCurvature(float sigma, string q_q_filename);
   LSDIndexRaster IsolateChannelsLashermesAspect(float sigma, string q_q_filename);
   LSDIndexRaster IsolateChannelsLashermesFull(float sigma, string q_q_filename_prefix);
   LSDIndexRaster IsolateChannelsLashermesCurvatureArea(float sigma, float area_threshold, string q_q_filename);
   /// @brief method to locate channel pixels outlined by Passalacqua et al. (2010).
-  /// 
+  ///
   /// @detail Isolate channelised portions of the landscape using the method proposed by Passalacqua
   /// et al. (2010) A geometric framework for channel network extraction from lidar: Nonlinear
   /// diffusion and geodesic paths, J. Geophys. Res., 115(F1), F01002, doi:10.1029/2009JF001254.
@@ -1941,24 +1941,24 @@ class LSDRaster
   /// @param number of timesteps for non-linear filtering steps - suggest 20 in complex terrain
   /// @param a catchment area threshold for pruning
   /// @param a window radius for surface fitting from which curvature calculation is performed
-  /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
+  /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold
   /// @author DTM
   /// @date 21/04/2015
   LSDIndexRaster IsolateChannelsGeonet(float timesteps, float area_threshold, float window_radius, string q_q_filename);
-  /// @brief uses quantile-quantile analysis to pick departure from gaussian behaviour, then uses this as a threshold to create a binary dataset. 
+  /// @brief uses quantile-quantile analysis to pick departure from gaussian behaviour, then uses this as a threshold to create a binary dataset.
   /// @param string q_q_file A text file containing data to produce a q_q_plot.
-  /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
-  /// @author DTM     /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold 
+  /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold
+  /// @author DTM     /// @return LSDIndexRaster A binary raster where the pixel value is 1 where the input raster exceeded the defined threshold
   /// @author DTM
-  /// @date 10/02/2015 
+  /// @date 10/02/2015
   LSDIndexRaster IsolateChannelsQuantileQuantile(string q_q_filename);
   LSDIndexRaster IsolateChannelsQuantileQuantileAdaptive(int half_width);
-  
+
   /// @brief Function to calculate the curvature threshold used for DrEICH channel extraction which varies across the landscape
   /// @param half_width radius over which to calculate the curvature threshold
-  /// @return Array2D<float> array with curvature threshold for each row and col 
-  /// @author FJC   
-  /// @date 20/07/15   
+  /// @return Array2D<float> array with curvature threshold for each row and col
+  /// @author FJC
+  /// @date 20/07/15
   Array2D<float> CalculateAdaptiveCurvatureThresholdSD(int half_width);
 
   /// @brief Method to convert an LSDRaster hilltop file into a series of contigiuous hilltop patches.
@@ -1973,24 +1973,24 @@ class LSDRaster
   /// @date 5/6/15
   LSDIndexRaster CreateHilltopPatches(int minimum_patch_size);
   LSDIndexRaster CreateHilltopPatchesNEW(int minimum_patch_size);
-  /// @brief Simple method to flatten an LSDRaster to a text file, with a sigle value on each line. 
-  /// @param FileName The name of the file to write, if no path is included it will write to the current directory. 
+  /// @brief Simple method to flatten an LSDRaster to a text file, with a sigle value on each line.
+  /// @param FileName The name of the file to write, if no path is included it will write to the current directory.
   /// @author SWDG
   /// @date 9/2/15
   void FlattenToFile(string FileName);
 
-  /// @brief Method to flatten an LSDRaster to a text file, with a sigle value on each line. 
+  /// @brief Method to flatten an LSDRaster to a text file, with a sigle value on each line.
   /// @brief Method to flatten an LSDRaster and place the non NDV values in a csv file.
   /// @detail Each value is placed on its own line, so that it can be read more quickly in python etc.
   ///   It includes the x and y locations so it can be read by GIS software
-  /// @param FileName_prefix The prefix of the file to write, if no path is included it will write to the current directory. 
-  ///  The csv extension is added automatically. 
+  /// @param FileName_prefix The prefix of the file to write, if no path is included it will write to the current directory.
+  ///  The csv extension is added automatically.
   /// @author SMM
   /// @date 29/6/15
   void FlattenToCSV(string FileName);
 
-  /// @brief Simple method to remove any values below a user supplied value from an LSDRaster. 
-  /// @param Value float of the threshold below which values will be removed. 
+  /// @brief Simple method to remove any values below a user supplied value from an LSDRaster.
+  /// @param Value float of the threshold below which values will be removed.
   /// @author SWDG
   /// @date 22/6/15
   LSDRaster RemoveBelow(float Value);
@@ -2012,7 +2012,7 @@ class LSDRaster
   /// @author SWDG
   /// @date 24/07/2015
   LSDIndexRaster ConvertToBinary(int Value, int ndv);
-  
+
   /// @brief Function to get potential floodplain patches using a slope and relief threshold
   /// @param Relief raster with relief values
   /// @param Slope raster with slope values
@@ -2022,7 +2022,7 @@ class LSDRaster
   /// @date 20/10/15
   LSDIndexRaster get_potential_floodplain_patches(LSDRaster& Relief, LSDRaster& Slope, float relief_threshold,
                                                      float slope_threshold);
-                                                     
+
   /// @brief Function to get threshold from a raster using a histogram of Probability-Density
   /// values. The function identifies the peaks in the PDF, and sets the threshold to
   /// the peak with the lowest value.  This can be used to set the floodplain threshold.
@@ -2031,34 +2031,92 @@ class LSDRaster
   /// @param peak_distance Threshold distance between identified peaks (will remove smaller peaks close to
   /// the largest ones)
   /// @author FJC
-  /// @date 16/11/15                                                  
+  /// @date 16/11/15
   float get_threshold_for_floodplain(float bin_width, float peak_threshold, int peak_distance);
-  
+
   /// @brief Function to get threshold from a raster using qq plots
   /// @param q_q_filename Filename for the txt file with the data to visualise the qq plot
   /// @author FJC
-  /// @date 16/11/15                                                  
+  /// @date 16/11/15
   float get_threshold_for_floodplain_QQ(string q_q_filename, float threshold_condition, int lower_percentile, int upper_percentile);
-  
+
   /// @brief Function to calculate the reliability of floodplain method
   /// @param ActualRaster raster of actual values
   /// @author FJC
   /// @date 04/05/16
   float CalculateReliability(LSDRaster& ActualRaster);
-  
+
   /// @brief Function to calculate the sensitivity of floodplain method
   /// @param ActualRaster raster of actual values
   /// @author FJC
   /// @date 04/05/16
   float CalculateSensitivity(LSDRaster& ActualRaster);
-  
-  
+
+
   /// @brief Get the lengths in spatial units of each part of the channel network, divided by strahler order.
   /// @param StreamNetwork Raster of the stream network coded by strahler order.
   /// @param FlowDir Array of flowdirections from FlowInfo (Not D-inf).
   /// @author SWDG
-  /// @date 17/1/16                                                  
+  /// @date 17/1/16
   string ChannelLengthByOrder(LSDIndexRaster& StreamNetwork, Array2D<int> FlowDir);
+
+  /// @brief Calculate h, the soil depth normal to the slope, used in the factor of safety equation.
+  ///
+  /// @details Call with the soil thickness raster.
+  /// @param Slope The slope in degrees.
+  /// @return A raster of soil depth, D.
+  /// @author SWDG
+  /// @date 8/6/16
+  LSDRaster Calculate_h(LSDRaster& Slope);
+
+  /// @brief Calculate w, a hyrdological index, used in the factor of safety equation.
+  ///
+  /// @details Call with the drainage area raster in spatial units.
+  /// @param R The recharge rate of the soil.
+  /// @param T The transmissivity of the soil.
+  /// @param Slope The slope in degrees.
+  /// @return A raster of the hydrological index w.
+  /// @author SWDG
+  /// @date 8/6/16
+  LSDRaster Calculate_w(LSDRaster& RoverT, LSDRaster& Slope);
+
+  /// @brief Calculate r, the soil to water density ratio, used in the factor of safety equation.
+  ///
+  /// @details Call with the soil density raster.
+  /// @param rhoW A constant value for water density.
+  /// @return A raster of the density ratio, r.
+  /// @author SWDG
+  /// @date 8/6/16
+  LSDRaster Calculate_r(float& rhoW);
+
+
+  /// @brief Calculate C, a cohesion index, used in the factor of safety equation.
+  ///
+  /// @details Call with the root cohesion raster.
+  /// @param Cs The soil cohesion.
+  /// @param h The soil thickness, normal to the slope.
+  /// @param rhoS The soil density.
+  /// @param g The gravitational constant.
+  /// @return A raster of cohesion, C.
+  /// @author SWDG
+  /// @date 8/6/16
+  LSDRaster Calculate_C(LSDRaster& Cs, LSDRaster& h, LSDRaster& rhoS, float& g);
+
+
+  /// @brief Calculate the factor of safety using the sinmap definition.
+  ///
+  /// @details Call with the slope raster (in degrees).
+  /// @param C The choesion index.
+  /// @param w The hydrological index.
+  /// @param r The density ratio.
+  /// @param phi The friction angle of the soil.
+  /// @return A raster of factor of safety values.
+  /// @author SWDG
+  /// @date 8/6/16
+  LSDRaster Calculate_sinmap_Fs(LSDRaster& C, LSDRaster& w, LSDRaster& r, LSDRaster& phi);
+
+
+  LSDRaster PoupulateRasterGaussian(float minimum, float mean);
 
   protected:
 
@@ -2081,7 +2139,7 @@ class LSDRaster
 
   /// Raster data.
   Array2D<float> RasterData;
-  
+
   /// These are used primarily by LSDCatchmentModel
   Array2D<double> RasterData_dbl;
   Array2D<int> RasterData_int;
