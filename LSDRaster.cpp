@@ -4435,11 +4435,12 @@ LSDRaster LSDRaster::calculate_slope_angles()
 
   for(int row = 0; row < NRows; row++)
   {
+    cout << row << endl;
     for(int col = 0; col < NCols; col++)
     {
       if(RasterData[row][col] != NoDataValue)
       {
-        slope_angle = atan(RasterData[row][col]);
+        slope_angle[i][j] = atan(RasterData[row][col]);
       }
     }
   }
