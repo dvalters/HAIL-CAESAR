@@ -4433,9 +4433,9 @@ LSDRaster LSDRaster::calculate_slope_angles()
 
   Array2D<float> slope_angle(NRows,NCols, NoDataValue);
 
-  for(int row = 0; row < NRows; row++)
+  for(int row = 1; row < NRows - 1; row++)
   {
-    for(int col = 0; col < NCols; col++)
+    for(int col = 1; col < NCols - 1; col++)
     {
       if(RasterData[row][col] != NoDataValue)
       {
@@ -11463,139 +11463,16 @@ string LSDRaster::ChannelLengthByOrder(LSDIndexRaster& StreamNetwork, Array2D<in
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Calculate h, the soil depth normal to the slope, used in the factor of safety equation.
-// Call with the soil thickness raster.
-// SWDG 8/6/16
+/// Populate a raster with random noise drawn from a gaussian distribution of given mean and minimum values.
+/// SWDG 9/6/16
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::Calculate_h(LSDRaster& Slope){
-
-  Array2D<float> h(NRows, NCols, NoDataValue);
-
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-
-      if (RasterData[i][j] != NoDataValue){
-        h[i][j] = RasterData[i][j] * cos(Slope.get_data_element(i,j));
-
-      }
-    }
-  }
-
-  LSDRaster output(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,h,GeoReferencingStrings);
-  return output;
-
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Calculate w, a hyrdological index, used in the factor of safety equation.
-// Call with the drainage area raster in spatial units.
-// SWDG 8/6/16
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::Calculate_w(LSDRaster& RoverT, LSDRaster& Slope){
-
-  Array2D<float> w(NRows, NCols, NoDataValue);
-
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-
-      if (RasterData[i][j] != NoDataValue){
-
-        float value = RoverT.get_data_element(i,j)*(RasterData[i][j]/sin(Slope.get_data_element(i,j)));
-        if (value < 1.0){
-          w[i][j] = value;
-        }
-        else{
-          w[i][j] = 1.0;
-        }
-
-      }
-    }
-  }
-
-  LSDRaster output(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,w,GeoReferencingStrings);
-  return output;
-
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Calculate r, the soil to water density ratio, used in the factor of safety equation.
-// Call with the soil density raster.
-// SWDG 8/6/16
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::Calculate_r(float& rhoW){
-
-  Array2D<float> r(NRows, NCols, NoDataValue);
-
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-
-      if (RasterData[i][j] != NoDataValue){
-        r[i][j] = rhoW / RasterData[i][j];
-
-      }
-    }
-  }
-
-  LSDRaster output(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,r,GeoReferencingStrings);
-  return output;
-
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// @brief Calculate C, a cohesion index, used in the factor of safety equation.
-// Call with the root cohesion raster.
-// SWDG 8/6/16
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::Calculate_C(LSDRaster& Cs, LSDRaster& h, LSDRaster& rhoS, float& g){
-
-  Array2D<float> C(NRows, NCols, NoDataValue);
-
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-
-      if (RasterData[i][j] != NoDataValue){
-        C[i][j] = (RasterData[i][j] * Cs.get_data_element(i,j)) / (h.get_data_element(i,j)*rhoS.get_data_element(i,j)*g);
-
-      }
-    }
-  }
-
-  LSDRaster output(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,C,GeoReferencingStrings);
-  return output;
-
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Calculate the factor of safety using the sinmap definition.
-// Call with the slope raster (in degrees).
-// SWDG 8/6/16
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDRaster LSDRaster::Calculate_sinmap_Fs(LSDRaster& C, LSDRaster& w, LSDRaster& r, LSDRaster& phi){
-
-  Array2D<float> Fs(NRows, NCols, NoDataValue);
-
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
-
-      if (RasterData[i][j] != NoDataValue){
-        Fs[i][j] = ( (C.get_data_element(i,j) + cos(RasterData[i][j])) * (1.0-w.get_data_element(i,j)*r.get_data_element(i,j)) * tan(phi.get_data_element(i,j)) ) / sin(RasterData[i][j]);
-
-      }
-    }
-  }
-
-  LSDRaster output(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Fs,GeoReferencingStrings);
-  return output;
-
-}
-
 LSDRaster LSDRaster::PoupulateRasterGaussian(float minimum, float mean){
 
   bool allowNegative = false;
   Array2D<float> Gauss(NRows, NCols, NoDataValue);
 
-  for (int i = 0; i < NRows; ++i){
-    for (int j = 0; j < NCols; ++j){
+  for (int i = 1; i < NRows - 1; ++i){
+    for (int j = 1; j < NCols - 1; ++j){
 
       if (RasterData[i][j] != NoDataValue){
         Gauss[i][j] = getGaussianRandom(minimum, mean, allowNegative);
@@ -11604,6 +11481,28 @@ LSDRaster LSDRaster::PoupulateRasterGaussian(float minimum, float mean){
   }
 
   LSDRaster output(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Gauss,GeoReferencingStrings);
+  return output;
+
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+/// Populate a raster with a given value.
+/// SWDG 9/6/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::PoupulateRasterSingleValue(float value){
+
+  Array2D<float> Single(NRows, NCols, NoDataValue);
+
+  for (int i = 1; i < NRows - 1; ++i){
+    for (int j = 1; j < NCols - 1; ++j){
+
+      if (RasterData[i][j] != NoDataValue){
+        Single[i][j] = value;
+      }
+    }
+  }
+
+  LSDRaster output(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Single,GeoReferencingStrings);
   return output;
 
 }
