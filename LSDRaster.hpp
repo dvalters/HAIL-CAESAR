@@ -2060,63 +2060,18 @@ class LSDRaster
   /// @date 17/1/16
   string ChannelLengthByOrder(LSDIndexRaster& StreamNetwork, Array2D<int> FlowDir);
 
-  /// @brief Calculate h, the soil depth normal to the slope, used in the factor of safety equation.
-  ///
-  /// @details Call with the soil thickness raster.
-  /// @param Slope The slope in degrees.
-  /// @return A raster of soil depth, D.
+  /// @brief Populate a raster with random noise drawn from a gaussian distribution of given mean and minimum values.
+  /// @param minimum Minimum value of the distribution to draw values from.
+  /// @param mean Mean value of the distribution to draw values from.
   /// @author SWDG
-  /// @date 8/6/16
-  LSDRaster Calculate_h(LSDRaster& Slope);
-
-  /// @brief Calculate w, a hyrdological index, used in the factor of safety equation.
-  ///
-  /// @details Call with the drainage area raster in spatial units.
-  /// @param R The recharge rate of the soil.
-  /// @param T The transmissivity of the soil.
-  /// @param Slope The slope in degrees.
-  /// @return A raster of the hydrological index w.
-  /// @author SWDG
-  /// @date 8/6/16
-  LSDRaster Calculate_w(LSDRaster& RoverT, LSDRaster& Slope);
-
-  /// @brief Calculate r, the soil to water density ratio, used in the factor of safety equation.
-  ///
-  /// @details Call with the soil density raster.
-  /// @param rhoW A constant value for water density.
-  /// @return A raster of the density ratio, r.
-  /// @author SWDG
-  /// @date 8/6/16
-  LSDRaster Calculate_r(float& rhoW);
-
-
-  /// @brief Calculate C, a cohesion index, used in the factor of safety equation.
-  ///
-  /// @details Call with the root cohesion raster.
-  /// @param Cs The soil cohesion.
-  /// @param h The soil thickness, normal to the slope.
-  /// @param rhoS The soil density.
-  /// @param g The gravitational constant.
-  /// @return A raster of cohesion, C.
-  /// @author SWDG
-  /// @date 8/6/16
-  LSDRaster Calculate_C(LSDRaster& Cs, LSDRaster& h, LSDRaster& rhoS, float& g);
-
-
-  /// @brief Calculate the factor of safety using the sinmap definition.
-  ///
-  /// @details Call with the slope raster (in degrees).
-  /// @param C The choesion index.
-  /// @param w The hydrological index.
-  /// @param r The density ratio.
-  /// @param phi The friction angle of the soil.
-  /// @return A raster of factor of safety values.
-  /// @author SWDG
-  /// @date 8/6/16
-  LSDRaster Calculate_sinmap_Fs(LSDRaster& C, LSDRaster& w, LSDRaster& r, LSDRaster& phi);
-
-
+  /// @date 9/6/16
   LSDRaster PoupulateRasterGaussian(float minimum, float mean);
+
+  /// @brief Populate a raster with a single value.
+  /// @param value Value to populate all non nodata cells with.
+  /// @author SWDG
+  /// @date 9/6/16
+  LSDRaster PoupulateRasterSingleValue(float value);
 
   protected:
 
