@@ -323,7 +323,18 @@ bool atobool(string value);
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 double Gauss_rand(int Nrand, double GaussAdd, double GaussFac);
 
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Use the Marsaglia polar method to generate random numbers drawn from a normal distribution
+// with a given mean and minimum values. Set allowNegative to false to stop output values from
+// dropping below zero.
+//
+// Extreme values can fall below or above the boundaries in < 3 sigma of cases.
+//
+// Seed for random number will fail post 2038. I will instruct my firstborn to resolve this
+// problem.
+//
+// SWDG 9/6/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 float getGaussianRandom(float minimum, float mean, bool allowNegative);
 
 // Log binning module

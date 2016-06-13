@@ -883,7 +883,6 @@ double Gauss_rand(int Nrand, double GaussAdd, double GaussFac)
 //
 // SWDG 9/6/16
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
 float getGaussianRandom(float minimum, float mean, bool allowNegative){
 
   float s = 0;
