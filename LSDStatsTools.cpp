@@ -913,7 +913,7 @@ float getGaussianRandom(float minimum, float mean, bool allowNegative){
   else{
     return z;
   }
-
+  return mean; // if all else fails return the mean.
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -5779,4 +5779,272 @@ void DisjointSet::Reset(){
   elements = sets = 0;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+//   .oooooo..o ooooo ooooo      ooo ooo        ooooo       .o.       ooooooooo.
+//  d8P'    `Y8 `888' `888b.     `8' `88.       .888'      .888.      `888   `Y88.
+//  Y88bo.       888   8 `88b.    8   888b     d'888      .8"888.      888   .d88'
+//   `"Y8888o.   888   8   `88b.  8   8 Y88. .P  888     .8' `888.     888ooo88P'
+//       `"Y88b  888   8     `88b.8   8  `888'   888    .88ooo8888.    888
+//  oo     .d8P  888   8       `888   8    Y     888   .8'     `888.   888
+//  8""88888P'  o888o o8o        `8  o8o        o888o o88o     o8888o o888o
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Implementing sinmap's SI code, ported from code provided here:http://hydrology.usu.edu/sinmap2
+// and available under a GNU GPL licence. Notation reflects the derivation of the stability
+// index outlined in the appendix of the sinmap documentation: http://hydrology.usu.edu/sinmap2
+// SWDG - 13/6/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+float StabilityIndex(float s, float a, float c1, float c2, float t1, float t2,
+                     float x1,float x2,float r, float fs1, float fs2){
+  /*  c1, c2  bounds on dimensionless cohesion
+  	t1,t2 bounds on friction angle
+  	x1,x2 bounds on wetness parameter q/T
+  	r Density ratio
+  	s slope angle
+  	a specific catchment area */
+
+  float cs, ss, w1, w2, cdf1, cdf2, y1, y2, as, si;
+
+  /* cng - added this to prevent division by zero */
+  if (s == 0.0)
+    {
+    return 10;
+    }
+
+  /*  DGT - The slope in the GIS grid file is the tangent of the angle  */
+  s=atan(s);
+  /*  t1 and t2 input as angle must be converted to tan  */
+  t1=tan(t1);
+  t2=tan(t2);
+
+  cs = cos(s);
+  ss = sin(s);
+
+  if(x1 > x2)
+  {  /*  Error these are wrong way round - switch them  */
+  	w1=x2;   /*  Using w1 as a temp variable  */
+  	x2=x1;
+  	x1=w1;
+  }
+  /* Wetness is coded between 0 and 1.0 based on the lower T/q parameter
+    (this is conservative).  If wetness based on lower T/q is > 1.0 and wetness based
+    on upper T/q <1.0, then call it the "threshold saturation zone" and hard code it
+    to 2.0.  Then if wetness based on upper T/q >1.0, then call it the
+    "saturation zone" and hard code it to 3.0.
+    Lower T/q correspounds to upper q/T = x = x2 ->  w2  */
+  w2 = x2*a/ss;
+  w1 = x1*a/ss;
+  if(w2 > 1.0)
+  {
+  	w2 = 1.0;
+  }
+  if(w1 > 1.0)
+  {
+  	w1 = 1.0;
+  }
+
+  if (fs2 < 1)  /* always unstable */
+  	{
+  	si  =  0;
+  	}
+  else
+  	{
+  	if(fs1 >= 1) /*  Always stable */
+  		{
+  			si  =  fs1;
+  		}
+  	else
+  		{
+  		if(w1 == 1) /* region 1 */
+  			{
+  			si = 1-f2s(c1/ss,c2/ss,cs*(1-r)/ss*t1,cs*(1-r)/ss*t2,1);
+  			}
+  		else
+  			{
+  			if(w2 == 1) /* region 2 */
+  				{
+  				as = a/ss;
+  				y1 = cs/ss*(1-r);
+  				y2 = cs/ss*(1-x1*as*r);
+  				cdf1 = (x2*as-1)/(x2*as-x1*as)*f2s(c1/ss,c2/ss,cs*(1-r)/ss*t1,cs*(1-r)/ss*t2,1);
+  				cdf2 = (1-x1*as)/(x2*as-x1*as)*f3s(c1/ss,c2/ss,y1,y2,t1,t2,1);
+  				si = 1-cdf1-cdf2;
+  				}
+  			else  /* region 3 */
+  				{
+  				as = a/ss;
+  				y1 = cs/ss*(1-x2*as*r);
+  				y2 = cs/ss*(1-x1*as*r);
+  				si = 1-f3s(c1/ss,c2/ss,y1,y2,t1,t2,1);
+  				}
+  			}
+  		}
+  	}
+
+  /* cng - need to limit the size spread for arcview since it has
+     difficulties with equal intervals over a large range of numbers */
+  if (si > 10.0)
+    si = 10.0;
+
+  return si;
+
+}
+
+float f2s(float x1, float x2, float y1, float y2, float z){
+  float p, mn, mx, d, d1, d2;
+
+  p = 0.0;
+
+  mn = min(x1 + y2, x2 + y1);
+  mx = max(x1 + y2, x2 + y1);
+  d1 = min(x2 - x1, y2 - y1);
+  d = z - y1 - x1;
+  d2 = max(x2 - x1, y2 - y1);
+  p = (z > (x1 + y1) && z < mn) ? (d*d)/(2 * (x2 - x1) * (y2 - y1)) : p;
+  p = ((mn <= z) & (z <= mx)) ? (d - d1/2)/d2 : p;
+  p = ((mx < z) & (z < (x2 + y2))) ? 1-pow((z-y2-x2),2)/(2*(x2-x1)*(y2-y1)) : p;
+  p =  z >= (x2 + y2) ? 1 : p;
+
+  return p;
+}
+
+float f3s(float x1, float x2, float y1, float y2, float b1, float b2, float z ){
+
+  float p;
+
+  if (x2 < x1 || y2 < y1 || b2 < b1)
+  	{
+    p = 1000.0;
+    }
+  else if	(x1 < 0 || y1 < 0 || b1 < 0)
+  	{
+    p = 1000.;
+    }
+  else
+  	{
+  	if(y1 == y2 || b1 == b2)
+  		{  /* degenerate on y or b - reverts to additive convolution */
+      p = f2s(x1,x2,y1*b1,y2*b2,z);
+      }
+  	else
+  		{
+      if(x2 == x1)
+      	{
+        p = fa(y1, y2, b1, b2, z - x1);
+        }
+      else
+        {
+        p = (fai(y1, y2, b1, b2, z - x1) -
+        		 fai(y1, y2, b1, b2, z - x2)) / (x2 - x1);
+        }
+  		}
+  	}
+  return p;
+
+}
+
+float fa(float y1, float y2, float b1, float b2, float a){
+  float p, adiv, t;
+
+  p = 0.0;
+
+  if(y1 * b2 > y2 * b1)
+  	{ /* Invoke symmetry and switch so that y1*b2 < y2*b1 */
+  	t = y1;
+    y1 = b1;
+    b1 = t;
+  		/* was   y <- y2  which is wrong */
+    t = y2;
+    y2 = b2;
+    b2 = t;
+    }
+
+  adiv = (y2 - y1) * (b2 - b1);
+  p = (y1 * b1 < a && a <= y1 * b2) ?
+      (a * log(a/(y1 * b1)) - a + y1 * b1)/adiv : p;
+  p = (y1 * b2 < a && a <= y2 * b1) ?
+      (a * log(b2/b1) - (b2 - b1) * y1)/adiv : p;
+  p = (y2 * b1 < a && a < y2 * b2) ?
+      (a * log((b2 * y2)/a) + a + b1 * y1 - b1 * y2 - b2 * y1)/adiv : p;
+  p =  a >= (b2 * y2) ? 1 : p;
+
+  return p;
+}
+
+float fai(float y1, float y2, float b1, float b2, float a){
+  float p, t, a1, a2, a3, a4, c2, c3, c4, c5;
+
+  p = 0.0;
+
+  if (y1*b2 > y2*b1)
+  	{  					/* Invoke symmetry and switch so that y1*b2 < y2*b1 */
+  	t = y1;
+  	y1 = b1;
+  	b1 = t;
+  	t = y2;
+  	y2 = b2;
+  	b2 = t;
+  	}
+  							/* define limits */
+  a1 = y1*b1;
+  a2 = y1*b2;
+  a3 = y2*b1;
+  a4 = y2*b2;
+
+  							/* Integration constants */
+  c2 =  - fai2(y1,y2,b1,b2,a1);
+
+  							/* Need to account for possibility of 0 lower bounds */
+  if(a2 == 0)
+    c3  =  0;
+  else
+    c3 =  fai2(y1,y2,b1,b2,a2)+c2-fai3(y1,y2,b1,b2,a2);
+
+  if(a3 == 0)
+    c4  =  0;
+  else
+    c4 =  fai3(y1,y2,b1,b2,a3)+c3-fai4(y1,y2,b1,b2,a3);
+
+  c5 =  fai4(y1,y2,b1,b2,a4)+c4-fai5(y1,y2,b1,b2,a4);
+
+  /* evaluate */
+  p = (a1 < a && a <= a2) ? fai2(y1,y2,b1,b2,a)+c2 : p;
+  p = (a2 < a && a <= a3) ? fai3(y1,y2,b1,b2,a)+c3 : p;
+  p = (a3 < a && a <  a4) ? fai4(y1,y2,b1,b2,a)+c4 : p;
+  p = (a >= a4) ? fai5(y1,y2,b1,b2,a)+c5 : p;
+
+  return p;
+}
+
+float fai2(float y1, float y2, float b1, float b2, float a){
+  float adiv;
+
+  adiv = (y2-y1)*(b2-b1);
+  return (a*a*log(a/(y1*b1))/2 - 3*a*a/4+y1*b1*a)/adiv;
+}
+
+float fai3(float y1, float y2, float b1, float b2, float a){
+
+  float adiv;
+
+  adiv = (y2-y1)*(b2-b1);
+  return (a*a*log(b2/b1)/2-(b2-b1)*y1*a)/adiv;
+}
+
+float fai4(float y1, float y2, float b1, float b2, float a){
+
+  float adiv;
+  adiv = (y2-y1)*(b2-b1);
+  return (a*a*log(b2*y2/a)/2+3*a*a/4+b1*y1*a-b1*y2*a-b2*y1*a)/adiv;
+}
+
+float fai5(float y1, float y2, float b1, float b2, float a){
+  return a;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//End of sinmap code
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #endif
