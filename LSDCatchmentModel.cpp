@@ -1627,7 +1627,6 @@ void LSDCatchmentModel::output_data(double temptotal)
     }
     tlastcalc = cycle;
   }
-
 }
 
 void LSDCatchmentModel::save_raster_data(double tempcycle)
@@ -1664,6 +1663,30 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     
     elev_outR.write_double_raster(OUTPUT_ELEV_FILE, "asc");
   }
+  
+  // Write Grain File
+  if (write_grainsz_file == true)
+  {
+    LSDGrainMatrix grainsz_outR(index, grain, strata);
+    
+    std::string OUTPUT_GRAIN_FILE = write_path + "/" + grainsize_fname + std::to_string((int)tempcycle);
+    
+    grainsz_outR.write_grainMatrix_to_ascii_file(OUTPUT_GRAIN_FILE, "asc");
+    
+  }
+  
+  // TODO:
+  
+  // FOR WHEN FUTURE ME INVENTS TIME TRAVEL AND COMES BACK TO 
+  // FINISH PHD THESIS WITH EXTRA DATA:
+  
+  // Write d50 top (surface) layer
+  
+  // write d50 for given layer
+  
+  // write specific fraction volume, on a given layer
+  
+  // write soil saturation raster
 }
 
 // This only currently checks for an edge that is not NODATA on at least one side
