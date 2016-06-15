@@ -1667,7 +1667,9 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
   // Write Grain File
   if (write_grainsz_file == true)
   {
-    LSDGrainMatrix grainsz_outR(index, grain, strata);
+    LSDGrainMatrix grainsz_outR(imax, jmax, \
+                                NoDataValue, G_MAX, \
+                                index, grain, strata);
     
     std::string OUTPUT_GRAIN_FILE = write_path + "/" + grainsize_fname + std::to_string((int)tempcycle);
     

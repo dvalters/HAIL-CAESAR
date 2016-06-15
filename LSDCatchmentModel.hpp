@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 
 #include "LSDRaster.hpp"
+#include "LSDGrainMatrix.hpp"
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
