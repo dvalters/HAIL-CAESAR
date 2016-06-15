@@ -536,22 +536,15 @@ float inverfc(float p);
 float inverf(float p);
 
 float StabilityIndex(float s, float a, float c1, float c2, float t1, float t2,
-                     float x1,float x2,float r, float fs1, float fs2);
+                     float x1,float x2, float r1, float r2, float fs1, float fs2);
 
 float f2s(float x1, float x2, float y1, float y2, float z);
-
 float f3s(float x1, float x2, float y1, float y2, float b1, float b2, float z);
-
 float fa(float y1, float y2, float b1, float b2, float a);
-
 float fai(float y1, float y2, float b1, float b2, float a);
-
 float fai2(float y1, float y2, float b1, float b2, float a);
-
 float fai3(float y1, float y2, float b1, float b2, float a);
-
 float fai4(float y1, float y2, float b1, float b2, float a);
-
 float fai5(float y1, float y2, float b1, float b2, float a);
 
 // CODE FOR DISJOINT SET STRUCTURE

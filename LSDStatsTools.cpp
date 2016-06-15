@@ -5797,11 +5797,11 @@ void DisjointSet::Reset(){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 float StabilityIndex(float s, float a, float c1, float c2, float t1, float t2,
-                     float x1,float x2,float r, float fs1, float fs2){
+                     float x1,float x2, float r1, float r2, float fs1, float fs2){
   /*  c1, c2  bounds on dimensionless cohesion
   	t1,t2 bounds on friction angle
   	x1,x2 bounds on wetness parameter q/T
-  	r Density ratio
+  	r1, r2 Density bounds on density ratio - SWDG
   	s slope angle
   	a specific catchment area */
 
@@ -5859,24 +5859,24 @@ float StabilityIndex(float s, float a, float c1, float c2, float t1, float t2,
   		{
   		if(w1 == 1) /* region 1 */
   			{
-  			si = 1-f2s(c1/ss,c2/ss,cs*(1-r)/ss*t1,cs*(1-r)/ss*t2,1);
+  			si = 1-f2s(c1/ss,c2/ss,cs*(1-r1)/ss*t1,cs*(1-r2)/ss*t2,1);
   			}
   		else
   			{
   			if(w2 == 1) /* region 2 */
   				{
   				as = a/ss;
-  				y1 = cs/ss*(1-r);
-  				y2 = cs/ss*(1-x1*as*r);
-  				cdf1 = (x2*as-1)/(x2*as-x1*as)*f2s(c1/ss,c2/ss,cs*(1-r)/ss*t1,cs*(1-r)/ss*t2,1);
+  				y1 = cs/ss*(1-r1);
+  				y2 = cs/ss*(1-x1*as*r2);
+  				cdf1 = (x2*as-1)/(x2*as-x1*as)*f2s(c1/ss,c2/ss,cs*(1-r1)/ss*t1,cs*(1-r2)/ss*t2,1);
   				cdf2 = (1-x1*as)/(x2*as-x1*as)*f3s(c1/ss,c2/ss,y1,y2,t1,t2,1);
   				si = 1-cdf1-cdf2;
   				}
   			else  /* region 3 */
   				{
   				as = a/ss;
-  				y1 = cs/ss*(1-x2*as*r);
-  				y2 = cs/ss*(1-x1*as*r);
+  				y1 = cs/ss*(1-x2*as*r1);
+  				y2 = cs/ss*(1-x1*as*r2);
   				si = 1-f3s(c1/ss,c2/ss,y1,y2,t1,t2,1);
   				}
   			}
