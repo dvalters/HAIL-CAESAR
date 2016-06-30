@@ -253,6 +253,14 @@ class LSDRaster
   /// @result The myLSDRasterobject.RasterData_dbl data member is now populated with an array of
   /// the DEM data. The data members for NCols, NRows, etc. are also updated.
   void read_ascii_raster(string FILENAME);
+  
+  /// @brief Reads a raster of integers and populates LSDRaster integer array member data
+  /// @author DAV
+  /// @todo Really, one ought to modify LSDRaster so that it is a class template, and then
+  /// wouldn't need different TNT Array data members for when we have floats, double, ints 
+  /// etc. Might be tricky though, although if done carefully it should not break 
+  /// peoples code. 
+  void read_ascii_raster_integers(string FILENAME);
 
   /// @brief Read a raster from memory to a file.
   ///

@@ -501,6 +501,11 @@ void rank_vector_with_groups(vector<float> sorted_data,
 // SWDG 16/07/14
 string ReadTextFile(ifstream& File);
 
+/// Splits a string delimited by a character, c, into a sequence of strings, here
+/// stored in a vector, v.
+/// @author DAV, but taken out of C++ Cookbook (Stevens, Digins, Turkanis, and Coswell. O'Reilly)
+void split_delimited_string(const string& s, char c, vector<string>& v);
+
 // THis gets the size of a file
 // SMM 16/10/2015
 int get_file_size(string filename);
