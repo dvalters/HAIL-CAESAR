@@ -12,8 +12,14 @@
 #include <iomanip>
 #include <sys/stat.h>
 
+// Include for OpenMP
+#include <omp.h>
+
+
 #include "LSDRaster.hpp"
 #include "LSDGrainMatrix.hpp"
+#include "LSDStatsTools.hpp"
+#include "LSDWeatherClimateTools.hpp"
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
@@ -112,7 +118,14 @@ public:
   /// in the rainfall data file specified in the parameter list file as floats.
   /// @return Returns a vector of vector<float>. (A 2D-like vector).
   std::vector< std::vector<float> > read_rainfalldata(std::string FILENAME);
-
+  
+  /// @brief Reads in the grain data file, note, that this is not a raster and in 
+  /// a special format like the rainfall file.
+  /// @author DAV
+  /// @details The grain data file consists of multiple columns of data in a text file
+  /// that store the grain size fractions for the surface and the subsurface strata. Also 
+  /// contains an index number and the x y location of each grid cell containing grain data.
+  void ingest_graindata_from_file(std::string FILENAME);
 
   /// @brief Prints the contents of the rainfall data for checking
   /// @author DAV
@@ -291,6 +304,9 @@ public:
   void scan_area();
 
   void water_flux_out(double local_time_factor);
+
+  /// @brief Runs a very basic test to see if you can run code in parallel mode.
+  void quickOpenMPtest();
 
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   //
@@ -628,11 +644,6 @@ protected:
   std::vector<int> catchment_input_counter;
   int totalinputpoints = 0;
 
-  //JMW Vars
-  std::string basetext = "CAESAR PlusPlus";
-  std::string cfgname = "";  //Config file name // Removed NULL string - can't have these in C++
-  std::string workdir = "c:\\program files\\Caesar\\work\\";
-
   // stage/tidal variables
   int fromx, tox, fromy, toy;
   double stage_input_time_step = 1;
@@ -661,6 +672,7 @@ protected:
   bool bedrock_layer_on = false;
   bool lateral_erosion_on = false;
   bool spatially_var_rainfall = false;
+  bool graindata_from_file = false;
 
 
   // Bools for writing out files
@@ -669,6 +681,7 @@ protected:
   bool write_params_file = false;
   bool write_flowvel_file = false;
   bool write_waterd_file = false;
+  bool write_elevdiff_file = false;
 
   /// input file names
   std::string rainfall_data_file;
@@ -683,6 +696,8 @@ protected:
   std::string flowvel_fname;
   std::string hydroindex_fname;
   std::string timeseries_fname;
+  std::string elevdiff_fname;
+  std::string raingrid_fname;
 
   int timeseries_interval;
   float run_time_start;
@@ -699,7 +714,7 @@ private:
   void create();
   void create(std::string pname, std::string pfname);
 };
-#endif
+
 
 // "There is no science without fancy and no art without facts", wrote the great
 // Russian author Vladimir Nabokov. I include here an ascii rendering of Vincent Van Gogh's
@@ -745,3 +760,8 @@ private:
 
 
 */
+
+
+
+
+#endif

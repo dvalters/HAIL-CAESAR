@@ -199,80 +199,6 @@ void LSDCatchmentModel::create(string pname, string pfname)
 }
 
 
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Load the data from the text file
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Generic function for reading rainfal data
-// This is used by the LSDCatchmentModel.
-// Need to think about this...the number of rows and cols are not known beforehand
-std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(string FILENAME)
-{
-  std::cout << "\n\n Loading Spatially Distributed Rainfall File, the filename is "
-            << FILENAME << std::endl;
-
-  // open the data file
-  std::ifstream infile(FILENAME.c_str());
-
-  std::string line;
-  //std::vector< std::vector<float> > raingrid; //declared in .hpp now
-  int i = 0;
-
-  while (std::getline(infile, line))
-  {
-    float value;
-    std::stringstream ss(line);
-
-    raingrid.push_back(std::vector<float>());
-
-    while (ss >> value)
-    {
-      raingrid[i].push_back(value);
-    }
-    ++i;
-  }
-  return raingrid;  // You(I) forgot the return statement! - DV
-  // It's odd that the compiler allows no return statement.
-}
-/*
-std::vector<float> LSDCatchmentModel::read_rainfall_uniform(string FILENAME)
-{
-  std::cout << "\n\n Loading Uniform Rainfall File, the filename is "
-            << FILENAME << std::endl;
-
-  std::ifstream infile(FILENAME.c_str());
-
-  if (infile)
-  {
-    float value;
-    while (infile >> value))
-    {
-      raingrid.push_back(value)
-    }
-  }
-  else
-  {
-    std::cout << "There was an error opening your uniform rainfall file." <<
-    std::endl;
-  }
-}
-*/
-
-// This is just for sanity checking the rainfall input really
-void LSDCatchmentModel::print_rainfall_data()
-{
-  std::vector< std::vector<float> > vector2d = hourly_rain_data;
-
-  std::vector<std::vector<float> >::iterator itr = vector2d.begin();
-  std::vector<std::vector<float> >::iterator end = vector2d.end();
-
-  while (itr!=end)
-  {
-    std::vector<float>::iterator it1=itr->begin(),end1=itr->end();
-    std::copy(it1,end1,std::ostream_iterator<float>(std::cout, " "));
-    std::cout << std::endl;
-    ++itr;
-  }
-}
 
 void LSDCatchmentModel::initialise_model_domain_extents()
 {
@@ -385,7 +311,7 @@ void LSDCatchmentModel::load_data()
     }
     try
     {
-      hydroindexR.read_ascii_raster(HYDROINDEX_FILENAME);
+      hydroindexR.read_ascii_raster_integers(HYDROINDEX_FILENAME);
       rfarea = hydroindexR.get_RasterData_int();
       std::cout << "The hydroindex: " << HYDROINDEX_FILENAME << " was successfully read." << std::endl;
     }
@@ -472,10 +398,171 @@ void LSDCatchmentModel::load_data()
   //~ exit(EXIT_FAILURE);
   //~ }
   //~ }
-
+  
+  // TO DO 
+  
+  // Read grainsize data for restart runs
+  if (graindata_from_file == true)
+  {
+    std::string GRAINDATA_FILENAME = read_path + "/" + grain_data_file;  
+    if (does_file_exist(GRAINDATA_FILENAME))
+    {
+      ingest_graindata_from_file(GRAINDATA_FILENAME);
+    }
+    else
+    {
+      std::cout << "No grain data file found by name of: " << GRAINDATA_FILENAME << std::endl << \
+                   "You specified to use a rainfall input file, \
+                   \n but no matching file was found. Try again." << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
 }
 
+// Reads in grain data from the grain data file, and initialises the grain_array_tot variable,
+// the index, grain, and strata arrays
+void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAME)
+{
+  std::cout << "\n Loading graindata from the the graindata file: " <<
+               GRAINDATA_FILENAME << std::endl;
+  
+  //open the data file
+  // Note that c_str() will return a const char* whereas, strip function expects char*...
+  std::ifstream infile(GRAINDATA_FILENAME.c_str());
+  
+  // Index coordinates
+  int x1, y1;
+  
+  int y=1;
+  grain_array_tot = 0;
+  
+  std::string line;
+  
+  // read a line at a time from infile
+  while(std::getline(infile, line))
+  {
+    // A string to hold each line of the text file as we iterate
+    std::vector<std::string> line_vector;
+    // Strip using the function in LSDStatsTools
+    split_delimited_string(line, ' ', line_vector);
+    
+    int col_counter = 1;
+    grain_array_tot++;
+    
+    for (int x=0; x<=line_vector.size() -1; x++ )
+    {
+      if (col_counter==1) x1 = std::stoi(line_vector[x]);
+      if (col_counter==2) y1 = std::stoi(line_vector[x]);
+      
+      // Prevent grains being added that are outside the grid.
+      if (x1 > imax) x1 = imax;
+      if (y1 > jmax) y1 = jmax;
+      
+      if (col_counter == 3)
+      {
+        index[x1][y1] = grain_array_tot;
+      }
+      
+      // Next bunch of columns are grain fractions (surface). Update them.
+      for(int n=0; n<=G_MAX; n++)
+      {
+        if (col_counter==4+n)
+        {
+          grain[grain_array_tot][n] = std::stod(line_vector[x]);
+        }
+      }
+      
+      // Now the fractions for the subsuface strata, note that this is currently hard coded as 10 layers
+      // so when you update to have user-defined no. of strata this will becom a TO DO. 
+      for(int z=0; z<=9; z++)
+      {
+        for (int n=0; n<=(G_MAX-2); n++)
+        {
+          if (col_counter == (4+G_MAX+n+1) + (z*9))
+          {
+            strata[grain_array_tot][z][n] = std::stod(line_vector[x]);
+          }
+        }
+      }
+      col_counter++; // move on to the next column (this seems really inefficient...)
+    }
+  }
+}
 
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Load the data from the text file
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Generic function for reading rainfal data
+// This is used by the LSDCatchmentModel.
+// Need to think about this...the number of rows and cols are not known beforehand
+std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(string FILENAME)
+{
+  std::cout << "\n\n Loading Spatially Distributed Rainfall File, the filename is "
+            << FILENAME << std::endl;
+
+  // open the data file
+  std::ifstream infile(FILENAME.c_str());
+
+  std::string line;
+  //std::vector< std::vector<float> > raingrid; //declared in .hpp now
+  int i = 0;
+
+  while (std::getline(infile, line))
+  {
+    float value;
+    std::stringstream ss(line);
+
+    raingrid.push_back(std::vector<float>());
+
+    while (ss >> value)
+    {
+      raingrid[i].push_back(value);
+    }
+    ++i;
+  }
+  return raingrid;  // You(I) forgot the return statement! - DV
+  // It's odd that the compiler allows no return statement.
+}
+/*
+std::vector<float> LSDCatchmentModel::read_rainfall_uniform(string FILENAME)
+{
+  std::cout << "\n\n Loading Uniform Rainfall File, the filename is "
+            << FILENAME << std::endl;
+
+  std::ifstream infile(FILENAME.c_str());
+
+  if (infile)
+  {
+    float value;
+    while (infile >> value))
+    {
+      raingrid.push_back(value)
+    }
+  }
+  else
+  {
+    std::cout << "There was an error opening your uniform rainfall file." <<
+    std::endl;
+  }
+}
+*/
+
+// This is just for sanity checking the rainfall input really
+void LSDCatchmentModel::print_rainfall_data()
+{
+  std::vector< std::vector<float> > vector2d = hourly_rain_data;
+
+  std::vector<std::vector<float> >::iterator itr = vector2d.begin();
+  std::vector<std::vector<float> >::iterator end = vector2d.end();
+
+  while (itr!=end)
+  {
+    std::vector<float>::iterator it1=itr->begin(),end1=itr->end();
+    std::copy(it1,end1,std::ostream_iterator<float>(std::cout, " "));
+    std::cout << std::endl;
+    ++itr;
+  }
+}
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This function gets all the data from a parameter file
@@ -687,10 +774,31 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       timeseries_fname = value;
       std::cout << "timeseries_fname: " << timeseries_fname << std::endl;
     }
+    else if (lower == "elevdiff_outfile_name")
+    {
+      elevdiff_fname = value;
+      std::cout << "elevdiff_outfile_name: " << elevdiff_fname << std::endl;
+    }
+    else if (lower == "write_elevdiff_file")
+    {
+      write_elevdiff_file = (value == "yes") ? true : false;
+      std::cout << "write_elevdiff_file_on: " << write_elevdiff_file << std::endl;
+    }
+    else if (lower == "raingrid_fname_out")
+    {
+      raingrid_fname = value;
+      std::cout << "raingrid_outfile_name: " << raingrid_fname << std::endl;
+    }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Sediment
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "read_in_graindata_from_file")
+    {
+      graindata_from_file = (value == "yes") ? true : false;
+      std::cout << "read in grain data from file: " << graindata_from_file << std::endl;
+    }
+    
     else if (lower == "bedrock_layer_on")
     {
       bedrock_layer_on = (value == "yes") ? true : false;
@@ -1586,7 +1694,8 @@ void LSDCatchmentModel::output_data(double temptotal)
       Jw_hour_format << std::fixed << std::setprecision(6) << Jw_hour;
       output = output + " " + Jw_hour_format.str();
 
-      // Not used anymore(?)
+      // Not used anymore(?) // Only included here for compatibilty with CAESAR-Lisflood output files
+      // Basiaclly this column should be all zeros
       std::stringstream sand_out_format;
       sand_out_format << std::fixed << std::setprecision(6) << sand_out;
       output = output + " " + sand_out_format.str();
@@ -1667,14 +1776,28 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
   // Write Grain File
   if (write_grainsz_file == true)
   {
+    std::cout << "Entering the GRAINMATRIX..." << std::endl;
     LSDGrainMatrix grainsz_outR(imax, jmax, \
-                                NoDataValue, G_MAX, \
+                                no_data_value, G_MAX, \
                                 index, grain, strata);
     
     std::string OUTPUT_GRAIN_FILE = write_path + "/" + grainsize_fname + std::to_string((int)tempcycle);
     
     grainsz_outR.write_grainMatrix_to_ascii_file(OUTPUT_GRAIN_FILE, "asc");
     
+  }
+  
+  // Write the elev diff file
+  if (write_elevdiff_file == true)
+  {
+    TNT::Array2D<double> elevdiff_now = init_elevs - elev; // test this
+    
+    LSDRaster elevdiff_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, elevdiff_now);
+    elevdiff_outR.strip_raster_padding();
+    
+    std::string OUTPUT_ELEVDIFF_FILE = write_path + "/" + elevdiff_fname + std::to_string((int)tempcycle);
+    
+    elevdiff_outR.write_double_raster(OUTPUT_ELEVDIFF_FILE, "asc");
   }
   
   // TODO:
@@ -1751,6 +1874,8 @@ void LSDCatchmentModel::check_DEM_edge_condition()
 // A wrapper method that calls the chief erosional and water routing methods.
 void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 {
+  // For testing purposes, can be removed later - dv
+  quickOpenMPtest();
   // Originally main_loop() in CL, but no need (I think) for separete
   // loops here.
   std::cout << "Initialising first iteration..." << std::endl;
@@ -2041,6 +2166,7 @@ void LSDCatchmentModel::qroute()
   double local_time_factor = time_factor;
   if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
 
+  #pragma omp parallel for
   for (int y=1; y<=jmax; y++)
   {
     int inc = 1;
@@ -2165,7 +2291,7 @@ void LSDCatchmentModel::qroute()
       }
     }
   }
-
+  //} // pragma parallel for closure
 }
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2189,6 +2315,7 @@ void LSDCatchmentModel::depth_update()
   std::vector<double> tempmaxdepth2(jmax+2);
 
   maxdepth = 0;
+  #pragma omp parallel for
   for (int y = 1; y<= jmax; y++)
   {
     int inc = 1;
@@ -2263,7 +2390,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     }
   }
 
-  // DV - This is for reading the dsicharge direct from an input file (which presumably is the rainfll.txt input file?)
+  // DV - This is for reading the dsicharge direct from an input file
   if (jmeaninputfile_opt == true)
   {
     j_mean[1] = ((hourly_rain_data[(static_cast<int>(cycle / rain_data_time_step))][0] //check in original
@@ -2290,7 +2417,16 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 // (Actually that is j_mean)
 void LSDCatchmentModel::calc_J(double cycle)
 {
-  for (int n=1; n <= rfnum; n++)    // rfnum is the rainfall number int = 2 to begin with
+  // UNique fiulename for raingrids
+  
+  // For later use with the rain grid object
+  int current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
+  rainGrid current_raingrid(hourly_rain_data, rfarea, imax, jmax, current_rainfall_timestep, rfnum);
+  current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX, 
+                                                 raingrid_fname, dem_write_extension);
+  
+  for (int n=1; n <= rfnum; n++)    
+  // rfnum is the rainfall number int = 2 to begin with
   {
     double local_rain_fall_rate = 0;   // in metres per second
     double local_time_step = 60; // in seconds
@@ -2304,7 +2440,7 @@ void LSDCatchmentModel::calc_J(double cycle)
     // Get the M value from the files if one is specified
     if (variable_m_value_flag == 1)
     {
-      M = hourly_m_value[1 + static_cast<int>(cycle / rain_data_time_step)];
+      M = hourly_m_value[1 + current_rainfall_timestep];
     }
 
     local_rain_fall_rate = 0;
@@ -2315,9 +2451,9 @@ void LSDCatchmentModel::calc_J(double cycle)
     //double cur_rain_rate = hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n];
     // std::cout << cur_rain_rate << std::endl;
     // DAV - I replaced [n] with [n-1] here as the rainfall data vector dimensions are correct.
-    if (hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1] > 0)
+    if (hourly_rain_data[current_rainfall_timestep][n-1] > 0)
     {
-      local_rain_fall_rate = rain_factor * ((hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n-1] / 1000) / 3600);
+      local_rain_fall_rate = rain_factor * ((hourly_rain_data[current_rainfall_timestep][n-1] / 1000) / 3600);
       /** divide by 1000 to make m/hr, then by 3600 for m/sec */
     }
 
@@ -2341,6 +2477,17 @@ void LSDCatchmentModel::calc_J(double cycle)
 
   }
 }
+
+// Need a new calc_J based on the rainGrid class!
+//
+// Usage something like:
+//
+// current_rainfall_timestep
+//
+// rainGrid current_raingrid(hourly_rain_data, imax, jmax, current_rainfall_timestep, interpolation_method)
+// rainGrid.interpolate()
+// rainGrid.getrate(i,j)
+// rainGrid.setrate(i,j)
 
 // Calculates the storm hydrograph
 // Where is this derivation from? - DAV
@@ -2415,7 +2562,8 @@ void LSDCatchmentModel::scan_area()
   //Parallel.For(1, imax+1, options, delegate(int y)
 
 
-  // More efficient to zero down_scan in separate loop here
+  // More efficient to zero down_scan in separate loop here - not anymore DV
+  /*
   for (int j=1; j<=jmax; j++)
   {
     for (int i=1; i<=imax; i++)
@@ -2423,16 +2571,17 @@ void LSDCatchmentModel::scan_area()
       down_scan[j][i] = 0;
     }
   }
-
+  */
 
   // Now do the moving window checking in the proper for loop order? - DV
+  #pragma omp parallel for
   for (int j=1; j <= jmax; j++)
   {
     int inc = 1;
     for (int i=1; i <= imax; i++)
     {
       // zero scan bit..
-      //down_scan[j][i] = 0;
+      down_scan[j][i] = 0;
       // and work out scanned area. // TO DO (DAV) there is some out-of-bounds indexing going on here, check carefully!
       if (water_depth[i][j] > 0
           || water_depth[i][j - 1] > 0
@@ -2869,7 +3018,28 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 //                 _a:f____________________________________________ .[__N]. _______
 
 
-
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// EROSION ROUTINE(S)
+//
+// This grotesque block of code does the erosion
+// in the model. It iterates over every cell
+// in the domain and calculates amounts to be
+// entrained into bedload and suspended load,
+// and the amount to erode or deposit. As you
+// may imagine, it's probably the most
+// compuationally expensive part of the code.
+// Especially when using multiple grain size
+// fracions.
+//
+// The Wilcock or Einstein models of sediment
+// transport can be used. Bedrock incision is
+// calculated using the simple stream power law.
+//
+// It really ought to be split into smaller
+// functions, but it is what it is for now.
+//
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=
 double LSDCatchmentModel::erode(double mult_factor)
 {
   double rho = 1000.0;
@@ -2897,6 +3067,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 
     //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
     //Parallel.For(1, ymax, options, delegate(int y)
+    #pragma omp parallel for
     for (int y = 1; y < jmax; y++)
     {
       int inc = 1;
@@ -3300,6 +3471,9 @@ double LSDCatchmentModel::erode(double mult_factor)
       }
     }
     // we have to do a reduction on tempbmax. (If parallelism later implemented)
+    //
+    // todo DAV: you can do this with the OpenMP reduction clause, no need
+    // to manually perform reduction here.
     for (int y = 1; y <= jmax; y++)
     {
       if (tempbmax2[y] > tempbmax)
@@ -3319,14 +3493,14 @@ double LSDCatchmentModel::erode(double mult_factor)
   TNT::Array2D<double> erodetot(imax + 2, jmax + 2, 0.0);    // erosion difference in x and y directions
   TNT::Array2D<double> erodetot3(imax + 2, jmax +2, 0.0);    // erosion in the [x][y] cell
 
-  //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-  //Parallel.For(2, ymax, options1, delegate(int y)
-
   ///-=-=-=-=-=-=-=-=-=-=-==-=-=--=-==-=-=-=
   ///
   /// CALCULATE SEDIMENT TOTALS
   ///
   ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
+  //Parallel.For(2, ymax, options1, delegate(int y)
+  #pragma omp parallel for
   for (int y=2; y< jmax; y++)
   {
     int inc = 1;
@@ -3495,6 +3669,7 @@ double LSDCatchmentModel::erode(double mult_factor)
   }
 
   //Parallel.For2(2, ymax, delegate(int y)
+  //#pragma omp parallel for
   for (int y = 2; y < jmax; y++)
   {
     int inc = 1;
@@ -3861,6 +4036,7 @@ void LSDCatchmentModel::lateral3()
   {
     //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
     //Parallel.For(2, imax, options, delegate(int y)
+    #pragma omp parallel for
     for (int y=2; y<imax; y++)
     {
       int inc = 1;
@@ -3871,8 +4047,8 @@ void LSDCatchmentModel::lateral3()
         edge_temp[x][y] = 0;
         if (x == 1) x++;
         if (x == jmax) x--;
-        if (y == 1) y++;
-        if (y == imax) y--;
+        if (y == 1) break;
+        if (y == imax) break;
         inc++;
 
         if (edge[x][y] > -9999)
@@ -4747,4 +4923,32 @@ void LSDCatchmentModel::soil_development()
     }
   }
 }
+
+// A simple function to test OpenMP in the LSDTopoTools environment
+void LSDCatchmentModel::quickOpenMPtest()
+{
+  // test
+  int thread_id;
+  int num_threads = omp_get_max_threads();
+  int num_procs = omp_get_num_procs();
+
+  std::cout << "Hello! My name is OpenMP. I like to do LSD (Land Surface Dynamics) in parallel!" << std::endl;
+  std::cout << "Your system has: " << num_procs << " PROCESSORS available and " << num_threads << " THREADS to use!" << std::endl;
+  std::cout << "(Note: On some systems, threads are reported the same as processors.)" << std::endl;
+
+  #pragma omp parallel private ( thread_id )
+  {
+    thread_id = omp_get_thread_num();
+
+    // So, you need a lock here (critical) because the << operator is not thread safe (i.e. you get race conditions)
+    #pragma omp critical
+    {
+      std::cout << "Yo, whaddup! From thread number..." << thread_id << std::endl;
+    }
+  }
+  std::cout << "Goodbye, parallel region!" << std::endl;
+
+}
+
 #endif
+

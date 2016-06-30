@@ -1,11 +1,10 @@
-#ifndef LSDGRAINMATRIX_HPP
-#define LSDGRAINMATRIX_HPP
-
 #include <string>
 #include <fstream>
 #include <sstream>
 #include "TNT/tnt.h"
 
+#ifndef LSDGrainMatrix_H
+#define LSDGrainMatrix_H
 
 /// @brief This class is used primarily for the LSDCatchmentModel, to package up data
 /// about the stratigraphy and grain fraction data into neat objects. 

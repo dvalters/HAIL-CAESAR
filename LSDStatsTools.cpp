@@ -5593,6 +5593,31 @@ string ReadTextFile(ifstream& File){
   }
 }
 
+// Reads a string and splits given a delimiter, into a vector, v
+void split_delimited_string(const string& s, char c, vector<string>& v)
+{
+  string::size_type i = 0;
+  string::size_type j = s.find(c);
+  
+  // DV - "while not able to find string j
+  // i.e. until we find no more delimiters
+  while (j != string::npos)
+  {
+    // DV - Copies out the substring between the zeroth char and the occurrence of delimeter
+    v.push_back(s.substr(i, j-1));
+    
+    // Advance char counter to position of delimiter +1
+    i = ++j;
+    // find the next delimiter character
+    j = s.find(c, j);
+    
+    if (j == string::npos)
+    {
+      v.push_back(s.substr(i, s.length()));
+    }
+  }
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
 // This function removes control characters from the end of a string
 // These get introduced if you use the DOS format in your parameter file

@@ -844,6 +844,56 @@ void LSDRaster::read_ascii_raster(string FILENAME)
   //RasterData = data.copy();
   //return RasterData_dbl;
 }
+
+void LSDRaster::read_ascii_raster_integers(string FILENAME)
+{
+  // eugh...duplicated code...quick fix
+  std::cout << "\n\nLoading DEM, the filename is " << FILENAME << std::endl;
+
+  // open the data file
+  std::ifstream data_in(FILENAME.c_str());
+
+  if( data_in.fail() )
+  {
+    cout << "\nFATAL ERROR: the data file \"" << FILENAME
+        << "\" doesn't exist" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  //Read in raster data
+  std::string str;      // a temporary string for discarding text
+
+  // read the georeferencing data and metadata
+  data_in >> str >> NCols;
+  std::cout << "NCols: " << NCols << " str: " << std::endl;
+  data_in >> str >> NRows;
+  std::cout << "NRows: " << NRows << " str: " << std::endl;
+  data_in >> str >> XMinimum
+          >> str >> YMinimum
+          >> str >> DataResolution
+          >> str >> NoDataValue;
+
+  std::cout << "Loading asc file; NCols: " << NCols
+            << " NRows: " << NRows << std::endl
+            << "X minimum: " << XMinimum << " YMinimum: " << YMinimum << std::endl
+            << "Data Resolution: " << DataResolution << " and No Data Value: "
+            << NoDataValue << std::endl;
+
+  // this is the array into which data is fed
+  TNT::Array2D<int> asciidata(NRows,NCols,NoDataValue);
+
+  // read the data
+  for (int i=0; i<NRows; ++i)
+  {
+    for (int j=0; j<NCols; ++j)
+    {
+      data_in >> asciidata[i][j];
+    }
+  }
+  data_in.close();
+  RasterData_int = asciidata.copy();
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // write_raster
 // this function writes a raster. One has to give the filename and extension

@@ -78,6 +78,7 @@ void LSDGrainMatrix::write_grainMatrix_to_ascii_file(std::string filename,
     {
       for(int j=1; j<=NCols; ++j)
       {
+        //std::cout << rasterIndex[i][j] << ", " << NoData << std::endl;
         if (rasterIndex[i][j] != NoData)
         {  
           // Write the first part of the output file line (x,y location and index)
@@ -86,6 +87,7 @@ void LSDGrainMatrix::write_grainMatrix_to_ascii_file(std::string filename,
           // Now write the Surface Grain bit
           for (int inc=0; inc<= GrainFracMax; inc++)
           {
+            //std::cout << rasterIndex[i][j] << std::endl;
             data_out << grainData[rasterIndex[i][j]][inc] << " ";
           }
           
