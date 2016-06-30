@@ -8513,10 +8513,10 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
     }
   }
 
-  //cout << endl << endl << "Here are the borders: " << endl;
+  cout << endl << endl << "Here are the trimmed borders: " << endl;
   //cout << "Nn: " << North_node << " En: " << East_node << " Sn: " << South_node << " Wn: " << West_node << endl;
-  //cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
-
+  cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
+  cout << "If these are very close together it probably means you need to do a better job of clipping your raster with GDAL." << endl;
 
   int min_row = North_node;
   int max_row = South_node;
