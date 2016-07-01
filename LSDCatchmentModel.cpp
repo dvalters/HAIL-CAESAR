@@ -428,7 +428,7 @@ void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAM
   
   //open the data file
   // Note that c_str() will return a const char* whereas, strip function expects char*...
-  std::ifstream infile(GRAINDATA_FILENAME.c_str());
+  std::ifstream infile(GRAINDATA_FILENAME);
   
   // Index coordinates
   int x1, y1;
@@ -441,6 +441,11 @@ void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAM
   // read a line at a time from infile
   while(std::getline(infile, line))
   {
+    // check not an empty string (getline can return '' if
+    // first character of line is \n or similar)
+    
+    
+    //std::cout << "LINE: " << line << std::endl;
     // A string to hold each line of the text file as we iterate
     std::vector<std::string> line_vector;
     // Strip using the function in LSDStatsTools
@@ -451,6 +456,7 @@ void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAM
     
     for (int x=0; x<=line_vector.size() -1; x++ )
     {
+      //std::cout << "LINE VECTOR IS: " << line_vector[x] << std::endl;
       if (col_counter==1) x1 = std::stoi(line_vector[x]);
       if (col_counter==2) y1 = std::stoi(line_vector[x]);
       
