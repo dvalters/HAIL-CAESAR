@@ -81,4 +81,28 @@ private:
 
 };
 
+
+/// Object for storing and calculating the saturation and hence 
+/// surface runoff when using spatially
+/// variable rainfall input (j_mean, but 2D, i.e. j_mean_array[i][j], same as 
+/// model 
+class rainfallrunoffGrid
+{
+public:
+
+  /// Default constructor -- throws an error.
+  rainfallrunoffGrid()
+  {
+    //create();
+  }
+
+  /// Create a rainfallrunoffGrid from passing params and refs to params
+  rainfallrunoffGrid(int local_time_factor)
+  {
+    std::cout << "Creating a LSD rainfallrunoffGrid object from a parameters..." \
+                 << std::endl;
+    //create();
+  }  
+};
+
 #endif // LSDWEATHERCLIMATETOOLS_H
