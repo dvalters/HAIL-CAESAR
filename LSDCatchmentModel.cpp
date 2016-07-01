@@ -2427,9 +2427,20 @@ void LSDCatchmentModel::calc_J(double cycle)
   
   // For later use with the rain grid object
   int current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
-  rainGrid current_raingrid(hourly_rain_data, rfarea, imax, jmax, current_rainfall_timestep, rfnum);
-  current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX, 
-                                                 raingrid_fname, dem_write_extension);
+  
+  // Create a raingrid object from the rainfall timeseries data and hydroindex
+  // Only to be used with spatially var rainfall.
+  
+  if (spatially_var_rainfall==true)
+  {
+    rainGrid current_raingrid(hourly_rain_data, rfarea, 
+                            imax, jmax, 
+                            current_rainfall_timestep, 
+                            rfnum);
+    current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX, 
+                                                 raingrid_fname, 
+                                                 dem_write_extension);
+  }
   
   for (int n=1; n <= rfnum; n++)    
   // rfnum is the rainfall number int = 2 to begin with
