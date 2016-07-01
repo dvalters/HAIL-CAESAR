@@ -55,6 +55,8 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
+#include <functional> // For string splitter
+#include <iostream>
 #include <cstdio>
 #include <cassert>
 #include <cmath>
@@ -5604,7 +5606,7 @@ void split_delimited_string(const string& s, char c, vector<string>& v)
   while (j != string::npos)
   {
     // DV - Copies out the substring between the zeroth char and the occurrence of delimeter
-    v.push_back(s.substr(i, j-1));
+    v.push_back(s.substr(i, j-i));
     
     // Advance char counter to position of delimiter +1
     i = ++j;
