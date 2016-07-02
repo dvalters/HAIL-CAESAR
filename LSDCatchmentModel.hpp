@@ -291,11 +291,22 @@ public:
   /// landscape.
   void qroute();
 
+  /// Overlaoded functions below are for when sing the fully distriuted/complex
+  /// rainfall patterns option in the model.
+  ///
   void catchment_water_input_and_hydrology( double local_time_factor);
+
+  void catchment_water_input_and_hydrology( double local_time_factor, rainfallrunoffGrid& runoff);
 
   void calc_J( double cycle);
 
+  void calc_J(double cycle, rainfallrunoffGrid& runoff);
+
   void calchydrograph( double time);
+
+  /// Overloaded function for calculating hydrography when using the fully distributed
+  /// model. Takes an extra reference to the runoff object.
+  void calchydrograph(double time, rainfallrunoffGrid& runoff);
 
   //void depth_update();
 
@@ -673,6 +684,8 @@ protected:
   bool lateral_erosion_on = false;
   bool spatially_var_rainfall = false;
   bool graindata_from_file = false;
+
+  bool spatially_complex_rainfall = false;
 
 
   // Bools for writing out files

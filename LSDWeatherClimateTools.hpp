@@ -88,14 +88,15 @@ private:
 /// surface runoff when using spatially
 /// variable rainfall input (j_mean, but 2D, i.e. j_mean_array[i][j], same as 
 /// model 
+
 class rainfallrunoffGrid
 {
 public:
 
-  /// Default constructor -- throws an error.
-  rainfallrunoffGrid()
+  /// Basic constructor -- initialises arrays to domain size.
+  rainfallrunoffGrid(int imax, int jmax)
   {
-    create();
+    create(imax, jmax);
   }
 
   /// Create a rainfallrunoffGrid from passing params and refs to params
@@ -111,15 +112,32 @@ public:
             current_rainGrid);
   }  
 
+  void calculate_catchment_water_inputs();
+
+  /// Calculates runoff and updates the rainfallrunoffGrid object accordingly
+  /// Introduced to be able to create an empty runoff object and then later initialise it,
+  /// or update an exisiting runoff grid for a new timestep,
+  void calculate_runoff(int rain_factor, int M, int jmax, int imax, const rainGrid &current_rainGrid);
+
+  // Getters for runoff variables
+  double get_j(int m, int n) const { return j[m][n]; }
+  double get_jo(int m, int n) const { return jo[m][n]; }
+  double get_j_mean(int m, int n) const { return j_mean[m][n]; }
+  double get_old_j_mean(int m, int n) const { return old_j_mean[m][n]; }
+  double get_new_j_mean(int m, int n) const { return new_j_mean[m][n]; }
+
+  void set_j_mean(int m, int n, double cell_j_mean) { j_mean[m][n] = cell_j_mean; }
+
 protected:
   TNT::Array2D<double> runoffGrid2D;
   TNT::Array2D<double> j, jo, j_mean, old_j_mean, new_j_mean;
 
 private:
-  void create();
+  void create(int imax, int jmax);
   void create(int current_rainfall_timestep, int imax, int jmax,
          int rain_factor, int M,
          const rainGrid& current_rainGrid);
 };
+
 
 #endif // LSDWEATHERCLIMATETOOLS_H

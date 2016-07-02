@@ -99,12 +99,22 @@ void rainGrid::interpolateRainfall_RectBivariateSpline(rainGrid &raingrid)
 // =-=-=-=-=-=-=-=-=-=-=-=-=
 
 
-void rainfallrunoffGrid::create()
+void rainfallrunoffGrid::create(int imax, int jmax)
 {
-  std::cout << "Stop trying to create empty objects! Seriously." << std::endl;
-  exit(EXIT_FAILURE);
+  // set arrays to relevant size for model domain
+  // Zero or set to very small value near zero.
+  j = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
+  jo = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
+  j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  old_j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  new_j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+
+  // This is all that happens, use calculate_runoff() to fill in with proper values.
+
 }
 
+// Same as abouve but calculates values for runoff matrices given raingrid and a timestep
+//  and other relevant params.
 void rainfallrunoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
                                 int rain_factor, int M,
                                 const rainGrid& current_rainGrid)
@@ -116,6 +126,13 @@ void rainfallrunoffGrid::create(int current_rainfall_timestep, int imax, int jma
   old_j_mean = TNT::Array2D<double>(imax +2, jmax +2);
   new_j_mean = TNT::Array2D<double>(imax +2, jmax +2);
 
+  calculate_runoff(rain_factor, M, jmax, imax, current_rainGrid);
+}
+
+
+
+void rainfallrunoffGrid::calculate_runoff(int rain_factor, int M, int jmax, int imax, const rainGrid& current_rainGrid)
+{
   for (int m; m<=imax; m++)
   {
     for (int n; n<=jmax; n++)
@@ -161,6 +178,7 @@ void rainfallrunoffGrid::create(int current_rainfall_timestep, int imax, int jma
                                        / M)) / local_rainfall_rate);
       }
 
+      // Don't want to have negative J_means!
       if (new_j_mean[m][n] < 0)
       {
         new_j_mean[m][n] = 0;
@@ -168,6 +186,8 @@ void rainfallrunoffGrid::create(int current_rainfall_timestep, int imax, int jma
     }
   }
 }
+
+
 
 #endif
 

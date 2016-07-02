@@ -993,6 +993,12 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       mannings = atof(value.c_str());
       std::cout << "mannings: " << mannings << std::endl;
     }
+    else if (lower == "spatiall_complex_rainfall_on")
+    {
+      spatially_complex_rainfall = (value == "yes") ? true : false;
+      std::cout << "Spatially complex rainfall option: " << spatially_complex_rainfall << std::endl;
+    }
+
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Vegetation
@@ -1881,17 +1887,33 @@ void LSDCatchmentModel::check_DEM_edge_condition()
 void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 {
   // For testing purposes, can be removed later - dv
+  // Just prints out how many threads/cores you have.
   quickOpenMPtest();
   // Originally main_loop() in CL, but no need (I think) for separete
   // loops here.
   std::cout << "Initialising first iteration..." << std::endl;
-  double tempflow = baseflow;
-  double ince = cycle + 60;
   time_1 = 1;
 
   // J is the local rainfall inputed into the cell at each timestep
   std::cout << "Initialising J for first time..." << std::endl;
-  calc_J(1.0);
+
+  rainfallrunoffGrid runoff(imax, jmax); /* Annoying, because obviously
+  you can't put it in the conditional below, as we need it to exist out of scope
+  yet it should really only be created if we are using the complex rainfall-runoff option
+  (i.e., not best practive to go around using up memory when we don't need to...)
+  see stackoverflow for possible solutions:
+  http://stackoverflow.com/questions/9346477/create-objects-in-conditional-c-statements
+  */
+  if (spatially_complex_rainfall == true)
+  {
+    // Create a runoff object same size as model domains
+
+    calc_J(1.0, runoff);  // Creates a rainfall grid object, uses the runoff grid object as well
+  }
+  else
+  {
+    calc_J(1.0);
+  }
 
   save_time = cycle;
   creep_time = cycle;
@@ -1954,7 +1976,16 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     // In CL there was an option to set either reach or tidal mode.
     // Only catchment mode is implemented in this spin off version
     //std::cout << "LOCAL TIME FACTOR: " << local_time_factor << std::endl;
+
+    // Also applies if you wanted spatially complex hydrological response
+    if (spatially_complex_rainfall == true)
+    {
+      catchment_water_input_and_hydrology(local_time_factor, runoff);
+    }
+    else
+    {
     catchment_water_input_and_hydrology(local_time_factor);
+    }
 
     //std::cout << "route the water and update the flow depths\r" << std::flush;
     qroute();
@@ -2418,31 +2449,126 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   }
 }
 
+void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor,
+                                                                 rainfallrunoffGrid& runoff)     // DAV - This can be split into subfunctions
+{
+  for (int z=1; z <= totalinputpoints; z++)
+  {
+    int j = catchment_input_x_coord[z];
+    int i = catchment_input_y_coord[z];
+
+    double water_add_amt = runoff.get_j_mean(i,j) / local_time_factor;    //
+
+    if (water_add_amt > ERODEFACTOR)
+    {
+      water_add_amt = ERODEFACTOR;
+    }
+
+    waterinput += (water_add_amt / local_time_factor) * DX * DX;
+
+    water_depth[i][j] += water_add_amt;
+  }
+  // if the input type flag is 1 then the discharge is input from the hydrograph
+  if (cycle >= time_1)
+  {
+    do
+    {
+      time_1++;
+      calc_J(time_1++, runoff);  // calc_J is based on the rainfall rate supplied to the cell
+      if (time_factor > max_time_step && runoff.get_new_j_mean(1,1) > (0.2 / (jmax * imax * DX * DX)))
+        // check after the variable rainfall area has been added
+        // stops code going too fast when there is actual flow in the channels greater than 0.2cu
+      {
+        cycle = time_1 + (max_time_step / 60);
+        time_factor = max_time_step;
+      }
+    } while (time_1 < cycle);
+  }
+
+  calchydrograph(time_1 - cycle, runoff);
+
+  double jmeanmax =0;
+  for (int m=1; m <= imax; m++)
+  {
+    for (int n=1; n<=jmax; n++)
+    {
+      if (runoff.get_j_mean(m,n) > jmeanmax)
+      {
+        jmeanmax = runoff.get_j_mean(m,n);
+      }
+    }
+  }
+
+
+  // DV - This is for reading the dsicharge direct from an input file
+  /*
+  if (jmeaninputfile_opt == true)
+  {
+    j_mean[1] = ((hourly_rain_data[(static_cast<int>(cycle / rain_data_time_step))][0] //check in original
+        / std::pow(DX, 2)) / nActualGridCells[1]);
+  }*/
+
+  if (jmeanmax >= baseflow)
+  {
+    baseflow = baseflow * 3;    // Magic number 3!? - DAV
+    get_area();         // Could this come from one of the LSDobject files? - DAV
+    get_catchment_input_points();
+  }
+
+  if (baseflow > (jmeanmax * 3) && baseflow > 0.0000001)
+  {
+    baseflow = jmeanmax * 1.25;   // Where do these magic numbers come from? DAV
+    get_area();
+    get_catchment_input_points();
+  }
+}
+
+void LSDCatchmentModel::calc_J(double cycle, rainfallrunoffGrid& runoff)
+{
+  // UNique fiulename for raingrids
+
+  // For later use with the rain grid object
+  int current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
+
+  // Create a raingrid object from the rainfall timeseries data and hydroindex
+  // Only to be used with spatially var rainfall.
+
+  // Interpolate rainfall data from inputs
+  rainGrid current_raingrid(hourly_rain_data, rfarea,
+                          imax, jmax,
+                          current_rainfall_timestep,
+                          rfnum);
+  // Calculate runoff for this rainfall grid at this timestep
+  runoff.calculate_runoff(rain_factor, M, jmax, imax, current_raingrid);
+
+  // For checking purposes
+  /*
+  current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX,
+                                               raingrid_fname,
+                                               dem_write_extension);
+
+
+  // Calculate runoff from rainfall DEPRECATED
+  current_rainfallrunoffgrid(current_rainfall_timestep,
+                                                imax, jmax,
+                                                rain_factor, M,
+                                                current_raingrid);
+  */
+}
+
 // Calculates the rainfall input to each cell per time step
 // J is the local rainfall inputed into the cell at each timestep
 // (Actually that is j_mean)
 void LSDCatchmentModel::calc_J(double cycle)
 {
-  // UNique fiulename for raingrids
+  // UNique fiulename for raingrids?
   
   // For later use with the rain grid object
   int current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
   
-  // Create a raingrid object from the rainfall timeseries data and hydroindex
-  // Only to be used with spatially var rainfall.
-  
-  if (spatially_var_rainfall==true)
-  {
-    rainGrid current_raingrid(hourly_rain_data, rfarea, 
-                            imax, jmax, 
-                            current_rainfall_timestep, 
-                            rfnum);
-    current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX, 
-                                                 raingrid_fname, 
-                                                 dem_write_extension);
-  }
-  
-  for (int n=1; n <= rfnum; n++)    
+  // Case for uniform OR non-interpolated rainfall
+
+  for (int n=1; n <= rfnum; n++)
   // rfnum is the rainfall number int = 2 to begin with
   {
     double local_rain_fall_rate = 0;   // in metres per second
@@ -2496,7 +2622,6 @@ void LSDCatchmentModel::calc_J(double cycle)
     }
     // (M is the TOPMODEL m value)
     // DAV - Make a seperate function?
-
   }
 }
 
@@ -2521,6 +2646,20 @@ void LSDCatchmentModel::calchydrograph(double time)
   }
 }
 
+// In this version you have to update every grid cell, as they all could possibly have different
+// rainfall inputs.
+void LSDCatchmentModel::calchydrograph(double time, rainfallrunoffGrid& runoff)
+{
+  for (int m=1; m<= imax; m++)
+  {
+    for (int n=1; n <= jmax; n++)
+    {
+      double cell_j_mean = runoff.get_old_j_mean(m,n) + (( (runoff.get_new_j_mean(m,n) - runoff.get_old_j_mean(m,n)) / 2) * (2 - time));
+      // set the calculated j_mean value for the current cell in the loop
+      runoff.set_j_mean(m, n, cell_j_mean);
+    }
+  }
+}
 
 void LSDCatchmentModel::get_catchment_input_points()
 {
