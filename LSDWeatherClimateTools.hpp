@@ -60,6 +60,8 @@ public:
                                                double cellsize,
                                                std::string RAINGRID_FNAME,
                                                std::string RAINGRID_EXTENSION);
+
+  double get_rainfall(int i, int j) const { return rainfallgrid2D[i][j]; }
  
 protected:
 
@@ -93,16 +95,31 @@ public:
   /// Default constructor -- throws an error.
   rainfallrunoffGrid()
   {
-    //create();
+    create();
   }
 
   /// Create a rainfallrunoffGrid from passing params and refs to params
-  rainfallrunoffGrid(int local_time_factor)
+  rainfallrunoffGrid(int current_rainfall_timestep, int imax, int jmax,
+                     int rain_factor, int M,
+                     const rainGrid& current_rainGrid)
   {
-    std::cout << "Creating a LSD rainfallrunoffGrid object from a parameters..." \
+    std::cout << "Creating a LSD rainfallrunoffGrid object from the" << std::endl
+                 << " current rainGrid and domain parameters..." \
                  << std::endl;
-    //create();
+    create(current_rainfall_timestep, imax, jmax,
+            rain_factor, M,
+            current_rainGrid);
   }  
+
+protected:
+  TNT::Array2D<double> runoffGrid2D;
+  TNT::Array2D<double> j, jo, j_mean, old_j_mean, new_j_mean;
+
+private:
+  void create();
+  void create(int current_rainfall_timestep, int imax, int jmax,
+         int rain_factor, int M,
+         const rainGrid& current_rainGrid);
 };
 
 #endif // LSDWEATHERCLIMATETOOLS_H
