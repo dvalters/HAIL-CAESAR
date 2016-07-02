@@ -2477,13 +2477,18 @@ void LSDCatchmentModel::calc_J(double cycle)
     if (local_rain_fall_rate == 0)
     {
       j[n] = jo[n] / (1 + ((jo[n] * local_time_step) / M));
-      new_j_mean[n] = M / local_time_step * std::log(1 + ((jo[n] * local_time_step) / M));
+      new_j_mean[n] = M / local_time_step *
+          std::log(1 + ((jo[n] * local_time_step) / M));
     }
 
     if (local_rain_fall_rate > 0)
     {
-      j[n] = local_rain_fall_rate / (((local_rain_fall_rate - jo[n]) / jo[n]) * std::exp((0 - local_rain_fall_rate) * local_time_step / M) + 1);
-      new_j_mean[n] = (M / local_time_step) * std::log(((local_rain_fall_rate - jo[n]) + jo[n] * std::exp((local_rain_fall_rate * local_time_step) / M)) / local_rain_fall_rate);
+      j[n] = local_rain_fall_rate / (((local_rain_fall_rate - jo[n]) / jo[n])
+          * std::exp((0 - local_rain_fall_rate) * local_time_step / M) + 1);
+      new_j_mean[n] = (M / local_time_step)
+          * std::log(((local_rain_fall_rate - jo[n]) + jo[n] *
+                      std::exp((local_rain_fall_rate * local_time_step) / M))
+                     / local_rain_fall_rate);
     }
     if (new_j_mean[n] < 0)
     {

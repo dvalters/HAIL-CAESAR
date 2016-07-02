@@ -94,6 +94,80 @@ void rainGrid::interpolateRainfall_RectBivariateSpline(rainGrid &raingrid)
   // SPLINES!!
 }
 
+// =-=-=-=-=-=-=-=-=-=-=-=-=
+// RAINFALL RUNOFF OBJECT
+// =-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+void rainfallrunoffGrid::create()
+{
+  std::cout << "Stop trying to create empty objects! Seriously." << std::endl;
+  exit(EXIT_FAILURE);
+}
+
+void rainfallrunoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
+                                int rain_factor, int M,
+                                const rainGrid& current_rainGrid)
+{
+  // set arrays to relevant size for model domain
+  j = TNT::Array2D<double>(imax +2, jmax +2);
+  jo = TNT::Array2D<double>(imax +2, jmax +2);
+  j_mean = TNT::Array2D<double>(imax +2, jmax +2);
+  old_j_mean = TNT::Array2D<double>(imax +2, jmax +2);
+  new_j_mean = TNT::Array2D<double>(imax +2, jmax +2);
+
+  for (int m; m<=imax; m++)
+  {
+    for (int n; n<=jmax; n++)
+    {
+      double local_rainfall_rate =0;
+      double local_time_step=60;
+
+      old_j_mean[m][n] = new_j_mean[m][n];
+      jo[m][n] = j[m][n];
+
+      // Variable M value would go here
+      // if (variable_m_flag == true) { }
+
+      local_rainfall_rate = 0;
+
+      if (current_rainGrid.get_rainfall(m, n) > 0)
+      {
+        // Divide by 1000 to get m/hr, then 3600 for m/sec
+        local_rainfall_rate = rain_factor * ((current_rainGrid.get_rainfall(m, n)
+            / 1000) / 3600);
+      }
+
+      // If case is zero, we still need to calculate the amount of saturation decay
+      // for this time step (TOPMODEL based)
+      if (current_rainGrid.get_rainfall(m, n) == 0)
+      {
+        j[m][n] = jo[m][n] / (1 + ((jo[m][n] + local_time_step) / M));
+
+        new_j_mean[m][n] = M / local_time_step *
+            std::log(1 +((jo[m][n] * local_time_step) / M));
+      }
+
+      // If there is some rain in this cell, we need to calculate how much
+      // is runoff vs infiltrates (TOPMODEL based)
+      if (local_rainfall_rate > 0)
+      {
+        j[m][n] = local_rainfall_rate / (((local_rainfall_rate - jo[m][n]) / jo[m][n])
+                   * std::exp((0 - local_rainfall_rate) * local_time_step / M) + 1);
+
+        new_j_mean[m][n] = (M / local_time_step)
+                            * std::log(((local_rainfall_rate - jo[m][n]) + jo[m][n]
+                            * std::exp((local_rainfall_rate *local_time_step)
+                                       / M)) / local_rainfall_rate);
+      }
+
+      if (new_j_mean[m][n] < 0)
+      {
+        new_j_mean[m][n] = 0;
+      }
+    }
+  }
+}
 
 #endif
 
