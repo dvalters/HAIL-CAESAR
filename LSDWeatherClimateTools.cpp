@@ -93,13 +93,12 @@ void rainGrid::interpolateRainfall_RectBivariateSpline(rainGrid &raingrid)
 {
   // SPLINES!!
 }
-
 // =-=-=-=-=-=-=-=-=-=-=-=-=
 // RAINFALL RUNOFF OBJECT
 // =-=-=-=-=-=-=-=-=-=-=-=-=
 
 
-void rainfallrunoffGrid::create(int imax, int jmax)
+void runoffGrid::create(int imax, int jmax)
 {
   // set arrays to relevant size for model domain
   // Zero or set to very small value near zero.
@@ -115,7 +114,7 @@ void rainfallrunoffGrid::create(int imax, int jmax)
 
 // Same as abouve but calculates values for runoff matrices given raingrid and a timestep
 //  and other relevant params.
-void rainfallrunoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
+void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
                                 int rain_factor, int M,
                                 const rainGrid& current_rainGrid)
 {
@@ -131,7 +130,7 @@ void rainfallrunoffGrid::create(int current_rainfall_timestep, int imax, int jma
 
 
 
-void rainfallrunoffGrid::calculate_runoff(int rain_factor, int M, int jmax, int imax, const rainGrid& current_rainGrid)
+void runoffGrid::calculate_runoff(int rain_factor, int M, int jmax, int imax, const rainGrid& current_rainGrid)
 {
   for (int m; m<=imax; m++)
   {
