@@ -1,4 +1,4 @@
-/// LSDWeatherClimateTools.cpp
+/// LSDRainfallRunoffTools.cpp
 
 /*
  * Used for various weather/storm generators, climate data interpolation
@@ -16,15 +16,15 @@
  *
  */
 
-#ifndef LSDWeatherClimateTools_CPP
-#define LSDWeatherClimateTools_CPP
+#ifndef LSDRainfallRunoff_CPP
+#define LSDRainfallRunoff_CPP
 
-#include "LSDWeatherClimateTools.hpp"
+#include "LSDRainfallRunoff.hpp"
 #include "LSDRaster.hpp"
 
 void rainGrid::create()
 {
-  std::cout << "You have tried to create an empty WeatherClimate object. " <<
+  std::cout << "You have tried to create an empty RainfallRunoff object. " <<
                std::endl << "Please try again with some parameters" <<
                std::endl;
   exit(EXIT_FAILURE);
