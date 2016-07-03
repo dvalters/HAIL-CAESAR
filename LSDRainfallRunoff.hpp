@@ -1,5 +1,5 @@
-#ifndef LSDWEATHERCLIMATETOOLS_H
-#define LSDWEATHERCLIMATETOOLS_H
+#ifndef LSDRAINFALLRUNOFF_H
+#define LSDRAINFALLRUNOFF_H
 
 
 #include "TNT/tnt.h"
@@ -106,7 +106,7 @@ public:
                      int rain_factor, int M,
                      const rainGrid& current_rainGrid)
   {
-    std::cout << "Creating a LSD rainfallrunoffGrid object from the" << std::endl
+    std::cout << "Creating a LSD runoffGrid object from the" << std::endl
                  << " current rainGrid and domain parameters..." \
                  << std::endl;
     create(current_rainfall_timestep, imax, jmax,

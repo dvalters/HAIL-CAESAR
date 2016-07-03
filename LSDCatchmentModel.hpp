@@ -19,7 +19,7 @@
 #include "LSDRaster.hpp"
 #include "LSDGrainMatrix.hpp"
 #include "LSDStatsTools.hpp"
-#include "LSDWeatherClimateTools.hpp"
+#include "LSDRainfallRunoff.hpp"
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
