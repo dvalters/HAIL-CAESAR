@@ -5,11 +5,12 @@
 #include "TNT/tnt.h"
 #include "LSDStatsTools.hpp" // This contains some spline interpolation functions already
 
-
+/// @brief rainGrid is a class used to store and manipulate rainfall data.
+/// @detail It can be used to interpolate or upscale rainfall data from coarser
+/// resolutions/grid spacings.
+/// @author DAV
 class rainGrid
 {
-friend class LSDCatchmentModel; // might not need this, see how it pans out...
-
 public:
 
   /// Default constructor -- throws an error.
@@ -61,6 +62,7 @@ public:
                                                std::string RAINGRID_FNAME,
                                                std::string RAINGRID_EXTENSION);
 
+  /// Getter for getting rainfall value
   double get_rainfall(int i, int j) const { return rainfallgrid2D[i][j]; }
  
 protected:
@@ -89,18 +91,18 @@ private:
 /// variable rainfall input (j_mean, but 2D, i.e. j_mean_array[i][j], same as 
 /// model 
 
-class rainfallrunoffGrid
+class runoffGrid
 {
 public:
 
   /// Basic constructor -- initialises arrays to domain size.
-  rainfallrunoffGrid(int imax, int jmax)
+  runoffGrid(int imax, int jmax)
   {
     create(imax, jmax);
   }
 
   /// Create a rainfallrunoffGrid from passing params and refs to params
-  rainfallrunoffGrid(int current_rainfall_timestep, int imax, int jmax,
+  runoffGrid(int current_rainfall_timestep, int imax, int jmax,
                      int rain_factor, int M,
                      const rainGrid& current_rainGrid)
   {
@@ -112,7 +114,8 @@ public:
             current_rainGrid);
   }  
 
-  void calculate_catchment_water_inputs();
+  //void calculate_catchment_water_inputs(); // Left this is CatchmentModel object for now
+  // could be moved at later date, but we need reorganisation of classes.
 
   /// Calculates runoff and updates the rainfallrunoffGrid object accordingly
   /// Introduced to be able to create an empty runoff object and then later initialise it,
@@ -126,10 +129,11 @@ public:
   double get_old_j_mean(int m, int n) const { return old_j_mean[m][n]; }
   double get_new_j_mean(int m, int n) const { return new_j_mean[m][n]; }
 
+  /// Sets the value of j_mean when calculating the hydrograh
+  /// @param m, n array indices, new value to set (double)
   void set_j_mean(int m, int n, double cell_j_mean) { j_mean[m][n] = cell_j_mean; }
 
 protected:
-  TNT::Array2D<double> runoffGrid2D;
   TNT::Array2D<double> j, jo, j_mean, old_j_mean, new_j_mean;
 
 private:

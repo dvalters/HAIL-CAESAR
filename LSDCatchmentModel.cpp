@@ -1897,7 +1897,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
   // J is the local rainfall inputed into the cell at each timestep
   std::cout << "Initialising J for first time..." << std::endl;
 
-  rainfallrunoffGrid runoff(imax, jmax); /* Annoying, because obviously
+  runoffGrid runoff(imax, jmax); /* Annoying, because obviously
   you can't put it in the conditional below, as we need it to exist out of scope
   yet it should really only be created if we are using the complex rainfall-runoff option
   (i.e., not best practive to go around using up memory when we don't need to...)
@@ -2450,7 +2450,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 }
 
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor,
-                                                                 rainfallrunoffGrid& runoff)     // DAV - This can be split into subfunctions
+                                                                 runoffGrid& runoff)     // DAV - This can be split into subfunctions
 {
   for (int z=1; z <= totalinputpoints; z++)
   {
@@ -2523,7 +2523,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   }
 }
 
-void LSDCatchmentModel::calc_J(double cycle, rainfallrunoffGrid& runoff)
+void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
 {
   // UNique fiulename for raingrids
 
@@ -2648,7 +2648,7 @@ void LSDCatchmentModel::calchydrograph(double time)
 
 // In this version you have to update every grid cell, as they all could possibly have different
 // rainfall inputs.
-void LSDCatchmentModel::calchydrograph(double time, rainfallrunoffGrid& runoff)
+void LSDCatchmentModel::calchydrograph(double time, runoffGrid& runoff)
 {
   for (int m=1; m<= imax; m++)
   {

@@ -291,24 +291,29 @@ public:
   /// landscape.
   void qroute();
 
-  /// Overlaoded functions below are for when sing the fully distriuted/complex
-  /// rainfall patterns option in the model.
-  ///
+  /// Calculates the amount of runoff on a grid-cell from the rainfall
+  /// timeseries input
   void catchment_water_input_and_hydrology( double local_time_factor);
 
-  void catchment_water_input_and_hydrology( double local_time_factor, rainfallrunoffGrid& runoff);
+  /// Overlaoded function is for when sing the fully distriuted/complex
+  /// rainfall patterns option in the model. Takes a reference to the runoffGrid
+  /// object.
+  void catchment_water_input_and_hydrology( double local_time_factor, runoffGrid& runoff);
 
+  /// Calculates the amount of water entering grid cells from the rainfall timeseries
+  /// and hydroindex if spatially variable rainfall is used.
   void calc_J( double cycle);
 
-  void calc_J(double cycle, rainfallrunoffGrid& runoff);
+  /// Calculates amount of water entering grid cells when using the fully-distributed
+  /// rainfall runoff model (i.e. where every single cell can have diffferent rainfall
+  /// and saturation levels.
+  void calc_J(double cycle, runoffGrid& runoff);
 
   void calchydrograph( double time);
 
-  /// Overloaded function for calculating hydrography when using the fully distributed
+  /// Overloaded function for calculating hydrograph when using the fully distributed
   /// model. Takes an extra reference to the runoff object.
-  void calchydrograph(double time, rainfallrunoffGrid& runoff);
-
-  //void depth_update();
+  void calchydrograph(double time, runoffGrid& runoff);
 
   void evaporate(double time);
 
