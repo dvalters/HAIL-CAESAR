@@ -11392,13 +11392,13 @@ vector<float> LSDRaster::AnalysisOfQuality(LSDRaster& ActualRaster)
         SumTP++;
       }
       // check if it is a false positive
-      if (RasterData[row][col] == 1 && ActualValue == 0)
+      if (RasterData[row][col] == 1 && ActualValue < 0)
       {
         //cout << "FP" << endl;
         SumFP++;
       }
       // check if it is a true negative
-      if (RasterData[row][col] == NoDataValue && ActualValue ==0)
+      if (RasterData[row][col] == NoDataValue && ActualValue < 0)
       {
         SumTN++;
       }
@@ -11410,7 +11410,7 @@ vector<float> LSDRaster::AnalysisOfQuality(LSDRaster& ActualRaster)
     }
   }
   //cout << "Got the total TPs and FPs" << endl;
-  //cout << "SumTP = " << SumTP << " SumFP = " << SumFP << " SumTN = " << SumTN << endl;
+  cout << "SumTP = " << SumTP << " SumFP = " << SumFP << " SumTN = " << SumTN << " SUM FN = " << SumFN << endl;
 
   //now calculate the quality analyses
   //reliability
