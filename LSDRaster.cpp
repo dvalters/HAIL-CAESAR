@@ -11359,18 +11359,25 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Function to calculate the reliability of floodplain method based on true positives and
+// Function to calculate the quality analysis of floodplain method based on true positives and
 // false postivies. Need to pass in a raster of predicted values and a raster of actual values
 // Predicted values: 1 = floodplain, NoDataValue = not floodplain
 // Actual values: 1 = floodplain, 0 = not floodplain
-// FJC 04/05/16
+// results are in a vector: 
+// 0 - reliability
+// 1 - sensitvity
+// 2 - false positive rate
+// 3 - true negative rate
+// 4 - false negative rate
+// FJC 29/06/16
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-float LSDRaster::CalculateReliability(LSDRaster& ActualRaster)
+vector<float> LSDRaster::AnalysisOfQuality(LSDRaster& ActualRaster)
 {
   float SumTP = 0;
   float SumFP = 0;
   float SumTN = 0;
-
+	float SumFN = 0;
+	vector<float> quality_results(5);
 
   for (int row = 0; row < NRows -1; row++)
   {
@@ -11395,53 +11402,30 @@ float LSDRaster::CalculateReliability(LSDRaster& ActualRaster)
       {
         SumTN++;
       }
-    }
-  }
-  cout << "Got the total TPs and FPs" << endl;
-  cout << "SumTP = " << SumTP << " SumFP = " << SumFP << " SumTN = " << SumTN << endl;
-
-  //now calculate the reliability
-  float reliability = SumTP/(SumTP + SumFP);
-  return reliability;
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Function to calculate the sensitivity of floodplain method based on true positives and
-// false negatives. Need to pass in a raster of predicted values and a raster of actual values
-// Predicted values: 1 = floodplain, NoDataValue = not floodplain
-// Actual values: 1 = floodplain, 0 = not floodplain
-// FJC 04/05/16
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-float LSDRaster::CalculateSensitivity(LSDRaster& ActualRaster)
-{
-  float SumTP = 0;
-  float SumFN = 0;
-
-  for (int row = 0; row < NRows-1; row++)
-  {
-    for (int col = 0; col < NCols-1; col++)
-    {
-      int ActualValue = ActualRaster.get_data_element(row, col);
-      // check if it is a true positive
-      if (RasterData[row][col] == 1 && ActualValue == 1)
-      {
-        SumTP++;
-      }
-      // check if it is a false negative
-      if (RasterData[row][col] == NoDataValue && ActualValue == 1)
+			// check if it is a false negative
+			if (RasterData[row][col] == NoDataValue && ActualValue ==1)
       {
         SumFN++;
       }
     }
   }
+  //cout << "Got the total TPs and FPs" << endl;
+  //cout << "SumTP = " << SumTP << " SumFP = " << SumFP << " SumTN = " << SumTN << endl;
 
-  //now calculate the sensitivity
-  float sensitivity = SumTP/(SumTP + SumFN);
-  return sensitivity;
+  //now calculate the quality analyses
+  //reliability
+  quality_results[0] = SumTP/(SumTP + SumFP);
+	//sensitivity
+	quality_results[1] = SumTP/(SumTP + SumFN);
+	// r_fp
+	quality_results[2] = SumFP/(SumFP + SumTN);
+	// r_tn
+	quality_results[3] = SumTN/(SumFP + SumTN);
+	// r_fn
+	quality_results[4] = 1 - quality_results[1];
+		
+  return quality_results;
 }
-
-
-
 
 // Get the lengths in spatial units of each part of the channel network, divided by strahler order.
 // Returns a string containing the comma separated lengths
