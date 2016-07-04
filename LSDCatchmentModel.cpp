@@ -2465,6 +2465,8 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     int j = catchment_input_x_coord[z];
     int i = catchment_input_y_coord[z];
 
+    std::cout << totalinputpoints << std::endl;
+    std::cout << "RUNOFF: " << runoff.get_j_mean(i,j) << std::endl;
     double water_add_amt = runoff.get_j_mean(i,j) * local_time_factor;    //
 
     if (water_add_amt > ERODEFACTOR)
