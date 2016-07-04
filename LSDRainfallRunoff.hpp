@@ -26,8 +26,8 @@ public:
            TNT::Array2D<int>& hydroindex,
            int imax, int jmax, int current_rainfall_timestep, int rf_num)
   {
-    std::cout << "Creating a LSD rainGrid object from a rainfall timeseries and hydroindex..." \
-                 << std::endl;
+    //std::cout << "Creating a LSD rainGrid object from a rainfall timeseries and hydroindex..." \
+    //             << std::endl;
     create(rain_data, hydroindex, imax, jmax, current_rainfall_timestep, rf_num);
   }
 
@@ -106,9 +106,10 @@ public:
                      int rain_factor, int M,
                      const rainGrid& current_rainGrid)
   {
-    std::cout << "Creating a LSD runoffGrid object from the" << std::endl
+    /*std::cout << "Creating a LSD runoffGrid object from the" << std::endl
                  << " current rainGrid and domain parameters..." \
                  << std::endl;
+                 */
     create(current_rainfall_timestep, imax, jmax,
             rain_factor, M,
             current_rainGrid);

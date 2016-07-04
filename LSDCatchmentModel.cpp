@@ -993,7 +993,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       mannings = atof(value.c_str());
       std::cout << "mannings: " << mannings << std::endl;
     }
-    else if (lower == "spatiall_complex_rainfall_on")
+    else if (lower == "spatially_complex_rainfall_on")
     {
       spatially_complex_rainfall = (value == "yes") ? true : false;
       std::cout << "Spatially complex rainfall option: " << spatially_complex_rainfall << std::endl;
