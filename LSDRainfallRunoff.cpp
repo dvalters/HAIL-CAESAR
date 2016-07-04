@@ -134,9 +134,11 @@ void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
 
 void runoffGrid::calculate_runoff(int rain_factor, int M, int jmax, int imax, const rainGrid& current_rainGrid)
 {
-  for (int m; m<=imax; m++)
+  //std::cout << "calculate_runoff" << std::endl;
+              
+  for (int m=1; m<imax; m++)
   {
-    for (int n; n<=jmax; n++)
+    for (int n=1; n<jmax; n++)
     {
       double local_rainfall_rate =0;
       double local_time_step=60;
@@ -148,6 +150,8 @@ void runoffGrid::calculate_runoff(int rain_factor, int M, int jmax, int imax, co
       // if (variable_m_flag == true) { }
 
       local_rainfall_rate = 0;
+      
+      //std::cout << "Rainfall is: " << current_rainGrid.get_rainfall(m, n) << std::endl;
 
       if (current_rainGrid.get_rainfall(m, n) > 0)
       {
@@ -158,7 +162,7 @@ void runoffGrid::calculate_runoff(int rain_factor, int M, int jmax, int imax, co
 
       // If case is zero, we still need to calculate the amount of saturation decay
       // for this time step (TOPMODEL based)
-      if (current_rainGrid.get_rainfall(m, n) == 0)
+      if (local_rainfall_rate == 0)
       {
         j[m][n] = jo[m][n] / (1 + ((jo[m][n] + local_time_step) / M));
 

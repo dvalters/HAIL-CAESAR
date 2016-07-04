@@ -660,6 +660,7 @@ protected:
 
   // lisflood caesar adaptation globals
   std::vector<int> catchment_input_counter;
+  //std::vector<int> catchment_input_counter_big;
   int totalinputpoints = 0;
 
   // stage/tidal variables
