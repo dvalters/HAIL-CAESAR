@@ -218,6 +218,8 @@ public:
   void get_area4();
 
   void get_catchment_input_points();
+  
+  void get_catchment_input_points(runoffGrid& runoff);
 
   /// @brief Writes the time series of catchment output data.
   void output_data(double temptotal);

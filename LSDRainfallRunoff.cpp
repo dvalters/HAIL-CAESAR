@@ -1,4 +1,4 @@
-/// LSDRainfallRunoffTools.cpp
+/// LSDRainfallRunoff.cpp
 
 /*
  * Used for various weather/storm generators, climate data interpolation
@@ -118,6 +118,7 @@ void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
                                 int rain_factor, int M,
                                 const rainGrid& current_rainGrid)
 {
+  std::cout << "Creating a RUNOFF GRID OBJECT..." << std::endl;
   // set arrays to relevant size for model domain
   j = TNT::Array2D<double>(imax +2, jmax +2);
   jo = TNT::Array2D<double>(imax +2, jmax +2);
