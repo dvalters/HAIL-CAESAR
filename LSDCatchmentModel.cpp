@@ -1927,7 +1927,14 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
   get_area();
 
   std::cout << "Initialising catchment input points for first time..." << std::endl;
-  get_catchment_input_points();
+  if (spatially_complex_rainfall == true)
+  {
+    get_catchment_input_points(runoff);
+  }
+  else
+  {
+    get_catchment_input_points();
+  }
 
   time_factor = 1;
 
@@ -2512,14 +2519,14 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   {
     baseflow = baseflow * 3;    // Magic number 3!? - DAV
     get_area();         // Could this come from one of the LSDobject files? - DAV
-    get_catchment_input_points();
+    get_catchment_input_points(runoff);
   }
 
   if (baseflow > (jmeanmax * 3) && baseflow > 0.0000001)
   {
     baseflow = jmeanmax * 1.25;   // Where do these magic numbers come from? DAV
     get_area();
-    get_catchment_input_points();
+    get_catchment_input_points(runoff);
   }
 }
 
@@ -2677,6 +2684,34 @@ void LSDCatchmentModel::get_catchment_input_points()
     {
       if ((area[i][j] * j_mean[rfarea[i][j]] * 3 * DX * DX) > MIN_Q \
           && (area[i][j] * j_mean[rfarea[i][j]] * 3 * DX * DX) < MIN_Q_MAXVAL)
+      {
+        catchment_input_x_coord[totalinputpoints] = j;
+        catchment_input_y_coord[totalinputpoints] = i;
+        catchment_input_counter[rfarea[i][j]]++;
+        totalinputpoints++;
+      }
+    }
+  }
+  // Debug
+  std::cout << totalinputpoints << std::endl;
+}
+
+void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
+{
+  std::cout << "Calculating catchment input points... Total: ";
+
+
+  totalinputpoints = 1;
+  for (int n=1; n <= rfnum; n++)
+  {
+    catchment_input_counter[n] = 0;
+  }
+  for (int i=1; i <= imax; i++)
+  {
+    for (int j=1; j <= jmax; j++)
+    {
+      if ((area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) > MIN_Q \
+          && (area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) < MIN_Q_MAXVAL)
       {
         catchment_input_x_coord[totalinputpoints] = j;
         catchment_input_y_coord[totalinputpoints] = i;
