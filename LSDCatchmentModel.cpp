@@ -1178,6 +1178,7 @@ void LSDCatchmentModel::initialise_arrays()
   rfarea = TNT::Array2D<int> (imax + 2, jmax + 2);
   nActualGridCells = std::vector<int> (rfnum + 1);
   catchment_input_counter = std::vector<int> (rfnum + 1);
+  //catchment_input_counter_big = std::vector<int> (imax +1 *jmax +1);
 
   sr = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
   sl = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
@@ -1907,7 +1908,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
   if (spatially_complex_rainfall == true)
   {
     // Create a runoff object same size as model domains
-
+    
     calc_J(1.0, runoff);  // Creates a rainfall grid object, uses the runoff grid object as well
   }
   else
@@ -1929,7 +1930,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
   std::cout << "Initialising catchment input points for first time..." << std::endl;
   if (spatially_complex_rainfall == true)
   {
-    get_catchment_input_points(runoff);
+    get_catchment_input_points(runoff); // takes a reference to a runoffGrid object
   }
   else
   {
@@ -2441,7 +2442,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         / std::pow(DX, 2)) / nActualGridCells[1]);
   }
 
-  if (jmeanmax >= baseflow)
+  if (jmeanmax >= 0.0) // > baseflow
   {
     baseflow = baseflow * 3;    // Magic number 3!? - DAV
     get_area();         // Could this come from one of the LSDobject files? - DAV
@@ -2464,7 +2465,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     int j = catchment_input_x_coord[z];
     int i = catchment_input_y_coord[z];
 
-    double water_add_amt = runoff.get_j_mean(i,j) / local_time_factor;    //
+    double water_add_amt = runoff.get_j_mean(i,j) * local_time_factor;    //
 
     if (water_add_amt > ERODEFACTOR)
     {
@@ -2515,7 +2516,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         / std::pow(DX, 2)) / nActualGridCells[1]);
   }*/
 
-  if (jmeanmax >= baseflow)
+  if (jmeanmax > 0.0)  // baseflow
   {
     baseflow = baseflow * 3;    // Magic number 3!? - DAV
     get_area();         // Could this come from one of the LSDobject files? - DAV
@@ -2533,7 +2534,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
 {
   // UNique fiulename for raingrids
-
+  //std::cout << "Calculating J for spatially complex rainfall..." << std::endl;
   // For later use with the rain grid object
   int current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
 
@@ -2610,6 +2611,7 @@ void LSDCatchmentModel::calc_J(double cycle)
     if (local_rain_fall_rate == 0)
     {
       j[n] = jo[n] / (1 + ((jo[n] * local_time_step) / M));
+      
       new_j_mean[n] = M / local_time_step *
           std::log(1 + ((jo[n] * local_time_step) / M));
     }
@@ -2618,6 +2620,7 @@ void LSDCatchmentModel::calc_J(double cycle)
     {
       j[n] = local_rain_fall_rate / (((local_rain_fall_rate - jo[n]) / jo[n])
           * std::exp((0 - local_rain_fall_rate) * local_time_step / M) + 1);
+      
       new_j_mean[n] = (M / local_time_step)
           * std::log(((local_rain_fall_rate - jo[n]) + jo[n] *
                       std::exp((local_rain_fall_rate * local_time_step) / M))
@@ -2702,20 +2705,20 @@ void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
 
 
   totalinputpoints = 1;
-  for (int n=1; n <= rfnum; n++)
-  {
-    catchment_input_counter[n] = 0;
-  }
+  //for (int n=1; n <= rfnum; n++)
+  //{
+  //  catchment_input_counter_big[n] = 0;
+  //}
   for (int i=1; i <= imax; i++)
   {
     for (int j=1; j <= jmax; j++)
     {
-      if ((area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) > MIN_Q \
-          && (area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) < MIN_Q_MAXVAL)
+      if ((area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) > 0.0 \
+        && (area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) < MIN_Q_MAXVAL)
       {
         catchment_input_x_coord[totalinputpoints] = j;
         catchment_input_y_coord[totalinputpoints] = i;
-        catchment_input_counter[rfarea[i][j]]++;
+        //catchment_input_counter_big[i][j]++;
         totalinputpoints++;
       }
     }
