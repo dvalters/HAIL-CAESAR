@@ -41,8 +41,8 @@ void rainGrid::create(std::vector< std::vector<float> >& rain_data,
 
   // DEBUG
   
-  std::cout << "HYDROINDEX DEBUG: " << std::endl;
-  std::cout << hydroindex.dim1() << ", " << hydroindex.dim2() << std::endl;
+  //std::cout << "HYDROINDEX DEBUG: " << std::endl;
+  //std::cout << hydroindex.dim1() << ", " << hydroindex.dim2() << std::endl;
   for (int i=1; i<imax; i++) 
   {
     for (int j=1; j<jmax; j++)
@@ -100,6 +100,7 @@ void rainGrid::interpolateRainfall_RectBivariateSpline(rainGrid &raingrid)
 
 void runoffGrid::create(int imax, int jmax)
 {
+  std::cout << "Creating an EMPTY RUNOFF GRID OBJECT..." << std::endl;
   // set arrays to relevant size for model domain
   // Zero or set to very small value near zero.
   j = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
@@ -118,7 +119,7 @@ void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
                                 int rain_factor, int M,
                                 const rainGrid& current_rainGrid)
 {
-  std::cout << "Creating a RUNOFF GRID OBJECT..." << std::endl;
+  std::cout << "Creating a RUNOFF GRID OBJECT FROM RAINGRID..." << std::endl;
   // set arrays to relevant size for model domain
   j = TNT::Array2D<double>(imax +2, jmax +2);
   jo = TNT::Array2D<double>(imax +2, jmax +2);
