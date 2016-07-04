@@ -2051,15 +2051,8 @@ class LSDRaster
   /// @brief Function to calculate the reliability of floodplain method
   /// @param ActualRaster raster of actual values
   /// @author FJC
-  /// @date 04/05/16
-  float CalculateReliability(LSDRaster& ActualRaster);
-
-  /// @brief Function to calculate the sensitivity of floodplain method
-  /// @param ActualRaster raster of actual values
-  /// @author FJC
-  /// @date 04/05/16
-  float CalculateSensitivity(LSDRaster& ActualRaster);
-
+  /// @date 26/06/16
+  vector<float> AnalysisOfQuality(LSDRaster& ActualRaster);
 
   /// @brief Get the lengths in spatial units of each part of the channel network, divided by strahler order.
   /// @param StreamNetwork Raster of the stream network coded by strahler order.
