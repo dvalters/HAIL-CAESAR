@@ -2460,24 +2460,39 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor,
                                                                  runoffGrid& runoff)     // DAV - This can be split into subfunctions
 {
+  /*
   for (int z=1; z <= totalinputpoints; z++)
   {
     int j = catchment_input_x_coord[z];
     int i = catchment_input_y_coord[z];
-
-    std::cout << totalinputpoints << std::endl;
-    std::cout << "RUNOFF: " << runoff.get_j_mean(i,j) << std::endl;
-    double water_add_amt = runoff.get_j_mean(i,j) * local_time_factor;    //
-
-    if (water_add_amt > ERODEFACTOR)
+  */  
+    // Just replace this with a complete grid scan?
+    // Possibly faster (and simpler?)
+    
+  // OpenMP parallelisation - DAV
+  #pragma omp paralell for
+  for (int i=1; i<imax; i++)
+  {
+    for (int j=1; j<jmax; j++)
     {
-      water_add_amt = ERODEFACTOR;
+      //std::cout << totalinputpoints << std::endl;
+      //std::cout << "RUNOFF: " << runoff.get_j_mean(i,j) << std::endl;
+      double water_add_amt = runoff.get_j_mean(i,j) * local_time_factor;    //
+  
+      if (water_add_amt > ERODEFACTOR)
+      {
+        water_add_amt = ERODEFACTOR;
+      }
+  
+      waterinput += (water_add_amt / local_time_factor) * DX * DX;
+  
+      water_depth[i][j] += water_add_amt;
     }
-
-    waterinput += (water_add_amt / local_time_factor) * DX * DX;
-
-    water_depth[i][j] += water_add_amt;
   }
+
+
+  //} // old for loop end for inputmpoints method
+  
   // if the input type flag is 1 then the discharge is input from the hydrograph
   if (cycle >= time_1)
   {
@@ -2518,18 +2533,18 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         / std::pow(DX, 2)) / nActualGridCells[1]);
   }*/
 
-  if (jmeanmax > 0.0)  // baseflow
+  if (jmeanmax > baseflow) 
   {
     baseflow = baseflow * 3;    // Magic number 3!? - DAV
     get_area();         // Could this come from one of the LSDobject files? - DAV
-    get_catchment_input_points(runoff);
+    //get_catchment_input_points(runoff);
   }
 
   if (baseflow > (jmeanmax * 3) && baseflow > 0.0000001)
   {
     baseflow = jmeanmax * 1.25;   // Where do these magic numbers come from? DAV
     get_area();
-    get_catchment_input_points(runoff);
+    //get_catchment_input_points(runoff);
   }
 }
 
@@ -2705,7 +2720,9 @@ void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
 {
   std::cout << "Calculating catchment input points... Total: ";
 
-
+  // Do we even need to bother with this? 
+  // Jsut calculate for all input points snce we have a lot of rainfall
+  // for most simulations. 
   totalinputpoints = 1;
   //for (int n=1; n <= rfnum; n++)
   //{
@@ -2715,7 +2732,7 @@ void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
   {
     for (int j=1; j <= jmax; j++)
     {
-      if ((area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) > 0.0 \
+      if ((area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) > MIN_Q \
         && (area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) < MIN_Q_MAXVAL)
       {
         catchment_input_x_coord[totalinputpoints] = j;
