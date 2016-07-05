@@ -116,7 +116,7 @@ void runoffGrid::create(int imax, int jmax)
 // Same as abouve but calculates values for runoff matrices given raingrid and a timestep
 //  and other relevant params.
 void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
-                                int rain_factor, int M,
+                                int rain_factor, double M,
                                 const rainGrid& current_rainGrid)
 {
   std::cout << "Creating a RUNOFF GRID OBJECT FROM RAINGRID..." << std::endl;
@@ -132,7 +132,7 @@ void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
 
 
 
-void runoffGrid::calculate_runoff(int rain_factor, int M, int jmax, int imax, const rainGrid& current_rainGrid)
+void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax, const rainGrid& current_rainGrid)
 {
   //std::cout << "calculate_runoff" << std::endl;
               
