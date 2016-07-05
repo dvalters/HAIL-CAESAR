@@ -103,7 +103,7 @@ public:
 
   /// Create a rainfallrunoffGrid from passing params and refs to params
   runoffGrid(int current_rainfall_timestep, int imax, int jmax,
-                     int rain_factor, int M,
+                     int rain_factor, double M,
                      const rainGrid& current_rainGrid)
   {
     /*std::cout << "Creating a LSD runoffGrid object from the" << std::endl
@@ -121,7 +121,7 @@ public:
   /// Calculates runoff and updates the rainfallrunoffGrid object accordingly
   /// Introduced to be able to create an empty runoff object and then later initialise it,
   /// or update an exisiting runoff grid for a new timestep,
-  void calculate_runoff(int rain_factor, int M, int jmax, int imax, const rainGrid &current_rainGrid);
+  void calculate_runoff(int rain_factor, double M, int jmax, int imax, const rainGrid &current_rainGrid);
 
   // Getters for runoff variables
   double get_j(int m, int n) const { return j[m][n]; }
@@ -140,7 +140,7 @@ protected:
 private:
   void create(int imax, int jmax);
   void create(int current_rainfall_timestep, int imax, int jmax,
-         int rain_factor, int M,
+         int rain_factor, double M,
          const rainGrid& current_rainGrid);
 };
 
