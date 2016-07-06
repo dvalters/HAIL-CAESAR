@@ -1992,7 +1992,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     }
     else
     {
-      catchment_water_input_and_hydrology(local_time_factor);
+    catchment_water_input_and_hydrology(local_time_factor);
     }
 
     //std::cout << "route the water and update the flow depths\r" << std::flush;
@@ -2571,6 +2571,13 @@ void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
   current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX,
                                                raingrid_fname,
                                                dem_write_extension);
+
+
+  // Calculate runoff from rainfall DEPRECATED
+  current_rainfallrunoffgrid(current_rainfall_timestep,
+                                                imax, jmax,
+                                                rain_factor, M,
+                                                current_raingrid);
   */
 }
 
