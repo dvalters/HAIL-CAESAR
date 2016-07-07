@@ -8480,7 +8480,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       }
       if (found_NDV == false)
       {
-        //cout << "I found the north border!" << endl;
+        cout << "I found the north border!" << endl;
         found_north_border = true;
         North_border = North_node;
       }
@@ -8504,6 +8504,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       }
       if (found_NDV == false)
       {
+        cout << "I found the east border!" << endl;
         found_east_border = true;
         East_border = East_node;
       }
@@ -8527,6 +8528,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       }
       if (found_NDV == false)
       {
+				cout << "I found the south border!" << endl;
         found_south_border = true;
         South_border = South_node;
       }
@@ -8550,6 +8552,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       }
       if (found_NDV == false)
       {
+			  cout << "I found the west border!" << endl;
         found_west_border = true;
         West_border = West_node;
       }
@@ -8562,49 +8565,61 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       AllBordersFound = true;
     }
   }
+	
+	if (AllBordersFound == false)
+	{
+		cout << "Couldn't trim your raster, sorry! Returning original raster" << endl;
+		LSDRaster Output(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue,
+                     RasterData, GeoReferencingStrings);
 
-  cout << endl << endl << "Here are the trimmed borders: " << endl;
-  //cout << "Nn: " << North_node << " En: " << East_node << " Sn: " << South_node << " Wn: " << West_node << endl;
-  cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
-  cout << "If these are very close together it probably means you need to do a better job of clipping your raster with GDAL." << endl;
+    return Output;
+	}
+	
+	else
+	{
+		cout << endl << endl << "Here are the trimmed borders: " << endl;
+		//cout << "Nn: " << North_node << " En: " << East_node << " Sn: " << South_node << " Wn: " << West_node << endl;
+		cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
+		cout << "If these are very close together it probably means you need to do a better job of clipping your raster with GDAL." << endl;
 
-  int min_row = North_node;
-  int max_row = South_node;
-  int min_col = West_node;
-  int max_col = East_node;
+		int min_row = North_node;
+		int max_row = South_node;
+		int min_col = West_node;
+		int max_col = East_node;
 
-  // create new row and col sizes taking account of zero indexing
-  int new_row_dimension = (max_row-min_row) + 1;
-  int new_col_dimension = (max_col-min_col) + 1;
+		// create new row and col sizes taking account of zero indexing
+		int new_row_dimension = (max_row-min_row) + 1;
+		int new_col_dimension = (max_col-min_col) + 1;
 
-  //cout << "New dimensions are: rows: " << new_row_dimension << " cols: "
-  //     << new_col_dimension << endl;
+		//cout << "New dimensions are: rows: " << new_row_dimension << " cols: "
+		//     << new_col_dimension << endl;
 
-  Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
+		Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
 
-  //loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
-  int TrimmedRow = 0;
-  int TrimmedCol = 0;
-  for (int row = min_row; row < max_row; ++row){
-    for(int col = min_col; col < max_col; ++col){
-      TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
-      ++TrimmedCol;
-    }
-    ++TrimmedRow;
-    TrimmedCol = 0;
-  }
+		//loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
+		int TrimmedRow = 0;
+		int TrimmedCol = 0;
+		for (int row = min_row; row < max_row; ++row){
+			for(int col = min_col; col < max_col; ++col){
+				TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
+				++TrimmedCol;
+			}
+			++TrimmedRow;
+			TrimmedCol = 0;
+		}
 
-  //calculate lower left corner coordinates of new array
-  float new_XLL = (min_col * DataResolution) + XMinimum;
-  float new_YLL = YMinimum + ((NRows - max_row - 1) * DataResolution);
+		//calculate lower left corner coordinates of new array
+		float new_XLL = (min_col * DataResolution) + XMinimum;
+		float new_YLL = YMinimum + ((NRows - max_row - 1) * DataResolution);
 
 
-  LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
-                          new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);
+		LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
+														new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);
 
-  TrimmedRaster.Update_GeoReferencingStrings();
+		TrimmedRaster.Update_GeoReferencingStrings();
 
-  return TrimmedRaster;
+		return TrimmedRaster;
+	}
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
