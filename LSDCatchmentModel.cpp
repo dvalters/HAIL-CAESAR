@@ -412,7 +412,7 @@ void LSDCatchmentModel::load_data()
     else
     {
       std::cout << "No grain data file found by name of: " << GRAINDATA_FILENAME << std::endl << \
-                   "You specified to use a rainfall input file, \
+                   "You specified to use a graindata input file, \
                    \n but no matching file was found. Try again." << std::endl;
       exit(EXIT_FAILURE);
     }
@@ -1889,7 +1889,9 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 {
   // For testing purposes, can be removed later - dv
   // Just prints out how many threads/cores you have.
+  #ifdef OMP_COMPILE_FOR_PARALLEL
   quickOpenMPtest();
+  #endif
   // Originally main_loop() in CL, but no need (I think) for separete
   // loops here.
   std::cout << "Initialising first iteration..." << std::endl;
@@ -5146,6 +5148,7 @@ void LSDCatchmentModel::soil_development()
 void LSDCatchmentModel::quickOpenMPtest()
 {
   // test
+  #ifdef OMP_COMPILE_FOR_PARALLEL
   int thread_id;
   int num_threads = omp_get_max_threads();
   int num_procs = omp_get_num_procs();
@@ -5165,6 +5168,7 @@ void LSDCatchmentModel::quickOpenMPtest()
     }
   }
   std::cout << "Goodbye, parallel region!" << std::endl;
+  #endif
 
 }
 
