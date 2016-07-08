@@ -226,7 +226,7 @@ public:
   
   /// @brief Writes the time series of catchment output data.
   /// @detail Overloaded to take a reference to a runoff object
-  /// to allow calculation from the OOP method.
+  /// to allow calculation from the OOP method.-
   /// @author DAV
   void output_data(double temptotal, runoffGrid& runoff);
 

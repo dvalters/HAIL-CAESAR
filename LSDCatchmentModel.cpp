@@ -2665,7 +2665,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         / std::pow(DX, 2)) / nActualGridCells[1]);
   }
 
-  if (jmeanmax >= 0.0) // > baseflow
+  if (jmeanmax >= baseflow) // > baseflow
   {
     baseflow = baseflow * 3;    // Magic number 3!? - DAV
     get_area();         // Could this come from one of the LSDobject files? - DAV
