@@ -2554,3 +2554,4 @@ LSDIndexRaster LSDIndexRaster::remove_checkerboard_pattern()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
 
 #endif
+
