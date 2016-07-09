@@ -2693,7 +2693,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     // Possibly faster (and simpler?)
     
   // OpenMP parallelisation - DAV
-  #pragma omp paralell for
+  #pragma omp parallel for
   for (int i=1; i<imax; i++)
   {
     for (int j=1; j<jmax; j++)
