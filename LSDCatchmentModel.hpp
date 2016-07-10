@@ -416,6 +416,8 @@ protected:
 
   double bedrock_erosion_threshold = 0;
   double bedrock_erosion_rate = 0;
+  double p_b = 1.5;  // detach capacity exponent from CHILD
+  double bedrock_erodibility_coeff_ke = 0.002;
 
   ///int tot_number_of_tracer_points=0;
   int input_type_flag=0; // 0 is water input from points, 1 is input from hydrograph or rainfall file.

@@ -895,6 +895,27 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       std::cout << "grain_data_file: " << grain_data_file << std::endl;
     }
 
+    //=-=-=-=-=-=-=-=-=-=-=-=
+    // Bedrock Erosion
+    //=-=-=-=-=-=-=-=-=-=-=-=
+
+    else if (lower == "bedrock_erosion_threshold")
+    {
+      bedrock_erosion_threshold = atof(value.c_str());
+      std::cout << "bedrock erode threshold (Pa): " << bedrock_erosion_threshold << std::endl;
+    }
+    else if (lower == "stream_power_pb")
+    {
+      p_b = atof(value.c_str());
+      std::cout << "bedrock stream power p_b: " << p_b << std::endl;
+    }
+    else if (lower == "stream_power_ke")
+    {
+      bedrock_erodibility_coeff_ke = atof(value.c_str());
+      std::cout << "bedrock stream power k_e: " << bedrock_erodibility_coeff_ke << std::endl;
+    }
+
+
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Hydrology and Flow
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -3766,7 +3787,7 @@ double LSDCatchmentModel::erode(double mult_factor)
                 // New bedrock erosion version - DAV
                 double p_b = 1.5;  // detach capacity exponent from CHILD
                 double amount = 0; // amount of erosion into bedrock
-                amount = std::pow(tau - bedrock_erosion_threshold, p_b) * time_factor * mult_factor * 0.000000317;
+                amount = bedrock_erodibility_coeff_ke * std::pow(tau - bedrock_erosion_threshold, p_b) * time_factor * mult_factor * 0.000000317;
                 bedrock[x][y] -= amount;
 
                 // now add amount of bedrock eroded into sediment proportions.
