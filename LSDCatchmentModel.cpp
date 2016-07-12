@@ -2932,6 +2932,7 @@ void LSDCatchmentModel::calchydrograph(double time, runoffGrid& runoff)
   }
 }
 
+/* OLD VERSION - SWAPPED j_mean[] for baseflow
 void LSDCatchmentModel::get_catchment_input_points()
 {
   std::cout << "Calculating catchment input points... Total: ";
@@ -2956,6 +2957,35 @@ void LSDCatchmentModel::get_catchment_input_points()
       }
     }
   }
+  // Debug
+  std::cout << totalinputpoints << std::endl;
+}*/
+
+void LSDCatchmentModel::get_catchment_input_points()
+{
+  std::cout << "Calculating catchment input points... Total: ";
+
+
+  totalinputpoints = 0;
+  for (int n=1; n <= rfnum; n++)
+  {
+    catchment_input_counter[n] = 0;
+  }
+  for (int i=1; i <= imax; i++)
+  {
+    for (int j=1; j <= jmax; j++)
+    {
+      if ((area[i][j] * baseflow * 3 * DX * DX) > MIN_Q \
+          && (area[i][j] * baseflow * 3 * DX * DX) < MIN_Q_MAXVAL)
+      {
+        catchment_input_x_coord[totalinputpoints] = j;
+        catchment_input_y_coord[totalinputpoints] = i;
+        catchment_input_counter[rfarea[i][j]]++;
+        totalinputpoints++;
+      }
+    }
+  }
+  if (totalinputpoints == 0) totalinputpoints = 1;
   // Debug
   std::cout << totalinputpoints << std::endl;
 }
