@@ -531,6 +531,11 @@ protected:
   double d8prop=0.231;
   double d9prop=0.121;
 
+  // Replaces above implementation
+  // loop through array to access each grainsize fraction
+  // the weird length is a hangover from CAESAR-Lisflood...
+  std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068, 0.146, 0.22, 0.231, 0.121, 0.0}};
+
   // Gez
   double previous;
   int hours = 0;

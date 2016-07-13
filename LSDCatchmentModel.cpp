@@ -895,6 +895,13 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       std::cout << "grain_data_file: " << grain_data_file << std::endl;
     }
 
+    else if (lower == "num_of_grainsizes")
+    {
+      G_MAX = atoi(value.c_str()) + 1;
+      std::cout << "num_of_grainsizes: " << G_MAX << std::endl;
+    }
+
+
     //=-=-=-=-=-=-=-=-=-=-=-=
     // Bedrock Erosion
     //=-=-=-=-=-=-=-=-=-=-=-=
@@ -1217,26 +1224,6 @@ void LSDCatchmentModel::initialise_arrays()
   // zero length arrays
 
   zero_values();
-  /*
-    time_1=1;
-
-    std::cout << "Calulating J.." << std::endl;
-    calc_J(1.0);
-
-    save_time=cycle;
-    creep_time=cycle;
-    creep_time2 = cycle;
-    soil_erosion_time = cycle;
-    soil_development_time = cycle;
-    time_1=cycle;
-
-    std::cout << "Get_area().." << std::endl;
-    get_area();
-
-    std::cout << "Get_catchment_input_points().." << std::endl;
-    get_catchment_input_points();
-    time_factor = 1;
-  **/
 }
 
 // Hard coded! - Should make this read from sed details file.
@@ -3187,101 +3174,45 @@ void LSDCatchmentModel::sort_active(int x,int y)
     // add new layer at the bottom
     amount = active;
     z = 9;
-    strata[xyindex][z][0] = amount*d1prop; // 0.0;
-    strata[xyindex][z][1] = amount*d2prop; // + amount*d1prop;
-    strata[xyindex][z][2] = amount*d3prop;
-    strata[xyindex][z][3] = amount*d4prop;
-    strata[xyindex][z][4] = amount*d5prop;
-    strata[xyindex][z][5] = amount*d6prop;
-    strata[xyindex][z][6] = amount*d7prop;
-    strata[xyindex][z][7] = amount*d8prop;
-    strata[xyindex][z][8] = amount*d9prop;
-
+    for (int n=1; n<=G_MAX-1; n++)
+    {
+        strata[xyindex][z][n-1] = amount * dprop[n];
+    }
   }
 
 }
-/* // NEW METHOD for N number of grain sizes
+ // NEW METHOD for N number of grain sizes
 void LSDCatchmentModel::addGS(int x, int y)
 {
-  int n, q;
-  grain_array_tot++;
-  index[x, y] = grain_array_tot;
-
-  grain[grain_array_tot, 0] = 0;
-  for (n = 1; n <= G_MAX - 1;n++ )
-  {
-      grain[grain_array_tot, n] = active * dprop[n];
-  }
-  grain[grain_array_tot, G_MAX] = 0;
-
-
-  for (n = 0; n <= 9; n++)
-  {
-      for (int n2 = 0; n2 <= G_MAX - 2;n2++ )
-      {
-          strata[grain_array_tot, n, n2] = (active) * dprop[n2+1];
-      }
-
-
-      if (elev[x, y] - (active * (n + 1)) < (bedrock[x, y] - active))
-      {
-          for (q = 0; q <= (G_MAX - 2); q++)
-          {
-              strata[grain_array_tot, n, q] = 0;
-          }
-      }
-  }
-  sort_active(x, y);
-}
-*/
-void LSDCatchmentModel::addGS(int x, int y)
-{
-  // needs lock statement to stop two being added at the same time...
-  //lock (this) // DAV - This is only for paralllism...
-  //{
   int n, q;
   grain_array_tot++;
   index[x][y] = grain_array_tot;
 
   grain[grain_array_tot][0] = 0;
-  grain[grain_array_tot][1] = active * d1prop;
-  grain[grain_array_tot][2] = active * d2prop;//+(active*d1prop);
-  grain[grain_array_tot][3] = active * d3prop;
-  grain[grain_array_tot][4] = active * d4prop;
-  grain[grain_array_tot][5] = active * d5prop;
-  grain[grain_array_tot][6] = active * d6prop;
-  grain[grain_array_tot][7] = active * d7prop;
-  grain[grain_array_tot][8] = active * d8prop;
-  grain[grain_array_tot][9] = active * d9prop;
-  grain[grain_array_tot][10] = 0;
-
-
-  for (n = 0; n <= 9; n++)
+  for (n = 1; n <= G_MAX - 1;n++ )
   {
-    strata[grain_array_tot][n][0] = active * d1prop;
-    strata[grain_array_tot][n][1] = active * d2prop;
-    strata[grain_array_tot][n][2] = active * d3prop;
-    strata[grain_array_tot][n][3] = active * d4prop;
-    strata[grain_array_tot][n][4] = active * d5prop;
-    strata[grain_array_tot][n][5] = active * d6prop;
-    strata[grain_array_tot][n][6] = active * d7prop;
-    strata[grain_array_tot][n][7] = active * d8prop;
-    strata[grain_array_tot][n][8] = active * d9prop;
-
-    if (elev[x][y] - (active * (n + 1)) < (bedrock[x][y] - active))
-    {
-      for (q = 0; q <= (G_MAX - 2); q++)
-      {
-        strata[grain_array_tot][n][q] = 0;
-      }
-    }
+      grain[grain_array_tot][n] = active * dprop[n];
   }
+  grain[grain_array_tot][G_MAX] = 0;
 
 
+  for (n = 0; n <= 9; n++) // Do we always need 9 strata? Future improvement?
+  {
+      for (int n2 = 0; n2 <= G_MAX-2; n2++ )
+      {
+          strata[grain_array_tot][n][n2] = (active) * dprop[n2+1];
+      }
+
+
+      if (elev[x][y] - (active * (n + 1)) < (bedrock[x][y] - active))
+      {
+          for (q = 0; q <= (G_MAX - 2); q++)
+          {
+              strata[grain_array_tot][n][q] = 0;
+          }
+      }
+  }
   sort_active(x, y);
-
-  //} // this is for the locak statement above
-
 }
 
 double LSDCatchmentModel::sand_fraction(int index1)
@@ -3402,16 +3333,10 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 
     if (amount > total)
     {
-      grain[index[x2][y2]][1] += (amount - total) * d1prop;
-      grain[index[x2][y2]][2] += (amount - total) * d2prop;
-      grain[index[x2][y2]][3] += (amount - total) * d3prop;
-      grain[index[x2][y2]][4] += (amount - total) * d4prop;
-      grain[index[x2][y2]][5] += (amount - total) * d5prop;
-      grain[index[x2][y2]][6] += (amount - total) * d6prop;
-      grain[index[x2][y2]][7] += (amount - total) * d7prop;
-      grain[index[x2][y2]][8] += (amount - total) * d8prop;
-      grain[index[x2][y2]][9] += (amount - total) * d9prop;
-
+      for (int n=1; n<=G_MAX; n++)
+      {
+        grain[index[x2][y2]][n] += (amount - total) * dprop[n];
+      }
       amount = total;
     }
 
@@ -3437,15 +3362,10 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
   // just adds amount to reviving cells of normal..
   if (index[x][y] == -9999 && index[x2][y2] != -9999)
   {
-    grain[index[x2][y2]][1] += (amount) * d1prop;
-    grain[index[x2][y2]][2] += (amount) * d2prop;
-    grain[index[x2][y2]][3] += (amount) * d3prop;
-    grain[index[x2][y2]][4] += (amount) * d4prop;
-    grain[index[x2][y2]][5] += (amount) * d5prop;
-    grain[index[x2][y2]][6] += (amount) * d6prop;
-    grain[index[x2][y2]][7] += (amount) * d7prop;
-    grain[index[x2][y2]][8] += (amount) * d8prop;
-    grain[index[x2][y2]][9] += (amount) * d9prop;
+    for (n = 1; n <= G_MAX - 1; n++)
+    {
+      grain[index[x2][y2]][n] += (amount) * dprop[n];
+    }
 
     /* then to set active layer to correct depth before erosion, */
     sort_active(x2, y2);
@@ -3460,20 +3380,12 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 
     if (amount > active)
     {
-
-      grain[index[x2][y2]][1] += (amount - active) * d1prop;
-      grain[index[x2][y2]][2] += (amount - active) * d2prop;
-      grain[index[x2][y2]][3] += (amount - active) * d3prop;
-      grain[index[x2][y2]][4] += (amount - active) * d4prop;
-      grain[index[x2][y2]][5] += (amount - active) * d5prop;
-      grain[index[x2][y2]][6] += (amount - active) * d6prop;
-      grain[index[x2][y2]][7] += (amount - active) * d7prop;
-      grain[index[x2][y2]][8] += (amount - active) * d8prop;
-      grain[index[x2][y2]][9] += (amount - active) * d9prop;
-
+      for (n = 1; n <= G_MAX - 1; n++)
+      {
+        grain[index[x2][y2]][n] += amount * dprop[n];
+      }
       amount = active;
     }
-
 
     for (n = 1; n <= (G_MAX - 1); n++)
     {
@@ -3488,7 +3400,6 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
         if (grain[index[x][y]][n] > 0.0001) grain[index[x][y]][n] -= amount * (grain[index[x][y]][n] / total);
         if (grain[index[x][y]][n] < 0) grain[index[x][y]][n] = 0;
       }
-
     }
 
     /* then to set active layer to correct depth before erosion, */
@@ -3693,7 +3604,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             // Iterate over every grain size fraction and calculate
             // sediment entrainment for each fraction
-            for (int n = 1; n <= 9; n++)
+            for (int n = 1; n <= G_MAX -1; n++)
             {
               switch (n)
               {
@@ -3786,7 +3697,7 @@ double LSDCatchmentModel::erode(double mult_factor)
               double elevdiff = elev[x][y] - bedrock[x][y];
               double temptot3 = temptot1;
               temptot1 = 0;
-              for (int n = 1; n <= 9; n++)
+              for (int n = 1; n <= G_MAX-1; n++)
               {
                 if (elev[x][y] <= bedrock[x][y])
                 {
@@ -3821,15 +3732,11 @@ double LSDCatchmentModel::erode(double mult_factor)
                 bedrock[x][y] -= amount;
 
                 // now add amount of bedrock eroded into sediment proportions.
-                grain[index[x][y]][1] += amount * d1prop;
-                grain[index[x][y]][2] += amount * d2prop;
-                grain[index[x][y]][3] += amount * d3prop;
-                grain[index[x][y]][4] += amount * d4prop;
-                grain[index[x][y]][5] += amount * d5prop;
-                grain[index[x][y]][6] += amount * d6prop;
-                grain[index[x][y]][7] += amount * d7prop;
-                grain[index[x][y]][8] += amount * d8prop;
-                grain[index[x][y]][9] += amount * d9prop;
+
+                for (int g=1; g<=G_MAX -1; g++)
+                {
+                    grain[index[x][y]][g] += amount * dprop[g];
+                }
               }
             }
 
