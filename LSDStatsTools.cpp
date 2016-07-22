@@ -4584,6 +4584,47 @@ vector<float> Unique(Array2D<float> InputArray, int NoDataValue){
 }
 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//Return unique values from a vector of ints.
+//Wrapper around the std library unique method which also resizes the output vector.
+// SWDG - 22/7/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<int> Unique(vector<int> InputVector){
+
+  vector<int> OutputVector;
+  vector<size_t> index_map;
+
+  matlab_int_sort(InputVector, OutputVector, index_map);
+
+  vector<int>::iterator it;
+  it = unique(OutputVector.begin(), OutputVector.end());
+
+  OutputVector.resize(distance(OutputVector.begin(),it));
+
+  return OutputVector;
+
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//Return unique values from a vector of floats.
+//Wrapper around the std library unique method which also resizes the output vector.
+// SWDG - 22/7/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<float> Unique(vector<float> InputVector){
+
+  vector<float> OutputVector;
+  vector<size_t> index_map;
+
+  matlab_float_sort(InputVector, OutputVector, index_map);
+
+  vector<float>::iterator it;
+  it = unique(OutputVector.begin(), OutputVector.end());
+
+  OutputVector.resize(distance(OutputVector.begin(),it));
+
+  return OutputVector;
+
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Simple linear spacing algorithm to return a vector of evenly spaced floats
@@ -5600,19 +5641,19 @@ void split_delimited_string(const string& s, char c, vector<string>& v)
 {
   string::size_type i = 0;
   string::size_type j = s.find(c);
-  
+
   // DV - "while not able to find string j
   // i.e. until we find no more delimiters
   while (j != string::npos)
   {
     // DV - Copies out the substring between the zeroth char and the occurrence of delimeter
     v.push_back(s.substr(i, j-i));
-    
+
     // Advance char counter to position of delimiter +1
     i = ++j;
     // find the next delimiter character
     j = s.find(c, j);
-    
+
     if (j == string::npos)
     {
       v.push_back(s.substr(i, s.length()));
@@ -5684,6 +5725,17 @@ string ReformatPath(string old_path)
 
 
   return path;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// test if a string is a float - http://stackoverflow.com/a/447307/1627162
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+bool isFloat(string myString) {
+    istringstream iss(myString);
+    float f;
+    iss >> noskipws >> f; // noskipws considers leading whitespace invalid
+    // Check the entire string was consumed and if either failbit or badbit is set
+    return iss.eof() && !iss.fail();
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==

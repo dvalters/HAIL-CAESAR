@@ -402,6 +402,16 @@ vector<int> Unique(Array2D<int> InputArray, int NoDataValue);
 //Get vector of unique values in an input array of floats
 vector<float> Unique(Array2D<float> InputArray, int NoDataValue);
 
+//Return unique values from a vector of ints.
+//Wrapper around the std library unique method which also resizes the output vector.
+// SWDG - 22/7/16
+vector<int> Unique(vector<int> InputVector);
+
+//Return unique values from a vector of float.
+//Wrapper around the std library unique method which also resizes the output vector.
+// SWDG - 22/7/16
+vector<float> Unique(vector<float> InputVector);
+
 // Generate vector of evenly spaced numbers between two points
 vector<float> linspace(float min, float max, int n);
 
@@ -518,6 +528,11 @@ int get_file_size(string filename);
 //Key_Values should be created using Unique(Data)
 //SWDG 5/6/15
 void Count_Instances(vector<int> Data, vector<int> Key_Values, map<int,int>& DataMap);
+
+
+// test if a string is a float - http://stackoverflow.com/a/447307/1627162
+// Added by SWDG on 18/7/16
+bool isFloat(string myString);
 
 // removes control characters from the end of strings.
 // This is necessary when people use a DOS file format, which
