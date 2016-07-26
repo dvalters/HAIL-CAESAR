@@ -212,13 +212,19 @@ void LSDRaster::create(int nrows, int ncols, double xmin, double ymin,
 void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
            float cellsize, float ndv, Array2D<float> data, map<string,string> temp_GRS)
 {
+
+  //cout << "Hey I am making a new raster using some data you gave me!" << endl;
+
   NRows = nrows;
   NCols = ncols;
   XMinimum = xmin;
   YMinimum = ymin;
   DataResolution = cellsize;
   NoDataValue = ndv;
+  
+  //cout << "Now for the georeferencing strings" << endl;
   GeoReferencingStrings = temp_GRS;
+  //cout << "Got them! " << endl;
 
   //cout << "Set params" << endl;
 
@@ -1313,7 +1319,9 @@ map<string, string> LSDRaster::Update_GeoReferencingStrings(float NewXmin, float
 void LSDRaster::Update_GeoReferencingStrings()
 {
 
+
   float YMax =  YMinimum + NRows*DataResolution;
+  cout << "YMax is: " << YMax << endl;
 
   // set up strings and iterators
   map<string,string>::iterator iter;
@@ -1338,19 +1346,28 @@ void LSDRaster::Update_GeoReferencingStrings()
       mapinfo_strings.push_back( substr );
     }
 
+    cout << "The number of strings is: " <<  mapinfo_strings.size() << endl;
+
     //Construct the new string with the updated xmin ymin values
     stringstream CombineMapinfo;
 
     CombineMapinfo << mapinfo_strings[0] << "," << mapinfo_strings[1] << ","
        << mapinfo_strings[2] << ", " << XMinimum << ", " << YMax << ","
-       << DataResolution << "," << DataResolution << "," << mapinfo_strings[7]
-       << "," << mapinfo_strings[8] << "," << mapinfo_strings[9];
+       << DataResolution << "," << DataResolution;
+    for(int i = 7; i< int(mapinfo_strings.size()); i++)
+    {
+      CombineMapinfo << "," << mapinfo_strings[i];
+    }
 
     //Store the new string in the map
     GeoReferencingStrings[mi_str_key] = CombineMapinfo.str();
 
 
     cout << "New string is: " << endl << GeoReferencingStrings[mi_str_key] << endl;
+  }
+  else
+  {
+    cout << "Missing the ENVI_map_info key" << endl;
   }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -8528,7 +8545,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       }
       if (found_NDV == false)
       {
-				cout << "I found the south border!" << endl;
+        cout << "I found the south border!" << endl;
         found_south_border = true;
         South_border = South_node;
       }
@@ -8552,7 +8569,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       }
       if (found_NDV == false)
       {
-			  cout << "I found the west border!" << endl;
+        cout << "I found the west border!" << endl;
         found_west_border = true;
         West_border = West_node;
       }
@@ -8565,61 +8582,99 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       AllBordersFound = true;
     }
   }
-	
-	if (AllBordersFound == false)
-	{
-		cout << "Couldn't trim your raster, sorry! Returning original raster" << endl;
-		LSDRaster Output(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue,
+  
+  if (AllBordersFound == false)
+  {
+    cout << "Couldn't trim your raster, sorry! Returning original raster" << endl;
+    LSDRaster Output(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue,
                      RasterData, GeoReferencingStrings);
-
     return Output;
-	}
-	
-	else
-	{
-		cout << endl << endl << "Here are the trimmed borders: " << endl;
-		//cout << "Nn: " << North_node << " En: " << East_node << " Sn: " << South_node << " Wn: " << West_node << endl;
-		cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
-		cout << "If these are very close together it probably means you need to do a better job of clipping your raster with GDAL." << endl;
+  }
 
-		int min_row = North_node;
-		int max_row = South_node;
-		int min_col = West_node;
-		int max_col = East_node;
+  else
+  {
+    cout << endl << endl << "Here are the trimmed borders: " << endl;
+    //cout << "Nn: " << North_node << " En: " << East_node << " Sn: " << South_node << " Wn: " << West_node << endl;
+    cout << "Nb: " << North_border << " Eb: " << East_border << " Sb: " << South_border << " Wb: " << West_border << endl;
+    cout << "If these are very close together it probably means you need to do a better job of clipping your raster with GDAL." << endl;
 
-		// create new row and col sizes taking account of zero indexing
-		int new_row_dimension = (max_row-min_row) + 1;
-		int new_col_dimension = (max_col-min_col) + 1;
+    int min_row = North_border;
+    int max_row = South_border;
+    int min_col = West_border;
+    int max_col = East_border;
 
-		//cout << "New dimensions are: rows: " << new_row_dimension << " cols: "
-		//     << new_col_dimension << endl;
+    // create new row and col sizes taking account of zero indexing
+    int new_row_dimension = (max_row-min_row) + 1;
+    int new_col_dimension = (max_col-min_col) + 1;
 
-		Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
+    cout << "New dimensions are: rows: " << new_row_dimension << " cols: "
+         << new_col_dimension << endl;
+    cout << "Min row: " << min_row << " max_row: " << max_row << endl;
+    cout << "Min col: " << min_col << " max_col: " << max_col << endl;
+    cout << "NRows: " << NRows << " and NCols: " << NCols << endl;
 
-		//loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
-		int TrimmedRow = 0;
-		int TrimmedCol = 0;
-		for (int row = min_row; row < max_row; ++row){
-			for(int col = min_col; col < max_col; ++col){
-				TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
-				++TrimmedCol;
-			}
-			++TrimmedRow;
-			TrimmedCol = 0;
-		}
+    Array2D<float>TrimmedData(new_row_dimension, new_col_dimension, NoDataValue);
 
-		//calculate lower left corner coordinates of new array
-		float new_XLL = (min_col * DataResolution) + XMinimum;
-		float new_YLL = YMinimum + ((NRows - max_row - 1) * DataResolution);
+    //loop over min bounding rectangle and store it in new array of shape new_row_dimension x new_col_dimension
+    int TrimmedRow = 0;
+    int TrimmedCol = 0;
+    for (int row = min_row; row < max_row; ++row)
+    {
+      for(int col = min_col; col < max_col; ++col)
+      {
+        // some debugging
+        if (row >= NRows)
+        {
+          cout << "Row is too big, prepare for seg fault!" << endl;
+        }
+        if (col >= NCols)
+        {
+          cout << "Col is too big, prepare for seg fault!" << endl;
+        }
+        
+        if(TrimmedRow >= new_row_dimension)
+        {
+          cout << "TrimmedRow is too big, prepare for seg fault!" << endl;
+        }
+        if(TrimmedCol >= new_col_dimension)
+        {
+          cout << "TrimmedCol is too big, prepare for seg fault!" << endl;
+        }
+        
+                
+        TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
+        ++TrimmedCol;
+      }
+      ++TrimmedRow;
+      TrimmedCol = 0;
+    }
+    cout << "Got the new data array!" << endl;
 
 
-		LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
-														new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);
+    //calculate lower left corner coordinates of new array
+    float new_XLL = (min_col * DataResolution) + XMinimum;
+    float new_YLL = YMinimum + ((NRows - max_row - 1) * DataResolution);
+    cout << "New XLL is: " <<  new_XLL << " old is: " << XMinimum << endl;
+    cout << "New YLL is: " <<  new_YLL << " old is: " << YMinimum << endl;
 
-		TrimmedRaster.Update_GeoReferencingStrings();
+    cout << "Making a new raster, with the following vitalstatistix:" << endl;
+    cout << "Nrows: " <<  new_row_dimension << " NCols: " << new_col_dimension << endl;
+    cout << "XMinimum: " << new_XLL << " YMinimum: " << new_YLL << endl;
+    cout << "DataResolution: " << DataResolution << " NDV: " << NoDataValue << endl;
+    //cout << GeoReferencingStrings[0] << endl;
+    //cout << GeoReferencingStrings[1] << endl;
+    
+    cout << "Size of data, Rows " << TrimmedData.dim1() << " Cols: " << TrimmedData.dim2() << endl;
+    
+    LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
+                        new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);
 
-		return TrimmedRaster;
-	}
+    cout << "Made the raster, now for georeferencing strings...";
+    TrimmedRaster.Update_GeoReferencingStrings();
+    cout << "done!" << endl;
+
+    return TrimmedRaster;
+  }
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
