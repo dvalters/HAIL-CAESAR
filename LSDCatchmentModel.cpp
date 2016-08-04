@@ -2248,7 +2248,8 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
       output_data(temptotal);
     }
     
-    std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
+    // removed for archer output files
+    //std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
     //std::cout << "Water Out (Qw): " << waterOut << "                  \r" << std::flush;
 
     if (cycle >= save_time)
