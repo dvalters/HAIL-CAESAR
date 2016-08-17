@@ -468,7 +468,8 @@ protected:
 
   /// TOPMODEL 'm'
   double M = 0.005;
-  double baseflow = 0.000000005; //end of hyd model variables usually 0.0000005 changed 2/11/05
+  double baseflow = 0.00000005; //end of hyd model variables usually 0.0000005 changed 2/11/05 
+  // Reverted to match CL 1.8f 17/08/16 - DV
 
   double cycle =0;  // can't initalise static vars in header file!
   double rain_factor = 1;
