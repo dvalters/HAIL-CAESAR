@@ -938,10 +938,10 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       std::cout << "rainfall_data_on: " << rainfall_data_on << std::endl;
     }
 
-    else if (lower == "TOPMODEL_m_value")
+    else if (lower == "topmodel_m_value")
     {
       M = atof(value.c_str());
-      std::cout << "TOPMODEL m value: " << M << std::endl;
+      std::cout << "topmodel m value: " << M << std::endl;
     }
 
     else if (lower == "num_unique_rain_cells")
@@ -968,13 +968,13 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       std::cout << "in-output difference allowed (cumecs): " << in_out_difference << std::endl;
     }
 
-    else if (lower == "min_Q_for_depth_calc")
+    else if (lower == "min_q_for_depth_calc")
     {
       MIN_Q = atof(value.c_str());
       std::cout << "minimum discharge for depth calculation: " << MIN_Q << std::endl;
     }
 
-    else if (lower == "max_Q_for_depth_calc")
+    else if (lower == "max_q_for_depth_calc")
     {
       MIN_Q_MAXVAL = atof(value.c_str());
       std::cout << "max discharge for depth calc: " << MIN_Q_MAXVAL << std::endl;
@@ -1100,7 +1100,8 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
   
   if (spatially_var_rainfall == false)
   {
-    std::cout << "Making sure no of rain cells is set to 1, for uniform rainfall input.."
+    std::cout << "Making sure no of rain cells is set to 1, for uniform rainfall input.." \
+              << std::endl;
     rfnum = 1;
   }
 
@@ -2789,7 +2790,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     //get_catchment_input_points(runoff);
   }
 
-  if (baseflow > (jmeanmax * 3) && baseflow > 0.0000001)
+  if (baseflow > (jmeanmax * 3) && baseflow > 0.000001)
   {
     baseflow = jmeanmax * 1.25;   // Where do these magic numbers come from? DAV
     get_area();
