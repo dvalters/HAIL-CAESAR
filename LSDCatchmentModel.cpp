@@ -1081,6 +1081,13 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       soil_j_mean_depends_on = (value == "yes") ? true:false;
       std::cout << "Soil erosion rate depends on J mean: " << soil_j_mean_depends_on << std::endl;
     }
+    
+    // Debugging
+    else if (lower == "DEBUG_print_cycle")
+    {
+      DEBUG_print_cycle_on = (value == "yes") ? true:false;
+      std::cout << "Will print current cycle to screen: " << DEBUG_print_cycle_on << std::endl;
+    }
     //else if (lower == "call_muddpile_model") call_muddpile_model = atof(value.c_str());
 
   }
@@ -2255,7 +2262,10 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
     }
     
     // removed for archer output files
-    //std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
+    if (DEBUG_print_cycle_on)
+    {
+    std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
+    }
     //std::cout << "Water Out (Qw): " << waterOut << "                  \r" << std::flush;
 
     if (cycle >= save_time)
