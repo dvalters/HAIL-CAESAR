@@ -2697,7 +2697,8 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     get_catchment_input_points();
   }
 
-  if (baseflow > (jmeanmax * 3) && baseflow > 0.0000001)
+  if (baseflow > (jmeanmax * 3) && baseflow > 0.000001) // DV reverted to match CL 1.8f (formerly 10^-7)
+  // Could make the baseflow threshold a parameter in param file?
   {
     baseflow = jmeanmax * 1.25;   // Where do these magic numbers come from? DAV
     get_area();
