@@ -1090,6 +1090,12 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
 
   // Initialise the other parameters (those not set by param file)
   tx = output_file_save_interval;
+  
+  if (spatially_var_rainfall == false)
+  {
+    std::cout << "Making sure no of rain cells is set to 1, for uniform rainfall input.."
+    rfnum = 1;
+  }
 
 }
 
