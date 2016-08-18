@@ -311,6 +311,7 @@ void LSDCatchmentModel::load_data()
     try
     {
       hydroindexR.read_ascii_raster_integers(HYDROINDEX_FILENAME);
+      //wrong, becuase rfarea is bigger than the raster data in hydroindexR by 1 pixel around the array
       rfarea = hydroindexR.get_RasterData_int();
       std::cout << "The hydroindex: " << HYDROINDEX_FILENAME << " was successfully read." << std::endl;
     }
@@ -374,35 +375,6 @@ void LSDCatchmentModel::load_data()
     #endif
 
   }
-  // INCOMPLETE! See the read_rainfalldata() method...
-
-  // DAV: The grainsize file is slightly more complicated...
-  // This needs some more thought...
-  // Load the GRAINSIZE DEM
-  //~ if (CM_support_file_names["grain_data_file"] == true)
-  //~ {
-  //~ FILENAME = CM_support_file_names["grain_data_file"];
-  //~ // Check for the file first of all
-  //~ if (!does_file_exist(FILENAME))
-  //~ {
-  //~ std::cout << "No grain data DEM found by name of: " << FILENAME << std::endl << "You specified to use a grain data option, \
-  //~ \n but no matching file was found. Try again." << std::endl;
-  //~ exit(EXIT_FAILURE);
-  //~ }
-  //~ try
-  //~ {
-  //~ grainR.read_ascii_raster(FILENAME);
-  //~ bedrock = grainR.get_RasterData_dbl();
-  //~ std::cout << "The grainsize file: " << FILENAME << " was successfully read." << std::endl;
-  //~ }
-  //~ catch (...)
-  //~ {
-  //~ std::cout << "Something is wrong with your grainsize file." << std::endl
-  //~ << "Common causes are: " << std::endl << "1) Data type is not correct" <<
-  //~ std::endl << "2) Non standard ASCII data format" << std::endl;
-  //~ exit(EXIT_FAILURE);
-  //~ }
-  //~ }
   
   // TO DO 
   
