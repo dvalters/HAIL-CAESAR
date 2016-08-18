@@ -328,6 +328,12 @@ public:
   void scan_area();
 
   void water_flux_out(double local_time_factor);
+  
+  /// Counts the number of cells within the catchment boundary. For
+  /// spatially variable rainfall, this counts the number of cells
+  /// within each hydroindex region that are within the boundary. It 
+  /// modifies nActualGridCells.
+  void count_catchment_gridcells();
 
   /// @brief Runs a very basic test to see if you can run code in parallel mode.
   void quickOpenMPtest();
@@ -338,6 +344,8 @@ public:
   //
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+  
+  
 protected:
 
   /// This map holds all the possible model switches

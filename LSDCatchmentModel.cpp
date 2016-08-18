@@ -67,7 +67,6 @@
 // and then perform topo analysis on the model run output
 using std::string;
 
-int DEBUG = 0;
 
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
@@ -323,6 +322,10 @@ void LSDCatchmentModel::load_data()
       exit(EXIT_FAILURE);
     }
   }
+  
+  // This has to go after the loading of the hydroindex,
+  // otherwise your rfareas will all be 1!
+  count_catchment_gridcells();
 
   // Load the BEDROCK DEM
   if (bedrock_layer_on == true)
@@ -366,7 +369,9 @@ void LSDCatchmentModel::load_data()
     hourly_rain_data = read_rainfalldata(RAINFALL_FILENAME);
 
     // debug
-    if (DEBUG == 1) print_rainfall_data();
+    #ifdef DEBUG 
+    print_rainfall_data();
+    #endif
 
   }
   // INCOMPLETE! See the read_rainfalldata() method...
@@ -2064,10 +2069,8 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
 // This only currently checks for an edge that is not NODATA on at least one side
 // It does not check that the DEM has its lowest point on this edge. This
 // should probably be added.
-void LSDCatchmentModel::check_DEM_edge_condition()
+void LSDCatchmentModel::count_catchment_gridcells()
 {
-  // Originally part of the Ur-loop (buttonclick2 or something)
-  //nActualGridCells = 0;
   std::cout << "Counting number of actual grid cells in domain (non-NODATA)" << std::endl;
   for (int i = 1; i <= imax; i++)
   {
@@ -2076,8 +2079,30 @@ void LSDCatchmentModel::check_DEM_edge_condition()
       if (elev[i][j] > -9999) nActualGridCells[rfarea[i][j]]++;
     }
   }
+ 
+  // Sum up all the catchment cells
+  int totalCatchmentCells;
+  for (int n : nActualGridCells)
+  {
+    totalCatchmentCells += n;
+  }
+  
   // This is an odd construction, since nActualGridCells[0] is surely always 0?
-  std::cout << "Number of grid cells within catchment: " << nActualGridCells[1] << std::endl;
+  // needs to sum up all the values in the vector, not just in [1]
+  std::cout << "Total number of grid cells within catchment: " << totalCatchmentCells << std::endl; 
+  
+#ifdef DEBUG
+  for (int i; i<=rfnum; i++)
+  {
+    std::cout << "Number of grid cells within hydroindex area " << i << " is: " << nActualGridCells[i] << std::endl;
+  }
+#endif
+}
+
+void LSDCatchmentModel::check_DEM_edge_condition()
+{
+  // Originally part of the Ur-loop (buttonclick2 or something)
+  //nActualGridCells = 0;  
 
   std::cout << "Checking edge cells for suitable catchment outlet point..." << std::endl;
   //check for -9999's on RH edge of DEM
