@@ -201,7 +201,7 @@ void LSDCatchmentModel::create(string pname, string pfname)
 
 void LSDCatchmentModel::initialise_model_domain_extents()
 {
-  std::string FILENAME = read_path + "/" + read_fname + dem_read_extension;
+  std::string FILENAME = read_path + "/" + read_fname + "." + dem_read_extension;
 
   if (!does_file_exist(FILENAME))
   {
@@ -243,7 +243,7 @@ void LSDCatchmentModel::initialise_model_domain_extents()
 
 void LSDCatchmentModel::load_data()
 {
-  std::string DEM_FILENAME = read_path + "/" + read_fname + dem_read_extension;
+  std::string DEM_FILENAME = read_path + "/" + read_fname + "." + dem_read_extension;
 
   if (!does_file_exist(DEM_FILENAME))
   {
@@ -1734,8 +1734,8 @@ void LSDCatchmentModel::output_data(double temptotal)
 
       // Open the catchment time series file in append mode (ios_base::app)
       // Open it in write mode (ios_base::out)
-      // CATCH_FILE is called "catchment.dat" by default (see the .hpp file)
-      std::string OUTPUT_FILE = write_path + "/" + CATCH_FILE;
+      // write_fname is called "catchment.dat" by default (see the .hpp file)
+      std::string OUTPUT_FILE = write_path + "/" + write_fname;
       std::ofstream timeseriesf(OUTPUT_FILE, std::ios_base::app | std::ios_base::out);
 
       // write the current timestep output to the time series file
@@ -1943,8 +1943,8 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
 
       // Open the catchment time series file in append mode (ios_base::app)
       // Open it in write mode (ios_base::out)
-      // CATCH_FILE is called "catchment.dat" by default (see the .hpp file)
-      std::string OUTPUT_FILE = write_path + "/" + CATCH_FILE;
+      // write_fname is called "catchment.dat" by default (see the .hpp file)
+      std::string OUTPUT_FILE = write_path + "/" + write_fname;
       std::ofstream timeseriesf(OUTPUT_FILE, std::ios_base::app | std::ios_base::out);
 
       // write the current timestep output to the time series file
@@ -1982,7 +1982,7 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     
     std::string OUTPUT_WATERD_FILE = write_path + "/" + current_water_depth_filename;
     
-    water_depthR.write_double_raster(OUTPUT_WATERD_FILE, "asc");
+    water_depthR.write_double_raster(OUTPUT_WATERD_FILE, dem_write_extension);
   }
 
   // Write Elevation raster
@@ -1994,7 +1994,7 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     
     std::string OUTPUT_ELEV_FILE = write_path + "/" + elev_fname + std::to_string((int)tempcycle);
     
-    elev_outR.write_double_raster(OUTPUT_ELEV_FILE, "asc");
+    elev_outR.write_double_raster(OUTPUT_ELEV_FILE, dem_write_extension);
   }
   
   // Write Grain File
@@ -2007,7 +2007,7 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     
     std::string OUTPUT_GRAIN_FILE = write_path + "/" + grainsize_fname + std::to_string((int)tempcycle);
     
-    grainsz_outR.write_grainMatrix_to_ascii_file(OUTPUT_GRAIN_FILE, "asc");
+    grainsz_outR.write_grainMatrix_to_ascii_file(OUTPUT_GRAIN_FILE, dem_write_extension);
     
   }
   
@@ -2021,7 +2021,7 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     
     std::string OUTPUT_ELEVDIFF_FILE = write_path + "/" + elevdiff_fname + std::to_string((int)tempcycle);
     
-    elevdiff_outR.write_double_raster(OUTPUT_ELEVDIFF_FILE, "asc");
+    elevdiff_outR.write_double_raster(OUTPUT_ELEVDIFF_FILE, dem_write_extension);
   }
   
   // TODO:

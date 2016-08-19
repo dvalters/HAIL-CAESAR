@@ -369,7 +369,7 @@ protected:
   string dem_write_extension;
   string write_path;
   string read_path;
-  string write_fname;
+  string write_fname = "catchment.dat";
   string read_fname;
 
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -573,11 +573,6 @@ protected:
   std::vector<double> old_sum_grain,old_sum_grain2;
   std::vector<double> Qg_step, Qg_step2, Qg_hour, Qg_hour2;
   std::vector<double> Qg_over, Qg_over2, Qg_last,Qg_last2;
-
-  std::string CATCH_FILE = "catchment.dat";
-  // end gez
-
-  // toms global arrays
 
   // DAV: Move towards using the LSD Objects such as LSDRaster for reading/storing DEMs and LSDBasin
   /// Surface elevation LSDRaster object
