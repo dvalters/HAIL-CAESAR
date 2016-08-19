@@ -1060,10 +1060,15 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
     }
     
     // Debugging
-    else if (lower == "DEBUG_print_cycle")
+    else if (lower == "debug_print_cycle")
     {
       DEBUG_print_cycle_on = (value == "yes") ? true:false;
       std::cout << "Will print current cycle to screen: " << DEBUG_print_cycle_on << std::endl;
+    }
+    else if (lower == "debug_write_raingrid")
+    {
+      DEBUG_write_raingrid = (value == "yes") ? true:false;
+      std::cout << "Will write raingrid raster every calc_J: " << DEBUG_write_raingrid << std::endl;
     }
     //else if (lower == "call_muddpile_model") call_muddpile_model = atof(value.c_str());
 
@@ -2814,18 +2819,13 @@ void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
   runoff.calculate_runoff(rain_factor, M, jmax, imax, current_raingrid);
 
   // For checking purposes
-  /*
-  current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX,
+  
+  if (DEBUG_write_raingrid == true)
+  {
+    runoff.write_rainGrid_to_raster_file(xll, yll, DX,
                                                raingrid_fname,
                                                dem_write_extension);
-
-
-  // Calculate runoff from rainfall DEPRECATED
-  current_rainfallrunoffgrid(current_rainfall_timestep,
-                                                imax, jmax,
-                                                rain_factor, M,
-                                                current_raingrid);
-  */
+  }  
 }
 
 // Calculates the rainfall input to each cell per time step
