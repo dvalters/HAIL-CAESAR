@@ -17,7 +17,7 @@
  * Not all the functionallity of CL is implemented in this model. There is
  * no intention to maintain this code in parallel with CAESAR-Lisflood at this
  * stage. Its development is separate from hereon. It was forked from the
- * CL version 1.8a.
+ * CL version 1.8a. (The updates in 1.9 were mirrored here too - DAV 2016)
  *
  * It is integrated with the LSDTopoTools package and makes use of several
  * of the LSDTopoTools objects, such as LSDRaster in particular, for reading
@@ -28,7 +28,7 @@
  * algorithm of non-steady surface water flow, to represent the variation
  * in hydrological flow in a landscape under non-steady state hydrological
  * inputs. This is different to most Landscape Evolution Models, which tend
- * to use some approximation of stead-state discharge based on contributing
+ * to use some approximation of steady-state discharge based on contributing
  * drainage area.
  *
  *
