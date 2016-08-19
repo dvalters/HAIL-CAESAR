@@ -283,7 +283,7 @@ class LSDRaster
   /// @date 01/01/12
   void write_raster(string filename, string extension);
 
-  /// @brief This writes rasters from Arrays of type <double> to ascii format.
+  /// @brief This calls raster write functions, writing from Arrays of type <double> to raster format.
   /// @details Sorry for duplicating a load of code, but I couldn't think
   /// of a good way to overload the function without passing the raster data array or
   /// breaking someone elses code.
@@ -292,6 +292,16 @@ class LSDRaster
   /// @author DAV
   /// @date 07-12-2015
   void write_double_raster(string filename, string extension);
+  
+  /// @brief Writes out a double array to an ascii
+  void write_double_asc_raster(string string_filename);
+  
+  /// @brief Writes out a double array to a binary flt file
+  void write_double_flt_raster(string filename, string string_filename);
+  
+  /// @brief Writes out a double array to a ENVI bil file (untested!)
+  /// @bug Unlikely to work as Georeferencing not set. DAV to fix.
+  void write_double_bil_raster(string filename, string string_filename);
 
   /// @brief Checks to see if two rasters have the same dimensions
   /// @detail Does NOT check georeferencing
@@ -2073,8 +2083,8 @@ class LSDRaster
   /// @author SWDG
   /// @date 9/6/16
   LSDRaster PoupulateRasterSingleValue(float value);
-
-  protected:
+  
+protected:
 
   ///Number of rows.
   int NRows;

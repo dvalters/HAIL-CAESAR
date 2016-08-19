@@ -47,7 +47,7 @@ void rainGrid::create(std::vector< std::vector<float> >& rain_data,
   {
     for (int j=1; j<jmax; j++)
     {
-      for (int rf=1; rf<=rf_num; rf++)
+      for (int rf=1; rf<rf_num; rf++)
       {
         if (hydroindex[i][j]==rf) 
         {
