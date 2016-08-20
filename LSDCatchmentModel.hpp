@@ -440,7 +440,7 @@ protected:
   double mannings = 0.04;
 
   /// no. of rainfall cells
-  int rfnum = 2;
+  int rfnum = 1;
 
   /// set by ncols and nrows
   int jmax, imax;
@@ -463,13 +463,15 @@ protected:
   double SOIL_RATE = 0.0025;
   double active=0.2;
   int G_MAX=10;
-  double lateral_constant=0.0000002;
   int grain_array_tot =1 ;
 
   /// Number of passes for edge smoothing filter
-  double smoothing_times = 100.0;
+  double edge_smoothing_passes = 100.0;
   /// Number of cells to shift lat erosion downstream
   double downstream_shift= 5.0;
+  /// Max difference allowed in cross channel smoothing of edge values
+  double lateral_cross_channel_smoothing = 0.0001; //Max difference allowed in cross channel smoothing of edge values
+  double lateral_constant=0.0000002;
 
   double time_factor = 1;
   std::vector<double> j, jo, j_mean, old_j_mean, new_j_mean;
@@ -502,11 +504,8 @@ protected:
   double erode_mult = 1;
   double lateralcounter = 1;
   double edgeslope = 0.001;
-  double bed_proportion = 0.01;
+  double chann_lateral_erosion = 20.0; // formerly 'bed_proportion =0.01'
   double veg_lat_restriction = 0.1;
-
-  /// Max difference allowed in cross channel smoothing of edge values
-  double lateral_cross_channel_smoothing = 0.0001; //Max difference allowed in cross channel smoothing of edge values
 
   double froude_limit = 0.8;
   double recirculate_proportion = 1;

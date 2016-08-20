@@ -827,32 +827,44 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       recirculate_proportion = atof(value.c_str());
       std::cout << "recirculate_proportion: " << recirculate_proportion << std::endl;
     }
-    else if (lower == "lateral_erosion_on")
+    else if (lower == "chann_lateral_erosion")
     {
-      lateral_erosion_on = (value == "yes") ? true : false;
-      std::cout << "lateral_erosion_on: " << lateral_erosion_on << std::endl;
-    }
-    //else if (lower == "lateral_ero_rate") lateral_ero_rate = atof(value.c_str());
-    else if (lower == "edge_filter_passes")
-    {
-      smoothing_times = atof(value.c_str());
-      std::cout << "smoothing_times: " << smoothing_times << std::endl;
-    }
-    else if (lower == "cells_shift_lat")
-    {
-      downstream_shift = atof(value.c_str());
-      std::cout << "downstream_shift: " << downstream_shift << std::endl;
-    }
-    else if (lower == "max_diff_cross_chann")
-    {
-      lateral_cross_channel_smoothing = atof(value.c_str());
-      std::cout << "lateral_cross_channel_smoothing: " << lateral_cross_channel_smoothing << std::endl;
+      chann_lateral_erosion = atof(value.c_str());
+      std::cout << "In channel lateral erosion proportion: " << chann_lateral_erosion << std::endl;
     }
     else if (lower == "erosion_limit")
     {
       ERODEFACTOR = atof(value.c_str());
       std::cout << "erosion limit per timestep: " << ERODEFACTOR << std::endl;
     }
+
+    /// LATERAL EROSION ROUTINE PARAMETERS
+    else if (lower == "lateral_erosion_on")
+    {
+      lateral_erosion_on = (value == "yes") ? true : false;
+      std::cout << "lateral_erosion_on: " << lateral_erosion_on << std::endl;
+    }
+    else if (lower == "edge_smoothing_passes")
+    {
+      edge_smoothing_passes = atof(value.c_str());
+      std::cout << "smoothing_times: " << edge_smoothing_passes << std::endl;
+    }
+    else if (lower == "lateral_erosion_const")
+    {
+      lateral_constant = atof(value.c_str());
+      std::cout << "Lateral erosion constant: " << lateral_constant << std::endl;
+    }
+    else if (lower == "downstream_cell_shift")
+    {
+      downstream_shift = atof(value.c_str());
+      std::cout << "downstream_shift: " << downstream_shift << std::endl;
+    }
+    else if (lower == "lateral_cross_chan_smoothing")
+    {
+      lateral_cross_channel_smoothing = atof(value.c_str());
+      std::cout << "lateral_cross_channel_smoothing: " << lateral_cross_channel_smoothing << std::endl;
+    }
+
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Grain Size Options
@@ -939,7 +951,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       std::cout << "Spatially variable rainfall: " << spatially_var_rainfall << std::endl;
     }
 
-    else if (lower == "in_out_diff")
+    else if (lower == "in_out_difference")
     {
       in_out_difference = atof(value.c_str());
       std::cout << "in-output difference allowed (cumecs): " << in_out_difference << std::endl;
@@ -2822,7 +2834,7 @@ void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
   
   if (DEBUG_write_raingrid == true)
   {
-    runoff.write_rainGrid_to_raster_file(xll, yll, DX,
+    current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX,
                                                raingrid_fname,
                                                dem_write_extension);
   }  
@@ -4020,7 +4032,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             }
             else
             {
-              amt = bed_proportion * erodetot3[x][y] * (elev[x - 1][y] - elev[x][y]) / DX * 0.1;
+              amt = chann_lateral_erosion * erodetot3[x][y] * (elev[x - 1][y] - elev[x][y]) / DX * 0.1;
             }
 
             if (amt > 0)
@@ -4052,7 +4064,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             }
             else
             {
-              amt = bed_proportion * erodetot3[x][y] * (elev[x + 1][y] - elev[x][y]) / DX * 0.1;
+              amt = chann_lateral_erosion * erodetot3[x][y] * (elev[x + 1][y] - elev[x][y]) / DX * 0.1;
             }
 
             if (amt > 0)
@@ -4111,7 +4123,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             }
             else
             {
-              amt = bed_proportion * erodetot3[x][y] * (elev[x][y - 1] - elev[x][y]) / DX *0.1;
+              amt = chann_lateral_erosion * erodetot3[x][y] * (elev[x][y - 1] - elev[x][y]) / DX *0.1;
             }
 
             if (amt > 0)
@@ -4142,7 +4154,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             }
             else
             {
-              amt = bed_proportion * erodetot3[x][y] * (elev[x][y + 1] - elev[x][y]) / DX * 0.1;
+              amt = chann_lateral_erosion * erodetot3[x][y] * (elev[x][y + 1] - elev[x][y]) / DX * 0.1;
             }
 
             if (amt > 0)
@@ -4447,7 +4459,7 @@ void LSDCatchmentModel::lateral3()
   //double smoothing_times = double.Parse(avge_smoothbox.Text);
   //double downstream_shift = double.Parse(downstreamshiftbox.Text);
 
-  for (int n = 1; n <= smoothing_times+downstream_shift; n++)
+  for (int n = 1; n <= edge_smoothing_passes+downstream_shift; n++)
   {
     //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
     //Parallel.For(2, imax, options, delegate(int y)
@@ -4485,7 +4497,7 @@ void LSDCatchmentModel::lateral3()
             y2 = y + deltaY[dir];
             if (water_depth2[x2][y2] > mft) water_flag++;
 
-            if ( n > smoothing_times && edge[x2][y2] > -9999 && water_depth2[x2][y2] < mft && mean_ws_elev(x2,y2)>mean_ws_elev(x,y))
+            if ( n > edge_smoothing_passes && edge[x2][y2] > -9999 && water_depth2[x2][y2] < mft && mean_ws_elev(x2,y2)>mean_ws_elev(x,y))
             {
               //now to mean manhattan neighbours - only if they share a wet diagonal neighbour
               if ((std::abs(deltaX[dir]) + std::abs(deltaY[dir])) != 2)
@@ -4553,7 +4565,7 @@ void LSDCatchmentModel::lateral3()
               }
             }
 
-            else if ( n <= smoothing_times && edge[x2][y2] > -9999 && water_depth2[x2][y2] < mft)
+            else if ( n <= edge_smoothing_passes && edge[x2][y2] > -9999 && water_depth2[x2][y2] < mft)
             {
               //now to mean manhattan neighbours - only if they share a wet diagonal neighbour
               if ((std::abs(deltaX[dir]) + std::abs(deltaY[dir])) != 2)
