@@ -772,6 +772,11 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       raingrid_fname = value;
       std::cout << "raingrid_outfile_name: " << raingrid_fname << std::endl;
     }
+    else if (lower == "runoffgrid_fname")
+    {
+      runoffgrid_fname = value;
+      std::cout << "runoffgrid_outfile_name: " << runoffgrid_fname << std::endl;
+    }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Sediment
@@ -1083,6 +1088,11 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       std::cout << "Will write raingrid raster every calc_J: " << DEBUG_write_raingrid << std::endl;
     }
     //else if (lower == "call_muddpile_model") call_muddpile_model = atof(value.c_str());
+    else if (lower == "debug_write_runoffgrid")
+    {
+      DEBUG_write_runoffgrid = (value == "yes") ? true:false;
+      std::cout << "Will write runoff grid to file for debugging: " << DEBUG_write_runoffgrid << std::endl;
+    }
 
   }
 
@@ -2680,6 +2690,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
       if (time_factor > max_time_step && new_j_mean[1] > (0.2 / (jmax * imax * DX * DX)))
         // check after the variable rainfall area has been added
         // stops code going too fast when there is actual flow in the channels greater than 0.2cu
+        // DAV - Is this right? - why would you only check the first hydroindex new_jmean value in the array?
       {
         cycle = time_1 + (max_time_step / 60);
         time_factor = max_time_step;
@@ -2757,6 +2768,19 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 
   //} // old for loop end for inputmpoints method
   
+  // DAV - testing methodf for new_jmeanmax
+  double new_jmeanmax =0;
+  for (int m=1; m <= imax; m++)
+  {
+    for (int n=1; n<=jmax; n++)
+    {
+      if (runoff.get_new_j_mean(m,n) > new_jmeanmax)
+      {
+        new_jmeanmax = runoff.get_new_j_mean(m,n);
+      }
+    }
+  }
+  
   // if the input type flag is 1 then the discharge is input from the hydrograph
   if (cycle >= time_1)
   {
@@ -2764,9 +2788,10 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     {
       time_1++;
       calc_J(time_1++, runoff);  // calc_J is based on the rainfall rate supplied to the cell
-      if (time_factor > max_time_step && runoff.get_new_j_mean(1,1) > (0.2 / (jmax * imax * DX * DX)))
+      if (time_factor > max_time_step && new_jmeanmax > (0.2 / (jmax * imax * DX * DX)))
         // check after the variable rainfall area has been added
         // stops code going too fast when there is actual flow in the channels greater than 0.2cu
+        // DAV - This doesn't make sense - why would you only check the first grid cell in the array?
       {
         cycle = time_1 + (max_time_step / 60);
         time_factor = max_time_step;
@@ -2834,10 +2859,15 @@ void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
   
   if (DEBUG_write_raingrid == true)
   {
+    std::string OUTPUT_RAINGRID_FILE = write_path + "/" + raingrid_fname + std::to_string((int)cycle);
     current_raingrid.write_rainGrid_to_raster_file(xll, yll, DX,
-                                               raingrid_fname,
+                                               OUTPUT_RAINGRID_FILE,
                                                dem_write_extension);
-  }  
+  }
+  if (DEBUG_write_runoffgrid == true)
+  {
+    std::string OUTPUT_RUNOFF_FILE = write_path + "/" + runoffgrid_fname + std::to_string((int)cycle);
+  }
 }
 
 // Calculates the rainfall input to each cell per time step
