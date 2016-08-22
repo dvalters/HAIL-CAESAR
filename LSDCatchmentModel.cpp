@@ -2801,14 +2801,14 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   {
     baseflow = baseflow * 3;    // Magic number 3!? - DAV
     get_area();         // Could this come from one of the LSDobject files? - DAV
-    //get_catchment_input_points(runoff);
+    get_catchment_input_points(runoff);
   }
 
   if (baseflow > (jmeanmax * 3) && baseflow > 0.000001)
   {
     baseflow = jmeanmax * 1.25;   // Where do these magic numbers come from? DAV
     get_area();
-    //get_catchment_input_points(runoff);
+    get_catchment_input_points(runoff);
   }
 }
 
