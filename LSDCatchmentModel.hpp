@@ -735,9 +735,11 @@ protected:
   std::string timeseries_fname;
   std::string elevdiff_fname;
   std::string raingrid_fname;
+  std::string runoffgrid_fname;
   
   bool DEBUG_print_cycle_on = true;
   bool DEBUG_write_raingrid = false;
+  bool DEBUG_write_runoffgrid = false;
 
   int timeseries_interval;
   float run_time_start;
