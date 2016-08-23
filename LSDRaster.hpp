@@ -2118,7 +2118,7 @@ protected:
   void create(int ncols, int nrows, float xmin, float ymin,
               float cellsize, float ndv, Array2D<float> data);
   void create(int ncols, int nrows, double xmin, double ymin,
-              double cellsize, double ndv, Array2D<double> data);
+              double cellsize, int ndv, Array2D<double> data);
   void create(int ncols, int nrows, float xmin, float ymin,
               float cellsize, float ndv, Array2D<float> data, map<string,string> GRS);
 

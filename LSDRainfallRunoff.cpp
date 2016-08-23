@@ -37,7 +37,7 @@ void rainGrid::create(std::vector< std::vector<float> >& rain_data,
 {
   // Creates a 2D object of rainfall data based on the extents of the
   // current model domain, and the rainfall timeseries.
-  rainfallgrid2D = TNT::Array2D<double>(imax+2, jmax+2);
+  rainfallgrid2D = TNT::Array2D<double>(imax+2, jmax+2, 0.0);
 
   // DEBUG
   
@@ -103,11 +103,11 @@ void runoffGrid::create(int imax, int jmax)
   std::cout << "Creating an EMPTY RUNOFF GRID OBJECT..." << std::endl;
   // set arrays to relevant size for model domain
   // Zero or set to very small value near zero.
-  j = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
-  jo = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
-  j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
-  old_j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
-  new_j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  j_array = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
+  jo_array = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
+  j_mean_array = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  old_j_mean_array = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  new_j_mean_array = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
 
   // This is all that happens, use calculate_runoff() to fill in with proper values.
 
@@ -121,11 +121,11 @@ void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
 {
   std::cout << "Creating a RUNOFF GRID OBJECT FROM RAINGRID..." << std::endl;
   // set arrays to relevant size for model domain
-  j = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
-  jo = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
-  j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
-  old_j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
-  new_j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  j_array = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
+  jo_array = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
+  j_mean_array = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  old_j_mean_array = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  new_j_mean_array = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
 
   calculate_runoff(rain_factor, M, jmax, imax, current_rainGrid);
 }
@@ -138,13 +138,13 @@ void runoffGrid::write_runoffGrid_to_raster_file(double xmin,
 {
   // For checking purposes mainly. Writes grid to an ascii file so
   // I can see if the upscale or interpolate has worked correctly.
-  int nrows = j_mean.dim1();
-  int ncols = j_mean.dim2();
+  int nrows = new_j_mean_array.dim1();
+  int ncols = new_j_mean_array.dim2();
 
-  double nodata = -9999.0;
+  int nodata = -9999;
   
   LSDRaster output_runoffgrid(nrows, ncols, xmin, ymin, cellsize, nodata,
-                            j_mean);
+                            new_j_mean_array);
   output_runoffgrid.strip_raster_padding();
   output_runoffgrid.write_double_raster(RUNOFFGRID_FNAME, RUNOFFGRID_EXTENSION); 
 }
@@ -161,18 +161,16 @@ void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax,
       double local_rainfall_rate =0;
       double local_time_step=60;
 
-      old_j_mean[m][n] = new_j_mean[m][n];
-      jo[m][n] = j[m][n];
+      old_j_mean_array[m][n] = new_j_mean_array[m][n];
+      jo_array[m][n] = j_array[m][n];
 
       // Variable M value would go here
       // if (variable_m_flag == true) { }
 
-      local_rainfall_rate = 0;
-      
-      //std::cout << "Rainfall is: " << current_rainGrid.get_rainfall(m, n) << std::endl;
 
       if (current_rainGrid.get_rainfall(m, n) > 0)
       {
+        //std::cout << "Rainfall is: " << current_rainGrid.get_rainfall(m, n) << std::endl;
         // Divide by 1000 to get m/hr, then 3600 for m/sec
         local_rainfall_rate = rain_factor * ((current_rainGrid.get_rainfall(m, n)
             / 1000) / 3600);
@@ -182,29 +180,31 @@ void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax,
       // for this time step (TOPMODEL based)
       if (local_rainfall_rate == 0)
       {
-        j[m][n] = jo[m][n] / (1 + ((jo[m][n] + local_time_step) / M));
+        j_array[m][n] = jo_array[m][n] / (1 + ((jo_array[m][n] * local_time_step) / M));
 
-        new_j_mean[m][n] = M / local_time_step *
-            std::log(1 +((jo[m][n] * local_time_step) / M));
+        new_j_mean_array[m][n] = M / local_time_step *
+            std::log(1 + ((jo_array[m][n] * local_time_step) / M));
       }
 
       // If there is some rain in this cell, we need to calculate how much
       // is runoff vs infiltrates (TOPMODEL based)
       if (local_rainfall_rate > 0)
       {
-        j[m][n] = local_rainfall_rate / (((local_rainfall_rate - jo[m][n]) / jo[m][n])
+        //std::cout << "Cell Rainfall Rate is: " << local_rainfall_rate << std::endl;
+        
+        j_array[m][n] = local_rainfall_rate / (((local_rainfall_rate - jo_array[m][n]) / jo_array[m][n])
                    * std::exp((0 - local_rainfall_rate) * local_time_step / M) + 1);
 
-        new_j_mean[m][n] = (M / local_time_step)
-                            * std::log(((local_rainfall_rate - jo[m][n]) + jo[m][n]
+        new_j_mean_array[m][n] = (M / local_time_step)
+                            * std::log(((local_rainfall_rate - jo_array[m][n]) + jo_array[m][n]
                             * std::exp((local_rainfall_rate *local_time_step)
                                        / M)) / local_rainfall_rate);
       }
 
       // Don't want to have negative J_means!
-      if (new_j_mean[m][n] < 0)
+      if (new_j_mean_array[m][n] < 0)
       {
-        new_j_mean[m][n] = 0;
+        new_j_mean_array[m][n] = 0;
       }
     }
   }
