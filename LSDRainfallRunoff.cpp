@@ -121,15 +121,33 @@ void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
 {
   std::cout << "Creating a RUNOFF GRID OBJECT FROM RAINGRID..." << std::endl;
   // set arrays to relevant size for model domain
-  j = TNT::Array2D<double>(imax +2, jmax +2);
-  jo = TNT::Array2D<double>(imax +2, jmax +2);
-  j_mean = TNT::Array2D<double>(imax +2, jmax +2);
-  old_j_mean = TNT::Array2D<double>(imax +2, jmax +2);
-  new_j_mean = TNT::Array2D<double>(imax +2, jmax +2);
+  j = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
+  jo = TNT::Array2D<double>(imax +2, jmax +2, 0.000000001);
+  j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  old_j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
+  new_j_mean = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
 
   calculate_runoff(rain_factor, M, jmax, imax, current_rainGrid);
 }
 
+void runoffGrid::write_runoffGrid_to_raster_file(double xmin,
+                                                  double ymin,
+                                                  double cellsize,
+                                                  std::string RUNOFFGRID_FNAME,
+                                                  std::string RUNOFFGRID_EXTENSION)
+{
+  // For checking purposes mainly. Writes grid to an ascii file so
+  // I can see if the upscale or interpolate has worked correctly.
+  int nrows = j_mean.dim1();
+  int ncols = j_mean.dim2();
+
+  double nodata = -9999.0;
+  
+  LSDRaster output_runoffgrid(nrows, ncols, xmin, ymin, cellsize, nodata,
+                            j_mean);
+  output_runoffgrid.strip_raster_padding();
+  output_runoffgrid.write_double_raster(RUNOFFGRID_FNAME, RUNOFFGRID_EXTENSION); 
+}
 
 
 void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax, const rainGrid& current_rainGrid)
