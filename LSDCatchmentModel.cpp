@@ -742,7 +742,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       write_flowvel_file = (value == "yes") ? true : false;
       std::cout << "write_flowvel_file: " << write_flowvel_file << std::endl;
     }
-    else if (lower == "waterdepth__name")
+    else if (lower == "waterdepth_outfile_name")
     {
       waterdepth_fname = value;
       std::cout << "waterdepth_outfile_name: " << waterdepth_fname << std::endl;
@@ -2071,9 +2071,9 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
 void LSDCatchmentModel::count_catchment_gridcells()
 {
   std::cout << "Counting number of actual grid cells in domain (non-NODATA)" << std::endl;
-  for (int i = 1; i <= imax; i++)
+  for (int i = 1; i < imax; i++)
   {
-    for (int j = 1; j <= jmax; j++)
+    for (int j = 1; j < jmax; j++)
     {
       if (elev[i][j] > -9999) nActualGridCells[rfarea[i][j]]++;
     }
@@ -2773,7 +2773,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   //} // old for loop end for inputmpoints method
   
   // DAV - testing methodf for new_jmeanmax
-  double new_jmeanmax =0;
+  double new_jmeanmax = 0;
   for (int m=1; m <= imax; m++)
   {
     for (int n=1; n<=jmax; n++)
@@ -2805,6 +2805,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 
   calchydrograph(time_1 - cycle, runoff);
 
+  /*  // CHECK THIS IS OK TO REMOVE!!!!
   double jmeanmax =0;
   for (int m=1; m <= imax; m++)
   {
@@ -2816,6 +2817,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
       }
     }
   }
+  */  
 
 
   // DV - This is for reading the dsicharge direct from an input file
@@ -2826,6 +2828,9 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         / std::pow(DX, 2)) / nActualGridCells[1]);
   }*/
 
+  // TO DO: not necessary for this method - could remove?
+  
+  /*
   if (jmeanmax > baseflow) 
   {
     baseflow = baseflow * 3;    // Magic number 3!? - DAV
@@ -2839,6 +2844,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     get_area();
     get_catchment_input_points(runoff);
   }
+  */
 }
 
 void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)

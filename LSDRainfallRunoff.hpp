@@ -130,18 +130,18 @@ public:
                                        std::string RUNOFFGRID_EXTENSION);
 
   // Getters for runoff variables
-  double get_j(int m, int n) const { return j[m][n]; }
-  double get_jo(int m, int n) const { return jo[m][n]; }
-  double get_j_mean(int m, int n) const { return j_mean[m][n]; }
-  double get_old_j_mean(int m, int n) const { return old_j_mean[m][n]; }
-  double get_new_j_mean(int m, int n) const { return new_j_mean[m][n]; }
+  double get_j(int m, int n) const { return j_array[m][n]; }
+  double get_jo(int m, int n) const { return jo_array[m][n]; }
+  double get_j_mean(int m, int n) const { return j_mean_array[m][n]; }
+  double get_old_j_mean(int m, int n) const { return old_j_mean_array[m][n]; }
+  double get_new_j_mean(int m, int n) const { return new_j_mean_array[m][n]; }
 
   /// Sets the value of j_mean when calculating the hydrograh
   /// @param m, n array indices, new value to set (double)
-  void set_j_mean(int m, int n, double cell_j_mean) { j_mean[m][n] = cell_j_mean; }
+  void set_j_mean(int m, int n, double cell_j_mean) { j_mean_array[m][n] = cell_j_mean; }
 
 protected:
-  TNT::Array2D<double> j, jo, j_mean, old_j_mean, new_j_mean;
+  TNT::Array2D<double> j_array, jo_array, j_mean_array, old_j_mean_array, new_j_mean_array;
 
 private:
   void create(int imax, int jmax);

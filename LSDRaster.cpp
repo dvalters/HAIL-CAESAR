@@ -180,7 +180,7 @@ void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
 // DAV 2015
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::create(int nrows, int ncols, double xmin, double ymin,
-            double cellsize, double ndv, Array2D<double> data)
+            double cellsize, int ndv, Array2D<double> data)
 {
   NRows = nrows;
   NCols = ncols;
