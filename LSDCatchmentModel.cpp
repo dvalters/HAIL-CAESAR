@@ -742,7 +742,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       write_flowvel_file = (value == "yes") ? true : false;
       std::cout << "write_flowvel_file: " << write_flowvel_file << std::endl;
     }
-    else if (lower == "waterdepth_outfile_name")
+    else if (lower == "waterdepth__name")
     {
       waterdepth_fname = value;
       std::cout << "waterdepth_outfile_name: " << waterdepth_fname << std::endl;
@@ -1216,9 +1216,9 @@ void LSDCatchmentModel::initialise_arrays()
   Qg_last2 = std::vector<double> (G_MAX + 1);
 
   // Distributed Hydrological Model Arrays
-  j = std::vector<double> (rfnum + 1); //0.000000001; //start of hydrological model paramneters
-  jo = std::vector<double> (rfnum + 1);//0.000000001;
-  j_mean = std::vector<double> (rfnum + 1);
+  j = std::vector<double> (rfnum + 1, 0.000000001);  //start of hydrological model paramneters
+  jo = std::vector<double> (rfnum + 1, 0.000000001); // DV - Initialise these to low value.
+  j_mean = std::vector<double> (rfnum + 1);  // std::vectors will be default initalised to 0, unless specified
   old_j_mean = std::vector<double> (rfnum + 1);
   new_j_mean = std::vector<double> (rfnum + 1);
   rfarea = TNT::Array2D<int> (imax + 2, jmax + 2);
@@ -2380,6 +2380,10 @@ void LSDCatchmentModel::zero_values()
     catchment_input_y_coord[i] = 0;
   }
 
+  // DAV - Don't think this is necessary now, these are std::vectors
+  // and can be intitialised to zero or whatever when you create them in 
+  // initailise_arrays()
+  // TO DO: Remove this loop. It is duplicating what is done in initialise_arrays()
   for (int i = 1; i <= rfnum; i++)
   {
     j[i] = 0.000000001;
@@ -2867,6 +2871,9 @@ void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
   if (DEBUG_write_runoffgrid == true)
   {
     std::string OUTPUT_RUNOFF_FILE = write_path + "/" + runoffgrid_fname + std::to_string((int)cycle);
+    runoff.write_runoffGrid_to_raster_file(xll, yll, DX,
+                                           OUTPUT_RUNOFF_FILE,
+                                           dem_write_extension);
   }
 }
 

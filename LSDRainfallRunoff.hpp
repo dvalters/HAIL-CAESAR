@@ -122,6 +122,12 @@ public:
   /// Introduced to be able to create an empty runoff object and then later initialise it,
   /// or update an exisiting runoff grid for a new timestep,
   void calculate_runoff(int rain_factor, double M, int jmax, int imax, const rainGrid &current_rainGrid);
+  
+  void write_runoffGrid_to_raster_file(double xmin,
+                                       double ymin,
+                                       double cellsize,
+                                       std::string RUNOFFGRID_FNAME,
+                                       std::string RUNOFFGRID_EXTENSION);
 
   // Getters for runoff variables
   double get_j(int m, int n) const { return j[m][n]; }
