@@ -6,7 +6,7 @@
 #include "LSDStatsTools.hpp" // This contains some spline interpolation functions already
 
 /// @brief rainGrid is a class used to store and manipulate rainfall data.
-/// @detail It can be used to interpolate or upscale rainfall data from coarser
+/// @detail It can be used to interpolate or downscale rainfall data from coarser
 /// resolutions/grid spacings.
 /// @author DAV
 class rainGrid
@@ -44,16 +44,18 @@ public:
   /// extra third variable which would be terrain in most cases (see
   /// Tait et al 2006, for example)
   void interpolateRainfall_RectTrivariateSpline(rainGrid& raingrid,
-                                                TNT::Array2D<double>& elevation);
+                                                const TNT::Array2D<double>& elevation);
   
   /// Takes the rainfall data for a current timestep and
   /// reshapes it into a 2D array. 
   void ReShapeRainfallData_2DArray();
   
-  /// Upscales the 2d rainfall array to a resampled, higher resolution
+  /// Downscales the 2d rainfall array to a resampled, higher resolution
   /// array, with the same grid spacing, and dimensions as the model or 
   /// raste rdomain. 
-  void upscaleRainfallData();
+  /// @note This is actually done by the create() function for now, but it
+  /// should probably go in its own method.
+  void downscaleRainfallData();
   
   /// Writes the 2D upscaled and/or interpolated rainfall grid to 
   /// a raster output file for checking.
@@ -86,11 +88,15 @@ private:
 };
 
 
-/// Object for storing and calculating the saturation and hence 
+/// @brief Object for storing and calculating the saturation and hence 
 /// surface runoff when using spatially
 /// variable rainfall input (j_mean, but 2D, i.e. j_mean_array[i][j], same as 
 /// model 
-
+/// @details This object treats runoff production as spatially variable at
+/// the same resolution as the model domain DEM. It calculates runoff separately
+/// for every grid cell, so is slightly different from the TOPMODEL formulation 
+/// which divides the runoff response into zones with similar attributes. 
+/// @author DAV
 class runoffGrid
 {
 public:
