@@ -119,7 +119,8 @@ void runoffGrid::create(int imax, int jmax)
 //  and other relevant params.
 void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
                                 int rain_factor, double M,
-                                const rainGrid& current_rainGrid)
+                                const rainGrid& current_rainGrid,
+                                const TNT::Array2D<double>& elevations)
 {
   std::cout << "Creating a RUNOFF GRID OBJECT FROM RAINGRID..." << std::endl;
   // set arrays to relevant size for model domain
@@ -129,7 +130,7 @@ void runoffGrid::create(int current_rainfall_timestep, int imax, int jmax,
   old_j_mean_array = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
   new_j_mean_array = TNT::Array2D<double>(imax +2, jmax +2, 0.0);
 
-  calculate_runoff(rain_factor, M, jmax, imax, current_rainGrid);
+  calculate_runoff(rain_factor, M, jmax, imax, current_rainGrid, elevations);
 }
 
 void runoffGrid::write_runoffGrid_to_raster_file(double xmin,
@@ -152,7 +153,9 @@ void runoffGrid::write_runoffGrid_to_raster_file(double xmin,
 }
 
 
-void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax, const rainGrid& current_rainGrid)
+void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax, 
+                                  const rainGrid& current_rainGrid, 
+                                  const TNT::Array2D<double>& elevations)
 {
   //std::cout << "calculate_runoff" << std::endl;
   // DAV addeded pragma for testing 08/2016
@@ -161,53 +164,58 @@ void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax,
   {
     for (int n=1; n<jmax; n++)
     {
-      double local_rainfall_rate =0;
-      double local_time_step=60;
-
-      old_j_mean_array[m][n] = new_j_mean_array[m][n];
-      jo_array[m][n] = j_array[m][n];
-
-      // Variable M value would go here
-      // if (variable_m_flag == true) { }
-
-
-      if (current_rainGrid.get_rainfall(m, n) > 0)
+      // Do not bother calculating runoff outside the catchment boundaries.
+      // I.e. in no data values
+      if (elevations[m][n] > -9999)
       {
-        //std::cout << "Rainfall is: " << current_rainGrid.get_rainfall(m, n) << std::endl;
-        // Divide by 1000 to get m/hr, then 3600 for m/sec
-        local_rainfall_rate = rain_factor * ((current_rainGrid.get_rainfall(m, n)
-            / 1000) / 3600);
-      }
-
-      // If case is zero, we still need to calculate the amount of saturation decay
-      // for this time step (TOPMODEL based)
-      if (local_rainfall_rate == 0)
-      {
-        j_array[m][n] = jo_array[m][n] / (1 + ((jo_array[m][n] * local_time_step) / M));
-
-        new_j_mean_array[m][n] = M / local_time_step *
-            std::log(1 + ((jo_array[m][n] * local_time_step) / M));
-      }
-
-      // If there is some rain in this cell, we need to calculate how much
-      // is runoff vs infiltrates (TOPMODEL based)
-      if (local_rainfall_rate > 0)
-      {
-        //std::cout << "Cell Rainfall Rate is: " << local_rainfall_rate << std::endl;
-        
-        j_array[m][n] = local_rainfall_rate / (((local_rainfall_rate - jo_array[m][n]) / jo_array[m][n])
-                   * std::exp((0 - local_rainfall_rate) * local_time_step / M) + 1);
-
-        new_j_mean_array[m][n] = (M / local_time_step)
-                            * std::log(((local_rainfall_rate - jo_array[m][n]) + jo_array[m][n]
-                            * std::exp((local_rainfall_rate *local_time_step)
-                                       / M)) / local_rainfall_rate);
-      }
-
-      // Don't want to have negative J_means!
-      if (new_j_mean_array[m][n] < 0)
-      {
-        new_j_mean_array[m][n] = 0;
+        double local_rainfall_rate =0;
+        double local_time_step=60;
+  
+        old_j_mean_array[m][n] = new_j_mean_array[m][n];
+        jo_array[m][n] = j_array[m][n];
+  
+        // Variable M value would go here
+        // if (variable_m_flag == true) { }
+  
+  
+        if (current_rainGrid.get_rainfall(m, n) > 0)
+        {
+          //std::cout << "Rainfall is: " << current_rainGrid.get_rainfall(m, n) << std::endl;
+          // Divide by 1000 to get m/hr, then 3600 for m/sec
+          local_rainfall_rate = rain_factor * ((current_rainGrid.get_rainfall(m, n)
+              / 1000) / 3600);
+        }
+  
+        // If case is zero, we still need to calculate the amount of saturation decay
+        // for this time step (TOPMODEL based)
+        if (local_rainfall_rate == 0)
+        {
+          j_array[m][n] = jo_array[m][n] / (1 + ((jo_array[m][n] * local_time_step) / M));
+  
+          new_j_mean_array[m][n] = M / local_time_step *
+              std::log(1 + ((jo_array[m][n] * local_time_step) / M));
+        }
+  
+        // If there is some rain in this cell, we need to calculate how much
+        // is runoff vs infiltrates (TOPMODEL based)
+        if (local_rainfall_rate > 0)
+        {
+          //std::cout << "Cell Rainfall Rate is: " << local_rainfall_rate << std::endl;
+          
+          j_array[m][n] = local_rainfall_rate / (((local_rainfall_rate - jo_array[m][n]) / jo_array[m][n])
+                     * std::exp((0 - local_rainfall_rate) * local_time_step / M) + 1);
+  
+          new_j_mean_array[m][n] = (M / local_time_step)
+                              * std::log(((local_rainfall_rate - jo_array[m][n]) + jo_array[m][n]
+                              * std::exp((local_rainfall_rate *local_time_step)
+                                         / M)) / local_rainfall_rate);
+        }
+  
+        // Don't want to have negative J_means!
+        if (new_j_mean_array[m][n] < 0)
+        {
+          new_j_mean_array[m][n] = 0;
+        }
       }
     }
   }
