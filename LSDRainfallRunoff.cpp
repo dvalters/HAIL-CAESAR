@@ -43,6 +43,8 @@ void rainGrid::create(std::vector< std::vector<float> >& rain_data,
   
   //std::cout << "HYDROINDEX DEBUG: " << std::endl;
   //std::cout << hydroindex.dim1() << ", " << hydroindex.dim2() << std::endl;
+  // DAV addeded pragma for testing 08/2016
+  #pragma omp parallel for
   for (int i=1; i<imax; i++) 
   {
     for (int j=1; j<jmax; j++)
@@ -153,7 +155,8 @@ void runoffGrid::write_runoffGrid_to_raster_file(double xmin,
 void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax, const rainGrid& current_rainGrid)
 {
   //std::cout << "calculate_runoff" << std::endl;
-              
+  // DAV addeded pragma for testing 08/2016
+  #pragma omp parallel for            
   for (int m=1; m<imax; m++)
   {
     for (int n=1; n<jmax; n++)
