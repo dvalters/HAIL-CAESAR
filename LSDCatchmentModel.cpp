@@ -1887,7 +1887,7 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
         {  
           if (elev[i][j] > no_data_value)
           {  
-            Jw_overvol = (runoff.get_j_mean(i,j) * DX * DX )*((cycle - tx)*60);  
+            Jw_overvol += (runoff.get_j_mean(i,j) * DX * DX )*((cycle - tx)*60);  
           }
           // DAV, as above, taken out this: "* nActualGridCells[nn]" after last DX,
           // but this will calclate over all grid cells which is inieffiient and
