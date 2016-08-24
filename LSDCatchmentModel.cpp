@@ -1669,6 +1669,7 @@ void LSDCatchmentModel::output_data(double temptotal)
       for (int nn=1; nn<=rfnum; nn++)
       {
         Jw_overvol = (j_mean[nn] * DX * DX * nActualGridCells[nn])*((cycle - tx)*60);  // fixed MJ 29/03/05
+        // TO DO: DV - is this right? Doesn't this overwrite JwOvervol each iter? should be +=?
       }
       Jw_stepvol = Jw_newvol - Jw_oldvol;
       Jw_hourvol = Jw_stepvol - Jw_overvol + Jw_lastvol;
@@ -2134,7 +2135,7 @@ void LSDCatchmentModel::check_DEM_edge_condition()
     std::cout << "DEM EDGE CONDITION ERROR: LSDCatchmentModel may not function \
                  properly, as the edges of the DEM are all nodata (-9999) values. This will \
         prevent any water or sediment from leaving the edge of the model domain (DEM)" << std::endl;
-        exit(-1);
+        exit(EXIT_FAILURE);
   }
   else
   {
@@ -2185,7 +2186,7 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 
   std::cout << "Initialising drainage area for first time..." << std::endl;
   // calculate the contributing drainage area
-  get_area();
+  get_area();   // is this needed for spatially complex case?
 
   std::cout << "Initialising catchment input points for first time..." << std::endl;
   if (spatially_complex_rainfall == true)
@@ -3048,6 +3049,7 @@ void LSDCatchmentModel::get_catchment_input_points()
   std::cout << totalinputpoints << std::endl;
 }
 
+// Unnecessary for complex runoff-rainfall?? - check DV
 void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
 {
   std::cout << "Calculating catchment input points... Total: ";
