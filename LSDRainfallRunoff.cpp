@@ -85,7 +85,7 @@ void rainGrid::ReShapeRainfallData_2DArray()
   // for one time step slice
 }
 
-void rainGrid::upscaleRainfallData()
+void rainGrid::downscaleRainfallData()
 {
   // Either does equivalent of NumPy's np.kronecker product or np.zoom.
   // Needs further thought.
