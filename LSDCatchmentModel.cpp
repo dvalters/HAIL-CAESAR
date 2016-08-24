@@ -1540,9 +1540,18 @@ void LSDCatchmentModel::call_soilcreep()
 
 // There is a sand dunes function but I am not implementing that here - DAV
 
-// NOW CALL THE SOIL EROSION FUNCTION
+// NOT TESTED - DAV
+// If you use this with the complex rainfall runoff method, you will have 
+// to renable get_area() updates, as soil_erosion is dependent on area[][] array.
 void LSDCatchmentModel::call_soil_erosion()
 {
+  if (spatially_complex_rainfall == true)
+  {
+    std::cout << "Sorry, you cannot currently use the soil erosion function with" 
+              << " spatially complex rainfall-runoff methods." << std::endl;
+    
+    exit(EXIT_FAILURE);
+  }
   if (SOIL_RATE > 0 && cycle > soil_erosion_time)
   {
     get_area();    // gets the drainage area before doing the maths below. Useful to have fresh D.A.
@@ -1668,7 +1677,7 @@ void LSDCatchmentModel::output_data(double temptotal)
       // same for Jw (j_mean contribution)  MJ 14/03/05
       for (int nn=1; nn<=rfnum; nn++)
       {
-        Jw_overvol = (j_mean[nn] * DX * DX * nActualGridCells[nn])*((cycle - tx)*60);  // fixed MJ 29/03/05
+        Jw_overvol += (j_mean[nn] * DX * DX * nActualGridCells[nn])*((cycle - tx)*60);  // fixed MJ 29/03/05
         // TO DO: DV - is this right? Doesn't this overwrite JwOvervol each iter? should be +=?
       }
       Jw_stepvol = Jw_newvol - Jw_oldvol;
@@ -2186,15 +2195,22 @@ void LSDCatchmentModel::run_components()   // originally erodepo() in CL
 
   std::cout << "Initialising drainage area for first time..." << std::endl;
   // calculate the contributing drainage area
-  get_area();   // is this needed for spatially complex case?
-
-  std::cout << "Initialising catchment input points for first time..." << std::endl;
-  if (spatially_complex_rainfall == true)
-  {
-    get_catchment_input_points(runoff); // takes a reference to a runoffGrid object
+  
+  if (spatially_complex_rainfall == false)
+  {  
+  get_area();   // is this needed for spatially complex case? - DAV no, but soil erosion uses it.
   }
-  else
+  
+  // Removed because not needed.
+  /*
   {
+    //get_catchment_input_points(runoff); // takes a reference to a runoffGrid object
+    continue;
+  }
+  */
+  if (spatially_complex_rainfall == false)
+  {
+    std::cout << "Initialising catchment input points for first time..." << std::endl;
     get_catchment_input_points();
   }
 
