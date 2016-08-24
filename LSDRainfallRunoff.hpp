@@ -104,15 +104,17 @@ public:
   /// Create a rainfallrunoffGrid from passing params and refs to params
   runoffGrid(int current_rainfall_timestep, int imax, int jmax,
                      int rain_factor, double M,
-                     const rainGrid& current_rainGrid)
+                     const rainGrid& current_rainGrid,
+                     const TNT::Array2D<double>& elevations)
   {
     /*std::cout << "Creating a LSD runoffGrid object from the" << std::endl
                  << " current rainGrid and domain parameters..." \
                  << std::endl;
                  */
     create(current_rainfall_timestep, imax, jmax,
-            rain_factor, M,
-            current_rainGrid);
+           rain_factor, M,
+           current_rainGrid, 
+           elevations);
   }  
 
   //void calculate_catchment_water_inputs(); // Left this is CatchmentModel object for now
@@ -121,7 +123,10 @@ public:
   /// Calculates runoff and updates the rainfallrunoffGrid object accordingly
   /// Introduced to be able to create an empty runoff object and then later initialise it,
   /// or update an exisiting runoff grid for a new timestep,
-  void calculate_runoff(int rain_factor, double M, int jmax, int imax, const rainGrid &current_rainGrid);
+  /// @params Takes a ref to a rainGrid object and the elevations array from LSDCatchmentModel
+  void calculate_runoff(int rain_factor, double M, int jmax, int imax, 
+                        const rainGrid &current_rainGrid, 
+                        const TNT::Array2D<double>& elevations);
   
   void write_runoffGrid_to_raster_file(double xmin,
                                        double ymin,
@@ -147,7 +152,7 @@ private:
   void create(int imax, int jmax);
   void create(int current_rainfall_timestep, int imax, int jmax,
          int rain_factor, double M,
-         const rainGrid& current_rainGrid);
+         const rainGrid& current_rainGrid, const TNT::Array2D<double>& elevations);
 };
 
 

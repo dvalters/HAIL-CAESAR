@@ -1801,7 +1801,10 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
   {
     for (int j=1; j<=jmax; j++)
     {
-      Jw_newvol += (runoff.get_j_mean(i,j) * DX * DX ) * ((cycle - previous)*60);  
+      if (elev[i][j] > no_data_value)
+      {  
+        Jw_newvol += (runoff.get_j_mean(i,j) * DX * DX ) * ((cycle - previous)*60);  
+      }
       // originally j_mean[nn] * DX*DX* nActualGridCells[nn] ...
       // needs checking because you don't want to include grid cells that are
       // actually outside the catchment and shouldnt be contribbuting to the 
@@ -1882,7 +1885,10 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
       {
         for (int j=1; j<=jmax; j++)
         {  
-          Jw_overvol = (runoff.get_j_mean(i,j) * DX * DX )*((cycle - tx)*60);  
+          if (elev[i][j] > no_data_value)
+          {  
+            Jw_overvol = (runoff.get_j_mean(i,j) * DX * DX )*((cycle - tx)*60);  
+          }
           // DAV, as above, taken out this: "* nActualGridCells[nn]" after last DX,
           // but this will calclate over all grid cells which is inieffiient and
           // potentially buggy
@@ -2880,7 +2886,7 @@ void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
                           current_rainfall_timestep,
                           rfnum);
   // Calculate runoff for this rainfall grid at this timestep
-  runoff.calculate_runoff(rain_factor, M, jmax, imax, current_raingrid);
+  runoff.calculate_runoff(rain_factor, M, jmax, imax, current_raingrid, elev);
 
   // For checking purposes
   
