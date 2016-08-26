@@ -2096,7 +2096,7 @@ void LSDCatchmentModel::count_catchment_gridcells()
   }
  
   // Sum up all the catchment cells
-  int totalCatchmentCells;
+  int totalCatchmentCells = 0;
   for (int n : nActualGridCells)
   {
     totalCatchmentCells += n;
