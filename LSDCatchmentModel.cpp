@@ -312,7 +312,18 @@ void LSDCatchmentModel::load_data()
     {
       hydroindexR.read_ascii_raster_integers(HYDROINDEX_FILENAME);
       //wrong, becuase rfarea is bigger than the raster data in hydroindexR by 1 pixel around the array
-      rfarea = hydroindexR.get_RasterData_int();
+      // DAV fix 30/08/16
+      TNT::Array2D<int> raw_rfarea = hydroindexR.get_RasterData_int();
+      
+      // Solves padding issues(?)
+      for (int i=0; i<imax; i++)
+      {
+        for (int j=0; j<jmax; j++)
+        {
+          rfarea[i+1][j+1] = raw_rfarea[i][j];
+        }
+      }
+      
       std::cout << "The hydroindex: " << HYDROINDEX_FILENAME << " was successfully read." << std::endl;
     }
     catch (...)
@@ -408,7 +419,7 @@ void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAM
   std::ifstream infile(GRAINDATA_FILENAME);
   
   // Index coordinates
-  int x1, y1;
+  int x1=0, y1=0;
   
   int y=1;
   grain_array_tot = 0;
@@ -2107,7 +2118,7 @@ void LSDCatchmentModel::count_catchment_gridcells()
   std::cout << "Total number of grid cells within catchment: " << totalCatchmentCells << std::endl; 
   
 #ifdef DEBUG
-  for (int i; i<=rfnum; i++)
+  for (int i=0; i<=rfnum; i++)
   {
     std::cout << "Number of grid cells within hydroindex area " << i << " is: " << nActualGridCells[i] << std::endl;
   }
