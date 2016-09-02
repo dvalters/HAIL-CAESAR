@@ -1,4 +1,6 @@
 /// LSDGrainMatrix.cpp
+/// 
+/// IMPLEMENTATION FILE
 
 /*
  * SUMMARY

@@ -1,6 +1,24 @@
+// LSDRainfallRunoff.hpp
+// HEADER FILE
+
+/*
+ * Used for various weather/storm generators, climate data interpolation
+ * etc. 
+ *
+ * Will use some of the interpolate routines in LSDSTatsTools.
+ *
+ * @author Declan Valters
+ * @date  2014, 2015, 2016
+ * University of Manchester
+ * @contact declan.valters@manchester.ac.uk
+ * @version 0.01
+ *
+ * Released under the GNU v2 Public License
+ *
+ */
+
 #ifndef LSDRAINFALLRUNOFF_H
 #define LSDRAINFALLRUNOFF_H
-
 
 #include "TNT/tnt.h"
 #include "LSDStatsTools.hpp" // This contains some spline interpolation functions already

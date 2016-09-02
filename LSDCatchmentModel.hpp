@@ -23,7 +23,6 @@
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
-using std::string;
 
 #ifndef LSDCatchmentModel_H
 #define LSDCatchmentModel_H
@@ -80,15 +79,8 @@ public:
     create(pname, pfname);
   }
 
-  //-------------------------------------
-  //MPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPM
-  //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // The Meat and Potatoes of the Class
-  //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  //MPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPMPM
-
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // Stuff for loading and manipulating files
+  // Methods for loading and manipulating files (should probably co in separate class/file)
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   /// @brief Initialises the size of the arrays holding the various
@@ -284,12 +276,6 @@ public:
   // HYDROLOGY COMPONENTS
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-  /// @brief initialises the water routing routine (qroute) arrays and vars etc.
-  /// @details Sets cross_scan[][] and down_scan[][].
-  //void init_water_routing(int flag,
-  //                        double reach_input_amount,
-  //                         double catchment_input_amount);
-
   /// @brief Updates the water depths (and susp sedi concentrations)
   void depth_update();
 
@@ -341,11 +327,10 @@ public:
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   //
   // Maps holding parameters and switches read from input paramter files
+  // 
+  // (DEPRECATED)
   //
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-  
-  
 protected:
 
   /// This map holds all the possible model switches
@@ -380,6 +365,8 @@ protected:
   // At the moment I have just copied and pasted all the variable declartions
   // anddefinitions from the CL original source file. Some of them can be thinned out
   // and should also consider where is best to place them (private/public etc)
+  
+  // TO DO: should not have all these public variables!!
 
   // TO DO: Convert C-style arrays to std::vector<type>
 
@@ -485,14 +472,14 @@ protected:
   double rain_factor = 1;
   double sediQ = 0;
 
-  /// speed in which vegetation reaches full maturity in year
+  // speed in which vegetation reaches full maturity in year
   double grow_grass_time = 0;
   double duneupdatetime = 0;
 
   double output_file_save_interval = 60;
   double min_time_step = 0;
   double vegTauCrit = 100;
-  //int graphics_scale;// = 2; // value that controls the number of bmp pixels per model pixel for the output images.
+
   int max_time_step = 0;
   int dune_mult = 5;
   double dune_time = 1;
@@ -516,8 +503,8 @@ protected:
   // KAtharine
   int variable_m_value_flag = 0;
 
-  /// TO DO: DAV - these could be read from an input file.
-  /// grain size variables - the sizes
+  // TO DO: DAV - these could be read from an input file.
+  // grain size variables - the sizes
   double d1=0.0005;
   double d2=0.001;
   double d3=0.002;
@@ -528,7 +515,7 @@ protected:
   double d8=0.064;
   double d9=0.128;
 
-  /// grain size proportions for each fraction... as a proportion of 1.
+  // grain size proportions for each fraction... as a proportion of 1.
   double d1prop=0.144;
   double d2prop=0.022;
   double d3prop=0.019;
@@ -544,7 +531,6 @@ protected:
   // the weird length is a hangover from CAESAR-Lisflood...
   std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068, 0.146, 0.22, 0.231, 0.121, 0.0}};
 
-  // Gez
   double previous;
   int hours = 0;
   double new_cycle = 0;
@@ -630,20 +616,13 @@ protected:
   TNT::Array3D<double> sr, sl, su, sd;
   TNT::Array2D<double> ss;
 
-
   // MJ global vars
   std::vector<double> fallVelocity;
   std::vector<bool> isSuspended;
   TNT::Array2D<double> Vsusptot;
-  // TO DO - do these need swapping
-  //std::array<int, 9> deltaX = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
-  //std::array<int, 9> deltaY = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
-//
-  // swapped
 
   std::array<int, 9> deltaX = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
   std::array<int, 9> deltaY = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
-  //int[] deltaY = new int[9] {0,-1,-1,0,1,1,1,0,-1};   // I leave an old example in for comparison - DAV
 
   std::vector<int> nActualGridCells;
   double Jw_newvol = 0.0;
@@ -662,6 +641,7 @@ protected:
   TNT::Array2D<double> hillshade;	  // 0 to 255
 
   // siberia submodel parameters
+  // DAV - NOT IMPLEMENTED - probably can be removed later
   double m1 = 1.70;
   double n1 = 0.69;
   double Beta3 = 0.000186;
@@ -676,7 +656,6 @@ protected:
 
   // lisflood caesar adaptation globals
   std::vector<int> catchment_input_counter;
-  //std::vector<int> catchment_input_counter_big;
   int totalinputpoints = 0;
 
   // stage/tidal variables
@@ -691,7 +670,8 @@ protected:
   /// Option Bools
   bool soildevoption = false;
   bool suspended_opt = false;
-  bool jmeaninputfile_opt = false; // This is for reading discharge direct from input file - DV 2/2016 (Dear god I've been working on this code for 2.5 years nearly...)
+  bool jmeaninputfile_opt = false; 
+  // This is for reading discharge direct from input file - DAV 2/2016 (Dear god I've been working on this code for 2.5 years nearly...)
   bool recirculate_opt = false;
   bool reach_mode_opt = false;
   bool dunes_opt = false;
@@ -710,7 +690,6 @@ protected:
   bool graindata_from_file = false;
 
   bool spatially_complex_rainfall = false;
-
 
   // Bools for writing out files
   bool write_elev_file = false;
@@ -744,14 +723,14 @@ protected:
   int timeseries_interval;
   float run_time_start;
   int no_of_iterations;
-  //float max_run_duration;  // this is maxcycle
 
   int tempcycle = 0;
 
   std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
-
+  
   // Mainly just the definitions of the create() functions go here:
   // The implementations are in the .cpp file.
+  
 private:
   void create();
   void create(std::string pname, std::string pfname);
@@ -802,8 +781,5 @@ private:
 
 
 */
-
-
-
 
 #endif

@@ -1,0 +1,72 @@
+# LSDCatchmentModel (DAV Version) Parameter File
+# 04/10/2014
+
+# File Information
+dem_name:	swale
+dem_read_extension:	.asc
+dem_write_extension:    .asc
+read_path:	./
+write_path:	./
+read_fname:	boscastle5m_bedrock_fill
+write_fname:	bos_output
+save_interval: 10
+
+# Supplementary Files
+hydroindex_file: #bos5m_hydroindex.asc
+rainfall_data_file: boscastle_rain_uniform.txt
+grain_data_file: 
+bedrock_data_file:
+
+# Options
+bedrock_layer_on: no
+
+# Numerical    
+min_time_step:    1
+max_time_step:		3600
+run_time_start:		1
+max_run_duration:	47
+memory_limit:    	1
+
+# Sediment
+transport_law:		    wilcock  #einstein
+max_tau_velocity:	    127
+max_erode_limit:      0.05
+active_layer_thickness: 0.1
+recirculate_proportion: 1
+lateral_erosion_on:	  yes
+lateral_ero_rate:     20
+edge_filter_passes:   100
+cells_shift_lat:      1
+max_diff_cross_chan:  0.001
+
+# Hydrology
+m_value:              0.01
+rain_data_time_step:  60
+spatial_var_rain:		  no
+allow_in_out_diff:		no
+min_Q_for_depth:	    0.05
+depth_ero_threshold:  0.01
+slope_on_edge_cell:   0.001
+evaporation_rate:     0.0
+courant_number:       0.7
+froude_num_limit:     0.8
+mannings_n:           0.04
+
+# Vegetation
+vegetation_on:	       no
+grass_grow_rate:       0.0
+vegetation_crit_shear: 0.0
+veg_erosion_prop:      0.0
+
+# Hillslope
+creep_rate:	          0.0025	
+slope_failure_thresh: 45
+soil_erosion_rate:    0.0
+soil_j_mean_depends:	yes	#no
+call_muddpile_model:	yes	#no
+
+
+
+
+
+	

@@ -12,7 +12,11 @@
  *
  * This is a C++ implementation of the CAESAR-Lisflood model (Coulthard et al, 2013).
  * It is essentially a light, fast, and somewhat stripped-down non-GUI version
- * of the CASESAR-Lisflood model.
+ * of the CASESAR-Lisflood model. 
+ * 
+ * The main additions where it differs are the inclusion of a separate
+ * rainfall-runoff module (see LSDRainfallRunoff.cpp) and a separate grain-size
+ * module (see LSDGrainmatrix.cpp)
  *
  * Not all the functionallity of CL is implemented in this model. There is
  * no intention to maintain this code in parallel with CAESAR-Lisflood at this
@@ -42,22 +46,16 @@
  *
  */
 
-
 #include <string>
 #include <cmath>
 #include <vector>
 #include <algorithm>
 #include <fstream>
-
 #include <sstream>
 #include <iomanip>
-
 #include <iterator> // For the printing vector method
-
-#include <sys/stat.h> // For fatal errors
-
-// Only for the debug macro
-#include <cstdio>
+#include <sys/stat.h> // For errors
+#include <cstdio> // Only for the debug macro
 
 #include "LSDCatchmentModel.hpp"
 
@@ -65,11 +63,172 @@
 // particulalrly the LSDBasin object using it to 'cut out' basins,
 // run hydrology sims for the catchment (hundreds - thousands yrs).
 // and then perform topo analysis on the model run output
-using std::string;
-
 
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
+
+// A wrapper method that calls the chief erosional and water routing methods.
+// Should really go in the main/driver.cpp file and be made so you can customise
+// which components are run in a more OOP way.
+void LSDCatchmentModel::run_components() 
+{
+  // For testing purposes, can be removed later - dv
+  // Just prints out how many threads/cores you have.
+  #ifdef OMP_COMPILE_FOR_PARALLEL
+  quickOpenMPtest();
+  #endif
+  // Originally main_loop() in CL, but no need (I think) for separete
+  // loops here.
+  std::cout << "Initialising first iteration..." << std::endl;
+  time_1 = 1;
+
+  // J is the local rainfall inputed into the cell at each timestep
+  std::cout << "Initialising J for first time..." << std::endl;
+
+  runoffGrid runoff(imax, jmax); /* TO DO fix. annoying, because obviously
+  you can't put it in the conditional below, as we need it to exist out of scope
+  yet it should really only be created if we are using the complex rainfall-runoff option
+  (i.e., not best practive to go around using up memory when we don't need to...)
+  see stackoverflow for possible solutions:
+  http://stackoverflow.com/questions/9346477/create-objects-in-conditional-c-statements
+  */
+  if (spatially_complex_rainfall == true)
+  {
+    // Create a runoff object same size as model domains
+    calc_J(1.0, runoff);  // Creates a rainfall grid object, uses the runoff grid object as well
+  }
+  else
+  {
+    calc_J(1.0);
+  }
+
+  save_time = cycle;
+  creep_time = cycle;
+  creep_time2 = cycle;
+  soil_erosion_time = cycle;
+  soil_development_time = cycle;
+  time_1 = cycle;
+
+  std::cout << "Initialising drainage area for first time..." << std::endl;
+  // calculate the contributing drainage area
+  
+  if (spatially_complex_rainfall == false)
+  {  
+  get_area();   // is this needed for spatially complex case? - DAV no, but soil erosion uses it.
+  }
+  
+  if (spatially_complex_rainfall == false)
+  {
+    std::cout << "Initialising catchment input points for first time..." << std::endl;
+    get_catchment_input_points();
+  }
+
+  time_factor = 1;
+
+  // Originally erodedepo() in CAESAR-LISFLOOD...
+  // Entering the main loop here
+  std::cout << "Entering main model loop..." << std::endl;
+
+  // Main iteration loop
+  do
+  {
+    previous = cycle;
+    old_cycle = std::fmod(cycle, output_file_save_interval);
+    //std::cout << "Old cycle: " << old_cycle << std::endl;
+    //std::cout << "Calculate time step-related variables, make sure they don't fall below the threshold values..." << std::endl;
+    double input_output_difference = std::abs(waterinput - waterOut);
+    // calculate time step-related variables, make sure they don't fall below the threshold values
+    if (maxdepth <= 0.1)
+    {
+      maxdepth = 0.1;
+    }
+    if (time_factor < (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+    {
+      time_factor = (courant_number * (DX / std::sqrt(gravity * (maxdepth))));
+    }
+    if (input_output_difference > in_out_difference && time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+    {
+      time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+    }
+
+    double local_time_factor = time_factor;
+    if (local_time_factor > (courant_number * (DX  / std::sqrt(gravity * (maxdepth)))))
+    {
+      local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+    }
+
+    // increment the counters
+    counter++;
+    cycle += time_factor / 60;
+    // cycle is minutes, time_factor is seconds
+    new_cycle = std::fmod(cycle, output_file_save_interval);
+
+    // WATER ROUTING
+    // first zero counter to tally up water inputs
+    waterinput = 0;
+
+    // In CL there was an option to set either reach or tidal mode.
+    // Only catchment mode is implemented in this spin-off version
+
+    // Also applies if you wanted spatially complex hydrological response
+    if (spatially_complex_rainfall == true)
+    {
+      catchment_water_input_and_hydrology(local_time_factor, runoff);
+    }
+    else
+    {
+    catchment_water_input_and_hydrology(local_time_factor);
+    }
+
+    //std::cout << "route the water and update the flow depths\r" << std::flush;
+    qroute();
+    depth_update();
+
+    // check scan area every 5 iters.. maybe re-visit for reach mode if it causes too much backing up of sed. see code commented below nex if..
+    if (std::remainder(counter, 5) == 0)
+    {
+      scan_area();
+    }
+
+    // Will run hydrological model only if "hydro_model_only" set to yes/true
+    if (!hydro_only)
+    {
+      call_erosion();
+    }
+    //call_lateral();
+    water_flux_out(local_time_factor);  // temptot is zeroed, then calculated here
+
+    temptotal = temptot;
+
+    if (spatially_complex_rainfall ==true)
+    {
+      // uses the runoff object
+      output_data(temptotal, runoff);  
+    }
+    else
+    {
+      // uses the global array
+      output_data(temptotal);
+    }
+    
+    // removed for archer output files
+    if (DEBUG_print_cycle_on)
+    {
+    std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
+    }
+    //std::cout << "Water Out (Qw): " << waterOut << "                  \r" << std::flush;
+
+    if (cycle >= save_time)
+    {
+      // deprecated // save_data_and_draw_graphics(); //similar to above worry?
+      save_raster_data(std::abs(cycle));
+      save_time += saveinterval;
+    }
+
+    // if we have reached the end of the run, kill the cycle
+  } while (cycle < maxcycle * 60);
+}
+
 
 // ingest data tools
 // DAV: I've copied these here for now to make the model self-contained for testing purposes
@@ -197,8 +356,6 @@ void LSDCatchmentModel::create(string pname, string pfname)
   initialise_variables(pname, pfname);
 }
 
-
-
 void LSDCatchmentModel::initialise_model_domain_extents()
 {
   std::string FILENAME = read_path + "/" + read_fname + "." + dem_read_extension;
@@ -284,10 +441,6 @@ void LSDCatchmentModel::load_data()
     // deep copy needed? -- DAV 2/12/2015
     init_elevs = elev;
 
-    //imax = elevR.get_NRows();
-    //jmax = elevR.get_NCols();
-    //std::cout << "imax: " << imax << std::endl;
-    //std::cout << "jmax: " << jmax << std::endl;
   }
   catch(...)
   {
@@ -311,7 +464,7 @@ void LSDCatchmentModel::load_data()
     try
     {
       hydroindexR.read_ascii_raster_integers(HYDROINDEX_FILENAME);
-      //wrong, becuase rfarea is bigger than the raster data in hydroindexR by 1 pixel around the array
+      // wrong, becuase rfarea is bigger than the raster data in hydroindexR by 1 pixel around the array
       // DAV fix 30/08/16
       TNT::Array2D<int> raw_rfarea = hydroindexR.get_RasterData_int();
       
@@ -421,7 +574,6 @@ void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAM
   // Index coordinates
   int x1=0, y1=0;
   
-  int y=1;
   grain_array_tot = 0;
   
   std::string line;
@@ -432,8 +584,6 @@ void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAM
     // check not an empty string (getline can return '' if
     // first character of line is \n or similar)
     
-    
-    //std::cout << "LINE: " << line << std::endl;
     // A string to hold each line of the text file as we iterate
     std::vector<std::string> line_vector;
     // Strip using the function in LSDStatsTools
@@ -442,7 +592,7 @@ void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAM
     int col_counter = 1;
     grain_array_tot++;
     
-    for (int x=0; x<=line_vector.size() -1; x++ )
+    for (int x=0; x<=line_vector.size()-1; x++ )
     {
       //std::cout << "LINE VECTOR IS: " << line_vector[x] << std::endl;
       if (col_counter==1) x1 = std::stoi(line_vector[x]);
@@ -484,7 +634,7 @@ void LSDCatchmentModel::ingest_graindata_from_file(std::string GRAINDATA_FILENAM
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Load the data from the text file
+// Load the rainfall data from the rainfall text file
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Generic function for reading rainfal data
 // This is used by the LSDCatchmentModel.
@@ -498,7 +648,6 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(string FI
   std::ifstream infile(FILENAME.c_str());
 
   std::string line;
-  //std::vector< std::vector<float> > raingrid; //declared in .hpp now
   int i = 0;
 
   while (std::getline(infile, line))
@@ -514,38 +663,13 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(string FI
     }
     ++i;
   }
-  return raingrid;  // You(I) forgot the return statement! - DV
-  // It's odd that the compiler allows no return statement.
+  return raingrid;  
 }
-/*
-std::vector<float> LSDCatchmentModel::read_rainfall_uniform(string FILENAME)
-{
-  std::cout << "\n\n Loading Uniform Rainfall File, the filename is "
-            << FILENAME << std::endl;
-
-  std::ifstream infile(FILENAME.c_str());
-
-  if (infile)
-  {
-    float value;
-    while (infile >> value))
-    {
-      raingrid.push_back(value)
-    }
-  }
-  else
-  {
-    std::cout << "There was an error opening your uniform rainfall file." <<
-    std::endl;
-  }
-}
-*/
 
 // This is just for sanity checking the rainfall input really
 void LSDCatchmentModel::print_rainfall_data()
 {
   std::vector< std::vector<float> > vector2d = hourly_rain_data;
-
   std::vector<std::vector<float> >::iterator itr = vector2d.begin();
   std::vector<std::vector<float> >::iterator end = vector2d.end();
 
@@ -563,6 +687,10 @@ void LSDCatchmentModel::print_rainfall_data()
 //
 // Update: It also intialises the other params that are set internally (hard coded)
 // Some functions have been taken out of mainloop()
+//
+// DAV - this is a bit of a clunky method - perhaps replace it with the
+//   paramter ingestion method used in CHILD one day?
+//
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfname)
 {
@@ -817,10 +945,10 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       }
       else
       {
-        std::cout << "ACHTUNG!: No sedi transport law specified in parameter file..." << std::endl;
+        std::cout << "WARNING!: No sediment transport law specified in parameter file..." << std::endl;
         std::cout << "You must specify a transport law: either 'einstein' or 'wilcock'" << std::endl;
-        std::cout << "ERREUR FATALE!" << std::endl;
-        exit(0);
+        std::cout << "Exiting..." << std::endl;
+        exit(EXIT_FAILURE);
       }
 
       std::cout << "wilcock: " << wilcock << std::endl;
@@ -891,7 +1019,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       std::cout << "suspended_opt: " << suspended_opt << std::endl;
     }
 
-    // This is a vector of values and needs some thought (different fractions)
+    // This is a vector of values and needs some thought (different grainsize fractions)
     //else if (lower == "fall_velocity") fall_velocity = atof(value.c_str());
 
     else if (lower == "grain_size_frac_file")
@@ -951,7 +1079,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
 
     else if (lower == "num_unique_rain_cells")
     {
-      rfnum = atoi(value.c_str()); // not needed now
+      rfnum = atoi(value.c_str());
       std::cout << "Number of unique rain cells: " << rfnum << std::endl;
     }
 
@@ -1098,7 +1226,6 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       DEBUG_write_raingrid = (value == "yes") ? true:false;
       std::cout << "Will write raingrid raster every calc_J: " << DEBUG_write_raingrid << std::endl;
     }
-    //else if (lower == "call_muddpile_model") call_muddpile_model = atof(value.c_str());
     else if (lower == "debug_write_runoffgrid")
     {
       DEBUG_write_runoffgrid = (value == "yes") ? true:false;
@@ -1125,10 +1252,9 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
 // Initialise the arrays (as done in initialise() )
 // Not sure the point of having them declared on header file if you
 // can't resize them...surely this is duplicating array creation?? DV
+// TO DO DAV - address above comment 
 
-// These need moving - initialise_params() is called before load_data()
-// but load_data() determines array sizes based on DEM hdr info...epic programmer fail - DV
-// i.e. don't know jmax and imax at start of this function call in program flow.
+// Initialise the relevant arrays
 void LSDCatchmentModel::initialise_arrays()
 {
   std::cout << "Cartesian imax (no. of rows): " << imax << \
@@ -1175,9 +1301,7 @@ void LSDCatchmentModel::initialise_arrays()
 
   hourly_m_value = std::vector<double> (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100);
 
-  // erm...what? Best just leave it in for now...
-  // magic numbers FTW
-  // Does this represent 10000 years? - DV
+  // Does this represent 10000 years? - not sure where/why this is used in CAESAR-LISFLOOD - DV
   climate_data = TNT::Array2D<double> (10001, 3);
 
   temp_grain = std::vector<double> (G_MAX+1);
@@ -1193,18 +1317,6 @@ void LSDCatchmentModel::initialise_arrays()
   catchment_input_y_coord = std::vector<int> (jmax * imax);
 
   area_depth = TNT::Array2D<double> (imax + 2, jmax + 2);
-
-  //dune things - but not implemented in this version
-  /*
-    dune_mult = (int)(DX)/int.Parse(dune_grid_size_box.Text);
-    if (dune_mult < 1) dune_mult = 1;
-    if (DuneBox.Checked == false) dune_mult = 1; // needed in order to stop it tripping out the memory
-
-    area_depth = new double[jmax + 2, imax + 2];
-    sand = new double[jmax + 2, imax + 2];
-    elev2 = new double[(jmax * dune_mult) + 2, (imax*dune_mult) + 2];
-    sand2 = new double[(jmax * dune_mult) + 2, (imax * dune_mult) + 2];
-    */
 
   dischargeinput = TNT::Array2D<double> (1000,5);
 
@@ -1249,13 +1361,10 @@ void LSDCatchmentModel::initialise_arrays()
   fallVelocity = std::vector<double>(G_MAX+1, 0.0);
   set_fall_velocities();
 
-  // Segfaults here because you are trying to zero a load of
-  // zero length arrays
-
   zero_values();
 }
 
-// Hard coded! - Should make this read from sed details file.
+// Hard coded! - Should make this read from sediment details file.
 // DAV 3/12/2015
 void LSDCatchmentModel::set_fall_velocities()
 {
@@ -1286,15 +1395,13 @@ void LSDCatchmentModel::get_area()
       {
         area_depth[i][j] = 0.0;
       }
-
     }
   }
-  get_area4();   // This refers to a newer area getting method in CL
+  get_area4();   // This refers to a newer area getting method in CaesarLisflood
 }
 
 void LSDCatchmentModel::get_area4()
 {
-
   // new routine for determining drainage area 4/10/2010
   // instead of using sweeps this sorts all the elevations then works frmo the
   // highest to lowest - calculating drainage area - D-infinity basically.
@@ -1307,12 +1414,6 @@ void LSDCatchmentModel::get_area4()
   std::vector<double> xkey((imax+2)*(jmax+2));
   std::vector<double> ykey((imax+2)*(jmax+2));
 
-  // I leave in the old C# syntax for now for reference (note the subtle differences) (DAV)
-  //tempvalues = new Double [(jmax+2) *(imax+2)];
-  //tempvalues2 = new Double[(jmax+2) * (imax+2)];
-  //xkey = new Double [(jmax+2)*(imax+2)];
-  //ykey = new Double[(jmax+2) * (imax+2)];
-
   // then create temp array based on elevs then also one for x values.
   int inc = 1;
   for (i = 1; i <= imax; i++)
@@ -1320,7 +1421,7 @@ void LSDCatchmentModel::get_area4()
     for (j = 1; j <= jmax; j++)
     {
       // tempvalues is just a list of all the elevations in the grid.
-      tempvalues[inc] = elev[i][j];
+      tempvalues[inc] = elev[i][j];  // bad name choice 'temp'! TO DO: DAV change later
       // xkey is the xcoordinates collated
       xkey[inc] = j; // because [row][column] order, so j is the x-coord
       inc++;
@@ -1330,6 +1431,7 @@ void LSDCatchmentModel::get_area4()
   // then sorts according to elevations - but also sorts the key (xkey) according to
   // these too..
 
+  // Comment about the original CAESAR-Lisflood code
   // DAV note 09/01/2014 This seems strange at first because the C# syntax is to have
   // keys first, then values:
   // Array.sort(keys,values) but here it is Array.sort(values, keys) which seems like
@@ -1344,7 +1446,7 @@ void LSDCatchmentModel::get_area4()
   // the two vectors into a std::pair object first. std::sort is then used with the
   // comparator, (the template): sort_pair_second. As the name indicates, it sorts
   // std::pair objects by the second value in the pair. (You could change this if
-  // needed.
+  // needed. - thank you stackoverflow!
 
   // Pair the vectors up
   std::vector<std::pair<double,double> >
@@ -1388,30 +1490,11 @@ void LSDCatchmentModel::get_area4()
             y_keys_elevs_paired.end(),
             sort_pair_second<double,double>() );
 
-  //Array.Sort(tempvalues2, ykey);
-  // The old C# version
-  //(Why write one-line in C# when you can write 8 in C++?)
-
-  // Hang on, do these need to be unpaired now? - DAV 1/12/2015
-  // Yes! - you are using the unsorted xkeys/ykeys below
-
-
   // then works through the list of x and y co-ordinates from highest to lowest...
   for (n = (jmax * imax); n >= 1; n--)
   {
-    //x = (int)(xkey[n]); 1/12/15
-    //this.InfoStatusPanel.Text = Convert.ToString(x);
-    //y = (int)(ykey[n]); 1/12/15
-    //this.InfoStatusPanel.Text = Convert.ToString(y);
-
-    // need to extract the x/y keys from the pair
-    //x = static_cast<int>(x_keys_elevs_paired[n].first );
-    //y = static_cast<int>(y_keys_elevs_paired[n].first );
-
-    // 5th attempt using std::get<i>
     j = static_cast<int>(std::get<0>(x_keys_elevs_paired[n]) );
     i = static_cast<int>(std::get<0>(y_keys_elevs_paired[n]) );
-
 
     // I.e. If we are in the catchment (area_depth = 0 in NODATA)
     if (area_depth[i][j] > 0)
@@ -1451,7 +1534,6 @@ void LSDCatchmentModel::get_area4()
       // Will there be any flow distribution?
       if (difftot > 0)
       {
-        //if (DEBUG = 1) std::cout << "Distribution of flow! : " << difftot << std::endl;
         // then distribute to all 8...
         for (dir = 1; dir <= 8; dir++)//was 1 to 8 +=2
         {
@@ -1466,7 +1548,6 @@ void LSDCatchmentModel::get_area4()
           if (i2 > imax) i2 = imax;
 
           // swap comment lines below for drainage area from D8 or Dinfinity
-
           if (std::remainder(dir, 2) != 0)
           {
             if (elev[i2][j2] < elev[i][j]) area_depth[i2][j2] += area_depth[i][j] * ((elev[i][j] - elev[i2][j2]) / difftot);
@@ -1490,9 +1571,6 @@ void LSDCatchmentModel::get_area4()
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // WRAPPER FUNCTIONS TO CARRY OUT EROSION ETC
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// need a bool option here to check if it is a flow only run
-// EDIT: No you don't - If flow only, then just don't call the erosion method! (in driver file) Separate qroute/depth etc
-
 // CALC EROSION MULTIPLIER
 void LSDCatchmentModel::call_erosion()
 {
@@ -1522,11 +1600,8 @@ void LSDCatchmentModel::call_lateral()
   }
 }
 
-
 // CARRY OUT SOIL CREEP, GRASS-GROWING ETC
-//
-
-// BOOL option for flow only...
+// To Do
 
 // CARRY OUT LOCAL LANDSLIDES EVERY X ITERATIONS...
 void LSDCatchmentModel::call_landsliding()
@@ -1537,21 +1612,19 @@ void LSDCatchmentModel::call_landsliding()
   }
 }
 
-// DO THE SOIL CREEP SHUFFLE!
+// SOIL CREEP
 void LSDCatchmentModel::call_soilcreep()
 {
   if (cycle > creep_time)
   {
     // update the counter creep_time
     creep_time += 14400;    // 10 days if minutes (or four hours if seconds!)
-    // call the creep function
-    creep(0.028);
+    // call the soil creep function
+    creep(0.028);  // where does this value come from?! - DAV
   }
 }
 
-// There is a sand dunes function but I am not implementing that here - DAV
-
-// NOT TESTED - DAV
+// NOT TESTED YET - DAV
 // If you use this with the complex rainfall runoff method, you will have 
 // to renable get_area() updates, as soil_erosion is dependent on area[][] array.
 void LSDCatchmentModel::call_soil_erosion()
@@ -1571,7 +1644,7 @@ void LSDCatchmentModel::call_soil_erosion()
   }
 }
 
-// DEVELOP THE SOIL
+// DEVELOP SOIL
 void LSDCatchmentModel::call_soil_devel()
 {
   if (cycle > soil_development_time)
@@ -1587,7 +1660,7 @@ void LSDCatchmentModel::call_evapotrans()
 {
   if (cycle > creep_time2)
     evaporate(1440);
-  // update the creep_time2
+  // update the creep_time2 
   creep_time2 += 1440; // daily (1440 minutes in a day)
 }
 void LSDCatchmentModel::call_slide5()   // not exactly sure what slide_5 does differently to slide_3: not commented well in the original code!
@@ -1598,19 +1671,11 @@ void LSDCatchmentModel::call_slide5()   // not exactly sure what slide_5 does di
   slide_5();
 }
 
-// GROW SOME BAD-ASS GRASS
-//void LSDCatchmentModel::call_grass_growing()
-//{
-//if (grow_grass_time > 0)
-//grow_grass(1 / (grow_grass_time * 365));
-//}
-
 //=-=-=-=-=-=-=-=-=-=
 // DATA OUTPUTS ETC.
 //=-=-=-=-=-=-=-=-=-=
-
 // This will not work with the new implementation of the Rainfall and Runoff objects
-// Need an overloaded method and some conditional statement.
+// Need an overloaded method and some conditional statement. - DAV done June 2016
 void LSDCatchmentModel::output_data(double temptotal)
 // this was part of erodep() in CL but I felt it should have its own method call - DAV
 {
@@ -1721,22 +1786,6 @@ void LSDCatchmentModel::output_data(double temptotal)
       Tx = tx;
       tx = Tx + output_file_save_interval;
 
-      /* Former C# stuff using string.format
-       *
-            // Step 4: Output hourly data to file (format for reach model input)
-            // changed MJ 18/01/05
-            std::string output = string.Format("{0}",hours);
-            output = output + string.Format(" {0:F6}",Qw_hour);
-            output = output + string.Format(" {0:F6}",Jw_hour);
-
-            // DAV: Took out the SIBERIA sub-model bit here.
-
-            output = output + string.Format(" {0:F6}", sand_out);
-            sand_out = 0;
-
-            output = output + string.Format(" {0:F10}", Qs_hour);
-      */
-
       // Step: 4 ((C++) needs rewriting)
       // Need to process each double as stringstream to set fixed precision
       // Then convert stringstream to new string and append to line of output.
@@ -1791,11 +1840,6 @@ void LSDCatchmentModel::output_data(double temptotal)
 
       //close the file, although should you really do this if just opening it again in the next loop?
       timeseriesf.close();
-
-      ////C# version of the above
-      //StreamWriter sw = File.AppendText(CATCH_FILE);
-      //sw.WriteLine(output);
-      //sw.Close();
     }
     tlastcalc = cycle;
   }
@@ -1818,7 +1862,7 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
       }
       // originally j_mean[nn] * DX*DX* nActualGridCells[nn] ...
       // needs checking because you don't want to include grid cells that are
-      // actually outside the catchment and shouldnt be contribbuting to the 
+      // actually outside the catchment and shouldnt be contributing to the 
       // runoff output.
       //
       // The difference will be small since there will be hardly any runoff
@@ -1903,7 +1947,6 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
           // DAV, as above, taken out this: "* nActualGridCells[nn]" after last DX,
           // but this will calclate over all grid cells which is inieffiient and
           // potentially buggy
-          // fixed MJ 29/03/05
         }
       }
       Jw_stepvol = Jw_newvol - Jw_oldvol;
@@ -1935,22 +1978,6 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
 
       Tx = tx;
       tx = Tx + output_file_save_interval;
-
-      /* Former C# stuff using string.format
-       *
-            // Step 4: Output hourly data to file (format for reach model input)
-            // changed MJ 18/01/05
-            std::string output = string.Format("{0}",hours);
-            output = output + string.Format(" {0:F6}",Qw_hour);
-            output = output + string.Format(" {0:F6}",Jw_hour);
-
-            // DAV: Took out the SIBERIA sub-model bit here.
-
-            output = output + string.Format(" {0:F6}", sand_out);
-            sand_out = 0;
-
-            output = output + string.Format(" {0:F10}", Qs_hour);
-      */
 
       // Step: 4 ((C++) needs rewriting)
       // Need to process each double as stringstream to set fixed precision
@@ -1990,9 +2017,6 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
         std::stringstream Qg_hour_format;
         Qg_hour_format << std::fixed << std::setprecision(10) << Qg_hour[n];
         output = output + " " + Qg_hour_format.str();
-
-        //output = output + string.Format(" {0:F10}", Qg_hour[n]);
-        //output = output+" "+Qg_hour[n];
       }
 
       // Open the catchment time series file in append mode (ios_base::app)
@@ -2006,11 +2030,6 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
 
       //close the file, although should you really do this if just opening it again in the next loop?
       timeseriesf.close();
-
-      ////C# version of the above
-      //StreamWriter sw = File.AppendText(CATCH_FILE);
-      //sw.WriteLine(output);
-      //sw.Close();
     }
     tlastcalc = cycle;
   }  
@@ -2018,7 +2037,6 @@ void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
 
 void LSDCatchmentModel::save_raster_data(double tempcycle)
 {
-  //if(uniquefilecheck==false) tempcycle=0;
   // Write Water_depth raster
   if (write_waterd_file == true)
   {
@@ -2030,8 +2048,7 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     // Strip the padding of zeros round the edge
     water_depthR.strip_raster_padding();
 
-    // Use the LSDRaster object's own method
-    // Woohoo! Some actual object-oriented programming!
+    // Use the LSDRaster class's own method
     std::string current_water_depth_filename = waterdepth_fname + std::to_string((int)tempcycle);
     
     std::string OUTPUT_WATERD_FILE = write_path + "/" + current_water_depth_filename;
@@ -2062,7 +2079,6 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     std::string OUTPUT_GRAIN_FILE = write_path + "/" + grainsize_fname + std::to_string((int)tempcycle);
     
     grainsz_outR.write_grainMatrix_to_ascii_file(OUTPUT_GRAIN_FILE, dem_write_extension);
-    
   }
   
   // Write the elev diff file
@@ -2078,10 +2094,8 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     elevdiff_outR.write_double_raster(OUTPUT_ELEVDIFF_FILE, dem_write_extension);
   }
   
-  // TODO:
-  
-  // FOR WHEN FUTURE ME INVENTS TIME TRAVEL AND COMES BACK TO 
-  // FINISH PHD THESIS WITH EXTRA DATA:
+  // TODO
+  // Make separate methods in future...
   
   // Write d50 top (surface) layer
   
@@ -2112,7 +2126,6 @@ void LSDCatchmentModel::count_catchment_gridcells()
   {
     totalCatchmentCells += n;
   }
-  
   // This is an odd construction, since nActualGridCells[0] is surely always 0?
   // needs to sum up all the values in the vector, not just in [1]
   std::cout << "Total number of grid cells within catchment: " << totalCatchmentCells << std::endl; 
@@ -2132,7 +2145,7 @@ void LSDCatchmentModel::check_DEM_edge_condition()
 
   std::cout << "Checking edge cells for suitable catchment outlet point..." << std::endl;
   //check for -9999's on RH edge of DEM
-  double nodata = -9999;
+  double nodata = -9999;  // TO DO change to ingest from data input
   double temp = -9999;
 
   int maxcols = jmax;
@@ -2169,189 +2182,15 @@ void LSDCatchmentModel::check_DEM_edge_condition()
   }
 }
 
-// A wrapper method that calls the chief erosional and water routing methods.
-void LSDCatchmentModel::run_components()   // originally erodepo() in CL
-{
-  // For testing purposes, can be removed later - dv
-  // Just prints out how many threads/cores you have.
-  #ifdef OMP_COMPILE_FOR_PARALLEL
-  quickOpenMPtest();
-  #endif
-  // Originally main_loop() in CL, but no need (I think) for separete
-  // loops here.
-  std::cout << "Initialising first iteration..." << std::endl;
-  time_1 = 1;
-
-  // J is the local rainfall inputed into the cell at each timestep
-  std::cout << "Initialising J for first time..." << std::endl;
-
-  runoffGrid runoff(imax, jmax); /* Annoying, because obviously
-  you can't put it in the conditional below, as we need it to exist out of scope
-  yet it should really only be created if we are using the complex rainfall-runoff option
-  (i.e., not best practive to go around using up memory when we don't need to...)
-  see stackoverflow for possible solutions:
-  http://stackoverflow.com/questions/9346477/create-objects-in-conditional-c-statements
-  */
-  if (spatially_complex_rainfall == true)
-  {
-    // Create a runoff object same size as model domains
-    
-    calc_J(1.0, runoff);  // Creates a rainfall grid object, uses the runoff grid object as well
-  }
-  else
-  {
-    calc_J(1.0);
-  }
-
-  save_time = cycle;
-  creep_time = cycle;
-  creep_time2 = cycle;
-  soil_erosion_time = cycle;
-  soil_development_time = cycle;
-  time_1 = cycle;
-
-  std::cout << "Initialising drainage area for first time..." << std::endl;
-  // calculate the contributing drainage area
-  
-  if (spatially_complex_rainfall == false)
-  {  
-  get_area();   // is this needed for spatially complex case? - DAV no, but soil erosion uses it.
-  }
-  
-  // Removed because not needed.
-  /*
-  {
-    //get_catchment_input_points(runoff); // takes a reference to a runoffGrid object
-    continue;
-  }
-  */
-  if (spatially_complex_rainfall == false)
-  {
-    std::cout << "Initialising catchment input points for first time..." << std::endl;
-    get_catchment_input_points();
-  }
-
-  time_factor = 1;
-
-  // Originally erodedepo() in CL...
-  // Entering the main loop here
-  std::cout << "Entering main model loop..." << std::endl;
-
-  // Main iteration loop
-  do
-  {
-    previous = cycle;
-    old_cycle = std::fmod(cycle, output_file_save_interval);
-    //std::cout << "Old cycle: " << old_cycle << std::endl;
-    //std::cout << "Calculate time step-related variables, make sure they don't fall below the threshold values..." << std::endl;
-    double input_output_difference = std::abs(waterinput - waterOut);
-    // calculate time step-related variables, make sure they don't fall below the threshold values
-    if (maxdepth <= 0.1)
-    {
-      maxdepth = 0.1;
-    }
-    if (time_factor < (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
-    {
-      time_factor = (courant_number * (DX / std::sqrt(gravity * (maxdepth))));
-    }
-    if (input_output_difference > in_out_difference && time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
-    {
-      time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
-    }
-
-    double local_time_factor = time_factor;
-    if (local_time_factor > (courant_number * (DX  / std::sqrt(gravity * (maxdepth)))))
-    {
-      local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
-    }
-
-    // increment the counters
-    counter++;
-    cycle += time_factor / 60;
-    // cycle is minutes, time_factor is seconds
-    new_cycle = std::fmod(cycle, output_file_save_interval);
-
-    // WATER ROUTING
-    // first zero counter to tally up water inputs
-    waterinput = 0;
-
-    // In CL there was an option to set either reach or tidal mode.
-    // Only catchment mode is implemented in this spin off version
-    //std::cout << "LOCAL TIME FACTOR: " << local_time_factor << std::endl;
-
-    // Also applies if you wanted spatially complex hydrological response
-    if (spatially_complex_rainfall == true)
-    {
-      catchment_water_input_and_hydrology(local_time_factor, runoff);
-    }
-    else
-    {
-    catchment_water_input_and_hydrology(local_time_factor);
-    }
-
-    //std::cout << "route the water and update the flow depths\r" << std::flush;
-    qroute();
-    depth_update();
-
-    // check scan area every 5 iters.. maybe re-visit for reach mode if it causes too much backing up of sed. see code commented below nex if..
-    if (std::remainder(counter, 5) == 0)
-    {
-      scan_area();
-    }
-
-    // Will run hydrological model only if "hydro_model_only" set to yes/true
-    if (!hydro_only)
-    {
-      call_erosion();
-    }
-    //call_lateral();
-    water_flux_out(local_time_factor);  // temptot is zeroed, then calculated here
-
-    temptotal = temptot;
-
-    if (spatially_complex_rainfall ==true)
-    {
-      // uses the runoff object
-      output_data(temptotal, runoff);  
-    }
-    else
-    {
-      // uses the global array
-      output_data(temptotal);
-    }
-    
-    // removed for archer output files
-    if (DEBUG_print_cycle_on)
-    {
-    std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
-    }
-    //std::cout << "Water Out (Qw): " << waterOut << "                  \r" << std::flush;
-
-    if (cycle >= save_time)
-    {
-      // deprecated // save_data_and_draw_graphics(); //similar to above worry?
-      save_raster_data(std::abs(cycle));
-      save_time += saveinterval;
-    }
-
-    // if we have reached the end of the run, kill the cycle
-  } while (cycle < maxcycle * 60);
-  // here endeth the main erodepo loop!
-
-}
-
 void LSDCatchmentModel::print_initial_values()
 {
   // TO DO: (just for debugging, really)
   std::cout << "Printing initial parameter values: " << std::endl;
-  //std::cout <<
+  // to be implemented
 }
 
 void LSDCatchmentModel::zero_values()
 {
-  // To do
-  // Should it be jmax/imax + 1 given size?
-  // Potentially uninitialised array values
   for(int i=0; i <= imax+1; i++)
   {
     for(int j=0; j <= jmax+1; j++)
@@ -2458,8 +2297,6 @@ void LSDCatchmentModel::zero_values()
 void LSDCatchmentModel::water_flux_out(double local_time_factor)
 // Extracted as a seprate method from erodepo()
 {
-  //double temptot = 0;    // temporary water total // DV MADE GLOBAL VAR
-
   // Zero the water, but then we set it to the minimum depth - DV
   temptot = 0;
   for (int i = 1; i <= imax; i++)
@@ -2495,13 +2332,6 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)
   }
   waterOut = temptot;
 }
-/*
-void LSDCatchmentModel::init_water_routing(int flag, double reach_input_amount, double catchment_input_amount)
-{
-  int x, y, inc;
-  double w = water_depth_erosion_threshold;
-}
-*/
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // THE WATER ROUTING ALGORITHM: LISFLOOD-FP
@@ -2522,6 +2352,7 @@ void LSDCatchmentModel::qroute()
   double local_time_factor = time_factor;
   if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
 
+  // Should use explicitly private/shared here to avoid bugs - DAV TO DO
   #pragma omp parallel for
   for (int y=1; y<=jmax; y++)
   {
@@ -2647,7 +2478,6 @@ void LSDCatchmentModel::qroute()
       }
     }
   }
-  //} // pragma parallel for closure
 }
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2664,9 +2494,6 @@ void LSDCatchmentModel::depth_update()
 {
   double local_time_factor = time_factor;
   if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
-
-  //double [] tempmaxdepth2;
-  //tempmaxdepth2 = new Double[imax + 2];
 
   std::vector<double> tempmaxdepth2(jmax+2);
 
@@ -2703,7 +2530,8 @@ void LSDCatchmentModel::depth_update()
   for (int y = 1; y <= jmax; y++) if (tempmaxdepth2[y] > maxdepth) maxdepth = tempmaxdepth2[y];
 }
 
-void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor)     // DAV - This can be split into subfunctions
+// DAV - This can be split into subfunctions
+void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor) 
 {
   for (int z=1; z <= totalinputpoints; z++)
   {
@@ -2770,26 +2598,15 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   }
 }
 
+// DAV - This can be split into subfunctions
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor,
-                                                                 runoffGrid& runoff)     // DAV - This can be split into subfunctions
+                                                                 runoffGrid& runoff)     
 {
-  /*
-  for (int z=1; z <= totalinputpoints; z++)
-  {
-    int j = catchment_input_x_coord[z];
-    int i = catchment_input_y_coord[z];
-  */  
-    // Just replace this with a complete grid scan?
-    // Possibly faster (and simpler?)
-    
-  // OpenMP parallelisation - DAV
   #pragma omp parallel for
   for (int i=1; i<imax; i++)
   {
     for (int j=1; j<jmax; j++)
     {
-      //std::cout << totalinputpoints << std::endl;
-      //std::cout << "RUNOFF: " << runoff.get_j_mean(i,j) << std::endl;
       double water_add_amt = runoff.get_j_mean(i,j) * local_time_factor;    //
   
       if (water_add_amt > ERODEFACTOR)
@@ -2803,9 +2620,6 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     }
   }
 
-
-  //} // old for loop end for inputmpoints method
-  
   // DAV - testing methodf for new_jmeanmax
   double new_jmeanmax = 0;
   for (int m=1; m <= imax; m++)
@@ -2838,47 +2652,6 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   }
 
   calchydrograph(time_1 - cycle, runoff);
-
-  /*  // CHECK THIS IS OK TO REMOVE!!!!
-  double jmeanmax =0;
-  for (int m=1; m <= imax; m++)
-  {
-    for (int n=1; n<=jmax; n++)
-    {
-      if (runoff.get_j_mean(m,n) > jmeanmax)
-      {
-        jmeanmax = runoff.get_j_mean(m,n);
-      }
-    }
-  }
-  */  
-
-
-  // DV - This is for reading the dsicharge direct from an input file
-  /*
-  if (jmeaninputfile_opt == true)
-  {
-    j_mean[1] = ((hourly_rain_data[(static_cast<int>(cycle / rain_data_time_step))][0] //check in original
-        / std::pow(DX, 2)) / nActualGridCells[1]);
-  }*/
-
-  // TO DO: not necessary for this method - could remove?
-  
-  /*
-  if (jmeanmax > baseflow) 
-  {
-    baseflow = baseflow * 3;    // Magic number 3!? - DAV
-    get_area();         // Could this come from one of the LSDobject files? - DAV
-    get_catchment_input_points(runoff);
-  }
-
-  if (baseflow > (jmeanmax * 3) && baseflow > 0.000001)
-  {
-    baseflow = jmeanmax * 1.25;   // Where do these magic numbers come from? DAV
-    get_area();
-    get_catchment_input_points(runoff);
-  }
-  */
 }
 
 void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
@@ -2891,7 +2664,7 @@ void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
   // Create a raingrid object from the rainfall timeseries data and hydroindex
   // Only to be used with spatially var rainfall.
 
-  // Interpolate rainfall data from inputs
+  // Populate rainfall data grid from input text file
   rainGrid current_raingrid(hourly_rain_data, rfarea,
                           imax, jmax,
                           current_rainfall_timestep,
@@ -2918,8 +2691,7 @@ void LSDCatchmentModel::calc_J(double cycle, runoffGrid& runoff)
 }
 
 // Calculates the rainfall input to each cell per time step
-// J is the local rainfall inputed into the cell at each timestep
-// (Actually that is j_mean)
+// Jmean is the local rainfall inputed into the cell at each timestep
 void LSDCatchmentModel::calc_J(double cycle)
 {
   // UNique fiulename for raingrids?
@@ -2949,16 +2721,16 @@ void LSDCatchmentModel::calc_J(double cycle)
 
     local_rain_fall_rate = 0;
 
-    // DAV- Experimental fix! subtract 1 as n=1 should be outside the vector index
-    // for spatially uniform rainfall. You actuall want:
+    // DAV - 
+    // for spatially uniform rainfall. You actualy want:
     // hourly_rain_data[hour][0]  (n starts at 1 here)
-    //double cur_rain_rate = hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n];
+    // double cur_rain_rate = hourly_rain_data[static_cast<int>(cycle / rain_data_time_step)][n];
     // std::cout << cur_rain_rate << std::endl;
     // DAV - I replaced [n] with [n-1] here as the rainfall data vector dimensions are correct.
     if (hourly_rain_data[current_rainfall_timestep][n-1] > 0)
     {
       local_rain_fall_rate = rain_factor * ((hourly_rain_data[current_rainfall_timestep][n-1] / 1000) / 3600);
-      /** divide by 1000 to make m/hr, then by 3600 for m/sec */
+      // divide by 1000 to make m/hr, then by 3600 for m/sec
     }
 
     if (local_rain_fall_rate == 0)
@@ -2988,19 +2760,7 @@ void LSDCatchmentModel::calc_J(double cycle)
   }
 }
 
-// Need a new calc_J based on the rainGrid class!
-//
-// Usage something like:
-//
-// current_rainfall_timestep
-//
-// rainGrid current_raingrid(hourly_rain_data, imax, jmax, current_rainfall_timestep, interpolation_method)
-// rainGrid.interpolate()
-// rainGrid.getrate(i,j)
-// rainGrid.setrate(i,j)
-
 // Calculates the storm hydrograph
-// Where is this derivation from? - DAV
 void LSDCatchmentModel::calchydrograph(double time)
 {
   for (int n=1; n <= rfnum; n++)
@@ -3023,35 +2783,6 @@ void LSDCatchmentModel::calchydrograph(double time, runoffGrid& runoff)
     }
   }
 }
-
-/* OLD VERSION - SWAPPED j_mean[] for baseflow
-void LSDCatchmentModel::get_catchment_input_points()
-{
-  std::cout << "Calculating catchment input points... Total: ";
-
-
-  totalinputpoints = 1;
-  for (int n=1; n <= rfnum; n++)
-  {
-    catchment_input_counter[n] = 0;
-  }
-  for (int i=1; i <= imax; i++)
-  {
-    for (int j=1; j <= jmax; j++)
-    {
-      if ((area[i][j] * j_mean[rfarea[i][j]] * 3 * DX * DX) > MIN_Q \
-          && (area[i][j] * j_mean[rfarea[i][j]] * 3 * DX * DX) < MIN_Q_MAXVAL)
-      {
-        catchment_input_x_coord[totalinputpoints] = j;
-        catchment_input_y_coord[totalinputpoints] = i;
-        catchment_input_counter[rfarea[i][j]]++;
-        totalinputpoints++;
-      }
-    }
-  }
-  // Debug
-  std::cout << totalinputpoints << std::endl;
-}*/
 
 void LSDCatchmentModel::get_catchment_input_points()
 {
@@ -3087,14 +2818,8 @@ void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
 {
   std::cout << "Calculating catchment input points... Total: ";
 
-  // Do we even need to bother with this? 
-  // Jsut calculate for all input points snce we have a lot of rainfall
-  // for most simulations. 
+
   totalinputpoints = 1;
-  //for (int n=1; n <= rfnum; n++)
-  //{
-  //  catchment_input_counter_big[n] = 0;
-  //}
   for (int i=1; i <= imax; i++)
   {
     for (int j=1; j <= jmax; j++)
@@ -3104,7 +2829,7 @@ void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
       {
         catchment_input_x_coord[totalinputpoints] = j;
         catchment_input_y_coord[totalinputpoints] = i;
-        //catchment_input_counter_big[i][j]++;
+
         totalinputpoints++;
       }
     }
@@ -3121,8 +2846,7 @@ void LSDCatchmentModel::evaporate(double time)
   {
     evap_amount = ERODEFACTOR;
   }
-  //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-  //Parallel.For(1, imax, options, delegate(int y)
+
   for (int y=1; y < imax; y++)
   {
     int inc = 1;
@@ -3142,23 +2866,6 @@ void LSDCatchmentModel::evaporate(double time)
 
 void LSDCatchmentModel::scan_area()
 {
-
-  //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-  //Parallel.For(1, imax+1, options, delegate(int y)
-
-
-  // More efficient to zero down_scan in separate loop here - not anymore DV
-  /*
-  for (int j=1; j<=jmax; j++)
-  {
-    for (int i=1; i<=imax; i++)
-    {
-      down_scan[j][i] = 0;
-    }
-  }
-  */
-
-  // Now do the moving window checking in the proper for loop order? - DV
   #pragma omp parallel for
   for (int j=1; j <= jmax; j++)
   {
@@ -3182,11 +2889,9 @@ void LSDCatchmentModel::scan_area()
         down_scan[j][inc] = i;
         inc++;
         // inc will increment everytime there is water found in a cell
-        // debug
-        //std::cout << "set downscan: "<< down_scan[y][inc] << std::endl;
       }
     }
-  }//);
+  }
 }
 
 
@@ -3222,7 +2927,7 @@ void LSDCatchmentModel::sort_active(int x,int y)
 
   if (index[x][y] == -9999)
   {
-    addGS(x,y);  // should not be necessary
+    addGS(x,y);
   }
 
   xyindex = index[x][y];
@@ -3381,10 +3086,6 @@ double LSDCatchmentModel::d50(int index1)
   double Dfifty=0,max=0,min=0;
   std::array<double, 20> cum_tot;  // std::array only C++11
 
-  // The C# way of doing it:
-  //double[] cum_tot;
-  //cum_tot = new double[20];
-
   for(n=1;n<=G_MAX;n++)
   {
     for(z=0;z<=(0);z++)
@@ -3410,7 +3111,6 @@ double LSDCatchmentModel::d50(int index1)
   if(i==7){min=std::log(d6);max=std::log(d7);}
   if(i==8){min=std::log(d7);max=std::log(d8);}
   if(i==9){min=std::log(d8);max=std::log(d9);}
-  //if(i==9){min=std::log(d8);max=std::log(d9);}
 
   Dfifty = std::exp(max - ((max - min) * ((cum_tot[i] - (active_thickness * 0.5)) / (cum_tot[i] - cum_tot[i - 1]))));
   if(active_thickness<0.0000001)Dfifty=0;
@@ -3421,15 +3121,14 @@ double LSDCatchmentModel::d50(int index1)
 void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 {
 
-  /** Ok, heres how it works, x and y are ones material moved from,
-      x2 and y2 are ones material moved to...
-      amd amount is the amount shifted. */
+  // Ok, heres how it works, x and y are ones material moved from,
+  //    x2 and y2 are ones material moved to...
+  //    amd amount is the amount shifted.
 
   int n;
   double total = 0;
 
   // do only for cells where both have grainsize..
-
   if (index[x][y] != -9999 && index[x2][y2] != -9999)
   {
     for (n = 1; n <= (G_MAX - 1); n++)
@@ -3458,13 +3157,13 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 
     }
 
-    /* then to set active layer to correct depth before erosion, */
+    // then to set active layer to correct depth before erosion
     sort_active(x, y);
     sort_active(x2, y2);
     return;
   }
 
-  //now do for cells where only recieving cells have grainsize
+  // now do for cells where only recieving cells have grainsize
   // just adds amount to reviving cells of normal..
   if (index[x][y] == -9999 && index[x2][y2] != -9999)
   {
@@ -3473,7 +3172,7 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
       grain[index[x2][y2]][n] += (amount) * dprop[n];
     }
 
-    /* then to set active layer to correct depth before erosion, */
+    // then to set active layer to correct depth before erosion
     sort_active(x2, y2);
     return;
   }
@@ -3517,21 +3216,22 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 
 // Interlude. Here's a relaxing picture of a lighthouse:
 //
-//                      ----------.................._____________  _  .-.
-//                                                      _____.. . .   | |
-//                                   _____....------""""             uuuuu
-//                 ____....------""""                                |===|
-//                                                                   |===|
-//                                                                   |===|
-//                                                                   |===|
-//                 _a:f____________________________________________ .[__N]. _______
+//      ----------.................._____________  _  .-.
+//                                      _____.. . .   | |
+//                   _____....------""""             uuuuu
+// ____....------""""                                |===|
+//                                                   |===|
+//                                                   |===|
+//                                                   |===|
+// _a:f____________________________________________ .[__N]. _______
 
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
 // EROSION ROUTINE(S)
 //
-// This grotesque block of code does the erosion
+// This huge (sorry - will be refactored eventually)
+// block of code does the erosion
 // in the model. It iterates over every cell
 // in the domain and calculates amounts to be
 // entrained into bedload and suspended load,
@@ -3545,8 +3245,11 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 // transport can be used. Bedrock incision is
 // calculated using the simple stream power law.
 //
+// TO DO
 // It really ought to be split into smaller
 // functions, but it is what it is for now.
+//
+// Based on the erod function in CAESAR-Lisflood
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=
 double LSDCatchmentModel::erode(double mult_factor)
@@ -3574,8 +3277,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 
     std::vector<double> tempbmax2(jmax + 2, 0.0);
 
-    //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-    //Parallel.For(1, ymax, options, delegate(int y)
+    // DAV TODO - should use explicit shared/private here to avoid bugs
     #pragma omp parallel for
     for (int y = 1; y < jmax; y++)
     {
@@ -3610,7 +3312,7 @@ double LSDCatchmentModel::erode(double mult_factor)
           double slopetot = 0;
 
           std::vector<double> temp_dist(11, 0.0);    // this vector holds the amountto be removed from the cell in each grain size
-          std::vector<double> tempdir(11, 0.0);    // this vector hold the velocity directions temporariliy
+          std::vector<double> tempdir(11, 0.0);    // this vector holds the velocity directions temporariliy
 
           // check to see if index for that cell...
           if (index[x][y] == -9999)
@@ -3656,10 +3358,7 @@ double LSDCatchmentModel::erode(double mult_factor)
           {
             vel = (std::sqrt(qtot));
             Vel[x][y] = vel;
-            if (vel < 0)
-            {
-              //this.tempStatusPanel.Text = Convert.ToString(x) + " " + Convert.ToString(y) + " " + Convert.ToString(vel);
-            }
+
             if (vel > max_vel)
             {
               vel = max_vel; // if vel too high cut it
@@ -4003,8 +3702,8 @@ double LSDCatchmentModel::erode(double mult_factor)
   /// CALCULATE SEDIMENT TOTALS
   ///
   ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-  //Parallel.For(2, ymax, options1, delegate(int y)
+  /// 
+  // Same comment as previous omp pragmas - change to using explicit shared/private
   #pragma omp parallel for
   for (int y=2; y< jmax; y++)
   {
@@ -4173,7 +3872,7 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
   }
 
-  //Parallel.For2(2, ymax, delegate(int y)
+  // DAV - to test
   //#pragma omp parallel for
   for (int y = 2; y < jmax; y++)
   {
@@ -4255,7 +3954,6 @@ double LSDCatchmentModel::erode(double mult_factor)
               slide_GS(x, y + 1, amt, x, y);
             }
           }
-
           elev[x][y] += elev_update;
         }
       }
@@ -4331,9 +4029,6 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
   }
 
-  /// now update files for outputing sediment and re-circulating...
-  ///
-
   sediQ = 0;
 
   for (int n = 1; n <= G_MAX; n++)
@@ -4357,11 +4052,9 @@ double LSDCatchmentModel::erode(double mult_factor)
 
 
 // Does the lateral erosion
+// NOT TESTED YET - IN PROGRESS
 void LSDCatchmentModel::lateral3()
 {
-  //double[,] edge_temp, edge_temp2, water_depth2;
-  //int[,] upscale, upscale_edge;
-
   // declare arrays and initialise the size of them
   TNT::Array2D<double> edge_temp(jmax + 1, imax + 1, 0.0);
   TNT::Array2D<double> edge_temp2(jmax + 1, imax + 1, 0.0);
@@ -4369,12 +4062,6 @@ void LSDCatchmentModel::lateral3()
 
   TNT::Array2D<int> upscale( (jmax + 1)*2, (imax + 1)*2, 0);
   TNT::Array2D<int> upscale_edge( (jmax + 1)*2, (imax + 1)*2, 0);
-
-  //edge_temp = new Double[jmax + 1][imax + 1];
-  //edge_temp2 = new Double[jmax + 1][imax + 1];
-  //water_depth2 = new Double[jmax + 1][imax + 1];
-  //upscale = new int[(jmax + 1) * 2][(imax + 1) * 2];
-  //upscale_edge = new int[(jmax + 1) * 2][(imax + 1) * 2];
 
 
   // first make water depth2 equal to water depth then remove single wet cells frmo water depth2 that have an undue influence..
@@ -4417,7 +4104,7 @@ void LSDCatchmentModel::lateral3()
     {
 
       edge[x][y] = -9999;
-      //std::cout << "water depth2: " << water_depth2[x][y] << std::endl;
+
       if (water_depth2[x][y] < mft)
       {
         // if water depth < threshold then if its next to a wet cell then its an edge cell
@@ -4457,9 +4144,7 @@ void LSDCatchmentModel::lateral3()
     }
   }
 
-
   // now determine edge cells on the new grid..
-
   for (int y = 2; y < imax * 2; y++)
   {
     for (int x = 2; x < jmax * 2; x++)
@@ -4479,8 +4164,6 @@ void LSDCatchmentModel::lateral3()
   }
 
   // now tall up inside and outside on upscaled grid
-
-
   for (int y = 2; y < imax * 2; y++)
   {
     for (int x = 2; x < jmax * 2; x++)
@@ -4506,7 +4189,7 @@ void LSDCatchmentModel::lateral3()
         }
 
         if (edge_cell_counter > 3) drycells += edge_cell_counter - 2;
-        //
+        
         water = wetcells - drycells;
         upscale_edge[x][y] = water;
       }
@@ -4514,7 +4197,6 @@ void LSDCatchmentModel::lateral3()
   }
 
   // now update normal edge array..
-
   for (int x = 1; x <= jmax; x++)
   {
     for (int y = 1; y <= imax; y++)
@@ -4532,15 +4214,8 @@ void LSDCatchmentModel::lateral3()
     }
   }
 
-  //then apply a smoothing filter over the top of this. here its done X number of times -
-
-  //double smoothing_times = double.Parse(avge_smoothbox.Text);
-  //double downstream_shift = double.Parse(downstreamshiftbox.Text);
-
   for (int n = 1; n <= edge_smoothing_passes+downstream_shift; n++)
   {
-    //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-    //Parallel.For(2, imax, options, delegate(int y)
     #pragma omp parallel for
     for (int y=2; y<imax; y++)
     {
@@ -4561,7 +4236,6 @@ void LSDCatchmentModel::lateral3()
           double mean = 0;
           double num = 0;
           double water_flag = 0;
-
 
           // add in cell itself..
           mean += edge[x][y];
@@ -4609,6 +4283,7 @@ void LSDCatchmentModel::lateral3()
                   num++;
                 }
               }
+              
               //now non manahttan neighbours, with concected by a dry cell checked..
               else
               {
@@ -4713,18 +4388,13 @@ void LSDCatchmentModel::lateral3()
           }
           if (mean != 0) edge_temp[x][y] = mean / num;
 
-          // removes too many cells - islands etc..
-
-          //if(num>5&&edge[x,y]>0)edge_temp[x,y]=0;
-          //if(num+water_flag>7&&edge[x,y]>0)edge_temp[x,y]=0;
-
           //remove edge effects
           if (x < 3 || x > (jmax - 3)) edge_temp[x][y] = 0;
           if (y < 3 || y > (imax - 3)) edge_temp[x][y] = 0;
 
         }
       }
-    }//);
+    }
 
     for (int y = 2; y < imax; y++)
     {
@@ -4742,7 +4412,6 @@ void LSDCatchmentModel::lateral3()
       }
     }
   }
-
 
   // trial line to remove too high inside bends,,
   for (int x = 1; x <= jmax; x++)
@@ -4769,8 +4438,7 @@ void LSDCatchmentModel::lateral3()
   do
   {
     counter++;
-    //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
-    //Parallel.For(2, imax, options, delegate(int y)
+    // Parallelise outer loop
     for (int y = 2; y < imax; y++)
     {
       int inc = 1;
@@ -4804,7 +4472,7 @@ void LSDCatchmentModel::lateral3()
           edge_temp[x][y] = mean / num;
         }
       }
-    }//);
+    }
 
     tempdiff = 0;
     for (int y = 2; y < imax; y++)
@@ -4825,16 +4493,15 @@ void LSDCatchmentModel::lateral3()
     }
   } while (tempdiff > lateral_cross_channel_smoothing); //this makes it loop until the averaging across the stream stabilises
   // so that the difference between the old and new values are < 0.0001
-  //tempStatusPanel.Text = Convert.ToString(counter);
 
 }
 
 void LSDCatchmentModel::creep(double time)
 {
-  /** creep rate is 10*-2 * slope per year, so inputs time jump in years*/
-  /** very important differnece here is that slide_GS() is called only if
-        BOTH cells are not -9999 therfore if both have grainsize then do additions.
-        this is to stop the progressive spread of selected cells upslope */
+  // creep rate is 10*-2 * slope per year, so inputs time jump in years*/
+  // very important differnece here is that slide_GS() is called only if
+  //      BOTH cells are not -9999 therfore if both have grainsize then do additions.
+  //      this is to stop the progressive spread of selected cells upslope */
 
   int x,y;
   double temp;
@@ -4985,12 +4652,12 @@ void LSDCatchmentModel::slide_3()
       if(x==1)x=2;
 
       inc++;
-      /** check to see if under water **/
+      // check to see if under water
       wet_factor=factor;
       //if(water_depth[x][y]>0.01)wet_factor=factor/2;
       if(elev[x][y]<=(bedrock[x][y]+active))wet_factor=10000;
 
-      /** chexk landslides in channel slowly */
+      // chexk landslides in channel slowly
 
       if(((elev[x][y]-elev[x+1][y+1])/1.41)>wet_factor&&elev[x+1][y+1]> -9999)
       {
@@ -5069,7 +4736,6 @@ void LSDCatchmentModel::slide_5()
   int x, y, inc=0;
   double wet_factor;
   double factor = std::tan((failureangle * (3.141592654 / 180))) * DX;
-  //if(landslidesBox.Checked == true) factor = DX * ((-265000 * j_mean) + 1.38);
   double diff = 0;
   double total = 0;
 
@@ -5095,10 +4761,9 @@ void LSDCatchmentModel::slide_5()
       {
 
         wet_factor = factor;
-        //if(water_depth[x,y]>0.01)wet_factor=factor/2;
         if (elev[x][y] <= (bedrock[x][y] + active)) wet_factor = 10 * DX;
 
-        /** chexk landslides in channel slowly */
+        // chexk landslides in channel slowly 
 
         if (((elev[x][y] - elev[x + 1][y + 1]) / 1.41) > wet_factor && elev[x + 1][y + 1]> -9999)
         {
@@ -5191,15 +4856,14 @@ void LSDCatchmentModel::slide_5()
       }
     }
   }
-
 }
 
 void LSDCatchmentModel::soil_erosion(double time)
 {
-  /** creep rate is 10*-2 * slope per year, so inputs time jump in years*/
-  /** very important differnece here is that slide_GS() is called only if
-        BOTH cells are not -9999 therfore if both have grainsize then do additions.
-        this is to stop the progressive spread of selected cells upslope */
+  // creep rate is 10*-2 * slope per year, so inputs time jump in years*/
+  // very important differnece here is that slide_GS() is called only if
+  //      BOTH cells are not -9999 therfore if both have grainsize then do additions.
+  //      this is to stop the progressive spread of selected cells upslope */
 
   int x, y;
   double temp;
@@ -5353,7 +5017,7 @@ void LSDCatchmentModel::soil_development()
 
         if (physical_weather_opt == true) // Physical Weathering
         {
-          //amt = k1 * std::exp(-c1*depth_below_surface) * (c2/std::log10(particle_size) * time;
+          // amt = k1 * std::exp(-c1*depth_below_surface) * (c2/std::log10(particle_size) * time;
           // start from top then work down - means no need to hold values in temp arrays...
           double Di = 0;
           int xyindex = index[x][y];
@@ -5390,6 +5054,7 @@ void LSDCatchmentModel::soil_development()
 
               for (int z = 1; z <= 9; z++)
               {
+                // What is this actually needed for? check original implementation
                 double amount2 = strata[xyindex][z - 1][n] * ((-(k1 * std::exp(-c1 * active * z) * (c2 / std::log(Di * 0.001)) * 1)) / 12); //  / 12 to make it months
 
                 strata[xyindex][z-1][n] -= amount;
@@ -5402,27 +5067,14 @@ void LSDCatchmentModel::soil_development()
                   strata[xyindex][z-1][n - 1] += amount * 0.05;
                   strata[xyindex][z-1][n - 2] += amount * 0.95;
                 }
-
-
               }
             }
           }
-
-          //for (int z = 9; z >= 1; z--)
-          //{
-          //    for (int n = 0; n <= G_MAX - 2; n++)
-          //    {
-
-          //        strata[xyindex][z][n] = strata[xyindex][z - 1][n];
-
-          //    }
-          //}
-
         }
 
         if (chem_weath_opt == true) // Chemical Weathering
         {
-          //amt = k2 * std::exp(-c3 * depth_below_surface) * c4 * Specific_surface_area * time;
+          // TO DO
         }
       }
     }
@@ -5454,8 +5106,6 @@ void LSDCatchmentModel::quickOpenMPtest()
   }
   std::cout << "Goodbye, parallel region!" << std::endl;
   #endif
-
 }
-
 #endif
 
