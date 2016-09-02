@@ -93,7 +93,7 @@ void rainGrid::downscaleRainfallData()
 
 void rainGrid::interpolateRainfall_RectBivariateSpline(rainGrid &raingrid)
 {
-  // SPLINES!!
+  // TO DO
 }
 // =-=-=-=-=-=-=-=-=-=-=-=-=
 // RAINFALL RUNOFF OBJECT
@@ -220,8 +220,6 @@ void runoffGrid::calculate_runoff(int rain_factor, double M, int jmax, int imax,
     }
   }
 }
-
-
 
 #endif
 
