@@ -756,6 +756,7 @@ void quantile_quantile_analysis_defined_percentiles(vector<float>& data, vector<
   float q_upper_x = get_percentile(snv,upper_percentile);
   float q_lower_y = get_percentile(vals,lower_percentile);
   float q_upper_y = get_percentile(vals,upper_percentile);
+	cout << "q_lower_x: " << q_lower_x << " q_lower_y: " << q_lower_y << " q_upper_x: " << q_upper_x << " q_upper_y: " << q_upper_y << endl;
 
   float slope = (q_upper_y-q_lower_y)/(q_upper_x-q_lower_x);
 //   cout << "slope = " << slope << endl;
