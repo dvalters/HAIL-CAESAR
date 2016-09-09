@@ -5240,6 +5240,58 @@ void LSDRaster::mask_to_nodata_below_threshold(float threshold)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// This masks to nodata below a threshold value
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDRaster::mask_to_indexraster_using_threshold(float threshold,bool belowthresholdisnodata)
+{
+  
+  // create the array for the index raster
+  Array2D<int> NewIndexArray(NRows,NCols,int(NoDataValue));
+  
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      // only do anything if the value at the raster point is not nodata
+      if(RasterData[row][col] != NoDataValue)
+      {
+        // logic for testing below nodata
+        if(belowthresholdisnodata)
+        {
+          if(RasterData[row][col] <= threshold)
+          {
+            NewIndexArray[row][col] = int(NoDataValue);
+          }
+          else
+          {
+             NewIndexArray[row][col] = 1;
+          }
+        }
+        else  // this logic is for if you are changing to nodata if above threshold
+        {
+          if(RasterData[row][col] >= threshold)
+          {
+            NewIndexArray[row][col] = int(NoDataValue);
+          }
+          else
+          {
+             NewIndexArray[row][col] = 1;
+          }
+        }
+      }
+    }
+  }
+  
+  LSDIndexRaster NDR(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                             NoDataValue,NewIndexArray,GeoReferencingStrings);
+  return NDR;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
