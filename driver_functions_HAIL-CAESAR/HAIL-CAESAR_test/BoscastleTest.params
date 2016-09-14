@@ -23,7 +23,7 @@ rainfall_data_file:            BOSCASTLE_WEIGHTED_UNIFORM_RAINFALL_5min_72hr_sta
 grain_data_file:               #null                  # NEEDS SET IF YOU ARE READING IN GRAINSIZE DATA
                                                       # (THIS OPTION NEEDS MORE TESTING...)
 bedrock_data_file:             #null                  # NEEDS SET IF YOU HAVE SEPARATE BEDROCK DEM LAYER BELOW TOP LAYER
-                                                      # PROVIDING THIS FILE WILL ACTIVATE BEDROCK EROSION ROUTINES
+                                                      # YOU MUST ALSO REMEMBER TO SET THE 'bedrock_layer_on' FLAG to 'yes'
 
 # NUMERICAL
 #===========
@@ -42,6 +42,7 @@ chann_lateral_erosion:         20          # IN CHANNEL LATERAL EROSION RATE, PR
 erode_limit:                   0.02        #
 suspended_sediment_on:         yes         # 1ST FRACTION ONLY, AT PRESENT
 read_in_graindata_from_file:   no          # MUST SPECIFY GRAINDATA FILE ABOVE IF YES
+bedrock_layer_on:              no          # MUST SPECIFY A BEDROCK FILE ABOVE IF YES
 
 # LATERAL EROSION
 #=================
