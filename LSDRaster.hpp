@@ -1172,15 +1172,26 @@ class LSDRaster
   void remove_seas();
 
   /// @brief This function changes any elevation <= threshold to NoDataValue
+  /// @param threshold The thresold, silly
   /// @author SMM
   /// @date 29/10/2014
   void mask_to_nodata_below_threshold(float threshold);
 
-  /// @brief This function creats an LSDIndexRaster mask (with true == 1 and otherwise nodata)
-  /// from an LSDRaster. Can mask either above or below a threshold
-  /// @param threshold The threshold vale
+  /// @brief This function changes any data point either above or below threshold to NoDataValue
+  /// @param threshold The threshold value
   /// @param belowthresholdisnodata a boolean that if true means anything below the 
   ///   threshold turns to nodata
+  /// @return Returns the masked raster
+  /// @author SMM
+  /// @date 28/9/2016
+  LSDRaster mask_to_nodata_using_threshold(float threshold,bool belowthresholdisnodata);
+
+  /// @brief This function creats an LSDIndexRaster mask (with true == 1 and otherwise nodata)
+  /// from an LSDRaster. Can mask either above or below a threshold
+  /// @param threshold The threshold value
+  /// @param belowthresholdisnodata a boolean that if true means anything below the 
+  ///   threshold turns to nodata
+  /// @return Returns the mask
   /// @author SMM
   /// @date 9/9/2016
   LSDIndexRaster mask_to_indexraster_using_threshold(float threshold,bool belowthresholdisnodata);
