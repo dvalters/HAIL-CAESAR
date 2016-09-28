@@ -543,7 +543,10 @@ string RemoveControlCharactersFromEndOfString(string toRemove);
 string RemoveControlCharacters(string toRemove);
 
 // removes spaces
-string RemoveControlCharacters(string toRemove);
+string RemoveSpaces(string toRemove);
+
+// fix the path (adds a slash to end)
+string FixPath(string PathtoFix);
 
 // Unix format path
 string ReformatPath(string old_path);

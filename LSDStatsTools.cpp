@@ -5709,6 +5709,32 @@ string RemoveSpaces(string toRemove)
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+// This function removes spaces
+// These get introduced if you use the DOS format in your parameter file
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+string FixPath(string PathtoFix)
+{
+  // first get rid of conrol characters
+  string noContrl = RemoveControlCharacters(PathtoFix);
+  
+  string lchar = noContrl.substr(noContrl.length()-1,1);
+  
+  string slash = "/";
+  cout << "Checking pathname, pathname is: " << noContrl << endl;
+  cout << "lchar is " << lchar << " and slash is " << slash << endl;
+
+  if (lchar != slash)
+  {
+    //cout << "You forgot the frontslash at the end of the path. Appending." << endl;
+    noContrl = noContrl+slash;
+  }
+  //cout << "The pathname is: " << pathname << endl;
+  return noContrl;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Unix format path
