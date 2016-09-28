@@ -5242,6 +5242,49 @@ void LSDRaster::mask_to_nodata_below_threshold(float threshold)
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
+// This masks to nodata below or above a threshold value
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster  LSDRaster::mask_to_nodata_using_threshold(float threshold,bool belowthresholdisnodata)
+{
+
+  Array2D<float> NewArray = RasterData.copy();
+
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      // only do anything if the value at the raster point is not nodata
+      if(NewArray[row][col] != NoDataValue)
+      {
+        // logic for testing below nodata
+        if(belowthresholdisnodata)
+        {
+          if(NewArray[row][col] <= threshold)
+          {
+            NewArray[row][col] = NoDataValue;
+          }
+        }
+        else  // this logic is for if you are changing to nodata if above threshold
+        {
+          if(NewArray[row][col] >= threshold)
+          {
+            NewArray[row][col] = NoDataValue;
+          }
+        }
+      }
+    }
+  }
+  
+  LSDRaster NDR(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                             NoDataValue,NewArray,GeoReferencingStrings);
+  return NDR;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
 // This masks to nodata below a threshold value
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
