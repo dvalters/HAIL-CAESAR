@@ -2300,7 +2300,7 @@ LSDIndexRaster LSDIndexRaster::RemoveSmallPatches(int minimum_patch_size){
   }
   
   //create the final LSDIndexRaster and return it
-  LSDIndexRaster Patches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,PatchIDs);
+  LSDIndexRaster Patches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,PatchIDs,GeoReferencingStrings);
   return Patches;  
 
 }
