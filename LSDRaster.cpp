@@ -10237,7 +10237,7 @@ LSDIndexRaster LSDRaster::Create_Mask(string Condition, float TestValue)
       }
     }
   }
-  LSDIndexRaster MaskRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Mask);
+  LSDIndexRaster MaskRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Mask,GeoReferencingStrings);
   return MaskRaster;
 }
 
@@ -10266,7 +10266,7 @@ LSDRaster LSDRaster::ExtractByMask(LSDIndexRaster Mask)
       }
     }
   }
-  LSDRaster MaskedRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,MaskedArray);
+  LSDRaster MaskedRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,MaskedArray,GeoReferencingStrings);
   return MaskedRaster;
 }
 
@@ -10809,7 +10809,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesFull(float sigma, string q_q_f
     }
   }
 
-  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array);
+  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array,GeoReferencingStrings);
   return channels;
 }
 // This version uses curvature and an upstream contributing area threshold
@@ -10846,7 +10846,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsLashermesCurvatureArea(float sigma, flo
     }
   }
 
-  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array);
+  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array,GeoReferencingStrings);
   return channels;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -10895,7 +10895,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsGeonet(float timesteps, float area_thre
     }
   }
 
-  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array);
+  LSDIndexRaster channels(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_array,GeoReferencingStrings);
   return channels;
 }
 
@@ -10975,7 +10975,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantile(string q_q_filename)
     }
   }
   cout << "DONE" << endl;
-  LSDIndexRaster ChannelMask(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_raster);
+  LSDIndexRaster ChannelMask(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_raster,GeoReferencingStrings);
   return ChannelMask;
 
 }
@@ -11057,7 +11057,7 @@ LSDIndexRaster LSDRaster::IsolateChannelsQuantileQuantileAdaptive(int half_width
     }
   }
   cout << "DONE" << endl;
-  LSDIndexRaster ChannelMask(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_raster);
+  LSDIndexRaster ChannelMask(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary_raster,GeoReferencingStrings);
   return ChannelMask;
 
 }
@@ -11414,7 +11414,7 @@ LSDIndexRaster LSDRaster::CreateHilltopPatches(int minimum_patch_size){
   }
 
   //create the final LSDIndexRaster and return it
-  LSDIndexRaster Patches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,PatchIDs);
+  LSDIndexRaster Patches(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,PatchIDs,GeoReferencingStrings);
   return Patches;
 }
 
@@ -11439,7 +11439,7 @@ LSDRaster LSDRaster::RemoveBelow(float Value){
       }
     }
 
-  LSDRaster Removed(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Data);
+  LSDRaster Removed(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,Data,GeoReferencingStrings);
   return Removed;
 
 }
@@ -11482,7 +11482,7 @@ LSDRaster LSDRaster::apply_mask(LSDIndexRaster& mask){
   if(mask.get_data_element(i,j)==1) masked_data[i][j]=NoDataValue;
     }
   }
-  LSDRaster masked_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,masked_data);
+  LSDRaster masked_raster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,masked_data,GeoReferencingStrings);
   return masked_raster;
 }
 
@@ -11711,7 +11711,7 @@ vector<float> LSDRaster::AnalysisOfQuality(LSDRaster& ActualRaster)
   //now calculate the quality analyses
   //reliability
   quality_results[0] = SumTP/(SumTP + SumFP);
-	//sensitivity
+	//sensitivity r_tp
 	quality_results[1] = SumTP/(SumTP + SumFN);
 	// r_fp
 	quality_results[2] = SumFP/(SumFP + SumTN);
