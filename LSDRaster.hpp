@@ -447,6 +447,12 @@ class LSDRaster
   ///@author FJC
   ///@date 06/11/15
   vector<float> get_RasterData_vector();
+	
+	///@brief This function returns the raster data as text file
+  ///@return text file with raster data
+  ///@author FJC
+  ///@date 30/09/16
+	void write_RasterData_to_text_file(string filename);
 
   /// @brief rewrite all the data array values with random numbers (with a
   /// uniform distribution).
@@ -2050,6 +2056,13 @@ class LSDRaster
   /// @author SWDG
   /// @date 24/07/2015
   LSDIndexRaster ConvertToBinary(int Value, int ndv);
+	
+	/// @brief Method to merge data from two LSDRasters WITH SAME EXTENT together.  /// The data from the raster specified as an argument will be added (will 
+	/// overwrite the original raster if there is a conflict).
+  /// @param RasterToAdd second raster to add to original raster
+  /// @author FJC
+  /// @date 30/09/16
+	LSDRaster MergeRasters(LSDRaster& RasterToAdd);
 
   /// @brief Function to get potential floodplain patches using a slope and relief threshold
   /// @param Relief raster with relief values
