@@ -9087,6 +9087,43 @@ vector<float> LSDRaster::get_RasterData_vector()
   return Raster_vector;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function writes the raster data (where != NoDataValue) to a text file
+// FJC 30/09/16
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDRaster::write_RasterData_to_text_file(string filename)
+{
+	string string_filename;
+  string dot = ".";
+	string extension = "txt";
+  string_filename = filename+dot+extension;
+  cout << "The filename is " << string_filename << endl;
+	
+	// open the data file
+  ofstream data_out(string_filename.c_str());
+
+	if( data_out.fail() )
+	{
+		cout << "\nFATAL ERROR: unable to write to " << string_filename << endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	data_out << "row col raster_data" << endl;
+	for (int row = 0; row < NRows; row++)
+	{
+		for (int col =0; col < NCols; col++)
+		{
+			if (RasterData[row][col] != NoDataValue)
+			{
+				data_out << row << " " << col << " " << RasterData[row][col] << endl;
+			}
+		}
+	}
+	
+	data_out.close();
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // THis clips to a smaller raster. The smaller raster does not need
 // to have the same data resolution as the old raster
@@ -11505,6 +11542,43 @@ LSDIndexRaster LSDRaster::ConvertToBinary(int Value, int ndv){
 
   LSDIndexRaster binmask(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,binary,GeoReferencingStrings);
   return binmask;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to merge data from two LSDRasters WITH SAME EXTENT together.  The data from the 
+// raster specified as an argument will be added (will overwrite the original raster if there 
+// is a conflict).
+// FJC 30/09/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::MergeRasters(LSDRaster& RasterToAdd)
+{
+	Array2D<float> SecondRasterData = RasterToAdd.get_RasterData();
+	Array2D<float> NewRasterData(NRows,NCols,NoDataValue);
+	
+	for (int row = 0; row < NRows; row++)
+	{
+		for (int col = 0; col < NCols; col++)
+		{
+			// no data in first raster, data in second raster
+			if (RasterData[row][col] == NoDataValue && SecondRasterData[row][col] != NoDataValue)
+			{
+				NewRasterData[row][col] = SecondRasterData[row][col];
+			}
+			// data in first raster, no data in second raster
+			else if (RasterData[row][col] != NoDataValue && SecondRasterData[row][col] == NoDataValue)
+			{
+				NewRasterData[row][col] = RasterData[row][col];
+			}
+			// data in both rasters - select data from the second raster
+			else if (RasterData[row][col] != NoDataValue && SecondRasterData[row][col] != NoDataValue)
+			{
+				NewRasterData[row][col] = SecondRasterData[row][col];
+			}
+		}
+	}
+	
+	LSDRaster NewRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,NewRasterData,GeoReferencingStrings);
+	return NewRaster;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
