@@ -1260,6 +1260,8 @@ void LSDCatchmentModel::initialise_arrays()
   std::cout << "Cartesian imax (no. of rows): " << imax << \
                " Cartesian jmax (no. of cols): " << jmax << std::endl;
 
+  // Need to change this so it does not waste memory assigning arrays 
+  // when running in hydro mode etc.
   elev = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
   water_depth = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
 
@@ -1284,11 +1286,16 @@ void LSDCatchmentModel::initialise_arrays()
   init_elevs = TNT::Array2D<double> (imax+2,jmax+2);
 
   vel_dir = TNT::Array3D<double> (imax+2, jmax+2, 9);
-  strata = TNT::Array3D<double> ( ((imax+2)*(jmax+2))/LIMIT , 10, G_MAX+1);
-  veg = TNT::Array3D<double> (imax+1, jmax+1, 4);
+  
+  Vsusptot = TNT::Array2D<double> (imax+2,jmax+2);
 
-  grain = TNT::Array2D<double> ( ((2+imax)*(jmax+2))/LIMIT, G_MAX+1 );
-  cross_scan = TNT::Array2D<int> (imax+2,jmax+2, 0);
+  if (vegetation_on)
+  {  
+    veg = TNT::Array3D<double> (imax+1, jmax+1, 4);
+  }
+
+
+  //cross_scan = TNT::Array2D<int> (imax+2,jmax+2, 0);
   down_scan = TNT::Array2D<int> (jmax+2, imax+2, 0);
 
   // line to stop max time step being greater than rain time step
@@ -1302,9 +1309,9 @@ void LSDCatchmentModel::initialise_arrays()
   hourly_m_value = std::vector<double> (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100);
 
   // Does this represent 10000 years? - not sure where/why this is used in CAESAR-LISFLOOD - DV
-  climate_data = TNT::Array2D<double> (10001, 3);
+  //climate_data = TNT::Array2D<double> (10001, 3);
 
-  temp_grain = std::vector<double> (G_MAX+1);
+ 
 
   inputpointsarray = TNT::Array2D <bool> (imax + 2, jmax + 2);
 
@@ -1318,13 +1325,14 @@ void LSDCatchmentModel::initialise_arrays()
 
   area_depth = TNT::Array2D<double> (imax + 2, jmax + 2);
 
-  dischargeinput = TNT::Array2D<double> (1000,5);
+  //dischargeinput = TNT::Array2D<double> (1000,5);
 
-  hydrograph = TNT::Array2D<double> ( (maxcycle -(static_cast<int>(cycle/60))) + 1000, 2);
+  //hydrograph = TNT::Array2D<double> ( (maxcycle -(static_cast<int>(cycle/60))) + 1000, 2);
 
-  Vsusptot = TNT::Array2D<double> (imax+2,jmax+2);
+  
 
   // Grain Arrays
+
   sum_grain = std::vector<double> (G_MAX+1);
   sum_grain2 = std::vector<double> (G_MAX + 1);
   old_sum_grain = std::vector<double> (G_MAX+1);
@@ -1349,11 +1357,19 @@ void LSDCatchmentModel::initialise_arrays()
   catchment_input_counter = std::vector<int> (rfnum + 1);
   //catchment_input_counter_big = std::vector<int> (imax +1 *jmax +1);
 
-  sr = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
-  sl = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
-  su = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
-  sd = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
-  ss = TNT::Array2D<double> (imax + 2, jmax + 2);
+  if (!hydro_only)
+  {  
+    sr = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
+    sl = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
+    su = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
+    sd = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
+    ss = TNT::Array2D<double> (imax + 2, jmax + 2);
+    
+    strata = TNT::Array3D<double> ( ((imax+2)*(jmax+2))/LIMIT , 10, G_MAX+1);
+    grain = TNT::Array2D<double> ( ((2+imax)*(jmax+2))/LIMIT, G_MAX+1 );
+    temp_grain = std::vector<double> (G_MAX+1);
+    
+  }
 
   // Initialise suspended fraction vector
   // Tells program whether sediment is suspended fraction or not
@@ -2226,11 +2242,13 @@ void LSDCatchmentModel::zero_values()
   {
     for(int j=0; j<=jmax; j++)
     {
-      veg[i][j][0] = 0;// elevation
-      veg[i][j][1] = 0; // densitj
-      veg[i][j][2] = 0; // jw density
-      veg[i][j][3] = 0; // height
-
+      if (vegetation_on)
+      {  
+        veg[i][j][0] = 0;// elevation
+        veg[i][j][1] = 0; // densitj
+        veg[i][j][2] = 0; // jw density
+        veg[i][j][3] = 0; // height
+      }
       edge[i][j] = 0;
       edge2[i][j] = 0;
     }
@@ -2238,17 +2256,21 @@ void LSDCatchmentModel::zero_values()
 
   for(int i=1; i<((jmax*imax)/LIMIT); i++)
   {
-    for(int j=0; j<=G_MAX; j++)
+    if (!hydro_only)
     {
-      grain[i][j] = 0;
-    }
-    for(int z=0; z <= 9; z++)
-    {
-      for(int j=0; j <= G_MAX-2; j++)
+      for(int j=0; j<=G_MAX; j++)
       {
-        strata[i][z][j] =0;
+        grain[i][j] = 0;
+      }
+      for(int z=0; z <= 9; z++)
+      {
+        for(int j=0; j <= G_MAX-2; j++)
+        {
+          strata[i][z][j] =0;
+        }
       }
     }
+  
     catchment_input_x_coord[i] = 0;
     catchment_input_y_coord[i] = 0;
   }
