@@ -1289,10 +1289,11 @@ void LSDCatchmentModel::initialise_arrays()
   
   Vsusptot = TNT::Array2D<double> (imax+2,jmax+2);
 
-  if (vegetation_on)
-  {  
+  // Will come back to this later - DAV
+  //if (vegetation_on)
+  //{
     veg = TNT::Array3D<double> (imax+1, jmax+1, 4);
-  }
+  //}
 
 
   //cross_scan = TNT::Array2D<int> (imax+2,jmax+2, 0);
@@ -1304,6 +1305,13 @@ void LSDCatchmentModel::initialise_arrays()
 
   // see StackOverflow for how to set size of nested vector
   // http://stackoverflow.com/questions/2665936/is-there-a-way-to-specify-the-dimensions-of-a-nested-stl-vector-c
+  // DEBUG
+  long int xdim = static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100;
+  std::cout << "Size of rain vector: " << xdim << std::endl;
+
+  int short_xdim = static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100;
+  std::cout << "Int size of rain vector: " << short_xdim << std::endl;
+
   hourly_rain_data = std::vector< std::vector<float> > ( (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100), vector<float>(rfnum+1) );
 
   hourly_m_value = std::vector<double> (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100);
