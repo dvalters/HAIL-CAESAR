@@ -505,7 +505,31 @@ protected:
 
   // TO DO: DAV - these could be read from an input file.
   // grain size variables - the sizes
-  double d1=0.0005;
+// CAESAR DEFAULTS
+//  double d1=0.0005;
+//  double d2=0.001;
+//  double d3=0.002;
+//  double d4=0.004;
+//  double d5=0.008;
+//  double d6=0.016;
+//  double d7=0.032;
+//  double d8=0.064;
+//  double d9=0.128;
+
+//  // grain size proportions for each fraction... as a proportion of 1.
+//  double d1prop=0.144;
+//  double d2prop=0.022;
+//  double d3prop=0.019;
+//  double d4prop=0.029;
+//  double d5prop=0.068;
+//  double d6prop=0.146;
+//  double d7prop=0.22;
+//  double d8prop=0.231;
+//  double d9prop=0.121;
+
+  // Swale grainsizes
+  // grain size variables - the sizes
+  double d1=0.000065;
   double d2=0.001;
   double d3=0.002;
   double d4=0.004;
@@ -516,20 +540,21 @@ protected:
   double d9=0.128;
 
   // grain size proportions for each fraction... as a proportion of 1.
-  double d1prop=0.144;
-  double d2prop=0.022;
-  double d3prop=0.019;
-  double d4prop=0.029;
-  double d5prop=0.068;
-  double d6prop=0.146;
-  double d7prop=0.22;
-  double d8prop=0.231;
-  double d9prop=0.121;
+  double d1prop=0.05;
+  double d2prop=0.05;
+  double d3prop=0.15;
+  double d4prop=0.225;
+  double d5prop=0.25;
+  double d6prop=0.1;
+  double d7prop=0.075;
+  double d8prop=0.05;
+  double d9prop=0.05;
 
   // Replaces above implementation
   // loop through array to access each grainsize fraction
   // the weird length is a hangover from CAESAR-Lisflood...
-  std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068, 0.146, 0.22, 0.231, 0.121, 0.0}};
+  //std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068, 0.146, 0.22, 0.231, 0.121, 0.0}}; // Default
+  std::array<double, 11> dprop = {{0.0, 0.05, 0.05, 0.15, 0.225, 0.25, 0.1, 0.075, 0.05, 0.05, 0.0}}; // Swale
 
   double previous;
   int hours = 0;
@@ -716,7 +741,7 @@ protected:
   std::string raingrid_fname;
   std::string runoffgrid_fname;
   
-  bool DEBUG_print_cycle_on = true;
+  bool DEBUG_print_cycle_on = false;
   bool DEBUG_write_raingrid = false;
   bool DEBUG_write_runoffgrid = false;
 

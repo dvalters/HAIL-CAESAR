@@ -212,7 +212,7 @@ void LSDCatchmentModel::run_components()
     }
     
     // removed for archer output files
-    if (DEBUG_print_cycle_on)
+    if (DEBUG_print_cycle_on==true)
     {
     std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
     }
