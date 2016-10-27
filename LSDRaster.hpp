@@ -578,6 +578,40 @@ class LSDRaster
   /// @date 06/05/2015
   void raster_multiplier(float multiplier);
 
+
+  /// @brief This multiplies two rasters, elementwise
+  /// @detail Simple elementwise multiplictation
+  /// @param M_raster The raster by which to multiply the current raster
+  /// @return A raster holding the elementwise product of the two rasters
+  /// @author SMM
+  /// @date 27/10/2016
+  LSDRaster MapAlgebra_multiply(LSDRaster& M_raster);
+
+  /// @brief This divides two rasters, elementwise
+  /// @detail Simple elementwise division
+  /// @param M_raster The raster by which to divide the current raster
+  /// @return A raster holding the elementwise quotient of the two rasters  
+  /// @author SMM
+  /// @date 27/10/2016
+  LSDRaster MapAlgebra_divide(LSDRaster& M_raster);
+
+  /// @brief This add two rasters, elementwise
+  /// @detail Simple elementwise addition
+  /// @param M_raster The raster by which to add the current raster
+  /// @return A raster holding the elementwise sum of the two rasters  
+  /// @author SMM
+  /// @date 27/10/2016
+  LSDRaster MapAlgebra_add(LSDRaster& M_raster);
+
+  /// @brief This subtracts two rasters, elementwise
+  /// @detail Simple elementwise subtraction
+  /// @param M_raster The raster by which to subtract the current raster
+  /// @return A raster holding the elementwise difference of the two rasters  
+  /// @author SMM
+  /// @date 27/10/2016
+  LSDRaster MapAlgebra_subtract(LSDRaster& M_raster);
+
+
   // Functions for the Diamond Square algorithm
 
   /// @brief This returns a value from the array data element but wraps around

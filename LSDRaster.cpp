@@ -2085,6 +2085,160 @@ void LSDRaster::raster_multiplier(float multiplier)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Map algebra functions
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::MapAlgebra_multiply(LSDRaster& M_raster)
+{
+  // first check if rasters are the same size
+  if( does_raster_have_same_dimensions(M_raster) )
+  {
+    //create an array
+    Array2D<float> New_array(NRows,NCols,NoDataValue);
+    
+    for(int row = 0; row< NRows; row++)
+    {
+      for(int col = 0; col<NCols; col++)
+      { 
+        if (RasterData[row][col] != NoDataValue)
+        {
+          float this_element = M_raster.get_data_element(row,col);
+          if(this_element != NoDataValue)
+          {
+            New_array[row][col] = RasterData[row][col]*this_element;
+          }
+          
+        }
+      }
+    }
+    //create LSDRaster object
+    LSDRaster NewRaster(NRows, NCols, XMinimum, YMinimum, DataResolution,
+                               NoDataValue, New_array, GeoReferencingStrings);
+    return NewRaster;
+  }
+  else
+  {
+    cout << "Warning, these rasters are not the same dimension!" << endl;
+    return M_raster;
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::MapAlgebra_divide(LSDRaster& M_raster)
+{
+  // first check if rasters are the same size
+  if( does_raster_have_same_dimensions(M_raster) )
+  {
+    //create an array
+    Array2D<float> New_array(NRows,NCols,NoDataValue);
+    
+    for(int row = 0; row< NRows; row++)
+    {
+      for(int col = 0; col<NCols; col++)
+      { 
+        if (RasterData[row][col] != NoDataValue)
+        {
+          float this_element = M_raster.get_data_element(row,col);
+          if(this_element != NoDataValue && this_element != 0)
+          {
+            New_array[row][col] = RasterData[row][col]/this_element;
+          }
+        }
+      }
+    }
+    //create LSDRaster object
+    LSDRaster NewRaster(NRows, NCols, XMinimum, YMinimum, DataResolution,
+                               NoDataValue, New_array, GeoReferencingStrings);
+    return NewRaster;
+  }
+  else
+  {
+    cout << "Warning, these rasters are not the same dimension!" << endl;
+    return M_raster;
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::MapAlgebra_add(LSDRaster& M_raster)
+{
+  // first check if rasters are the same size
+  if( does_raster_have_same_dimensions(M_raster) )
+  {
+    //create an array
+    Array2D<float> New_array(NRows,NCols,NoDataValue);
+    
+    for(int row = 0; row< NRows; row++)
+    {
+      for(int col = 0; col<NCols; col++)
+      { 
+        if (RasterData[row][col] != NoDataValue)
+        {
+          float this_element = M_raster.get_data_element(row,col);
+          if(this_element != NoDataValue)
+          {
+            New_array[row][col] = RasterData[row][col]+this_element;
+          }
+        }
+      }
+    }
+    //create LSDRaster object
+    LSDRaster NewRaster(NRows, NCols, XMinimum, YMinimum, DataResolution,
+                               NoDataValue, New_array, GeoReferencingStrings);
+    return NewRaster;
+  }
+  else
+  {
+    cout << "Warning, these rasters are not the same dimension!" << endl;
+    return M_raster;
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::MapAlgebra_subtract(LSDRaster& M_raster)
+{
+  // first check if rasters are the same size
+  if( does_raster_have_same_dimensions(M_raster) )
+  {
+    //create an array
+    Array2D<float> New_array(NRows,NCols,NoDataValue);
+    
+    for(int row = 0; row< NRows; row++)
+    {
+      for(int col = 0; col<NCols; col++)
+      { 
+        if (RasterData[row][col] != NoDataValue)
+        {
+          float this_element = M_raster.get_data_element(row,col);
+          if(this_element != NoDataValue)
+          {
+            New_array[row][col] = RasterData[row][col]-this_element;
+          }
+        }
+      }
+    }
+    //create LSDRaster object
+    LSDRaster NewRaster(NRows, NCols, XMinimum, YMinimum, DataResolution,
+                               NoDataValue, New_array, GeoReferencingStrings);
+    return NewRaster;
+  }
+  else
+  {
+    cout << "Warning, these rasters are not the same dimension!" << endl;
+    return M_raster;
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // /\ |  |  DIAMOND SQUARE
