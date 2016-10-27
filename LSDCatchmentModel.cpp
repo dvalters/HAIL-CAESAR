@@ -125,6 +125,7 @@ void LSDCatchmentModel::run_components()
 
   time_factor = 1;
 
+  print_parameters();
   // Originally erodedepo() in CAESAR-LISFLOOD...
   // Entering the main loop here
   std::cout << "Entering main model loop..." << std::endl;
@@ -5109,6 +5110,48 @@ void LSDCatchmentModel::soil_development()
       }
     }
   }
+}
+
+// PRINTS ALL PARAMETERS TO SCREEN FOR CHECKING
+void LSDCatchmentModel::print_parameters()
+{
+  std::cout << "PARAMETERS FOR SIMULATION:" << std::endl;
+  std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-="  << std::endl;
+  
+  std::cout << "MAX RUN DURATION:              " << maxcycle << std::endl;
+  std::cout << "NO ROWS:                       " << imax << std::endl;
+  std::cout << "NO COLS:                       " << jmax << std::endl;
+  std::cout << "CELL SIZE                      " << DX << std::endl;
+    
+  std::cout << "WATER DEPTH EROSION THRESHOLD: " << water_depth_erosion_threshold << std::endl;
+  std::cout << "WATER INPUT OUTPUT DIFF:       " << in_out_difference << std::endl;
+  std::cout << "MANNINGS N:                    " << mannings << std::endl;
+  std::cout << "NUMBER OF RAINFALL CELLS:      " << rfnum << std::endl;
+  std::cout << "RAINDATA TIMESTEP:             " << rain_data_time_step << std::endl;
+  std::cout << "TOPMODEL M:                    " << M << std::endl;
+  std::cout << "COURANT NUMBER:                " << courant_number << std::endl;
+  std::cout << "FROUDE NUMBER:                 " << froude_limit << std::endl;
+  std::cout << "HORIZ FLOW THRESHOLD:          " << hflow_threshold << std::endl;
+  
+  // Grain distribution
+  std::cout << "~~~~~~GRAIN SIZE DETAILS~~~~~~~" << std::endl;
+  std::cout << "| SIZE |" << " PROPORTION |" << "| FALL VELOCITY   |" << std::endl;
+  std::cout << dprop[1] << " | " << d1 << " | " << fallVelocity[1] << std::endl;
+  std::cout << dprop[2] << " | " << d2 << " | " << fallVelocity[2] << std::endl;
+  std::cout << dprop[3] << " | " << d3 << " | " << fallVelocity[3] << std::endl;
+  std::cout << dprop[4] << " | " << d4 << " | " << fallVelocity[4] << std::endl;
+  std::cout << dprop[5] << " | " << d5 << " | " << fallVelocity[5] << std::endl;
+  std::cout << dprop[6] << " | " << d6 << " | " << fallVelocity[6] << std::endl;
+  std::cout << dprop[7] << " | " << d7 << " | " << fallVelocity[7] << std::endl;
+  std::cout << dprop[8] << " | " << d8 << " | " << fallVelocity[8] << std::endl;
+  std::cout << dprop[9] << " | " << d9 << " | " << fallVelocity[9] << std::endl;
+  
+  std::cout << "SEDIMENT LAW:                  ";
+    if (einstein) std::cout << "Einstein" << std::endl;
+    if (wilcock) std::cout  << "Wilcock and Crowe" << std::endl;
+ 
+    
+  
 }
 
 // A simple function to test OpenMP in the LSDTopoTools environment

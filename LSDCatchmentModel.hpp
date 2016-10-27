@@ -320,6 +320,8 @@ public:
   /// within each hydroindex region that are within the boundary. It 
   /// modifies nActualGridCells.
   void count_catchment_gridcells();
+  
+  void print_parameters();
 
   /// @brief Runs a very basic test to see if you can run code in parallel mode.
   void quickOpenMPtest();
@@ -540,15 +542,15 @@ protected:
   double d9=0.128;
 
   // grain size proportions for each fraction... as a proportion of 1.
-  double d1prop=0.05;
-  double d2prop=0.05;
-  double d3prop=0.15;
-  double d4prop=0.225;
-  double d5prop=0.25;
-  double d6prop=0.1;
-  double d7prop=0.075;
-  double d8prop=0.05;
-  double d9prop=0.05;
+//  double d1prop=0.05;
+//  double d2prop=0.05;
+//  double d3prop=0.15;
+//  double d4prop=0.225;
+//  double d5prop=0.25;
+//  double d6prop=0.1;
+//  double d7prop=0.075;
+//  double d8prop=0.05;
+//  double d9prop=0.05;
 
   // Replaces above implementation
   // loop through array to access each grainsize fraction
@@ -646,8 +648,8 @@ protected:
   std::vector<bool> isSuspended;
   TNT::Array2D<double> Vsusptot;
 
-  std::array<int, 9> deltaX = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
-  std::array<int, 9> deltaY = {{0, 0, 1, 1 ,1 , 0, -1, -1, -1}};
+  std::array<int, 9> deltaY = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
+  std::array<int, 9> deltaX = {{0,  0,  1,  1,  1,  0, -1, -1, -1}};
 
   std::vector<int> nActualGridCells;
   double Jw_newvol = 0.0;
@@ -674,8 +676,8 @@ protected:
   double Beta1 = 1067;
 
   // sedi tpt flags
-  bool einstein;
-  bool wilcock;
+  bool einstein = false;
+  bool wilcock = false;
   int div_inputs = 1;
   double rain_data_time_step = 60; // time step for rain data - default is 60.
 
