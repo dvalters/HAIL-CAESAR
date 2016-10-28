@@ -648,8 +648,8 @@ protected:
   std::vector<bool> isSuspended;
   TNT::Array2D<double> Vsusptot;
 
-  std::array<int, 9> deltaY = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
-  std::array<int, 9> deltaX = {{0,  0,  1,  1,  1,  0, -1, -1, -1}};
+  std::array<int, 9> deltaX = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
+  std::array<int, 9> deltaY = {{0,  0,  1,  1,  1,  0, -1, -1, -1}};
 
   std::vector<int> nActualGridCells;
   double Jw_newvol = 0.0;
