@@ -1174,7 +1174,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
     else if (lower == "grass_grow_rate")
     {
       grow_grass_time = atof(value.c_str());
-      std::cout << "Veggie grow rate: " << grain_data_file << std::endl;
+      std::cout << "Veggie grow rate: " << grow_grass_time << std::endl;
     }
 
     else if (lower == "vegetation_crit_shear")
@@ -1448,7 +1448,7 @@ void LSDCatchmentModel::get_area4()
       // tempvalues is just a list of all the elevations in the grid.
       tempvalues[inc] = elev[i][j];  // bad name choice 'temp'! TO DO: DAV change later
       // xkey is the xcoordinates collated
-      xkey[inc] = j; // because [row][column] order, so j is the x-coord
+      xkey[inc] = i; // because [row][column] order, so j is the x-coord
       inc++;
     }
   }
@@ -1494,7 +1494,7 @@ void LSDCatchmentModel::get_area4()
     for (j = 1; j <= jmax; j++)
     {
       tempvalues2[inc] = elev[i][j];
-      ykey[inc] = i;  // row-major, so i is the y coordinate (the row of NRows)
+      ykey[inc] = j;  // row-major, so i is the y coordinate (the row of NRows)
       inc++;
     }
   }
@@ -1518,8 +1518,8 @@ void LSDCatchmentModel::get_area4()
   // then works through the list of x and y co-ordinates from highest to lowest...
   for (n = (jmax * imax); n >= 1; n--)
   {
-    j = static_cast<int>(std::get<0>(x_keys_elevs_paired[n]) );
-    i = static_cast<int>(std::get<0>(y_keys_elevs_paired[n]) );
+    i = static_cast<int>(std::get<0>(x_keys_elevs_paired[n]) );
+    j = static_cast<int>(std::get<0>(y_keys_elevs_paired[n]) );
 
     // I.e. If we are in the catchment (area_depth = 0 in NODATA)
     if (area_depth[i][j] > 0)
@@ -2542,7 +2542,7 @@ void LSDCatchmentModel::depth_update()
       // update water depths
       water_depth[x][y] += local_time_factor * (qx[x + 1][y] - qx[x][y] + qy[x][y + 1] - qy[x][y]) / DX;
       // now update SS concs
-      if (suspended_opt == true)
+      if (isSuspended[1])
       {
         Vsusptot[x][y] += local_time_factor * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
       }
