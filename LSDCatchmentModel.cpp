@@ -2572,8 +2572,8 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   
   for (int z=1; z <= totalinputpoints; z++)
   {
-    int j = catchment_input_x_coord[z];
-    int i = catchment_input_y_coord[z];
+    int i = catchment_input_x_coord[z];
+    int j = catchment_input_y_coord[z];
     double water_add_amt = (j_mean[rfarea[i][j]] * nActualGridCells[rfarea[i][j]]) /
         (catchment_input_counter[rfarea[i][j]]) * local_time_factor;    //
     if (water_add_amt > ERODEFACTOR)
@@ -2854,8 +2854,8 @@ void LSDCatchmentModel::get_catchment_input_points()
           && (area[i][j] * baseflow * 3 * DX * DX) < MIN_Q_MAXVAL)
       {
         totalinputpoints++; // DAV - swapped back 28/10/2016
-        catchment_input_x_coord[totalinputpoints] = j; // TO DO DAV - is this right wayround j?
-        catchment_input_y_coord[totalinputpoints] = i;
+        catchment_input_x_coord[totalinputpoints] = i; // TO DO DAV - is this right wayround j?
+        catchment_input_y_coord[totalinputpoints] = j;
         catchment_input_counter[rfarea[i][j]]++;
       }
     }
@@ -2879,8 +2879,8 @@ void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
       if ((area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) > MIN_Q \
         && (area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) < MIN_Q_MAXVAL)
       {
-        catchment_input_x_coord[totalinputpoints] = j;
-        catchment_input_y_coord[totalinputpoints] = i;
+        catchment_input_x_coord[totalinputpoints] = i;
+        catchment_input_y_coord[totalinputpoints] = j;
 
         totalinputpoints++;
       }
