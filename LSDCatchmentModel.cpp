@@ -1533,8 +1533,8 @@ void LSDCatchmentModel::get_area4()
       // work out sum of +ve slopes in all 8 directions
       for (dir = 1; dir <= 8; dir++)//was 1 to 8 +=2
       {
-        j2 = j + deltaX[dir];
-        i2 = i + deltaY[dir];
+        j2 = j + deltaY[dir];
+        i2 = i + deltaX[dir];
 
         if (j2 < 1) j2 = 1;
         if (i2 < 1) i2 = 1;
@@ -1563,8 +1563,8 @@ void LSDCatchmentModel::get_area4()
         for (dir = 1; dir <= 8; dir++)//was 1 to 8 +=2
         {
           // Calculate the adjacent coordinates
-          i2 = i + deltaY[dir];
-          j2 = j + deltaX[dir];
+          i2 = i + deltaX[dir];
+          j2 = j + deltaY[dir];
 
           // Make sure we don't go over the edges of the model domain
           if (j2 < 1) j2 = 1;
