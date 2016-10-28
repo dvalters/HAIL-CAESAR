@@ -1394,7 +1394,7 @@ void LSDCatchmentModel::initialise_arrays()
 void LSDCatchmentModel::set_fall_velocities()
 {
   fallVelocity[0] = 0.0;
-  fallVelocity[1] = 0.066;
+  fallVelocity[1] = 0.033;
   fallVelocity[2] = 0.109;
   fallVelocity[3] = 0.164;
   fallVelocity[4] = 0.237;
@@ -2853,10 +2853,10 @@ void LSDCatchmentModel::get_catchment_input_points()
       if ((area[i][j] * baseflow * 3 * DX * DX) > MIN_Q \
           && (area[i][j] * baseflow * 3 * DX * DX) < MIN_Q_MAXVAL)
       {
-        catchment_input_x_coord[totalinputpoints] = j;
+        totalinputpoints++; // DAV - swapped back 28/10/2016
+        catchment_input_x_coord[totalinputpoints] = j; // TO DO DAV - is this right wayround j?
         catchment_input_y_coord[totalinputpoints] = i;
         catchment_input_counter[rfarea[i][j]]++;
-        totalinputpoints++;
       }
     }
   }
@@ -5156,7 +5156,7 @@ void LSDCatchmentModel::print_parameters()
   
   // Grain distribution
   std::cout << "~~~~~~GRAIN SIZE DETAILS~~~~~~~" << std::endl;
-  std::cout << "| SIZE |" << " PROPORTION |" << "| FALL VELOCITY   |" << std::endl;
+  std::cout << "| PROP |" << " SIZE |" << "| FALL VELOCITY   |" << std::endl;
   std::cout << dprop[1] << " | " << d1 << " | " << fallVelocity[1] << std::endl;
   std::cout << dprop[2] << " | " << d2 << " | " << fallVelocity[2] << std::endl;
   std::cout << dprop[3] << " | " << d3 << " | " << fallVelocity[3] << std::endl;
