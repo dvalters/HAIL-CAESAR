@@ -2564,6 +2564,12 @@ void LSDCatchmentModel::depth_update()
 // DAV - This can be split into subfunctions
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor) 
 {
+  // This was added in CL 1.8f but not present in 1.8a:
+  for (int i = 1; i<=rfnum; i++)
+  {
+    waterinput += j_mean[i] * nActualGridCells[i] * DX * DX;
+  }
+  
   for (int z=1; z <= totalinputpoints; z++)
   {
     int j = catchment_input_x_coord[z];
@@ -2574,7 +2580,9 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     {
       water_add_amt = ERODEFACTOR;
     }
-    waterinput += (water_add_amt / local_time_factor) * DX * DX;
+    
+    // Removed now as done above
+    // waterinput += (water_add_amt / local_time_factor) * DX * DX;
     water_depth[i][j] += water_add_amt;
   }
   // if the input type flag is 1 then the discharge is input from the hydrograph
@@ -2583,14 +2591,27 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     do
     {
       time_1++;
-      calc_J(time_1++);  // calc_J is based on the rainfall rate supplied to the cell
-      if (time_factor > max_time_step && new_j_mean[1] > (0.2 / (jmax * imax * DX * DX)))
+      calc_J(time_1);  // calc_J is based on the rainfall rate supplied to the cell
+      
+      if (time_factor > max_time_step) // && new_j_mean[1] > (0.2 / (jmax * imax * DX * DX)))
+      {
+        // Find the current maximum runoff amount
+        double j_mean_max_temp = 0;
+        for (int n = 1; n <= rfnum; n++) 
+        {
+          if (new_j_mean[n] > j_mean_max_temp) 
+          {
+            j_mean_max_temp = new_j_mean[n];
+          }
+        }
+        
         // check after the variable rainfall area has been added
         // stops code going too fast when there is actual flow in the channels greater than 0.2cu
-        // DAV - Is this right? - why would you only check the first hydroindex new_jmean value in the array?
-      {
-        cycle = time_1 + (max_time_step / 60);
-        time_factor = max_time_step;
+        if (j_mean_max_temp > (0.2 / (imax * jmax * DX * DX)))
+        {  
+          cycle = time_1 + (max_time_step / 60);
+          time_factor = max_time_step;
+        }
       }
     } while (time_1 < cycle);
   }
