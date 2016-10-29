@@ -3175,7 +3175,7 @@ double LSDCatchmentModel::d50(int index1)
   int z,n,i;
   double active_thickness=0;
   double Dfifty=0,max=0,min=0;
-  std::array<double, 20> cum_tot;  // std::array only C++11
+  std::array<double, 20> cum_tot{};  // std::array only C++11
 
   for(n=1;n<=G_MAX;n++)
   {
@@ -4192,8 +4192,9 @@ double LSDCatchmentModel::erode(double mult_factor)
   erosion_sediment_totals(erodetot, erodetot3);
   
   // Move sediment to adjacent cells
-  move_sedi_x_dir(erodetot3, mult_factor);
   move_sedi_y_dir(mult_factor, erodetot3);
+  move_sedi_x_dir(erodetot3, mult_factor);
+  
 
   // now calculate sediment outputs from all four edges...
   sediment_outputs(gtot2);
