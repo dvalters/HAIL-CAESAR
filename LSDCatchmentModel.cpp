@@ -178,7 +178,7 @@ void LSDCatchmentModel::run_components()
     }
     else
     {
-    catchment_water_input_and_hydrology(local_time_factor);
+      catchment_water_input_and_hydrology(local_time_factor);
     }
 
     //std::cout << "route the water and update the flow depths\r" << std::flush;
@@ -263,7 +263,7 @@ void LSDCatchmentModel::run_components()
     }
 
     // if we have reached the end of the run, kill the cycle
-  } while (cycle < maxcycle * 60);
+  } while (cycle / 60 < maxcycle);
 }
 
 
@@ -3226,7 +3226,7 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 
     if (amount > total)
     {
-      for (int n=1; n<=G_MAX; n++)
+      for (int n=1; n<=G_MAX-1; n++)
       {
         grain[index[x2][y2]][n] += (amount - total) * dprop[n];
       }
@@ -3734,7 +3734,7 @@ double LSDCatchmentModel::erode(double mult_factor)
                   }
 
                   // now loop through grainsizes
-                  for (int n = 1; n <= 9; n++)
+                  for (int n = 1; n <= G_MAX-1; n++)
                   {
                     if (temp_dist[n] > 0)
                     {
@@ -3813,7 +3813,7 @@ double LSDCatchmentModel::erode(double mult_factor)
         }
 
         // Iterate through cell neighbours
-        for (int n = 1; n <= 9; n++)
+        for (int n = 1; n <= G_MAX-1; n++)
         {
           //
           // Update suspended sediment loads
@@ -4056,7 +4056,7 @@ double LSDCatchmentModel::erode(double mult_factor)
   {
     if (water_depth[imax][y] > water_depth_erosion_threshold || Vsusptot[imax][y] > 0)
     {
-      for (int n = 1; n <= 9; n++)
+      for (int n = 1; n <= G_MAX-1; n++)
       {
         if (isSuspended[n])
         {
@@ -4071,7 +4071,7 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
     if (water_depth[1][y] > water_depth_erosion_threshold || Vsusptot[1][y] > 0)
     {
-      for (int n = 1; n <= 9; n++)
+      for (int n = 1; n <= G_MAX-1; n++)
       {
         if (isSuspended[n])
         {
@@ -4090,7 +4090,7 @@ double LSDCatchmentModel::erode(double mult_factor)
   {
     if (water_depth[x][jmax] > water_depth_erosion_threshold || Vsusptot[x][jmax] > 0)
     {
-      for (int n = 1; n <= 9; n++)
+      for (int n = 1; n <= G_MAX-1; n++)
       {
         if (isSuspended[n])
         {
@@ -4105,7 +4105,7 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
     if (water_depth[x][1] > water_depth_erosion_threshold || Vsusptot[x][1] > 0)
     {
-      for (int n = 1; n <= 9; n++)
+      for (int n = 1; n <= G_MAX-1; n++)
       {
         if (isSuspended[n])
         {
@@ -5088,9 +5088,9 @@ void LSDCatchmentModel::soil_erosion(double time)
 // all based on Van Walleghem et al., 2013 (JGR:ES)
 void LSDCatchmentModel::soil_development()
 {
-  for (int x = 1; x <= jmax; x++)
+  for (int x = 1; x <= imax; x++)
   {
-    for (int y = 1; y <= imax; y++)
+    for (int y = 1; y <= jmax; y++)
     {
       if (elev[x][y] > -9999) // ensure it is not a no-data point
       {
