@@ -321,6 +321,8 @@ public:
   /// modifies nActualGridCells.
   void count_catchment_gridcells();
   
+  void grow_grass(double amount3);
+  
   void print_parameters();
 
   /// @brief Runs a very basic test to see if you can run code in parallel mode.
