@@ -3343,473 +3343,347 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 // Based on the erod function in CAESAR-Lisflood
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=
-double LSDCatchmentModel::erode(double mult_factor)
+void LSDCatchmentModel::erosion_velocities(std::vector<double>& tempdir, 
+                                           int& x, double& velnum, 
+                                           double& slopetot, double& vel, 
+                                           double& qtot, double& temptot2, 
+                                           double& veltot, int& y)
 {
-  double rho = 1000.0;
-  double tempbmax = 0;
-  double gtot2[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
-  for (int n = 0; n <= G_MAX; n++)
+  for (int p = 1; p <= 8; p+=2)
   {
-    gtot2[n] = 0;
-  }
-
-  time_factor = time_factor * 1.5;
-  if (time_factor > max_time_step)
-  {
-    time_factor = max_time_step;
-  }
-
-  int counter2 = 0;
-  do
-  {
-    counter2++;
-    tempbmax = 0;
-
-    std::vector<double> tempbmax2(jmax + 2, 0.0);
-
-    // DAV TODO - should use explicit shared/private here to avoid bugs
-    // 1) Calculates veolcities
-    // 2) Calculates shear stresses
-    // 3) Calculates entrainment amounts
-    // 4) Calculates routing directions
-    
-    // 5) Update sediment totals
-    
-    // 6) Move sediment X direction
-    // 7) Move sediment Y direction
-    
-    // 7) Calcualte sediment outputs from edges
-    
-    #pragma omp parallel for
-    for (int y = 1; y < jmax; y++)
+    int x2 = x + deltaX[p];
+    int y2 = y + deltaY[p];
+    if (water_depth[x2][y2] > water_depth_erosion_threshold)
     {
-      int inc = 1;
-      while (down_scan[y][inc] > 0)
+
+      if (edge[x][y] > edge[x2][y2])
       {
-        int x = down_scan[y][inc];
-        inc++;
+        temptot2 += (edge[x][y] - edge[x2][y2]);
+      }
 
-        // zero vels.
-        Vel[x][y] = 0;
-        Tau[x][y] = 0;
-
-        for (int n = 0; n < G_MAX; n++)
+      if (vel_dir[x][y][p] > 0 )
+      {
+        // first work out velocities in each direction (for sedi distribution)
+        vel = vel_dir[x][y][p];
+        if (vel > max_vel)
         {
-          sr[x][y][n] = 0;
-          sl[x][y][n] = 0;
-          su[x][y][n] = 0;
-          sd[x][y][n] = 0;
+          vel = max_vel; // if vel too high cut it
         }
-        ss[x][y] = 0;
+        tempdir[p] = vel * vel;
+        veltot += tempdir[p];
+        velnum++;
+        qtot += (vel * vel);
 
+        slopetot += ((elev[x][y] - elev[x2][y2]) / DX) * vel;
+      }
+    }
+  }  
+}
 
-        if (water_depth[x][y] > water_depth_erosion_threshold)
+void LSDCatchmentModel::erosion_shear_stresses(double& vel, int& y, 
+                                               double& slopetot, double& qtot, 
+                                               int& x, double& tau)
+{
+  if (qtot > 0)
+  {
+    vel = (std::sqrt(qtot));
+    Vel[x][y] = vel;
+
+    if (vel > max_vel)
+    {
+      vel = max_vel; // if vel too high cut it
+    }
+    double ci = gravity * (mannings * mannings) * std::pow(water_depth[x][y], -0.33);
+
+    if (slopetot > 0)
+    {
+      slopetot = 0;
+    }
+
+    tau = 1000 * ci * vel * vel * (1 + (1 * (slopetot / vel)));
+    Tau[x][y] = tau;
+  }  
+}
+
+void LSDCatchmentModel::wilcock_sed_transport(double& mult_factor, double& d_50, 
+                                              int& y, double& tau, int &n, 
+                                              double& graintot, std::vector<double>& temp_dist, 
+                                              double& rho, int& x, double& Di, double& Fs)
+{
+  d_50 = d50(index[x][y]);
+  if (d_50 < d1)
+  {
+    d_50 = d1;
+  }
+  Fs = sand_fraction(index[x][y]);
+  for (int n = 1; n <= G_MAX; n++)
+  {
+    graintot += (grain[index[x][y]][n]);
+  }
+  
+  double tau_ri = 0, U_star, Wi_star;
+  tau_ri = (0.021 + (0.015 * std::exp(-20 * Fs))) * (rho * gravity * d_50) * std::pow((Di / d_50), (0.67 / (1 + std::exp(1.5 - (Di / d_50)))));
+  U_star = std::pow(tau / rho, 0.5);
+  double Fi = grain[index[x][y]][n] / graintot;
+
+  if ((tau / tau_ri) < 1.35)
+  {
+    Wi_star = 0.002 * std::pow(tau / tau_ri, 7.5);
+  }
+  else
+  {
+    Wi_star = 14 * std::pow(1 - (0.894 / std::pow(tau / tau_ri, 0.5)), 4.5);
+  }
+  //maybe should divide by DX as well..
+  temp_dist[n] = mult_factor * time_factor *
+      ((Fi * (U_star * U_star * U_star)) / ((2.65 - 1) * gravity)) * Wi_star / DX;  
+}
+
+void LSDCatchmentModel::einstein_sed_transport(std::vector<double>& temp_dist, 
+                                               double& tau, int &n, double& Di, 
+                                               double& mult_factor)
+{
+  temp_dist[n] = mult_factor * time_factor * (40 * std::pow((1 / (((2650 - 1000) * Di) / (tau / gravity))), 3))
+      / std::sqrt(1000 / ((2250 - 1000) * gravity * (Di * Di * Di))) / DX;  
+}
+
+void LSDCatchmentModel::sediment_entrainment(double& Di, std::vector<double>& temp_dist, 
+                                             double& graintot, double& mult_factor, 
+                                             double& d_50, double& Fs, double& rho, 
+                                             int& y, double& temptot1, 
+                                             int& x, double& tau)
+{
+  for (int n = 1; n <= G_MAX -1; n++)
+  {
+    switch (n)
+    {
+      case 1: Di = d1; break;
+      case 2: Di = d2; break;
+      case 3: Di = d3; break;
+      case 4: Di = d4; break;
+      case 5: Di = d5; break;
+      case 6: Di = d6; break;
+      case 7: Di = d7; break;
+      case 8: Di = d8; break;
+      case 9: Di = d9; break;
+    }
+
+    // WILCOCK LAW
+    //-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    if (wilcock == true)
+    {
+      wilcock_sed_transport(mult_factor, d_50, y, tau, n, graintot, temp_dist, rho, x, Di, Fs);
+    }
+
+    // EINSTEIN LAW
+    //-=-=-=-=-=-=-=-=-=-=-=-=
+    if (einstein == true)
+    {
+      // maybe should divide by DX as well..
+      einstein_sed_transport(temp_dist, tau, n, Di, mult_factor);
+    }
+
+    /// DEAL WITH EXTREME VALUES...
+    ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Set to zero for really small amounts of sedi
+    if (temp_dist[n] < 0.0000000000001)
+    {
+      temp_dist[n] = 0;
+    }
+    // first check to see that theres not too little sediment in a cell to be entrained
+    if (temp_dist[n] > grain[index[x][y]][n])
+    {
+      temp_dist[n] = grain[index[x][y]][n];
+    }
+    // then check to see if this would make SS levels too high.. and if so reduce
+    if (isSuspended[n] && n == 1)
+    {
+      if ((temp_dist[n] + Vsusptot[x][y]) / water_depth[x][y] > Csuspmax)
+      {
+        //work out max amount of sediment that can be there (waterdepth * csuspmax) then subtract whats already there
+        // (Vsusptot) to leave what can be entrained. Check if < 0 after.
+        temp_dist[n] = (water_depth[x][y] * Csuspmax) - Vsusptot[x][y];
+      }
+    }
+    // make sure no negative values...
+    if (temp_dist[n] < 0)
+    {
+      temp_dist[n] = 0;
+    }
+
+    // Calculates the total sediment entrainment from the cell
+    // by totatling up each fraction amount
+    temptot1 += temp_dist[n];
+  }  
+}
+
+void LSDCatchmentModel::bedrock_erosion(int& x, double& tau, double& temptot1, 
+                                        int& y, std::vector<double>& temp_dist, 
+                                        double& mult_factor)
+{
+  if (elev[x][y] - temptot1 <= bedrock[x][y])
+  {
+    // now remove from proportion that can be eroded..
+    // we can do this as we have the prop (in temptot) that is there to be eroded.
+    double elevdiff = elev[x][y] - bedrock[x][y];
+    double temptot3 = temptot1;
+    temptot1 = 0;
+    for (int n = 1; n <= G_MAX-1; n++)
+    {
+      if (elev[x][y] <= bedrock[x][y])
+      {
+        temp_dist[n] = 0;
+      }
+      else
+      {
+        temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
+        if (temp_dist[n] < 0)
         {
-          double temptot2 = 0;
-          double veltot = 0;
-          double vel = 0;
-          double qtot = 0;
-          double tau = 0;
-          double velnum = 0;
-          double slopetot = 0;
+          temp_dist[n] = 0;
+        }
+      }
+      temptot1 += temp_dist[n];
+    }
 
-          std::vector<double> temp_dist(11, 0.0);    // this vector holds the amountto be removed from the cell in each grain size
-          std::vector<double> tempdir(11, 0.0);    // this vector holds the velocity directions temporariliy
+    ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    ///
+    /// BEDROCK EROSION SUB-ROUTINE
+    ///
+    ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    if (tau > bedrock_erosion_threshold)
+    {
+      //double amount = 0; // amount is amount of erosion into the bedrock.
+      //amount = std::pow(bedrock_erosion_rate * tau, 1.5) * time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
+      //bedrock[x][y] -= amount;
 
-          // check to see if index for that cell...
-          if (index[x][y] == -9999)
+      // New bedrock erosion version - DAV
+      double p_b = 1.5;  // detach capacity exponent from CHILD
+      double amount = 0; // amount of erosion into bedrock
+      amount = bedrock_erodibility_coeff_ke * std::pow(tau - bedrock_erosion_threshold, p_b) * time_factor * mult_factor * 0.000000317;
+      bedrock[x][y] -= amount;
+
+      // now add amount of bedrock eroded into sediment proportions.
+
+      for (int g=1; g<=G_MAX -1; g++)
+      {
+          grain[index[x][y]][g] += amount * dprop[g];
+      }
+    }
+  }  
+}
+
+void LSDCatchmentModel::erosion_vegetation_buffer(double& tau, double& mult_factor, 
+                                                  int& x, int& y, double& temptot1, 
+                                                  std::vector<double>& temp_dist)
+{
+  if (veg[x][y][1] > 0 && tau > vegTauCrit)
+  {
+    // now to remove from veg layer..
+    veg[x][y][1] -= mult_factor * time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
+    if (veg[x][y][1] < 0) veg[x][y][1] = 0;
+  }
+
+  // now to determine if movement should be restricted due to veg... or because of bedrock...
+  if (veg[x][y][1] > 0.25)
+  {
+    // now checks if this removed from the cell would put it below the veg layer..
+    if (elev[x][y] - temptot1 <= veg[x][y][0])
+    {
+      // now remove from proportion that can be eroded..
+      // we can do this as we have the prop (in temptot) that is there to be eroded.
+      double elevdiff = 0;
+      elevdiff = elev[x][y] - veg[x][y][0];
+      if (elevdiff < 0)
+      {
+        elevdiff = 0;
+      }
+      double temptot3 = temptot1;
+      temptot1 = 0;
+      for (int n = 1; n <= 9; n++)
+      {
+        temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
+        if (elev[x][y] <= veg[x][y][0])
+        {
+          temp_dist[n] = 0;
+        }
+        temptot1 += temp_dist[n];
+      }
+      //temptot1 -= elevdiff;
+      if (temptot1 < 0) temptot1 = 0;
+    }
+  }  
+}
+
+void LSDCatchmentModel::route_bedload(int& x, std::vector<double>& temp_dist, 
+                                      std::vector<double>& tempdir, double& temptot2, 
+                                      int& y, double& veltot)
+{
+  for (int p = 1; p <= 8; p += 2)
+  {
+    // x2/y2 are the donor or source neighbour cell coordinates
+    // This is either x+1, x-1, or just x for the same row
+    // Similar for y. The deltaX/Y is used to calculate this
+    // The arrays are declared in the header file.
+    int x2 = x + deltaX[p];
+    int y2 = y + deltaY[p];
+
+    if (water_depth[x2][y2] > water_depth_erosion_threshold)
+    {
+      // If we have sedi here, update the grainsize index
+      if (index[x2][y2] == -9999)
+      {
+        addGS(x2, y2);
+      }
+
+      double factor = 0;
+
+      // Now calculate the weighting of distribution by a function
+      // of both the velocities between neighbouring cells (max 0.75)
+      // and the slope between neighbour cells.
+
+      // vel slope
+      if (vel_dir[x][y][p] > 0)
+      {
+        factor += 0.75 * tempdir[p] / veltot;
+      }
+      // now for lateral gradient.
+      if (edge[x][y] > edge[x2][y2])
+      {
+        factor += 0.25 * ((edge[x][y] - edge[x2][y2]) / temptot2);
+      }
+
+      // now loop through grainsizes
+      for (int n = 1; n <= G_MAX-1; n++)
+      {
+        if (temp_dist[n] > 0)
+        {
+          if (n == 1 && isSuspended[n])
           {
-            addGS(x, y);
+            // put amount entrained by ss in to ss[,]
+            ss[x][y] = temp_dist[n];
           }
-
-          // now tot up velocity directions, velocities and edge directions.
-          for (int p = 1; p <= 8; p+=2)
+          else
           {
-            int x2 = x + deltaX[p];
-            int y2 = y + deltaY[p];
-            if (water_depth[x2][y2] > water_depth_erosion_threshold)
+            // Now apportion the total sediment to be routed among
+            // each of the four manhattan neighbours, according to
+            // the weighting factor in the previous step.
+            switch (p)
             {
-
-              if (edge[x][y] > edge[x2][y2])
-              {
-                temptot2 += (edge[x][y] - edge[x2][y2]);
-              }
-
-              if (vel_dir[x][y][p] > 0 )
-              {
-                // first work out velocities in each direction (for sedi distribution)
-                vel = vel_dir[x][y][p];
-                if (vel > max_vel)
-                {
-                  vel = max_vel; // if vel too high cut it
-                }
-                tempdir[p] = vel * vel;
-                veltot += tempdir[p];
-                velnum++;
-                qtot += (vel * vel);
-
-                slopetot += ((elev[x][y] - elev[x2][y2]) / DX) * vel;
-              }
-            }
-          }
-
-          ///=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-          /// CALCULATE SHEAR STRESS IN CELL
-          ///=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-          if (qtot > 0)
-          {
-            vel = (std::sqrt(qtot));
-            Vel[x][y] = vel;
-
-            if (vel > max_vel)
-            {
-              vel = max_vel; // if vel too high cut it
-            }
-            double ci = gravity * (mannings * mannings) * std::pow(water_depth[x][y], -0.33);
-
-            if (slopetot > 0)
-            {
-              slopetot = 0;
-            }
-
-            tau = 1000 * ci * vel * vel * (1 + (1 * (slopetot / vel)));
-            Tau[x][y] = tau;
-          }
-
-          ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-          ///
-          /// MAIN EROSION SUB-ROUTINE
-          ///
-          ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-          if (tau > 0)
-          {
-            double d_50 = 0;
-            double Fs = 0;
-            double Di = 0;
-            double graintot = 0;
-
-            if (wilcock == true)
-            {
-              d_50 = d50(index[x][y]);
-              if (d_50 < d1)
-              {
-                d_50 = d1;
-              }
-              Fs = sand_fraction(index[x][y]);
-              for (int n = 1; n <= G_MAX; n++)
-              {
-                graintot += (grain[index[x][y]][n]);
-              }
-            }
-
-            double temptot1 = 0;
-
-            ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=
-            ///
-            /// SEDIMENT ENTRAINMENT
-            ///
-            ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // Iterate over every grain size fraction and calculate
-            // sediment entrainment for each fraction
-            for (int n = 1; n <= G_MAX -1; n++)
-            {
-              switch (n)
-              {
-                case 1: Di = d1; break;
-                case 2: Di = d2; break;
-                case 3: Di = d3; break;
-                case 4: Di = d4; break;
-                case 5: Di = d5; break;
-                case 6: Di = d6; break;
-                case 7: Di = d7; break;
-                case 8: Di = d8; break;
-                case 9: Di = d9; break;
-              }
-
-              // WILCOCK LAW
-              //-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-              if (wilcock == true)
-              {
-                double tau_ri = 0, U_star, Wi_star;
-                tau_ri = (0.021 + (0.015 * std::exp(-20 * Fs))) * (rho * gravity * d_50) * std::pow((Di / d_50), (0.67 / (1 + std::exp(1.5 - (Di / d_50)))));
-                U_star = std::pow(tau / rho, 0.5);
-                double Fi = grain[index[x][y]][n] / graintot;
-
-                if ((tau / tau_ri) < 1.35)
-                {
-                  Wi_star = 0.002 * std::pow(tau / tau_ri, 7.5);
-                }
-                else
-                {
-                  Wi_star = 14 * std::pow(1 - (0.894 / std::pow(tau / tau_ri, 0.5)), 4.5);
-                }
-                //maybe should divide by DX as well..
-                temp_dist[n] = mult_factor * time_factor *
-                    ((Fi * (U_star * U_star * U_star)) / ((2.65 - 1) * gravity)) * Wi_star / DX;
-              }
-
-              // EINSTEIN LAW
-              //-=-=-=-=-=-=-=-=-=-=-=-=
-              if (einstein == true)
-              {
-                // maybe should divide by DX as well..
-                temp_dist[n] = mult_factor * time_factor * (40 * std::pow((1 / (((2650 - 1000) * Di) / (tau / gravity))), 3))
-                    / std::sqrt(1000 / ((2250 - 1000) * gravity * (Di * Di * Di))) / DX;
-              }
-
-              /// DEAL WITH EXTREME VALUES...
-              ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-              // Set to zero for really small amounts of sedi
-              if (temp_dist[n] < 0.0000000000001)
-              {
-                temp_dist[n] = 0;
-              }
-              // first check to see that theres not too little sediment in a cell to be entrained
-              if (temp_dist[n] > grain[index[x][y]][n])
-              {
-                temp_dist[n] = grain[index[x][y]][n];
-              }
-              // then check to see if this would make SS levels too high.. and if so reduce
-              if (isSuspended[n] && n == 1)
-              {
-                if ((temp_dist[n] + Vsusptot[x][y]) / water_depth[x][y] > Csuspmax)
-                {
-                  //work out max amount of sediment that can be there (waterdepth * csuspmax) then subtract whats already there
-                  // (Vsusptot) to leave what can be entrained. Check if < 0 after.
-                  temp_dist[n] = (water_depth[x][y] * Csuspmax) - Vsusptot[x][y];
-                }
-              }
-              // make sure no negative values...
-              if (temp_dist[n] < 0)
-              {
-                temp_dist[n] = 0;
-              }
-
-              // Calculates the total sediment entrainment from the cell
-              // by totatling up each fraction amount
-              temptot1 += temp_dist[n];
-            }
-
-            ///-=-=-=-=-=-=-=-=-=-=-=-=-
-            ///
-            ///  BEDROCK SUB-ROUTINES
-            ///
-            ///-=-=-=-=-=-=-=-=-=-=-=-=-
-            // Check if this makes it below bedrock
-            if (bedrock_layer_on)
-            {  
-              if (elev[x][y] - temptot1 <= bedrock[x][y])
-              {
-                // now remove from proportion that can be eroded..
-                // we can do this as we have the prop (in temptot) that is there to be eroded.
-                double elevdiff = elev[x][y] - bedrock[x][y];
-                double temptot3 = temptot1;
-                temptot1 = 0;
-                for (int n = 1; n <= G_MAX-1; n++)
-                {
-                  if (elev[x][y] <= bedrock[x][y])
-                  {
-                    temp_dist[n] = 0;
-                  }
-                  else
-                  {
-                    temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
-                    if (temp_dist[n] < 0)
-                    {
-                      temp_dist[n] = 0;
-                    }
-                  }
-                  temptot1 += temp_dist[n];
-                }
-  
-                ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-                ///
-                /// BEDROCK EROSION SUB-ROUTINE
-                ///
-                ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-                if (tau > bedrock_erosion_threshold)
-                {
-                  //double amount = 0; // amount is amount of erosion into the bedrock.
-                  //amount = std::pow(bedrock_erosion_rate * tau, 1.5) * time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
-                  //bedrock[x][y] -= amount;
-  
-                  // New bedrock erosion version - DAV
-                  double p_b = 1.5;  // detach capacity exponent from CHILD
-                  double amount = 0; // amount of erosion into bedrock
-                  amount = bedrock_erodibility_coeff_ke * std::pow(tau - bedrock_erosion_threshold, p_b) * time_factor * mult_factor * 0.000000317;
-                  bedrock[x][y] -= amount;
-  
-                  // now add amount of bedrock eroded into sediment proportions.
-  
-                  for (int g=1; g<=G_MAX -1; g++)
-                  {
-                      grain[index[x][y]][g] += amount * dprop[g];
-                  }
-                }
-              }
-            }
-
-
-            ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-            ///
-            /// VEGETATION EROSION SUBROUTINE
-            ///
-            ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-            if (vegetation_on) // if clause added - DV
-            {
-              // here to erode the veg layer..
-              if (veg[x][y][1] > 0 && tau > vegTauCrit)
-              {
-                // now to remove from veg layer..
-                veg[x][y][1] -= mult_factor * time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
-                if (veg[x][y][1] < 0) veg[x][y][1] = 0;
-              }
-
-              // now to determine if movement should be restricted due to veg... or because of bedrock...
-              if (veg[x][y][1] > 0.25)
-              {
-                // now checks if this removed from the cell would put it below the veg layer..
-                if (elev[x][y] - temptot1 <= veg[x][y][0])
-                {
-                  // now remove from proportion that can be eroded..
-                  // we can do this as we have the prop (in temptot) that is there to be eroded.
-                  double elevdiff = 0;
-                  elevdiff = elev[x][y] - veg[x][y][0];
-                  if (elevdiff < 0)
-                  {
-                    elevdiff = 0;
-                  }
-                  double temptot3 = temptot1;
-                  temptot1 = 0;
-                  for (int n = 1; n <= 9; n++)
-                  {
-                    temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
-                    if (elev[x][y] <= veg[x][y][0])
-                    {
-                      temp_dist[n] = 0;
-                    }
-                    temptot1 += temp_dist[n];
-                  }
-                  //temptot1 -= elevdiff;
-                  if (temptot1 < 0) temptot1 = 0;
-                }
-              }
-            }
-
-            // keep tally of maximum erosion total
-            if (temptot1 > tempbmax2[y])
-            {
-              tempbmax2[y] = temptot1;
-            }
-
-            ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-            ///
-            /// SEDIMENT ROUTING ROUTINE
-            ///
-            ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-            // now work out what portion of bedload has to go where...
-            // only allow actual transfer of sediment if there is flow in a direction - i.e. some sediment transport
-
-            if (temptot1>0)  // Do we have some entrained sediment to transport?
-            {
-              for (int p = 1; p <= 8; p += 2)
-              {
-                // x2/y2 are the donor or source neighbour cell coordinates
-                // This is either x+1, x-1, or just x for the same row
-                // Similar for y. The deltaX/Y is used to calculate this
-                // The arrays are declared in the header file.
-                int x2 = x + deltaX[p];
-                int y2 = y + deltaY[p];
-
-                if (water_depth[x2][y2] > water_depth_erosion_threshold)
-                {
-                  // If we have sedi here, update the grainsize index
-                  if (index[x2][y2] == -9999)
-                  {
-                    addGS(x2, y2);
-                  }
-
-                  double factor = 0;
-
-                  // Now calculate the weighting of distribution by a function
-                  // of both the velocities between neighbouring cells (max 0.75)
-                  // and the slope between neighbour cells.
-
-                  // vel slope
-                  if (vel_dir[x][y][p] > 0)
-                  {
-                    factor += 0.75 * tempdir[p] / veltot;
-                  }
-                  // now for lateral gradient.
-                  if (edge[x][y] > edge[x2][y2])
-                  {
-                    factor += 0.25 * ((edge[x][y] - edge[x2][y2]) / temptot2);
-                  }
-
-                  // now loop through grainsizes
-                  for (int n = 1; n <= G_MAX-1; n++)
-                  {
-                    if (temp_dist[n] > 0)
-                    {
-                      if (n == 1 && isSuspended[n])
-                      {
-                        // put amount entrained by ss in to ss[,]
-                        ss[x][y] = temp_dist[n];
-                      }
-                      else
-                      {
-                        // Now apportion the total sediment to be routed among
-                        // each of the four manhattan neighbours, according to
-                        // the weighting factor in the previous step.
-                        switch (p)
-                        {
-                          case 1: su[x][y][n] = temp_dist[n] * factor; break;
-                          case 3: sr[x][y][n] = temp_dist[n] * factor; break;
-                          case 5: sd[x][y][n] = temp_dist[n] * factor; break;
-                          case 7: sl[x][y][n] = temp_dist[n] * factor; break;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+              case 1: su[x][y][n] = temp_dist[n] * factor; break;
+              case 3: sr[x][y][n] = temp_dist[n] * factor; break;
+              case 5: sd[x][y][n] = temp_dist[n] * factor; break;
+              case 7: sl[x][y][n] = temp_dist[n] * factor; break;
             }
           }
         }
       }
     }
-    // we have to do a reduction on tempbmax. (If parallelism later implemented)
-    //
-    // todo DAV: you can do this with the OpenMP reduction clause, no need
-    // to manually perform reduction here.
-    for (int y = 1; y <= jmax; y++)
-    {
-      if (tempbmax2[y] > tempbmax)
-      {
-        tempbmax = tempbmax2[y];
-      }
-    }
+  }  
+}
 
-    if (tempbmax > ERODEFACTOR)
-    {
-      time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
-    }
-
-  } while(tempbmax > ERODEFACTOR);  // Continue as long as we haven't exceeded max erosion amount
-
-  // new temp erode array.
-  TNT::Array2D<double> erodetot(imax + 2, jmax + 2, 0.0);    // erosion difference in x and y directions
-  TNT::Array2D<double> erodetot3(imax + 2, jmax +2, 0.0);    // erosion in the [x][y] cell
-
-  ///-=-=-=-=-=-=-=-=-=-=-==-=-=--=-==-=-=-=
-  ///
-  /// CALCULATE SEDIMENT TOTALS
-  ///
-  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  /// 
-  // Same comment as previous omp pragmas - change to using explicit shared/private
+void LSDCatchmentModel::erosion_sediment_totals(TNT::Array2D<double>& erodetot, TNT::Array2D<double>& erodetot3)
+{
   #pragma omp parallel for
   for (int y=2; y< jmax; y++)
   {
@@ -3897,14 +3771,11 @@ double LSDCatchmentModel::erode(double mult_factor)
         //
       }
     }
-  }
-  
+  }  
+}
 
-  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-  ///
-  /// MOVE SEDI IN X DIRECTION
-  ///
-  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::move_sedi_x_dir(TNT::Array2D<double>& erodetot3, double& mult_factor)
+{
   #pragma omp parallel for
   for (int y=2; y< jmax; y++)
   {
@@ -3987,15 +3858,11 @@ double LSDCatchmentModel::erode(double mult_factor)
         elev[x][y] += elev_update;
       }
     }
-  }
+  }  
+}
 
-
-  // DAV - to test
-  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-  ///
-  /// MOVE SEDI IN Y DIRECTION
-  ///
-  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::move_sedi_y_dir(double& mult_factor, TNT::Array2D<double>& erodetot3)
+{
   #pragma omp parallel for
   for (int y = 2; y < jmax; y++)
   {
@@ -4076,9 +3943,11 @@ double LSDCatchmentModel::erode(double mult_factor)
         }
       }
     }
-  }
+  }  
+}
 
-  // now calculate sediment outputs from all four edges...
+void LSDCatchmentModel::sediment_outputs(std::array<double, 20>& gtot2)
+{
   for (int y = 2; y < jmax; y++)
   {
     if (water_depth[imax][y] > water_depth_erosion_threshold || Vsusptot[imax][y] > 0)
@@ -4163,7 +4032,171 @@ double LSDCatchmentModel::erode(double mult_factor)
     sediQ += gtot2[n] * DX * DX;
     globalsediq += gtot2[n] * DX * DX;
     sum_grain[n] += gtot2[n] * DX * DX; // Gez
+  }  
+}
+
+double LSDCatchmentModel::erode(double mult_factor)
+{
+  double rho = 1000.0;
+  double tempbmax = 0;
+  std::array<double,20> gtot2 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+  for (int n = 0; n <= G_MAX; n++)
+  {
+    gtot2[n] = 0;
   }
+
+  time_factor = time_factor * 1.5;
+  if (time_factor > max_time_step)
+  {
+    time_factor = max_time_step;
+  }
+
+  int counter2 = 0;
+  do
+  {
+    counter2++;
+    tempbmax = 0;
+
+    std::vector<double> tempbmax2(jmax + 2, 0.0);
+
+    // DAV TODO - should use explicit shared/private here to avoid bugs
+    // 1) Calculates velocities
+    // 2) Calculates shear stresses
+    // 3) Calculates entrainment amounts
+    // 4) Calculates routing directions
+    
+    // 5) Update sediment totals
+    
+    // 6) Move sediment X direction
+    // 7) Move sediment Y direction
+    
+    // 7) Calcualte sediment outputs from edges
+    
+    #pragma omp parallel for
+    for (int y = 1; y < jmax; y++)
+    {
+      int inc = 1;
+      while (down_scan[y][inc] > 0)
+      {
+        int x = down_scan[y][inc];
+        inc++;
+
+        // zero vels.
+        Vel[x][y] = 0;
+        Tau[x][y] = 0;
+
+        for (int n = 0; n < G_MAX; n++)
+        {
+          sr[x][y][n] = 0;
+          sl[x][y][n] = 0;
+          su[x][y][n] = 0;
+          sd[x][y][n] = 0;
+        }
+        ss[x][y] = 0;
+
+
+        if (water_depth[x][y] > water_depth_erosion_threshold)
+        {
+          double temptot2 = 0;
+          double veltot = 0;
+          double vel = 0;
+          double qtot = 0;
+          double tau = 0;
+          double velnum = 0;
+          double slopetot = 0;
+
+          std::vector<double> temp_dist(11, 0.0);    // this vector holds the amountto be removed from the cell in each grain size
+          std::vector<double> tempdir(11, 0.0);    // this vector holds the velocity directions temporariliy
+
+          // check to see if index for that cell...
+          if (index[x][y] == -9999)
+          {
+            addGS(x, y);
+          }
+
+          // now tot up velocity directions, velocities and edge directions.
+          erosion_velocities(tempdir, x, velnum, slopetot, vel, qtot, temptot2, veltot, y);
+          erosion_shear_stresses(vel, y, slopetot, qtot, x, tau);
+
+          ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+          ///
+          /// MAIN EROSION SUB-ROUTINE
+          ///
+          ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+          if (tau > 0)
+          {
+            double d_50 = 0;
+            double Fs = 0;
+            double Di = 0;
+            double graintot = 0;
+            double temptot1 = 0;
+
+            // Iterate over every grain size fraction and calculate
+            // sediment entrainment for each fraction
+            sediment_entrainment(Di, temp_dist, graintot, mult_factor, 
+                                 d_50, Fs, rho, y, temptot1, x, tau);
+
+            // Check if this makes it below bedrock and erode bedrock
+            if (bedrock_layer_on)
+            {  
+              bedrock_erosion(x, tau, temptot1, y, temp_dist, mult_factor);
+            }
+
+            // Erode the vegetation layer
+            if (vegetation_on) // if clause added - DV
+            {
+              erosion_vegetation_buffer(tau, mult_factor, x, y, temptot1, temp_dist);
+            }
+
+            // keep tally of maximum erosion total
+            if (temptot1 > tempbmax2[y])
+            {
+              tempbmax2[y] = temptot1;
+            }
+
+            // now work out what portion of bedload has to go where...
+            // only allow actual transfer of sediment if there is flow in a direction - i.e. some sediment transport
+            if (temptot1> 0 )  // Do we have some entrained sediment to transport?
+            {
+              route_bedload(x, temp_dist, tempdir, temptot2, y, veltot);
+            }
+          }
+        }
+      }
+    }
+    // we have to do a reduction on tempbmax. (If parallelism later implemented)
+    //
+    // todo DAV: you can do this with the OpenMP reduction clause, no need
+    // to manually perform reduction here.
+    for (int y = 1; y <= jmax; y++)
+    {
+      if (tempbmax2[y] > tempbmax)
+      {
+        tempbmax = tempbmax2[y];
+      }
+    }
+
+    if (tempbmax > ERODEFACTOR)
+    {
+      time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
+    }
+
+  } while(tempbmax > ERODEFACTOR);  // Continue as long as we haven't exceeded max erosion amount
+
+  // new temp erode array.
+  TNT::Array2D<double> erodetot(imax + 2, jmax + 2, 0.0);    // erosion difference in x and y directions
+  TNT::Array2D<double> erodetot3(imax + 2, jmax +2, 0.0);    // erosion in the [x][y] cell
+
+  // Same comment as previous omp pragmas - change to using explicit shared/private
+  erosion_sediment_totals(erodetot, erodetot3);
+  
+  // Move sediment to adjacent cells
+  move_sedi_x_dir(erodetot3, mult_factor);
+  move_sedi_y_dir(mult_factor, erodetot3);
+
+  // now calculate sediment outputs from all four edges...
+  sediment_outputs(gtot2);
 
   return tempbmax;
 }
