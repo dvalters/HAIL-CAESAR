@@ -3369,6 +3369,18 @@ double LSDCatchmentModel::erode(double mult_factor)
     std::vector<double> tempbmax2(jmax + 2, 0.0);
 
     // DAV TODO - should use explicit shared/private here to avoid bugs
+    // 1) Calculates veolcities
+    // 2) Calculates shear stresses
+    // 3) Calculates entrainment amounts
+    // 4) Calculates routing directions
+    
+    // 5) Update sediment totals
+    
+    // 6) Move sediment X direction
+    // 7) Move sediment Y direction
+    
+    // 7) Calcualte sediment outputs from edges
+    
     #pragma omp parallel for
     for (int y = 1; y < jmax; y++)
     {
@@ -3832,7 +3844,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             // it drops sediment out][but cannot entrain as ss levels in input are too high leading to
             // little mountains of sediment. This means a new array in order to check whether a cell is an
             // input point or not..
-            if (!inputpointsarray[x][y])
+            if (!inputpointsarray[x][y]) // Only if reach mode later implemented
             {
               // now calc ss to be dropped
               double coeff = (fallVelocity[n] * time_factor) / water_depth[x][y];
@@ -3883,91 +3895,108 @@ double LSDCatchmentModel::erode(double mult_factor)
         //
         // test lateral code...
         //
+      }
+    }
+  }
+  
 
-        ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-        ///
-        /// MOVE SEDI IN X DIRECTION
-        ///
-        ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-        if (erodetot3[x][y] > 0)
+  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  ///
+  /// MOVE SEDI IN X DIRECTION
+  ///
+  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  #pragma omp parallel for
+  for (int y=2; y< jmax; y++)
+  {
+    int inc = 1;
+    while (down_scan[y][inc] > 0)
+    {
+      int x = down_scan[y][inc];
+      inc++;
+      if (erodetot3[x][y] > 0)
+      {
+        double elev_update = 0;
+
+        if (elev[x - 1][y] > elev[x][y] && x > 2)
         {
-          double elev_update = 0;
+          double amt = 0;
 
-          if (elev[x - 1][y] > elev[x][y] && x > 2)
+          if (water_depth[x - 1][y] < water_depth_erosion_threshold)
           {
-            double amt = 0;
-
-            if (water_depth[x - 1][y] < water_depth_erosion_threshold)
-            {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * time_factor /DX;
-            }
-            else
-            {
-              amt = chann_lateral_erosion * erodetot3[x][y] * (elev[x - 1][y] - elev[x][y]) / DX * 0.1;
-            }
-
-            if (amt > 0)
-            {
-              amt *= 1 - (veg[x - 1][y][1] * (1 - veg_lat_restriction));
-
-              if ((elev[x - 1][y] - amt) < bedrock[x - 1][y] || x - 1 == 1)
-              {
-                amt = 0;
-              }
-              if (amt > ERODEFACTOR * 0.1)
-              {
-                amt = ERODEFACTOR * 0.1;
-              }
-              //if (amt > erodetot2 / 2) amt = erodetot2 / 2;
-              elev_update += amt;
-              elev[x - 1][y] -= amt;
-
-              // Move grains from cell-to-left to current cell
-              slide_GS(x - 1, y, amt, x, y);
-            }
+            amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * time_factor /DX;
           }
-          if (elev[x + 1][y] > elev[x][y] && x < imax-1)
+          else
           {
-            double amt = 0;
-            if (water_depth[x + 1][y] < water_depth_erosion_threshold)
-            {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * time_factor / DX;
-            }
-            else
-            {
-              amt = chann_lateral_erosion * erodetot3[x][y] * (elev[x + 1][y] - elev[x][y]) / DX * 0.1;
-            }
-
-            if (amt > 0)
-            {
-              amt *= 1 - (veg[x + 1][y][1] * (1 - veg_lat_restriction));
-
-              if ((elev[x + 1][y] - amt) < bedrock[x + 1][y] || x + 1 == imax)
-              {
-                amt = 0;
-              }
-              if (amt > ERODEFACTOR * 0.1)
-              {
-                amt = ERODEFACTOR * 0.1;
-              }
-              //if (amt > erodetot2 /2) amt = erodetot2 /2;
-
-              elev_update += amt;
-              elev[x + 1][y] -= amt;
-
-              // Move grains from cell-to-right, to current cell
-              slide_GS(x + 1, y, amt, x, y);
-            }
+            amt = chann_lateral_erosion * erodetot3[x][y] * (elev[x - 1][y] - elev[x][y]) / DX * 0.1;
           }
 
-          elev[x][y] += elev_update;
+          if (amt > 0)
+          {
+            amt *= 1 - (veg[x - 1][y][1] * (1 - veg_lat_restriction));
+
+            if ((elev[x - 1][y] - amt) < bedrock[x - 1][y] || x - 1 == 1)
+            {
+              amt = 0;
+            }
+            if (amt > ERODEFACTOR * 0.1)
+            {
+              amt = ERODEFACTOR * 0.1;
+            }
+            //if (amt > erodetot2 / 2) amt = erodetot2 / 2;
+            elev_update += amt;
+            elev[x - 1][y] -= amt;
+
+            // Move grains from cell-to-left to current cell
+            slide_GS(x - 1, y, amt, x, y);
+          }
         }
+        if (elev[x + 1][y] > elev[x][y] && x < imax-1)
+        {
+          double amt = 0;
+          if (water_depth[x + 1][y] < water_depth_erosion_threshold)
+          {
+            amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * time_factor / DX;
+          }
+          else
+          {
+            amt = chann_lateral_erosion * erodetot3[x][y] * (elev[x + 1][y] - elev[x][y]) / DX * 0.1;
+          }
+
+          if (amt > 0)
+          {
+            amt *= 1 - (veg[x + 1][y][1] * (1 - veg_lat_restriction));
+
+            if ((elev[x + 1][y] - amt) < bedrock[x + 1][y] || x + 1 == imax)
+            {
+              amt = 0;
+            }
+            if (amt > ERODEFACTOR * 0.1)
+            {
+              amt = ERODEFACTOR * 0.1;
+            }
+            //if (amt > erodetot2 /2) amt = erodetot2 /2;
+
+            elev_update += amt;
+            elev[x + 1][y] -= amt;
+
+            // Move grains from cell-to-right, to current cell
+            slide_GS(x + 1, y, amt, x, y);
+          }
+        }
+
+        elev[x][y] += elev_update;
       }
     }
   }
 
+
   // DAV - to test
-  //#pragma omp parallel for
+  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  ///
+  /// MOVE SEDI IN Y DIRECTION
+  ///
+  ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  #pragma omp parallel for
   for (int y = 2; y < jmax; y++)
   {
     int inc = 1;
@@ -3976,11 +4005,6 @@ double LSDCatchmentModel::erode(double mult_factor)
       int x = down_scan[y][inc];
       inc++;
       {
-        ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-        ///
-        /// MOVE SEDI IN Y DIRECTION
-        ///
-        ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         if (erodetot3[x][y] > 0)
         {
           double elev_update = 0;
