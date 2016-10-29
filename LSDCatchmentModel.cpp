@@ -198,6 +198,42 @@ void LSDCatchmentModel::run_components()
     }
     //call_lateral();
     water_flux_out(local_time_factor);  // temptot is zeroed, then calculated here
+    
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // LANDSLIDING, VEGEATION AND CREEP CALLS
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // Local landsliding every 10 iterations
+    // Soil creep every 10 days
+    if (!hydro_only)
+    {
+      if (std::remainder(counter, 10) == 0)
+      {
+        slide_3();
+      }
+      if (cycle > creep_time)
+      {
+        creep_time += 14400; // Add 10 days
+        creep(0.028);  // Make this number user selectable
+      }
+    }
+    
+    // Channel landsliding every day
+    if (cycle > creep_time2)
+    {
+      // evaporate(1440);
+      creep_time2 += 1440; // Add 1 day
+      
+      if (!hydro_only)
+      {
+        slide_5();
+        
+        if (vegetation_on) 
+        {
+          grow_grass(1 / (grow_grass_time * 365));
+        }
+      }
+    }
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
     temptotal = temptot;
 
@@ -3547,52 +3583,55 @@ double LSDCatchmentModel::erode(double mult_factor)
             ///
             ///-=-=-=-=-=-=-=-=-=-=-=-=-
             // Check if this makes it below bedrock
-            if (elev[x][y] - temptot1 <= bedrock[x][y])
-            {
-              // now remove from proportion that can be eroded..
-              // we can do this as we have the prop (in temptot) that is there to be eroded.
-              double elevdiff = elev[x][y] - bedrock[x][y];
-              double temptot3 = temptot1;
-              temptot1 = 0;
-              for (int n = 1; n <= G_MAX-1; n++)
+            if (bedrock_layer_on)
+            {  
+              if (elev[x][y] - temptot1 <= bedrock[x][y])
               {
-                if (elev[x][y] <= bedrock[x][y])
+                // now remove from proportion that can be eroded..
+                // we can do this as we have the prop (in temptot) that is there to be eroded.
+                double elevdiff = elev[x][y] - bedrock[x][y];
+                double temptot3 = temptot1;
+                temptot1 = 0;
+                for (int n = 1; n <= G_MAX-1; n++)
                 {
-                  temp_dist[n] = 0;
-                }
-                else
-                {
-                  temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
-                  if (temp_dist[n] < 0)
+                  if (elev[x][y] <= bedrock[x][y])
                   {
                     temp_dist[n] = 0;
                   }
+                  else
+                  {
+                    temp_dist[n] = elevdiff * (temp_dist[n] / temptot3);
+                    if (temp_dist[n] < 0)
+                    {
+                      temp_dist[n] = 0;
+                    }
+                  }
+                  temptot1 += temp_dist[n];
                 }
-                temptot1 += temp_dist[n];
-              }
-
-              ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-              ///
-              /// BEDROCK EROSION SUB-ROUTINE
-              ///
-              ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-              if (tau > bedrock_erosion_threshold)
-              {
-                //double amount = 0; // amount is amount of erosion into the bedrock.
-                //amount = std::pow(bedrock_erosion_rate * tau, 1.5) * time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
-                //bedrock[x][y] -= amount;
-
-                // New bedrock erosion version - DAV
-                double p_b = 1.5;  // detach capacity exponent from CHILD
-                double amount = 0; // amount of erosion into bedrock
-                amount = bedrock_erodibility_coeff_ke * std::pow(tau - bedrock_erosion_threshold, p_b) * time_factor * mult_factor * 0.000000317;
-                bedrock[x][y] -= amount;
-
-                // now add amount of bedrock eroded into sediment proportions.
-
-                for (int g=1; g<=G_MAX -1; g++)
+  
+                ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+                ///
+                /// BEDROCK EROSION SUB-ROUTINE
+                ///
+                ///-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                if (tau > bedrock_erosion_threshold)
                 {
-                    grain[index[x][y]][g] += amount * dprop[g];
+                  //double amount = 0; // amount is amount of erosion into the bedrock.
+                  //amount = std::pow(bedrock_erosion_rate * tau, 1.5) * time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
+                  //bedrock[x][y] -= amount;
+  
+                  // New bedrock erosion version - DAV
+                  double p_b = 1.5;  // detach capacity exponent from CHILD
+                  double amount = 0; // amount of erosion into bedrock
+                  amount = bedrock_erodibility_coeff_ke * std::pow(tau - bedrock_erosion_threshold, p_b) * time_factor * mult_factor * 0.000000317;
+                  bedrock[x][y] -= amount;
+  
+                  // now add amount of bedrock eroded into sediment proportions.
+  
+                  for (int g=1; g<=G_MAX -1; g++)
+                  {
+                      grain[index[x][y]][g] += amount * dprop[g];
+                  }
                 }
               }
             }
@@ -4558,18 +4597,18 @@ void LSDCatchmentModel::creep(double time)
   int x,y;
   double temp;
 
-  for(x=1;x<=jmax;x++)
+  for(x=1;x<=imax;x++)
   {
-    for(y=1;y<=imax;y++)
+    for(y=1;y<=jmax;y++)
     {
       tempcreep[x][y]=0;
     }
   }
 
 
-  for(x=2;x<jmax;x++)
+  for(x=2;x<imax;x++)
   {
-    for(y=2;y<imax;y++)
+    for(y=2;y<jmax;y++)
     {
       if(elev[x][y]>bedrock[x][y])
       {
@@ -4674,9 +4713,9 @@ void LSDCatchmentModel::creep(double time)
     }
   }
 
-  for(x=1;x<=jmax;x++)
+  for(x=1;x<=imax;x++)
   {
-    for(y=1;y<=imax;y++)
+    for(y=1;y<=jmax;y++)
     {
       elev[x][y]+=tempcreep[x][y];
     }
@@ -4692,7 +4731,7 @@ void LSDCatchmentModel::slide_3()
   double factor=std::tan((failureangle*(3.141592654/180)))*DX;
   double diff=0;
 
-  for(y=2;y<imax;y++)
+  for(y=2;y<jmax;y++)
   {
 
     inc=1;
@@ -4700,7 +4739,7 @@ void LSDCatchmentModel::slide_3()
     {
 
       x=down_scan[y][inc];
-      if(x==jmax)x=jmax-1;
+      if(x==imax)x=imax-1;
       if(x==1)x=2;
 
       inc++;
@@ -4793,9 +4832,9 @@ void LSDCatchmentModel::slide_5()
 
   if (dunes_opt == true)
   {
-    for (x = 1; x <= jmax; x++)
+    for (x = 1; x <= imax; x++)
     {
-      for (y = 1; y <= imax; y++)
+      for (y = 1; y <= jmax; y++)
       {
         elev[x][y] -= sand[x][y];
       }
@@ -4807,9 +4846,9 @@ void LSDCatchmentModel::slide_5()
   {
     total = 0;
     inc++;
-    for (y = 2; y < imax; y++)
+    for (x = 2; x < imax; x++)
     {
-      for (x = 2; x < jmax; x++)
+      for (y = 2; y < jmax; y++)
       {
 
         wet_factor = factor;
@@ -4900,9 +4939,9 @@ void LSDCatchmentModel::slide_5()
 
   if (dunes_opt == true)
   {
-    for (x = 1; x <= jmax; x++)
+    for (x = 1; x <= imax; x++)
     {
-      for (y = 1; y <= imax; y++)
+      for (y = 1; y <= jmax; y++)
       {
         elev[x][y] += sand[x][y];
       }
@@ -5128,6 +5167,85 @@ void LSDCatchmentModel::soil_development()
         {
           // TO DO
         }
+      }
+    }
+  }
+}
+
+void LSDCatchmentModel::grow_grass(double amount3)
+{
+  for(int x=1; x<=imax; x++)
+  {
+    for(int y=1; y<=jmax; y++)
+    {
+      //first check if veg is at 0.. not sure if this is needed now..
+      if (veg[x][y][0] == 0)
+      {
+          veg[x][y][0] = elev[x][y];
+      }
+
+      // first check if under water or not..
+      if (water_depth[x][y] < water_depth_erosion_threshold)
+      {
+        // if not then it
+        // now adds to the amount of veg there.. 
+        veg[x][y][1] += amount3;
+            
+        if(veg[x][y][1] > 1)
+        {
+          veg[x][y][1] = 1;
+        }
+      }
+
+      // check if veg below elev! if so raise to elev
+      if (veg[x][y][0] < elev[x][y]) // raises the veg level if it gets buried.. but only by a certain amount (0.001m day...)
+      {
+        veg[x][y][0] += 0.001; // this is an arbitrary amount..
+        if (veg[x][y][0] > elev[x][y]) veg[x][y][0] = elev[x][y];
+      }
+
+      // check if veg above elev! if so lower to elev
+      if (veg[x][y][0] > elev[x][y]) 
+      {
+        veg[x][y][0] -= 0.001; // this is an arbitrary amount..
+        if (veg[x][y][0] < elev[x][y]) veg[x][y][0] = elev[x][y];
+      }
+
+      // trying to see now, if veg is above elev - so if lateral erosion happens - more than 0.1m the veg gets wiped..
+
+      if (veg[x][y][0] - elev[x][y] > 0.1)
+      {
+        veg[x][y][1] = 0;
+        veg[x][y][0] = elev[x][y];
+      }
+
+      // now see if veg under water - if so let it die back a bit..
+      if(water_depth[x][y] > water_depth_erosion_threshold && veg[x][y][1] > 0)
+      {
+        veg[x][y][1] -= (amount3 / 2);
+        if (veg[x][y][1] < 0)
+        {
+          veg[x][y][1] = 0;
+          veg[x][y][0] = elev[x][y]; // resets elev if veg amt is 0
+        }
+      }
+
+      // also if it is under sediment - then dies back a bit too...
+      if (veg[x][y][0] < elev[x][y]) 
+      {
+        veg[x][y][1] -= (amount3 / 2);
+        if (veg[x][y][1] < 0)
+        {
+          veg[x][y][1] = 0;
+          veg[x][y][0] = elev[x][y]; // resets elev if veg amt is 0
+        }
+      }
+
+      // but if it is under sediment, has died back to nearly 0 (0.05) then it resets the elevation 
+      // to the surface elev.
+      if (veg[x][y][0] < elev[x][y] && veg[x][y][1] < 0.05)
+      {
+        veg[x][y][0] = elev[x][y];
       }
     }
   }
