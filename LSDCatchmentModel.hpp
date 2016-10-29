@@ -335,6 +335,48 @@ public:
   // (DEPRECATED)
   //
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  /// Calculates the water velocities for the erosion routines
+  void erosion_velocities(std::vector<double>& tempdir, int& x, double& velnum, 
+                          double& slopetot, double& vel, double& qtot, 
+                          double& temptot2, double& veltot, int& y);
+  
+  /// Calculate the shear stresses in each cell for doing erosion entrainment
+  void erosion_shear_stresses(double& vel, int& y, double& slopetot, 
+                              double& qtot, int& x, double& tau);
+  
+  /// Calculate sediment entrainment from lose layers
+  void sediment_entrainment(double& Di, std::vector<double>& temp_dist, 
+                            double& graintot, double& mult_factor, double& d_50, 
+                            double& Fs, double& rho, int& y, double& temptot1, 
+                            int& x, double& tau);
+  
+  void wilcock_sed_transport(double& mult_factor, double& d_50, int& y, 
+                             double& tau, int& n, double& graintot, 
+                             std::vector<double>& temp_dist, double& rho, 
+                             int& x, double& Di, double& Fs);
+  
+  void einstein_sed_transport(std::vector<double>& temp_dist, double& tau, 
+                              int& n, double& Di, double& mult_factor);
+  
+  void bedrock_erosion(int& x, double& tau, double& temptot1, 
+                       int& y, std::vector<double>& temp_dist, double& mult_factor);
+  
+  void erosion_vegetation_buffer(double& tau, double& mult_factor, int& x, int& y, 
+                                 double& temptot1, std::vector<double>& temp_dist);
+  
+  void route_bedload(int& x, std::vector<double>& temp_dist, std::vector<double>& tempdir, 
+                     double& temptot2, int& y, double& veltot);
+  
+  void erosion_sediment_totals(TNT::Array2D<double>& erodetot, 
+                               TNT::Array2D<double>& erodetot3);
+  
+  void move_sedi_x_dir(TNT::Array2D<double>& erodetot3, double& mult_factor);
+  
+  void move_sedi_y_dir(double& mult_factor, TNT::Array2D<double>& erodetot3);
+  
+  void sediment_outputs(std::array<double, 20>& gtot2);
+  
 protected:
 
   /// This map holds all the possible model switches
