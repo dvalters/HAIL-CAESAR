@@ -3083,6 +3083,8 @@ void LSDCatchmentModel::sort_active(int x,int y)
  // NEW METHOD for N number of grain sizes
 void LSDCatchmentModel::addGS(int x, int y)
 {
+  #pragma omp critical(addGS)
+  {
   int n, q;
   grain_array_tot++;
   index[x][y] = grain_array_tot;
@@ -3112,6 +3114,7 @@ void LSDCatchmentModel::addGS(int x, int y)
       }
   }
   sort_active(x, y);
+  }
 }
 
 double LSDCatchmentModel::sand_fraction(int index1)
