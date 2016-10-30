@@ -503,7 +503,7 @@ protected:
   double CREEP_RATE=0.0025;
   double SOIL_RATE = 0.0025;
   double active=0.2;
-  int G_MAX=10;
+  unsigned int G_MAX=10;
   int grain_array_tot =1 ;
 
   /// Number of passes for edge smoothing filter

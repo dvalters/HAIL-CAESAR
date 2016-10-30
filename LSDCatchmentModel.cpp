@@ -5472,6 +5472,7 @@ double LSDCatchmentModel::erode(double mult_factor)
         }//);
 
         //Parallel.For2(2, jmax, delegate(int y)
+        #pragma omp parallel for 
         for (int y = 2; y < jmax; ++y)
         {
             int inc = 1;
