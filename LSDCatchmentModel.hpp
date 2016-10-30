@@ -214,7 +214,7 @@ public:
   void get_catchment_input_points(runoffGrid& runoff);
 
   /// @brief Writes the time series of catchment output data.
-  void output_data(double temptotal);
+  void output_data();
   
   /// @brief Writes the time series of catchment output data.
   /// @detail Overloaded to take a reference to a runoff object
