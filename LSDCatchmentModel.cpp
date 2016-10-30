@@ -157,6 +157,7 @@ void LSDCatchmentModel::run_components()
     {
       local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
     }
+    //std::cout << maxdepth << ", " << local_time_factor << std::endl;
 
     // increment the counters
     counter++;
@@ -245,7 +246,7 @@ void LSDCatchmentModel::run_components()
     else
     {
       // uses the global array
-      output_data(temptotal);
+      output_data();
     }
     
     // removed for archer output files
@@ -1443,12 +1444,13 @@ void LSDCatchmentModel::set_fall_velocities()
 
 void LSDCatchmentModel::get_area()
 {
-  // gets the drainage area
-  // Could possible come from one of the other LSDRaster objects
+  // Zeros the area and are-depth arrays
+  // Sets area_depth to ones as a flag but
+  // zeros the ones outisde the catchment
 
-  for(int i=0; i<=imax; i++)
+  for(int i=1; i<=imax; i++)
   {
-    for(int j=0; j<=jmax; j++)
+    for(int j=1; j<=jmax; j++)
     {
       area_depth[i][j]=1;
       area[i][j] = 0;
@@ -1737,7 +1739,7 @@ void LSDCatchmentModel::call_slide5()   // not exactly sure what slide_5 does di
 //=-=-=-=-=-=-=-=-=-=
 // This will not work with the new implementation of the Rainfall and Runoff objects
 // Need an overloaded method and some conditional statement. - DAV done June 2016
-void LSDCatchmentModel::output_data(double temptotal)
+void LSDCatchmentModel::output_data()
 // this was part of erodep() in CL but I felt it should have its own method call - DAV
 {
   unsigned int n;
@@ -2417,9 +2419,13 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)
 void LSDCatchmentModel::qroute()
 {
   double local_time_factor = time_factor;
-  if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+  if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) 
+  {
+    local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+  }
 
   // Should use explicitly private/shared here to avoid bugs - DAV TO DO
+  
   #pragma omp parallel for
   for (int y=1; y<=jmax; y++)
   {
@@ -2728,7 +2734,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     do
     {
       time_1++;
-      calc_J(time_1++, runoff);  // calc_J is based on the rainfall rate supplied to the cell
+      calc_J(time_1, runoff);  // calc_J is based on the rainfall rate supplied to the cell
       if (time_factor > max_time_step && new_jmeanmax > (0.2 / (jmax * imax * DX * DX)))
         // check after the variable rainfall area has been added
         // stops code going too fast when there is actual flow in the channels greater than 0.2cu
@@ -5027,10 +5033,11 @@ double LSDCatchmentModel::erode(double mult_factor)
             counter2++;
             tempbmax = 0;
             
-            std::vector<double> tempbmax2(jmax + 2);
+            std::vector<double> tempbmax2(jmax + 2, 0.0);
 
             //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
             //Parallel.For(1, jmax, options, delegate(int y)
+            #pragma omp parallel for
             for (unsigned int y = 1; y < jmax; ++y) 
             {
                 int inc = 1;
@@ -5348,13 +5355,14 @@ double LSDCatchmentModel::erode(double mult_factor)
         //double[,] erodetot3;
         //erodetot3 = new Double[imax + 2][jmax + 2];
             
-        TNT::Array2D<double> erodetot(imax+2,jmax+2);
-        TNT::Array2D<double> erodetot3(imax+2,jmax+2);
+        TNT::Array2D<double> erodetot(imax+2,jmax+2, 0.0);
+        TNT::Array2D<double> erodetot3(imax+2,jmax+2, 0.0);
         
             
 
         //var options1 = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
         //Parallel.For(2, jmax, options1, delegate(int y)
+        #pragma omp parallel for
         for (unsigned int y = 2; y < jmax; ++y)             
         {
             int inc = 1;
