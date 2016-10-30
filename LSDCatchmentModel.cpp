@@ -2697,7 +2697,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor,
                                                                  runoffGrid& runoff)     
 {
-  #pragma omp parallel for
+  #pragma omp parallel for reduction(+:waterinput)
   for (int i=1; i<imax; i++)
   {
     for (int j=1; j<jmax; j++)
@@ -5037,7 +5037,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 
             //var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount *  4 };
             //Parallel.For(1, jmax, options, delegate(int y)
-            #pragma omp parallel for
+            #pragma omp parallel for reduction(max:tempbmax)
             for (unsigned int y = 1; y < jmax; ++y) 
             {
                 int inc = 1;
@@ -5279,7 +5279,10 @@ double LSDCatchmentModel::erode(double mult_factor)
                                 }
                             }
 
-                            if (temptot1 > tempbmax2[y]) tempbmax2[y] = temptot1;
+                            if (temptot1 > tempbmax) 
+                            {
+                              tempbmax = temptot1;
+                            }
                             //tempStatusPanel.Text = Convert.ToString(temptot1);
 
                             // now work out what portion zof bedload has to go where...
@@ -5337,7 +5340,8 @@ double LSDCatchmentModel::erode(double mult_factor)
                 }
             }//);
             // we have to do a reduction on tempbmax.
-            for (int y = 1; y <= jmax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];
+            //for (int y = 1; y <= jmax; y++) if (tempbmax2[y] > tempbmax) tempbmax = tempbmax2[y];
+            // DV - Swapped into auto reduction with openmp
 
             if (tempbmax > ERODEFACTOR)
             {
