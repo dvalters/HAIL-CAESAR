@@ -247,6 +247,10 @@ public:
   /// Contains calls to subroutines such as addGS() and d50().
   /// Needs re-factoring to extract seprate methods (bedrock vs loose sedi erosion etc.)
   /// @author DAV
+  double erode_OLD(double mult_factor);
+  
+  double erode_OLDER(double mult_factor);
+  
   double erode(double mult_factor);
 
   /// @brief carries out the lateral bank erosion.
@@ -376,6 +380,10 @@ public:
   void move_sedi_y_dir(double& mult_factor, TNT::Array2D<double>& erodetot3);
   
   void sediment_outputs(std::array<double, 20>& gtot2);
+  
+  void zero_velocities_and_sediment_arrays(int y, int x);
+  
+  void calc_erosion_timefactor();
   
 protected:
 
