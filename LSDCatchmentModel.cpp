@@ -186,7 +186,7 @@ void LSDCatchmentModel::run_components()
     depth_update();
 
     // check scan area every 5 iters.. maybe re-visit for reach mode if it causes too much backing up of sed. see code commented below nex if..
-    if (std::remainder(counter, 5) == 0)
+    if ((counter % 5) == 0)
     {
       scan_area();
     }
@@ -206,7 +206,7 @@ void LSDCatchmentModel::run_components()
     // Soil creep every 10 days
     if (!hydro_only)
     {
-      if (std::remainder(counter, 10) == 0)
+      if ((counter % 10) == 0)
       {
         slide_3();
       }
@@ -1581,7 +1581,7 @@ void LSDCatchmentModel::get_area4()
         // Calculates the total drop (difference) in elevation of surrounding cells
         // cumulatively.
         // D8
-        if (std::remainder(dir, 2) != 0)
+        if (dir % 2 != 0)
         {
           if (elev[i2][j2] < elev[i][j]) difftot += elev[i][j] - elev[i2][j2];
         }
@@ -1609,7 +1609,7 @@ void LSDCatchmentModel::get_area4()
           if (i2 > imax) i2 = imax;
 
           // swap comment lines below for drainage area from D8 or Dinfinity
-          if (std::remainder(dir, 2) != 0)
+          if (dir % 2 != 0)
           {
             if (elev[i2][j2] < elev[i][j]) area_depth[i2][j2] += area_depth[i][j] * ((elev[i][j] - elev[i2][j2]) / difftot);
           }
@@ -1667,7 +1667,7 @@ void LSDCatchmentModel::call_lateral()
 // CARRY OUT LOCAL LANDSLIDES EVERY X ITERATIONS...
 void LSDCatchmentModel::call_landsliding()
 {
-  if (std::remainder(counter, 10) == 0)
+  if (counter % 10 == 0)
   {
     slide_3();   // slide_3 in CL is the implemented land sliding function
   }
@@ -1740,10 +1740,10 @@ void LSDCatchmentModel::call_slide5()   // not exactly sure what slide_5 does di
 void LSDCatchmentModel::output_data(double temptotal)
 // this was part of erodep() in CL but I felt it should have its own method call - DAV
 {
-  int n;
+  unsigned int n;
   Qw_newvol += temptotal*((cycle - previous)*60); // 60 seconds per min
 
-  for (int nn = 1; nn <= rfnum; nn++)
+  for (unsigned int nn = 1; nn <= rfnum; nn++)
   {
     Jw_newvol += (j_mean[nn] * DX * DX * nActualGridCells[nn]) * ((cycle - previous)*60);
   }
@@ -1812,7 +1812,7 @@ void LSDCatchmentModel::output_data(double temptotal)
       Qw_hour = Qw_hourvol/(60*output_file_save_interval); // convert hourly water volume to cumecs
 
       // same for Jw (j_mean contribution)  MJ 14/03/05
-      for (int nn=1; nn<=rfnum; nn++)
+      for (unsigned int nn=1; nn<=rfnum; nn++)
       {
         Jw_overvol += (j_mean[nn] * DX * DX * nActualGridCells[nn])*((cycle - tx)*60);  // fixed MJ 29/03/05
         // TO DO: DV - is this right? Doesn't this overwrite JwOvervol each iter? should be +=?
@@ -1909,7 +1909,7 @@ void LSDCatchmentModel::output_data(double temptotal)
 // Overloaded function for the fully distributed rainfall and runoff objects
 void LSDCatchmentModel::output_data(double temptotal, runoffGrid& runoff)
 {
-  int n;
+  unsigned int n;
   Qw_newvol += temptotal*((cycle - previous)*60); // 60 seconds per min
 
   //for (int nn = 1; nn <= rfnum; nn++)
@@ -2565,7 +2565,7 @@ void LSDCatchmentModel::depth_update()
   std::vector<double> tempmaxdepth2(jmax+2);
 
   maxdepth = 0;
-  #pragma omp parallel for
+  #pragma omp parallel for reduction(max:maxdepth)
   for (int y = 1; y<= jmax; y++)
   {
     int inc = 1;
@@ -2591,10 +2591,13 @@ void LSDCatchmentModel::depth_update()
         if (water_depth[x][y] > tempmaxdepth) tempmaxdepth = water_depth[x][y];
       }
     }
-    tempmaxdepth2[y] = tempmaxdepth;
+    if (tempmaxdepth > maxdepth)
+    {
+      maxdepth = tempmaxdepth;
+    }
   }
   // reduction for later parallelism implementation DAV
-  for (int y = 1; y <= jmax; y++) if (tempmaxdepth2[y] > maxdepth) maxdepth = tempmaxdepth2[y];
+  //for (int y = 1; y <= jmax; y++) if (tempmaxdepth2[y] > maxdepth) maxdepth = tempmaxdepth2[y];
 }
 
 // DAV - This can be split into subfunctions
@@ -4039,12 +4042,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 {
   double rho = 1000.0;
   double tempbmax = 0;
-  std::array<double,20> gtot2 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
-  for (int n = 0; n <= G_MAX; n++)
-  {
-    gtot2[n] = 0;
-  }
+  std::array<double,20> gtot2{};
 
   time_factor = time_factor * 1.5;
   if (time_factor > max_time_step)
@@ -4052,13 +4050,12 @@ double LSDCatchmentModel::erode(double mult_factor)
     time_factor = max_time_step;
   }
 
-  int counter2 = 0;
+
   do
   {
-    counter2++;
     tempbmax = 0;
 
-    std::vector<double> tempbmax2(jmax + 2, 0.0);
+    //std::vector<double> tempbmax2(jmax + 2, 0.0);
 
     // DAV TODO - should use explicit shared/private here to avoid bugs
     // 1) Calculates velocities
@@ -4073,7 +4070,7 @@ double LSDCatchmentModel::erode(double mult_factor)
     
     // 7) Calcualte sediment outputs from edges
     
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(max:tempbmax)            
     for (int y = 1; y < jmax; y++)
     {
       int inc = 1;
@@ -4150,9 +4147,9 @@ double LSDCatchmentModel::erode(double mult_factor)
             }
 
             // keep tally of maximum erosion total
-            if (temptot1 > tempbmax2[y])
+            if (temptot1 > tempbmax)
             {
-              tempbmax2[y] = temptot1;
+              tempbmax = temptot1;
             }
 
             // now work out what portion of bedload has to go where...
@@ -4169,13 +4166,13 @@ double LSDCatchmentModel::erode(double mult_factor)
     //
     // todo DAV: you can do this with the OpenMP reduction clause, no need
     // to manually perform reduction here.
-    for (int y = 1; y <= jmax; y++)
-    {
-      if (tempbmax2[y] > tempbmax)
-      {
-        tempbmax = tempbmax2[y];
-      }
-    }
+//    for (int y = 1; y <= jmax; y++)
+//    {
+//      if (tempbmax2[y] > tempbmax)
+//      {
+//        tempbmax = tempbmax2[y];
+//      }
+//    }
 
     if (tempbmax > ERODEFACTOR)
     {
