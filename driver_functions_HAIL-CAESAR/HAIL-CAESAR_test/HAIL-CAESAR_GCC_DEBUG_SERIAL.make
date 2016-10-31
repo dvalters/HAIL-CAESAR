@@ -1,8 +1,8 @@
 CC = g++
-CFLAGS= -c -Wreturn-type -O3 -funroll-loops -std=gnu++11 -fopenmp \
-		-DOMP_COMPILE_FOR_PARALLEL
-OFLAGS = -Wall -O3 -funroll-loops -std=gnu++11 -fopenmp 
-LDFLAGS= -Wall
+CFLAGS= -c -Wreturn-type -Og -pg -ggdb -std=gnu++11 -D_GLIBCXX_DEBUG \
+			-DDEBUG
+OFLAGS = -Wreturn-type -Og -pg -ggdb -std=gnu++11 -D_GLIBCXX_DEBUG -DDEBUG
+LDFLAGS= -Wreturn-type
 SOURCES = ../HAIL-CAESAR_driver.cpp \
 			../../LSDCatchmentModel.cpp \
 			../../LSDRaster.cpp \
@@ -16,7 +16,7 @@ OBJ = $(SOURCES:.cpp=.o)
 #LIBS = -lfftw3 -lpython2.7 -g -O0 -D_GLIBCXX_DEBUG
 #LIBS = -lfftw3 -lpython2.7 -Wwrite-strings
 LIBS = 
-EXEC = HAIL-CAESAR_OpenMP_GCC_Optimised.out
+EXEC = HAIL-CAESAR_SERIAL_GCC_DEBUG.out
 
 all: $(SOURCES) $(SCRIPTS) $(EXEC)
 
@@ -28,4 +28,4 @@ $(EXEC): $(OBJ)
 
 
 clean:
-	rm -f ../../$(OBJ) ../HAIL-CAESAR_driver.o HAIL-CAESAR_OpenMP_GCC_Optimised.out
+	rm -f ../../$(OBJ) ../HAIL-CAESAR_driver.o HAIL-CAESAR_SERIAL_GCC_DEBUG.out
