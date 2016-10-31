@@ -1300,7 +1300,7 @@ void LSDCatchmentModel::initialise_arrays()
 
   // Need to change this so it does not waste memory assigning arrays 
   // when running in hydro mode etc.
-  elev = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
+  elev = TNT::Array2D<double> (imax+2,jmax+2, -9999);
   water_depth = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
 
   // Cast to int and then double, what?
@@ -1319,18 +1319,18 @@ void LSDCatchmentModel::initialise_arrays()
   index = TNT::Array2D<int> (imax +2, jmax + 2, 0);
   elev_diff = TNT::Array2D<double> (imax + 2, jmax + 2);
 
-  bedrock = TNT::Array2D<double> (imax+2, jmax+2);
+  bedrock = TNT::Array2D<double> (imax+2, jmax+2, -9999);
   tempcreep = TNT::Array2D<double> (imax+2,jmax+2);
-  init_elevs = TNT::Array2D<double> (imax+2,jmax+2);
+  init_elevs = TNT::Array2D<double> (imax+2,jmax+2, -9999);
 
-  vel_dir = TNT::Array3D<double> (imax+2, jmax+2, 9);
+  vel_dir = TNT::Array3D<double> (imax+2, jmax+2, 9, 0.0);
   
-  Vsusptot = TNT::Array2D<double> (imax+2,jmax+2);
+  Vsusptot = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
 
   // Will come back to this later - DAV
   //if (vegetation_on)
   //{
-    veg = TNT::Array3D<double> (imax+1, jmax+1, 4);
+    veg = TNT::Array3D<double> (imax+1, jmax+1, 4, 0.0);
   //}
 
 
@@ -1361,15 +1361,15 @@ void LSDCatchmentModel::initialise_arrays()
 
   inputpointsarray = TNT::Array2D <bool> (imax + 2, jmax + 2);
 
-  edge = TNT::Array2D<double> (imax+1,jmax+1);
-  edge2 = TNT::Array2D<double> (imax+1,jmax+1);
+  edge = TNT::Array2D<double> (imax+1,jmax+1, 0.0);
+  edge2 = TNT::Array2D<double> (imax+1,jmax+1, 0.0);
 
-  Tau = TNT::Array2D<double> (imax+2,jmax+2);
+  Tau = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
 
-  catchment_input_x_coord = std::vector<int> (jmax * imax);
-  catchment_input_y_coord = std::vector<int> (jmax * imax);
+  catchment_input_x_coord = std::vector<int> (jmax * imax, 0);
+  catchment_input_y_coord = std::vector<int> (jmax * imax, 0);
 
-  area_depth = TNT::Array2D<double> (imax + 2, jmax + 2);
+  area_depth = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
 
   //dischargeinput = TNT::Array2D<double> (1000,5);
 
@@ -1398,22 +1398,22 @@ void LSDCatchmentModel::initialise_arrays()
   j_mean = std::vector<double> (rfnum + 1);  // std::vectors will be default initalised to 0, unless specified
   old_j_mean = std::vector<double> (rfnum + 1);
   new_j_mean = std::vector<double> (rfnum + 1);
-  rfarea = TNT::Array2D<int> (imax + 2, jmax + 2);
+  rfarea = TNT::Array2D<int> (imax + 2, jmax + 2, 0);
   nActualGridCells = std::vector<int> (rfnum + 1);
   catchment_input_counter = std::vector<int> (rfnum + 1);
   //catchment_input_counter_big = std::vector<int> (imax +1 *jmax +1);
 
   if (!hydro_only)
   {  
-    sr = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
-    sl = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
-    su = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
-    sd = TNT::Array3D<double> (imax + 2, jmax + 2, 10);
-    ss = TNT::Array2D<double> (imax + 2, jmax + 2);
+    sr = TNT::Array3D<double> (imax + 2, jmax + 2, 10, 0.0);
+    sl = TNT::Array3D<double> (imax + 2, jmax + 2, 10, 0.0);
+    su = TNT::Array3D<double> (imax + 2, jmax + 2, 10, 0.0);
+    sd = TNT::Array3D<double> (imax + 2, jmax + 2, 10, 0.0);
+    ss = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
     
-    strata = TNT::Array3D<double> ( ((imax+2)*(jmax+2))/LIMIT , 10, G_MAX+1);
-    grain = TNT::Array2D<double> ( ((2+imax)*(jmax+2))/LIMIT, G_MAX+1 );
-    temp_grain = std::vector<double> (G_MAX+1);
+    strata = TNT::Array3D<double> ( ((imax+2)*(jmax+2))/LIMIT , 10, G_MAX+1, 0.0);
+    grain = TNT::Array2D<double> ( ((2+imax)*(jmax+2))/LIMIT, G_MAX+1 , 0.0);
+    temp_grain = std::vector<double> (G_MAX+1, 0.0);
     
   }
 
@@ -2260,7 +2260,7 @@ void LSDCatchmentModel::zero_values()
     {
       Vel[i][j] = 0;
       area[i][j] = 0;
-      elev[i][j] = 0;
+      elev[i][j] = -9999;
       bedrock[i][j] = -9999;
       init_elevs[i][j] = elev[i][j];
       water_depth[i][j] = 0;
@@ -5031,11 +5031,11 @@ double LSDCatchmentModel::erode(double mult_factor)
   {
     tempbmax = 0;
     
-#pragma omp parallel for reduction(max:tempbmax)
+#pragma omp parallel for reduction(max:tempbmax) schedule(runtime)
     for (unsigned int y = 1; y < jmax; ++y) 
     {
       int inc = 1;
-      while (down_scan[y, inc] > 0)
+      while (down_scan[y][inc] > 0)
       {
         int x = down_scan[y][inc];
         inc++;
@@ -5336,8 +5336,8 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
   } while(tempbmax > ERODEFACTOR);
   
-  TNT::Array2D<double> erodetot(imax+2,jmax+2, 0.0);
-  TNT::Array2D<double> erodetot3(imax+2,jmax+2, 0.0);
+  TNT::Array2D<double> erodetot(imax+2, jmax+2, 0.0);
+  TNT::Array2D<double> erodetot3(imax+2, jmax+2, 0.0);
   
 #pragma omp parallel for
   for (unsigned int y = 2; y < jmax; ++y)             
@@ -5389,7 +5389,7 @@ double LSDCatchmentModel::erode(double mult_factor)
         }
         
         elev[x][y] += erodetot[x][y];
-        if (erodetot[x][y] != 0) 
+        if (erodetot[x][y] < 0) 
         {
           sort_active(x, y);
         }
