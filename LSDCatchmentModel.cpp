@@ -2569,6 +2569,7 @@ void LSDCatchmentModel::depth_update()
   if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
 
   maxdepth = 0;
+  double l_maxdepth = maxdepth;
   #pragma omp parallel for reduction(max:maxdepth)
   for (int y = 1; y<= jmax; y++)
   {
@@ -2595,11 +2596,12 @@ void LSDCatchmentModel::depth_update()
         if (water_depth[x][y] > tempmaxdepth) tempmaxdepth = water_depth[x][y];
       }
     }
-    if (tempmaxdepth > maxdepth)
+    if (tempmaxdepth > l_maxdepth)
     {
-      maxdepth = tempmaxdepth;
+      l_maxdepth = tempmaxdepth;
     }
   }
+  maxdepth = l_maxdepth;
   // reduction for later parallelism implementation DAV
   //for (int y = 1; y <= jmax; y++) if (tempmaxdepth2[y] > maxdepth) maxdepth = tempmaxdepth2[y];
 }
@@ -2697,7 +2699,10 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor,
                                                                  runoffGrid& runoff)     
 {
-  #pragma omp parallel for reduction(+:waterinput)
+  // Not all compilers support reduction of class member variable,
+  // so you'll need to fix it (GCC 6.2 seeps to support it)
+  // workaround by just creating local copy of waterinput here
+  //#pragma omp parallel for reduction(+:waterinput)
   for (int i=1; i<imax; i++)
   {
     for (int j=1; j<jmax; j++)
