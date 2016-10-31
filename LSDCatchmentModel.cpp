@@ -2570,7 +2570,7 @@ void LSDCatchmentModel::depth_update()
 
   maxdepth = 0;
   double l_maxdepth = maxdepth;
-  #pragma omp parallel for reduction(max:maxdepth)
+  #pragma omp parallel for reduction(max:l_maxdepth)
   for (int y = 1; y<= jmax; y++)
   {
     int inc = 1;
