@@ -12065,6 +12065,11 @@ LSDRaster LSDRaster::PoupulateRasterSingleValue(float value){
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Write CHT and hilltop gradient data to a *.csv file, coded by UTM coordinates as well
+// as lat/long.
+// SWDG 2/11/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDRaster::HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster& gradient, int UTMZone, bool isNorth, int eId, string filename){
 
   vector<float> CHT_1D = Flatten(CHT.get_RasterData());
