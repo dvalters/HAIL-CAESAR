@@ -2057,8 +2057,8 @@ class LSDRaster
   /// @date 9/2/15
   void FlattenToFile(string FileName);
 
-  /// @brief Method to flatten an LSDRaster to a text file, with a sigle value on each line.
   /// @brief Method to flatten an LSDRaster and place the non NDV values in a csv file.
+  ///
   /// @detail Each value is placed on its own line, so that it can be read more quickly in python etc.
   ///   It includes the x and y locations so it can be read by GIS software
   /// @param FileName_prefix The prefix of the file to write, if no path is included it will write to the current directory.
@@ -2151,6 +2151,25 @@ class LSDRaster
   /// @date 9/6/16
   LSDRaster PoupulateRasterSingleValue(float value);
 
+  /// @brief Write CHT and hilltop gradient data to a *.csv file, coded by UTM coordinates as well as lat/long.
+  ///
+  /// @detail Pass in a CHT raster, CHT raster that has been filtered by gradient, a slope raster, a filename and some
+  /// spatial reference information used to generate Lat Long values.
+  ///
+  /// The code outputs a csv to the filename specified with the header structure:
+  ///
+  ///  "_ID,Easting,Northing,Lat,Long,CHT,gradient_flag,gradient"
+  ///
+  /// Where the gradient_flag is a binary switch where 0 == above threshold and 1 == below threshold.
+  /// @param CHT LSDRaster of the hilltop curvature.
+  /// @param CHT_gradient LSDRaster of the hilltop curvature, filtered by a gradient threshold.
+  /// @param gradient LSDRaster of the topographic gradient.
+  /// @param UTMZone The UTM zone the data falls in.
+  /// @param isNorth Boolean set to true if the data are in the northern hemisphere and false if not.
+  /// @param eId The ellipsoid ID, see LSDCoordinateConverterLLandUTM for details, WGS84 is 22.
+  /// @param filename A string containing a path and filename to write the data to.
+  /// @author SWDG
+  /// @date 2/11/16
   void HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster& gradient, int UTMZone, bool isNorth, int eId, string filename);
 
 protected:
