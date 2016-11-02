@@ -253,13 +253,13 @@ class LSDRaster
   /// @result The myLSDRasterobject.RasterData_dbl data member is now populated with an array of
   /// the DEM data. The data members for NCols, NRows, etc. are also updated.
   void read_ascii_raster(string FILENAME);
-  
+
   /// @brief Reads a raster of integers and populates LSDRaster integer array member data
   /// @author DAV
   /// @todo Really, one ought to modify LSDRaster so that it is a class template, and then
-  /// wouldn't need different TNT Array data members for when we have floats, double, ints 
-  /// etc. Might be tricky though, although if done carefully it should not break 
-  /// peoples code. 
+  /// wouldn't need different TNT Array data members for when we have floats, double, ints
+  /// etc. Might be tricky though, although if done carefully it should not break
+  /// peoples code.
   void read_ascii_raster_integers(string FILENAME);
 
   /// @brief Read a raster from memory to a file.
@@ -292,13 +292,13 @@ class LSDRaster
   /// @author DAV
   /// @date 07-12-2015
   void write_double_raster(string filename, string extension);
-  
+
   /// @brief Writes out a double array to an ascii
   void write_double_asc_raster(string string_filename);
-  
+
   /// @brief Writes out a double array to a binary flt file
   void write_double_flt_raster(string filename, string string_filename);
-  
+
   /// @brief Writes out a double array to a ENVI bil file (untested!)
   /// @bug Unlikely to work as Georeferencing not set. DAV to fix.
   void write_double_bil_raster(string filename, string string_filename);
@@ -447,7 +447,7 @@ class LSDRaster
   ///@author FJC
   ///@date 06/11/15
   vector<float> get_RasterData_vector();
-	
+
 	///@brief This function returns the raster data as text file
   ///@return text file with raster data
   ///@author FJC
@@ -590,7 +590,7 @@ class LSDRaster
   /// @brief This divides two rasters, elementwise
   /// @detail Simple elementwise division
   /// @param M_raster The raster by which to divide the current raster
-  /// @return A raster holding the elementwise quotient of the two rasters  
+  /// @return A raster holding the elementwise quotient of the two rasters
   /// @author SMM
   /// @date 27/10/2016
   LSDRaster MapAlgebra_divide(LSDRaster& M_raster);
@@ -598,7 +598,7 @@ class LSDRaster
   /// @brief This add two rasters, elementwise
   /// @detail Simple elementwise addition
   /// @param M_raster The raster by which to add the current raster
-  /// @return A raster holding the elementwise sum of the two rasters  
+  /// @return A raster holding the elementwise sum of the two rasters
   /// @author SMM
   /// @date 27/10/2016
   LSDRaster MapAlgebra_add(LSDRaster& M_raster);
@@ -606,7 +606,7 @@ class LSDRaster
   /// @brief This subtracts two rasters, elementwise
   /// @detail Simple elementwise subtraction
   /// @param M_raster The raster by which to subtract the current raster
-  /// @return A raster holding the elementwise difference of the two rasters  
+  /// @return A raster holding the elementwise difference of the two rasters
   /// @author SMM
   /// @date 27/10/2016
   LSDRaster MapAlgebra_subtract(LSDRaster& M_raster);
@@ -1219,7 +1219,7 @@ class LSDRaster
 
   /// @brief This function changes any data point either above or below threshold to NoDataValue
   /// @param threshold The threshold value
-  /// @param belowthresholdisnodata a boolean that if true means anything below the 
+  /// @param belowthresholdisnodata a boolean that if true means anything below the
   ///   threshold turns to nodata
   /// @return Returns the masked raster
   /// @author SMM
@@ -1229,13 +1229,13 @@ class LSDRaster
   /// @brief This function creats an LSDIndexRaster mask (with true == 1 and otherwise nodata)
   /// from an LSDRaster. Can mask either above or below a threshold
   /// @param threshold The threshold value
-  /// @param belowthresholdisnodata a boolean that if true means anything below the 
+  /// @param belowthresholdisnodata a boolean that if true means anything below the
   ///   threshold turns to nodata
   /// @return Returns the mask
   /// @author SMM
   /// @date 9/9/2016
   LSDIndexRaster mask_to_indexraster_using_threshold(float threshold,bool belowthresholdisnodata);
-  
+
   /// @brief This function masks a raster to nodata based on a mask value and
   /// a mask raster
   /// @param Mask_raster the LSDIndexRaster that contains the mask
@@ -2090,8 +2090,8 @@ class LSDRaster
   /// @author SWDG
   /// @date 24/07/2015
   LSDIndexRaster ConvertToBinary(int Value, int ndv);
-	
-	/// @brief Method to merge data from two LSDRasters WITH SAME EXTENT together.  /// The data from the raster specified as an argument will be added (will 
+
+	/// @brief Method to merge data from two LSDRasters WITH SAME EXTENT together.  /// The data from the raster specified as an argument will be added (will
 	/// overwrite the original raster if there is a conflict).
   /// @param RasterToAdd second raster to add to original raster
   /// @author FJC
@@ -2150,7 +2150,9 @@ class LSDRaster
   /// @author SWDG
   /// @date 9/6/16
   LSDRaster PoupulateRasterSingleValue(float value);
-  
+
+  void HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster& gradient, int UTMZone, bool isNorth, int eId, string filename);
+
 protected:
 
   ///Number of rows.

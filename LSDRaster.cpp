@@ -221,7 +221,7 @@ void LSDRaster::create(int nrows, int ncols, float xmin, float ymin,
   YMinimum = ymin;
   DataResolution = cellsize;
   NoDataValue = ndv;
-  
+
   //cout << "Now for the georeferencing strings" << endl;
   GeoReferencingStrings = temp_GRS;
   //cout << "Got them! " << endl;
@@ -1187,7 +1187,7 @@ void LSDRaster::write_double_bil_raster(string filename, string string_filename)
       data_ofs.write(reinterpret_cast<char *>(&temp),sizeof(temp));
     }
   }
-  data_ofs.close();  
+  data_ofs.close();
 }
 
 
@@ -1249,7 +1249,7 @@ void LSDRaster::write_double_raster(string filename, string extension)
     cout << "You did not enter an approprate extension!" << endl
     << "You entered: " << extension << " options are asc, flt, bil (bil might not work yet though...)" << endl;
     exit(EXIT_FAILURE);
-  }  
+  }
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -2098,11 +2098,11 @@ LSDRaster LSDRaster::MapAlgebra_multiply(LSDRaster& M_raster)
   {
     //create an array
     Array2D<float> New_array(NRows,NCols,NoDataValue);
-    
+
     for(int row = 0; row< NRows; row++)
     {
       for(int col = 0; col<NCols; col++)
-      { 
+      {
         if (RasterData[row][col] != NoDataValue)
         {
           float this_element = M_raster.get_data_element(row,col);
@@ -2110,7 +2110,7 @@ LSDRaster LSDRaster::MapAlgebra_multiply(LSDRaster& M_raster)
           {
             New_array[row][col] = RasterData[row][col]*this_element;
           }
-          
+
         }
       }
     }
@@ -2136,11 +2136,11 @@ LSDRaster LSDRaster::MapAlgebra_divide(LSDRaster& M_raster)
   {
     //create an array
     Array2D<float> New_array(NRows,NCols,NoDataValue);
-    
+
     for(int row = 0; row< NRows; row++)
     {
       for(int col = 0; col<NCols; col++)
-      { 
+      {
         if (RasterData[row][col] != NoDataValue)
         {
           float this_element = M_raster.get_data_element(row,col);
@@ -2173,11 +2173,11 @@ LSDRaster LSDRaster::MapAlgebra_add(LSDRaster& M_raster)
   {
     //create an array
     Array2D<float> New_array(NRows,NCols,NoDataValue);
-    
+
     for(int row = 0; row< NRows; row++)
     {
       for(int col = 0; col<NCols; col++)
-      { 
+      {
         if (RasterData[row][col] != NoDataValue)
         {
           float this_element = M_raster.get_data_element(row,col);
@@ -2209,11 +2209,11 @@ LSDRaster LSDRaster::MapAlgebra_subtract(LSDRaster& M_raster)
   {
     //create an array
     Array2D<float> New_array(NRows,NCols,NoDataValue);
-    
+
     for(int row = 0; row< NRows; row++)
     {
       for(int col = 0; col<NCols; col++)
-      { 
+      {
         if (RasterData[row][col] != NoDataValue)
         {
           float this_element = M_raster.get_data_element(row,col);
@@ -5429,7 +5429,7 @@ LSDRaster  LSDRaster::mask_to_nodata_using_threshold(float threshold,bool belowt
       }
     }
   }
-  
+
   LSDRaster NDR(NRows,NCols,XMinimum,YMinimum,DataResolution,
                              NoDataValue,NewArray,GeoReferencingStrings);
   return NDR;
@@ -5444,10 +5444,10 @@ LSDRaster  LSDRaster::mask_to_nodata_using_threshold(float threshold,bool belowt
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDIndexRaster LSDRaster::mask_to_indexraster_using_threshold(float threshold,bool belowthresholdisnodata)
 {
-  
+
   // create the array for the index raster
   Array2D<int> NewIndexArray(NRows,NCols,int(NoDataValue));
-  
+
   for(int row = 0; row<NRows; row++)
   {
     for(int col = 0; col<NCols; col++)
@@ -5481,7 +5481,7 @@ LSDIndexRaster LSDRaster::mask_to_indexraster_using_threshold(float threshold,bo
       }
     }
   }
-  
+
   LSDIndexRaster NDR(NRows,NCols,XMinimum,YMinimum,DataResolution,
                              NoDataValue,NewIndexArray,GeoReferencingStrings);
   return NDR;
@@ -8962,7 +8962,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
       AllBordersFound = true;
     }
   }
-  
+
   if (AllBordersFound == false)
   {
     cout << "Couldn't trim your raster, sorry! Returning original raster" << endl;
@@ -9011,7 +9011,7 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
         {
           cout << "Col is too big, prepare for seg fault!" << endl;
         }
-        
+
         if(TrimmedRow >= new_row_dimension)
         {
           cout << "TrimmedRow is too big, prepare for seg fault!" << endl;
@@ -9020,8 +9020,8 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
         {
           cout << "TrimmedCol is too big, prepare for seg fault!" << endl;
         }
-        
-                
+
+
         TrimmedData[TrimmedRow][TrimmedCol] = RasterData[row][col];
         ++TrimmedCol;
       }
@@ -9043,9 +9043,9 @@ LSDRaster LSDRaster::RasterTrimmerSpiral()
     cout << "DataResolution: " << DataResolution << " NDV: " << NoDataValue << endl;
     //cout << GeoReferencingStrings[0] << endl;
     //cout << GeoReferencingStrings[1] << endl;
-    
+
     cout << "Size of data, Rows " << TrimmedData.dim1() << " Cols: " << TrimmedData.dim2() << endl;
-    
+
     LSDRaster TrimmedRaster(new_row_dimension, new_col_dimension, new_XLL,
                         new_YLL, DataResolution, NoDataValue, TrimmedData, GeoReferencingStrings);
 
@@ -9253,7 +9253,7 @@ void LSDRaster::write_RasterData_to_text_file(string filename)
 	string extension = "txt";
   string_filename = filename+dot+extension;
   cout << "The filename is " << string_filename << endl;
-	
+
 	// open the data file
   ofstream data_out(string_filename.c_str());
 
@@ -9262,7 +9262,7 @@ void LSDRaster::write_RasterData_to_text_file(string filename)
 		cout << "\nFATAL ERROR: unable to write to " << string_filename << endl;
 		exit(EXIT_FAILURE);
 	}
-	
+
 	data_out << "row col raster_data" << endl;
 	for (int row = 0; row < NRows; row++)
 	{
@@ -9274,7 +9274,7 @@ void LSDRaster::write_RasterData_to_text_file(string filename)
 			}
 		}
 	}
-	
+
 	data_out.close();
 }
 
@@ -11699,8 +11699,8 @@ LSDIndexRaster LSDRaster::ConvertToBinary(int Value, int ndv){
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Method to merge data from two LSDRasters WITH SAME EXTENT together.  The data from the 
-// raster specified as an argument will be added (will overwrite the original raster if there 
+// Method to merge data from two LSDRasters WITH SAME EXTENT together.  The data from the
+// raster specified as an argument will be added (will overwrite the original raster if there
 // is a conflict).
 // FJC 30/09/16
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -11708,7 +11708,7 @@ LSDRaster LSDRaster::MergeRasters(LSDRaster& RasterToAdd)
 {
 	Array2D<float> SecondRasterData = RasterToAdd.get_RasterData();
 	Array2D<float> NewRasterData(NRows,NCols,NoDataValue);
-	
+
 	for (int row = 0; row < NRows; row++)
 	{
 		for (int col = 0; col < NCols; col++)
@@ -11730,7 +11730,7 @@ LSDRaster LSDRaster::MergeRasters(LSDRaster& RasterToAdd)
 			}
 		}
 	}
-	
+
 	LSDRaster NewRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,NewRasterData,GeoReferencingStrings);
 	return NewRaster;
 }
@@ -11887,7 +11887,7 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
 // false postivies. Need to pass in a raster of predicted values and a raster of actual values
 // Predicted values: 1 = floodplain, NoDataValue = not floodplain
 // Actual values: 1 = floodplain, 0 = not floodplain
-// results are in a vector: 
+// results are in a vector:
 // 0 - reliability
 // 1 - sensitvity
 // 2 - false positive rate
@@ -11947,7 +11947,7 @@ vector<float> LSDRaster::AnalysisOfQuality(LSDRaster& ActualRaster)
 	quality_results[3] = SumTN/(SumFP + SumTN);
 	// r_fn
 	quality_results[4] = 1 - quality_results[1];
-		
+
   return quality_results;
 }
 
@@ -12065,6 +12065,67 @@ LSDRaster LSDRaster::PoupulateRasterSingleValue(float value){
 
 }
 
+void LSDRaster::HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster& gradient, int UTMZone, bool isNorth, int eId, string filename){
+
+  vector<float> CHT_1D = Flatten(CHT.get_RasterData());
+  vector<float> sorted;
+  vector<size_t> index_map;
+  vector<string> Data;
+
+  //sort the 1D elevation vector and produce an index
+  matlab_float_sort_descending(CHT_1D, sorted, index_map);
+
+  int q = 0;
+
+  //Tests if the sorted vector has NDV at the front or back. We need them at the end.
+  //This can fail if you have  strange NDV value that is not a low or high number.
+  if (sorted[q] == NoDataValue){
+    matlab_float_sort(CHT_1D, sorted, index_map);
+  }
+
+  while (sorted[q] != NoDataValue){
+
+    int gradient_flag = 1; //0 == above threshold, 1 == below threshold
+    double Lat;
+    double Long;
+
+    //use row major ordering to reconstruct each cell's i,j coordinates
+    int i = index_map[q] / NCols;
+    int j = index_map[q] % NCols;
+
+    //reconstruct UTM
+    double UTMe = XMinimum + float(j)*DataResolution + 0.5*DataResolution;
+    double UTMn = YMinimum + float(NRows-i)*DataResolution - 0.5*DataResolution;
+
+    //reconstruct lat long
+    LSDCoordinateConverterLLandUTM Converter;
+    Converter.UTMtoLL(eId, UTMn, UTMe, UTMZone, isNorth, Lat, Long);
+
+    if (CHT_gradient.get_data_element(i, j) == NoDataValue){
+      gradient_flag = 0;
+    }
+
+    //Build a csv string containing the results
+    stringstream ss;
+    ss << setiosflags(ios::fixed) << setprecision(7) << q << "," << UTMe << "," << UTMn << "," << Lat << "," << Long << "," << CHT.get_data_element(i, j) << "," << gradient_flag << "," << gradient.get_data_element(i, j);
+
+    Data.push_back(ss.str());
+    ++q;
+
+  }
+
+  ofstream WriteData;
+  WriteData.open(filename.c_str());
+
+  WriteData << "_ID,Easting,Northing,Lat,Long,CHT,gradient_flag,gradient" << endl;
+
+  for (int w = 0; w < int(Data.size());++w){
+    WriteData << Data[w] << endl;
+  }
+
+  WriteData.close();
+
+}
 
 
 #endif
