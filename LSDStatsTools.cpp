@@ -5755,8 +5755,8 @@ string FixPath(string PathtoFix)
   string lchar = noContrl.substr(noContrl.length()-1,1);
   
   string slash = "/";
-  cout << "Checking pathname, pathname is: " << noContrl << endl;
-  cout << "lchar is " << lchar << " and slash is " << slash << endl;
+  //cout << "Checking pathname, pathname is: " << noContrl << endl;
+  //cout << "lchar is " << lchar << " and slash is " << slash << endl;
 
   if (lchar != slash)
   {
