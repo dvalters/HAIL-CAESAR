@@ -63,7 +63,7 @@ using namespace TNT;
 // tools for getting keys from a map
 vector<string> extract_keys(map<string, int> input_map);
 vector<string> extract_keys(map<string, float> input_map);
-
+vector<string> extract_keys(map<string, bool> input_map);
 
 // tools for reversing arrays
 Array2D<double> reverse_array_rows(Array2D<double>& data);
