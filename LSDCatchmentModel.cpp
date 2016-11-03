@@ -67,6 +67,8 @@
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
 
+#define ENABLE_PREFETCH
+
 // A wrapper method that calls the chief erosional and water routing methods.
 // Should really go in the main/driver.cpp file and be made so you can customise
 // which components are run in a more OOP way.
@@ -2432,8 +2434,18 @@ void LSDCatchmentModel::qroute()
     int inc = 1;
     while (down_scan[y][inc] > 0)
     {
+//      __builtin_prefetch(&water_depth[down_scan[y][inc+1]-1][y-1]);
+//      __builtin_prefetch(&water_depth[down_scan[y][inc+1]-1][y]);
+//      __builtin_prefetch(&water_depth[down_scan[y][inc+1]][y-1]);
+//      __builtin_prefetch(&water_depth[down_scan[y][inc+1]][y]);
+//      __builtin_prefetch(&elev[down_scan[y][inc+1]-1][y]);
+//      __builtin_prefetch(&elev[down_scan[y][inc+1]-1][y-1]);
+//      __builtin_prefetch(&elev[down_scan[y][inc+1]][y]);
+//      __builtin_prefetch(&elev[down_scan[y][inc+1]][y-1]);
+      
       int x = down_scan[y][inc];
       inc++;
+
 
       if (elev[x][y] > -9999) // to stop moving water in to -9999's on elev
       {
@@ -4076,8 +4088,6 @@ double LSDCatchmentModel::erode(double mult_factor)
   double rho = 1000.0;
   double tempbmax = 0;
   
-  //std::array<double,20> gtot2{};
-  
   // Gone for a retro-style C array here...
   float gtot2[20] = {};
   
@@ -4088,6 +4098,8 @@ double LSDCatchmentModel::erode(double mult_factor)
   {
     tempbmax = 0;
     
+
+    
 #pragma omp parallel for reduction(max:tempbmax) schedule(runtime)
     for (unsigned int y = 1; y < jmax; ++y) 
     {
@@ -4096,6 +4108,7 @@ double LSDCatchmentModel::erode(double mult_factor)
       {
         int x = down_scan[y][inc];
         inc++;
+        
         
         // zero vels.
         Vel[x][y] = 0;
@@ -4576,8 +4589,12 @@ double LSDCatchmentModel::erode(double mult_factor)
   }
   
   
-  // now calculate sediment outputs from all four edges...
+// now calculate sediment outputs from all four edges...
+#ifndef __INTEL_COMPILER   // OpenMP 4.5 array reduction not yet supported by intel
+  #if (__GNUC__ >= 6 && __GNUC_MINOR__ > 1)  
 #pragma omp parallel for reduction(+:gtot2[:20])
+  #endif
+#endif
   for (int y = 2; y < jmax; y++)
   {
     if (water_depth[imax][y] > water_depth_erosion_threshold || Vsusptot[imax][y] > 0)
@@ -4612,7 +4629,11 @@ double LSDCatchmentModel::erode(double mult_factor)
     }
   }
 
-#pragma omp parallel for reduction(+:gtot2[:20])  
+#ifndef __INTEL_COMPILER // OpenMP 4.5 array reduction not yet supported by intel
+  #if (__GNUC__ >= 6 && __GNUC_MINOR__ > 1)  
+#pragma omp parallel for reduction(+:gtot2[:20])
+  #endif
+#endif
   for (int x = 2; x < imax; x++)
   {
     if (water_depth[x][jmax] > water_depth_erosion_threshold || Vsusptot[x][jmax] > 0)
