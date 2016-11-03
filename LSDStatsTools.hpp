@@ -64,6 +64,7 @@ using namespace TNT;
 vector<string> extract_keys(map<string, int> input_map);
 vector<string> extract_keys(map<string, float> input_map);
 vector<string> extract_keys(map<string, bool> input_map);
+vector<string> extract_keys(map<string, string> input_map);
 
 // tools for reversing arrays
 Array2D<double> reverse_array_rows(Array2D<double>& data);
