@@ -2716,6 +2716,14 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor,
                                                                  runoffGrid& runoff)     
 {
+  for (int i = 1; i<imax; i++)
+  {
+    for (int j =1; j<jmax; j++)
+    {
+      waterinput += runoff.get_j_mean(i,j) * DX * DX;
+    }
+  }
+
   // Not all compilers support reduction of class member variable,
   // so you'll need to fix it (GCC 6.2 seeps to support it)
   // workaround by just creating local copy of waterinput here
@@ -2760,7 +2768,6 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
       if (time_factor > max_time_step && new_jmeanmax > (0.2 / (jmax * imax * DX * DX)))
         // check after the variable rainfall area has been added
         // stops code going too fast when there is actual flow in the channels greater than 0.2cu
-        // DAV - This doesn't make sense - why would you only check the first grid cell in the array?
       {
         cycle = time_1 + (max_time_step / 60);
         time_factor = max_time_step;
