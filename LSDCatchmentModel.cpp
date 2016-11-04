@@ -440,6 +440,11 @@ void LSDCatchmentModel::initialise_model_domain_extents()
 
 void LSDCatchmentModel::load_data()
 {
+  LSDRaster elevR;
+  /// Hydroindex LSDRaster: tells rainfall input where to be distributed
+  LSDRaster hydroindexR;
+  /// Bedrock LSDRaster object
+  LSDRaster bedrockR;
   std::string DEM_FILENAME = read_path + "/" + read_fname + "." + dem_read_extension;
 
   if (!does_file_exist(DEM_FILENAME))
@@ -1068,11 +1073,11 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
       std::cout << "grain_data_file: " << grain_data_file << std::endl;
     }
 
-    else if (lower == "num_of_grainsizes")
-    {
-      G_MAX = atoi(value.c_str()) + 1;
-      std::cout << "num_of_grainsizes: " << G_MAX << std::endl;
-    }
+//    else if (lower == "num_of_grainsizes")
+//    {
+//      G_MAX = atoi(value.c_str()) + 1;
+//      std::cout << "num_of_grainsizes: " << G_MAX << std::endl;
+//    }
 
 
     //=-=-=-=-=-=-=-=-=-=-=-=

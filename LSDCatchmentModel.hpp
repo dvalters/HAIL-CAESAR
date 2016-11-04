@@ -387,22 +387,6 @@ public:
   
 protected:
 
-  /// This map holds all the possible model switches
-  std::map<std::string,bool> CM_model_switches;
-
-  /// This holds names of methods. For example, if the key is 'sed_transport_law', the std::string is
-  /// the method which is used to calculate sediment transport (such as 'wilcock' or 'einstein')
-  std::map<std::string,std::string> CM_method_map;
-
-  /// This holds float parameters
-  std::map<std::string,float> CM_float_parameters;
-
-  /// This holds integer parameters
-  std::map<std::string,int> CM_int_parameters;
-
-  /// This holds names of supporting files, for example files that contain
-  /// node of junction indices to be loaded.
-  std::map<std::string,std::string> CM_support_file_names;
 
   string dem_read_extension;
   string dem_write_extension;
@@ -447,9 +431,16 @@ protected:
   bool uniquefilecheck = false;
 
   //constants
-  double gravity = 9.81;
+  const double gravity = 9.81;
   const float g = 9.81F;
   const float kappa = 0.4F;
+  const int ACTIVE_FACTOR=1;
+  const int TRUE=1;
+  const int FALSE=0;
+  const unsigned int G_MAX=10;
+  const std::array<int, 9> deltaX = {{0,  0,  1,  1,  1,  0, -1, -1, -1}};
+  const std::array<int, 9> deltaY = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
+
   double water_depth_erosion_threshold = 0.01;
   int input_time_step = 60;
   int number_of_points = 0;
@@ -474,7 +465,6 @@ protected:
   double saveinterval=1000;
   int counter=0;
 
-  bool googleoutputflag = false;
   double waterinput = 0;
   double waterOut = 0;
   double in_out_difference = 0;
@@ -489,9 +479,7 @@ protected:
   double no_data_value;
 
   int maxcycle = 1000;
-  const int ACTIVE_FACTOR=1;
-  const int TRUE=1;
-  const int FALSE=0;
+
   double ERODEFACTOR=0.05;
   double DX=5.0;
   double root=7.07;
@@ -503,7 +491,6 @@ protected:
   double CREEP_RATE=0.0025;
   double SOIL_RATE = 0.0025;
   double active=0.2;
-  unsigned int G_MAX=10;
   int grain_array_tot =1 ;
 
   /// Number of passes for edge smoothing filter
@@ -519,7 +506,7 @@ protected:
 
   /// TOPMODEL 'm'
   double M = 0.005;
-  double baseflow = 0.00000005; //end of hyd model variables usually 0.0000005 changed 2/11/05 
+  double baseflow = 0.00000005; //end of hyd model variables usually 0.0000005 changed 2/11/05
   // Reverted to match CL 1.8f 17/08/16 - DV
 
   double cycle =0;  // can't initalise static vars in header file!
@@ -640,11 +627,7 @@ protected:
 
   // DAV: Move towards using the LSD Objects such as LSDRaster for reading/storing DEMs and LSDBasin
   /// Surface elevation LSDRaster object
-  LSDRaster elevR;
-  /// Hydroindex LSDRaster: tells rainfall input where to be distributed
-  LSDRaster hydroindexR;
-  /// Bedrock LSDRaster object
-  LSDRaster bedrockR;
+
   /// Water depth LSDRaster object
   /// LSDRaster water_depthR;
 
@@ -669,7 +652,6 @@ protected:
   TNT::Array2D<double> elev_diff;
 
   TNT::Array2D<int> index;
-  TNT::Array2D<int> cross_scan;
   TNT::Array2D<int> down_scan;
   TNT::Array2D<int> rfarea;
 
@@ -683,15 +665,10 @@ protected:
 
   std::vector<double> hourly_m_value;
   std::vector<double> temp_grain;
-  TNT::Array2D<double> hydrograph;
-  TNT::Array2D<double> dischargeinput;  //, hourly_rain_data; // made this vector below, see if it causes problems?
   std::vector< std::vector<float> > hourly_rain_data;
-  TNT::Array3D<double> inputfile;
-  TNT::Array2D<int> inpoints;
   TNT::Array3D<double> veg;
   TNT::Array2D<double> edge, edge2; //TJC 27/1/05 array for edges
   std::vector<double> old_j_mean_store;
-  TNT::Array2D<double> climate_data;
   TNT::Array3D<double> sr, sl, su, sd;
   TNT::Array2D<double> ss;
 
@@ -699,9 +676,6 @@ protected:
   std::vector<double> fallVelocity;
   std::vector<bool> isSuspended;
   TNT::Array2D<double> Vsusptot;
-
-  std::array<int, 9> deltaX = {{0,  0,  1,  1,  1,  0, -1, -1, -1}};
-  std::array<int, 9> deltaY = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
 
   std::vector<int> nActualGridCells;
   double Jw_newvol = 0.0;
@@ -715,17 +689,6 @@ protected:
 
   // JOE global vars
   std::string inputheader;			//Read from ASCII DEM <JOE 20050605>
-  TNT::Array2D<double> slopeAnalysis;  // Initially calculated in percent slope, coverted to radians
-  TNT::Array2D<double> aspect;		  // Radians
-  TNT::Array2D<double> hillshade;	  // 0 to 255
-
-  // siberia submodel parameters
-  // DAV - NOT IMPLEMENTED - probably can be removed later
-  double m1 = 1.70;
-  double n1 = 0.69;
-  double Beta3 = 0.000186;
-  double m3 = 0.79;
-  double Beta1 = 1067;
 
   // sedi tpt flags
   bool einstein = false;
@@ -736,12 +699,6 @@ protected:
   // lisflood caesar adaptation globals
   std::vector<int> catchment_input_counter;
   int totalinputpoints = 0;
-
-  // stage/tidal variables
-  int fromx, tox, fromy, toy;
-  double stage_input_time_step = 1;
-  std::vector<double> stage_inputfile;
-
 
   /// Soil generation variables
   double P1, b1, k1, c1, c2, k2, c3, c4;
