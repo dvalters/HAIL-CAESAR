@@ -10902,6 +10902,485 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
   return nodata_filled;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Fill no data in an irregular raster
+// No data values must have all neighbours within the window radius != NDV.  Local
+// mean of all pixels in the window radius.
+// FJC 04/11/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::nodata_fill_irregular_raster(int window_radius)
+{
+  int pixel_radius = int(window_radius/DataResolution);
+  if (window_radius < DataResolution) window_radius = DataResolution;
+  Array2D<float> RasterArray = RasterData;
+
+  Array2D<float> FilledRaster(NRows, NCols, NoDataValue);
+  //search the neighbours of each pixel for 0 values within the window radius
+  for (int row = 0; row < NRows; row ++)
+  {
+    for (int col = 0; col < NCols; col++)
+    {
+      if (RasterArray[row][col] != NoDataValue) FilledRaster[row][col] = RasterArray[row][col];
+      if (RasterArray[row][col] == NoDataValue)
+      {
+        vector<int> counts(8,0);
+				float total_elev = 0;
+				int n_obs = 0;
+        for (int i = 1; i <= pixel_radius; i++)
+        {
+          //set exceptions for first or last row
+          int min_row = row-i;
+          int max_row = row+i;
+          if (min_row < 0) min_row = 0;
+          if (max_row >= NRows) max_row = NRows-1;
+          
+          //set exceptions for first or last col
+          int min_col = col-i;
+          int max_col = col+i;
+          if (min_col < 0) min_col = 0;
+          if (max_col >= NCols) max_col = NCols-1;
+          
+          //check whether surrounding pixels in all directions are equal to 0
+          if (RasterArray[min_row][min_col]  != NoDataValue) {
+						counts.at(0) = 1;
+						total_elev += RasterArray[min_row][min_col];
+						n_obs++;
+					}
+          if (RasterArray[row][min_col]  != NoDataValue) {
+						counts.at(1) = 1; 
+						total_elev += RasterArray[row][min_col];
+						n_obs++;
+					}
+          if (RasterArray[max_row][min_col]  != NoDataValue) {
+						counts.at(2) = 1; 
+						total_elev += RasterArray[max_row][min_col];
+						n_obs++;
+					}
+          if (RasterArray[min_row][col]  != NoDataValue) {
+						counts.at(3) = 1;
+						total_elev += RasterArray[min_row][col];
+						n_obs++;
+					}  
+          if (RasterArray[min_row][max_col]  != NoDataValue) {
+						counts.at(4) = 1;
+						total_elev += RasterArray[min_row][max_col];
+						n_obs++;
+					}  
+          if (RasterArray[row][max_col]  != NoDataValue) {
+						counts.at(5) = 1; 
+						total_elev += RasterArray[row][max_col];
+						n_obs++;
+					}
+          if (RasterArray[max_row][max_col]  != NoDataValue) {
+						counts.at(6) = 1; 
+						total_elev += RasterArray[max_row][max_col];
+						n_obs++;
+					}
+          if (RasterArray[max_row][col] != NoDataValue) {
+						counts.at(7) = 1; 
+						total_elev += RasterArray[max_row][col];
+						n_obs++;
+					}
+          
+          // if 1s surround the pixel, then fill in the pixel
+          if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+          {
+						FilledRaster[row][col] = total_elev/n_obs;
+            i = pixel_radius+1;
+          } 
+        }
+      }
+    }
+  }
+  
+  //create new LSDIndexRaster with the filled patches
+  LSDRaster FilledDEM(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledRaster,GeoReferencingStrings);
+  return FilledDEM;  
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This is a slightly more complex nodata filler
+// you should run the raster trimmer before invoking this
+// SMM
+// 09/12/2014
+//
+// UPDATE - modification of original function to only fill internal no data voids
+// This is because the raster trimmer won't work on irregular rasters. Holes are only filled if they are surrounded in all directions by pixels with a valid elevation value within the given window width.
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int window_width)
+{
+
+  // check argument
+  if(window_width <1)
+  {
+    cout << "You need a positive window width, defaulting to 1" << endl;
+    window_width = 1;
+  }
+
+  cout << "Sweeping nodata, window width is: " << window_width << endl;
+
+  // This function loops in alternating directions until there is no more nodata
+  float total_elev;
+  int n_obs;
+
+  // set up data to be
+  Array2D<float> this_sweep_data = RasterData.copy();;
+  Array2D<float> updated_raster;
+
+  // set the sweep number to 0
+  int nsweep = 0;
+
+  do
+  {
+    cout << "LINE 8268, Sweep number: " << nsweep << endl;
+    cout << "Line 8275, switch is: " << nsweep%4 << endl;
+
+    // copy over the updated raster
+    updated_raster = this_sweep_data.copy();
+
+    // now run a sweep
+    switch(nsweep%4)
+    {
+      case(0):
+      {
+        // sweep 0
+        for (int row=0; row<NRows; ++row)
+        {
+          for(int col=0; col<NCols; ++col)
+          {
+            // if the node contains nodata, search the surrounding nodes
+            if(updated_raster[row][col] == NoDataValue)
+            {
+              total_elev = 0;
+              n_obs = 0;
+							vector<int> counts(8,0);
+							
+							for (int i = 1; i < window_width; i++) 
+							{							
+								//set exceptions for first or last row
+								int min_row = row-i;
+								int max_row = row+i;
+								if (min_row < 0) min_row = 0;
+								if (max_row >= NRows) max_row = NRows-1;
+
+								//set exceptions for first or last col
+								int min_col = col-i;
+								int max_col = col+i;
+								if (min_col < 0) min_col = 0;
+								if (max_col >= NCols) max_col = NCols-1;
+								
+								//check whether surrounding pixels in all directions are equal to 0
+								if (updated_raster[min_row][min_col]  != NoDataValue) {
+									counts.at(0) = 1;
+									total_elev += updated_raster[min_row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[row][min_col]  != NoDataValue) {
+									counts.at(1) = 1; 
+									total_elev += updated_raster[row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][min_col]  != NoDataValue) {
+									counts.at(2) = 1; 
+									total_elev += updated_raster[max_row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[min_row][col]  != NoDataValue) {
+									counts.at(3) = 1;
+									total_elev += updated_raster[min_row][col];
+									n_obs++;
+								}  
+								if (updated_raster[min_row][max_col]  != NoDataValue) {
+									counts.at(4) = 1;
+									total_elev += updated_raster[min_row][max_col];
+									n_obs++;
+								}  
+								if (updated_raster[row][max_col]  != NoDataValue) {
+									counts.at(5) = 1; 
+									total_elev += updated_raster[row][max_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][max_col]  != NoDataValue) {
+									counts.at(6) = 1; 
+									total_elev += updated_raster[max_row][max_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][col] != NoDataValue) {
+									counts.at(7) = 1; 
+									total_elev += updated_raster[max_row][col];
+									n_obs++;
+								}
+								
+								// if 1s surround the pixel, then fill in the pixel
+								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+								{
+									this_sweep_data[row][col] = total_elev/float(n_obs);
+									i = window_width+1;
+								}
+							}	
+						}						 
+					}
+	 		 	}
+        break;
+      }
+      case(1):
+      {
+        // sweep 1
+        for (int col=0; col<NCols; ++col)
+        {
+          for(int row=0; row<NRows; ++row)
+          {
+            // if the node contains nodata, search the surrounding nodes
+            if(updated_raster[row][col] == NoDataValue)
+            {
+              total_elev = 0;
+              n_obs = 0;
+							vector<int> counts(8,0);
+							
+							for (int i = 1; i < window_width; i++) 
+							{							
+								//set exceptions for first or last row
+								int min_row = row-i;
+								int max_row = row+i;
+								if (min_row < 0) min_row = 0;
+								if (max_row >= NRows) max_row = NRows-1;
+
+								//set exceptions for first or last col
+								int min_col = col-i;
+								int max_col = col+i;
+								if (min_col < 0) min_col = 0;
+								if (max_col >= NCols) max_col = NCols-1;
+								
+								//check whether surrounding pixels in all directions are equal to 0
+								if (updated_raster[min_row][min_col]  != NoDataValue) {
+									counts.at(0) = 1;
+									total_elev += updated_raster[min_row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[row][min_col]  != NoDataValue) {
+									counts.at(1) = 1; 
+									total_elev += updated_raster[row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][min_col]  != NoDataValue) {
+									counts.at(2) = 1; 
+									total_elev += updated_raster[max_row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[min_row][col]  != NoDataValue) {
+									counts.at(3) = 1;
+									total_elev += updated_raster[min_row][col];
+									n_obs++;
+								}  
+								if (updated_raster[min_row][max_col]  != NoDataValue) {
+									counts.at(4) = 1;
+									total_elev += updated_raster[min_row][max_col];
+									n_obs++;
+								}  
+								if (updated_raster[row][max_col]  != NoDataValue) {
+									counts.at(5) = 1; 
+									total_elev += updated_raster[row][max_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][max_col]  != NoDataValue) {
+									counts.at(6) = 1; 
+									total_elev += updated_raster[max_row][max_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][col] != NoDataValue) {
+									counts.at(7) = 1; 
+									total_elev += updated_raster[max_row][col];
+									n_obs++;
+								}
+								
+								// if 1s surround the pixel, then fill in the pixel
+								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+								{
+									this_sweep_data[row][col] = total_elev/float(n_obs);
+									i = window_width+1;
+								}
+							}							
+						}						 
+					}
+	 		 	}
+        break;
+      }
+      case(2):
+      {
+        // sweep 2
+        for (int row=0; row<NRows; ++row)
+        {
+          for(int col=NCols-1; col>0; --col)
+          {
+           // if the node contains nodata, search the surrounding nodes
+            if(updated_raster[row][col] == NoDataValue)
+            {
+              total_elev = 0;
+              n_obs = 0;
+							vector<int> counts(8,0);
+							
+							for (int i = 1; i < window_width; i++) 
+							{							
+								//set exceptions for first or last row
+								int min_row = row-i;
+								int max_row = row+i;
+								if (min_row < 0) min_row = 0;
+								if (max_row >= NRows) max_row = NRows-1;
+
+								//set exceptions for first or last col
+								int min_col = col-i;
+								int max_col = col+i;
+								if (min_col < 0) min_col = 0;
+								if (max_col >= NCols) max_col = NCols-1;
+								
+								//check whether surrounding pixels in all directions are equal to 0
+								if (updated_raster[min_row][min_col]  != NoDataValue) {
+									counts.at(0) = 1;
+									total_elev += updated_raster[min_row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[row][min_col]  != NoDataValue) {
+									counts.at(1) = 1; 
+									total_elev += updated_raster[row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][min_col]  != NoDataValue) {
+									counts.at(2) = 1; 
+									total_elev += updated_raster[max_row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[min_row][col]  != NoDataValue) {
+									counts.at(3) = 1;
+									total_elev += updated_raster[min_row][col];
+									n_obs++;
+								}  
+								if (updated_raster[min_row][max_col]  != NoDataValue) {
+									counts.at(4) = 1;
+									total_elev += updated_raster[min_row][max_col];
+									n_obs++;
+								}  
+								if (updated_raster[row][max_col]  != NoDataValue) {
+									counts.at(5) = 1; 
+									total_elev += updated_raster[row][max_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][max_col]  != NoDataValue) {
+									counts.at(6) = 1; 
+									total_elev += updated_raster[max_row][max_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][col] != NoDataValue) {
+									counts.at(7) = 1; 
+									total_elev += updated_raster[max_row][col];
+									n_obs++;
+								}
+								// if 1s surround the pixel, then fill in the pixel
+								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+								{
+									this_sweep_data[row][col] = total_elev/float(n_obs);
+									i = window_width+1;
+								}
+							}						
+						}						 
+					}
+	 		 	}
+        break;
+      }
+      case(3):
+      {
+        // sweep 3
+        for (int col=0; col<NCols; ++col)
+        {
+          for(int row=NRows-1; row>0; --row)
+          {
+            // if the node contains nodata, search the surrounding nodes
+           // if the node contains nodata, search the surrounding nodes
+            if(updated_raster[row][col] == NoDataValue)
+            {
+              total_elev = 0;
+              n_obs = 0;
+							vector<int> counts(8,0);
+							
+							for (int i = 1; i < window_width; i++) 
+							{							
+								//set exceptions for first or last row
+								int min_row = row-i;
+								int max_row = row+i;
+								if (min_row < 0) min_row = 0;
+								if (max_row >= NRows) max_row = NRows-1;
+
+								//set exceptions for first or last col
+								int min_col = col-i;
+								int max_col = col+i;
+								if (min_col < 0) min_col = 0;
+								if (max_col >= NCols) max_col = NCols-1;
+								
+								//check whether surrounding pixels in all directions are equal to 0
+								if (updated_raster[min_row][min_col]  != NoDataValue) {
+									counts.at(0) = 1;
+									total_elev += updated_raster[min_row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[row][min_col]  != NoDataValue) {
+									counts.at(1) = 1; 
+									total_elev += updated_raster[row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][min_col]  != NoDataValue) {
+									counts.at(2) = 1; 
+									total_elev += updated_raster[max_row][min_col];
+									n_obs++;
+								}
+								if (updated_raster[min_row][col]  != NoDataValue) {
+									counts.at(3) = 1;
+									total_elev += updated_raster[min_row][col];
+									n_obs++;
+								}  
+								if (updated_raster[min_row][max_col]  != NoDataValue) {
+									counts.at(4) = 1;
+									total_elev += updated_raster[min_row][max_col];
+									n_obs++;
+								}  
+								if (updated_raster[row][max_col]  != NoDataValue) {
+									counts.at(5) = 1; 
+									total_elev += updated_raster[row][max_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][max_col]  != NoDataValue) {
+									counts.at(6) = 1; 
+									total_elev += updated_raster[max_row][max_col];
+									n_obs++;
+								}
+								if (updated_raster[max_row][col] != NoDataValue) {
+									counts.at(7) = 1; 
+									total_elev += updated_raster[max_row][col];
+									n_obs++;
+								}
+								// if 1s surround the pixel, then fill in the pixel
+								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+								{
+									this_sweep_data[row][col] = total_elev/float(n_obs);
+									i = window_width+1;
+								}
+							}				
+						}						 
+					}
+	 		 	}
+        break;
+    	}
+		}
+
+		// increment the sweep number
+    nsweep++;
+
+  } while(nsweep < 4);
+
+  LSDRaster Hole_filled_Raster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                         int(NoDataValue),this_sweep_data,GeoReferencingStrings);
+  return Hole_filled_Raster;
+
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Isolate channelised portions of the landscape using the method proposed by Lashermes et
 // al. (2007) Lashermes, B., E. Foufoula-Georgiou, and W. E. Dietrich (2007), Channel

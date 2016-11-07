@@ -1982,6 +1982,22 @@ class LSDRaster
   /// @author SMM
   /// @date 09/12/2014
   LSDRaster alternating_direction_nodata_fill_with_trimmer(int window_width);
+	
+	/// @brief Function to fill in no data holes in an irregular raster. Pixel must have 
+	/// all neighbours not equal to no data value within the specified window radius.  Data is 
+	/// filled based on mean of pixels within the window radius.
+	LSDRaster nodata_fill_irregular_raster(int window_radius);
+	
+	/// @brief A routine that fills nodata holes. Modified by FJC to only fill holes
+	/// surrounded in all directions by pixels with valid elevation values
+  /// @detail The routine sweeps the raster looking for nodata and filling
+  ///  this nodata with an average value from surrounding nodes. The sweeping
+  ///  changes directions, four sweep directions in all (+ rows, - rows, + cols, -cols)
+  /// @param window_size the number of pixles around the centre pixel to take the
+  ///  spatial average
+  /// @author FJC
+  /// @date 09/12/2014
+	LSDRaster alternating_direction_nodata_fill_irregular_raster(int window_width);
 
   /// @brief Function to create a masked LSDIndexRaster raster based on a conditional statement
   /// @param string Condition ("<", ">", "==", "!=")
