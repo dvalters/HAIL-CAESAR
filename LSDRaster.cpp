@@ -11071,49 +11071,66 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 								
 								//check whether surrounding pixels in all directions are equal to 0
 								if (updated_raster[min_row][min_col]  != NoDataValue) {
-									counts.at(0) = 1;
-									total_elev += updated_raster[min_row][min_col];
-									n_obs++;
+									if (counts.at(0) == 0) {
+										total_elev += updated_raster[min_row][min_col];
+										n_obs++;
+										counts.at(0) = 1;
+									}
 								}
 								if (updated_raster[row][min_col]  != NoDataValue) {
-									counts.at(1) = 1; 
-									total_elev += updated_raster[row][min_col];
-									n_obs++;
+									if (counts.at(1) == 0) {
+										total_elev += updated_raster[row][min_col];
+										n_obs++;
+										counts.at(1) = 1;
+									}
 								}
 								if (updated_raster[max_row][min_col]  != NoDataValue) {
-									counts.at(2) = 1; 
-									total_elev += updated_raster[max_row][min_col];
-									n_obs++;
+									if (counts.at(2) == 0) {
+										total_elev += updated_raster[max_row][min_col];
+										n_obs++;
+										counts.at(2) = 1;
+									}
 								}
 								if (updated_raster[min_row][col]  != NoDataValue) {
-									counts.at(3) = 1;
-									total_elev += updated_raster[min_row][col];
-									n_obs++;
+									if (counts.at(3) == 0) {
+										total_elev += updated_raster[min_row][col];
+										n_obs++;
+										counts.at(3) = 1;
+									}
 								}  
 								if (updated_raster[min_row][max_col]  != NoDataValue) {
-									counts.at(4) = 1;
-									total_elev += updated_raster[min_row][max_col];
-									n_obs++;
+									if (counts.at(4) == 0) {
+										total_elev += updated_raster[min_row][max_col];
+										n_obs++;
+										counts.at(4) = 1;
+									}
 								}  
 								if (updated_raster[row][max_col]  != NoDataValue) {
-									counts.at(5) = 1; 
-									total_elev += updated_raster[row][max_col];
-									n_obs++;
+									if (counts.at(5) == 0) {
+										total_elev += updated_raster[row][max_col];
+										n_obs++;
+										counts.at(5) = 1;
+									}
 								}
 								if (updated_raster[max_row][max_col]  != NoDataValue) {
-									counts.at(6) = 1; 
-									total_elev += updated_raster[max_row][max_col];
-									n_obs++;
+									if (counts.at(6) == 0) {
+										total_elev += updated_raster[max_row][max_col];
+										n_obs++;
+										counts.at(6) = 1;
+									}
 								}
 								if (updated_raster[max_row][col] != NoDataValue) {
-									counts.at(7) = 1; 
-									total_elev += updated_raster[max_row][col];
-									n_obs++;
+									if (counts.at(7) == 0) {
+										total_elev += updated_raster[max_row][col];
+										n_obs++;
+										counts.at(7) = 1;
+									}
 								}
 								
 								// if 1s surround the pixel, then fill in the pixel
 								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
 								{
+									//cout << "total elev: " << total_elev << " N obs: " << n_obs << endl;
 									this_sweep_data[row][col] = total_elev/float(n_obs);
 									i = window_width+1;
 								}
@@ -11151,46 +11168,62 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 								if (min_col < 0) min_col = 0;
 								if (max_col >= NCols) max_col = NCols-1;
 								
-								//check whether surrounding pixels in all directions are equal to 0
+									//check whether surrounding pixels in all directions are equal to 0
 								if (updated_raster[min_row][min_col]  != NoDataValue) {
-									counts.at(0) = 1;
-									total_elev += updated_raster[min_row][min_col];
-									n_obs++;
+									if (counts.at(0) == 0) {
+										total_elev += updated_raster[min_row][min_col];
+										n_obs++;
+										counts.at(0) = 1;
+									}
 								}
 								if (updated_raster[row][min_col]  != NoDataValue) {
-									counts.at(1) = 1; 
-									total_elev += updated_raster[row][min_col];
-									n_obs++;
+									if (counts.at(1) == 0) {
+										total_elev += updated_raster[row][min_col];
+										n_obs++;
+										counts.at(1) = 1;
+									}
 								}
 								if (updated_raster[max_row][min_col]  != NoDataValue) {
-									counts.at(2) = 1; 
-									total_elev += updated_raster[max_row][min_col];
-									n_obs++;
+									if (counts.at(2) == 0) {
+										total_elev += updated_raster[max_row][min_col];
+										n_obs++;
+										counts.at(2) = 1;
+									}
 								}
 								if (updated_raster[min_row][col]  != NoDataValue) {
-									counts.at(3) = 1;
-									total_elev += updated_raster[min_row][col];
-									n_obs++;
+									if (counts.at(3) == 0) {
+										total_elev += updated_raster[min_row][col];
+										n_obs++;
+										counts.at(3) = 1;
+									}
 								}  
 								if (updated_raster[min_row][max_col]  != NoDataValue) {
-									counts.at(4) = 1;
-									total_elev += updated_raster[min_row][max_col];
-									n_obs++;
+									if (counts.at(4) == 0) {
+										total_elev += updated_raster[min_row][max_col];
+										n_obs++;
+										counts.at(4) = 1;
+									}
 								}  
 								if (updated_raster[row][max_col]  != NoDataValue) {
-									counts.at(5) = 1; 
-									total_elev += updated_raster[row][max_col];
-									n_obs++;
+									if (counts.at(5) == 0) {
+										total_elev += updated_raster[row][max_col];
+										n_obs++;
+										counts.at(5) = 1;
+									}
 								}
 								if (updated_raster[max_row][max_col]  != NoDataValue) {
-									counts.at(6) = 1; 
-									total_elev += updated_raster[max_row][max_col];
-									n_obs++;
+									if (counts.at(6) == 0) {
+										total_elev += updated_raster[max_row][max_col];
+										n_obs++;
+										counts.at(6) = 1;
+									}
 								}
 								if (updated_raster[max_row][col] != NoDataValue) {
-									counts.at(7) = 1; 
-									total_elev += updated_raster[max_row][col];
-									n_obs++;
+									if (counts.at(7) == 0) {
+										total_elev += updated_raster[max_row][col];
+										n_obs++;
+										counts.at(7) = 1;
+									}
 								}
 								
 								// if 1s surround the pixel, then fill in the pixel
@@ -11233,46 +11266,62 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 								if (min_col < 0) min_col = 0;
 								if (max_col >= NCols) max_col = NCols-1;
 								
-								//check whether surrounding pixels in all directions are equal to 0
+									//check whether surrounding pixels in all directions are equal to 0
 								if (updated_raster[min_row][min_col]  != NoDataValue) {
-									counts.at(0) = 1;
-									total_elev += updated_raster[min_row][min_col];
-									n_obs++;
+									if (counts.at(0) == 0) {
+										total_elev += updated_raster[min_row][min_col];
+										n_obs++;
+										counts.at(0) = 1;
+									}
 								}
 								if (updated_raster[row][min_col]  != NoDataValue) {
-									counts.at(1) = 1; 
-									total_elev += updated_raster[row][min_col];
-									n_obs++;
+									if (counts.at(1) == 0) {
+										total_elev += updated_raster[row][min_col];
+										n_obs++;
+										counts.at(1) = 1;
+									}
 								}
 								if (updated_raster[max_row][min_col]  != NoDataValue) {
-									counts.at(2) = 1; 
-									total_elev += updated_raster[max_row][min_col];
-									n_obs++;
+									if (counts.at(2) == 0) {
+										total_elev += updated_raster[max_row][min_col];
+										n_obs++;
+										counts.at(2) = 1;
+									}
 								}
 								if (updated_raster[min_row][col]  != NoDataValue) {
-									counts.at(3) = 1;
-									total_elev += updated_raster[min_row][col];
-									n_obs++;
+									if (counts.at(3) == 0) {
+										total_elev += updated_raster[min_row][col];
+										n_obs++;
+										counts.at(3) = 1;
+									}
 								}  
 								if (updated_raster[min_row][max_col]  != NoDataValue) {
-									counts.at(4) = 1;
-									total_elev += updated_raster[min_row][max_col];
-									n_obs++;
+									if (counts.at(4) == 0) {
+										total_elev += updated_raster[min_row][max_col];
+										n_obs++;
+										counts.at(4) = 1;
+									}
 								}  
 								if (updated_raster[row][max_col]  != NoDataValue) {
-									counts.at(5) = 1; 
-									total_elev += updated_raster[row][max_col];
-									n_obs++;
+									if (counts.at(5) == 0) {
+										total_elev += updated_raster[row][max_col];
+										n_obs++;
+										counts.at(5) = 1;
+									}
 								}
 								if (updated_raster[max_row][max_col]  != NoDataValue) {
-									counts.at(6) = 1; 
-									total_elev += updated_raster[max_row][max_col];
-									n_obs++;
+									if (counts.at(6) == 0) {
+										total_elev += updated_raster[max_row][max_col];
+										n_obs++;
+										counts.at(6) = 1;
+									}
 								}
 								if (updated_raster[max_row][col] != NoDataValue) {
-									counts.at(7) = 1; 
-									total_elev += updated_raster[max_row][col];
-									n_obs++;
+									if (counts.at(7) == 0) {
+										total_elev += updated_raster[max_row][col];
+										n_obs++;
+										counts.at(7) = 1;
+									}
 								}
 								// if 1s surround the pixel, then fill in the pixel
 								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
@@ -11315,46 +11364,62 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 								if (min_col < 0) min_col = 0;
 								if (max_col >= NCols) max_col = NCols-1;
 								
-								//check whether surrounding pixels in all directions are equal to 0
+										//check whether surrounding pixels in all directions are equal to 0
 								if (updated_raster[min_row][min_col]  != NoDataValue) {
-									counts.at(0) = 1;
-									total_elev += updated_raster[min_row][min_col];
-									n_obs++;
+									if (counts.at(0) == 0) {
+										total_elev += updated_raster[min_row][min_col];
+										n_obs++;
+										counts.at(0) = 1;
+									}
 								}
 								if (updated_raster[row][min_col]  != NoDataValue) {
-									counts.at(1) = 1; 
-									total_elev += updated_raster[row][min_col];
-									n_obs++;
+									if (counts.at(1) == 0) {
+										total_elev += updated_raster[row][min_col];
+										n_obs++;
+										counts.at(1) = 1;
+									}
 								}
 								if (updated_raster[max_row][min_col]  != NoDataValue) {
-									counts.at(2) = 1; 
-									total_elev += updated_raster[max_row][min_col];
-									n_obs++;
+									if (counts.at(2) == 0) {
+										total_elev += updated_raster[max_row][min_col];
+										n_obs++;
+										counts.at(2) = 1;
+									}
 								}
 								if (updated_raster[min_row][col]  != NoDataValue) {
-									counts.at(3) = 1;
-									total_elev += updated_raster[min_row][col];
-									n_obs++;
+									if (counts.at(3) == 0) {
+										total_elev += updated_raster[min_row][col];
+										n_obs++;
+										counts.at(3) = 1;
+									}
 								}  
 								if (updated_raster[min_row][max_col]  != NoDataValue) {
-									counts.at(4) = 1;
-									total_elev += updated_raster[min_row][max_col];
-									n_obs++;
+									if (counts.at(4) == 0) {
+										total_elev += updated_raster[min_row][max_col];
+										n_obs++;
+										counts.at(4) = 1;
+									}
 								}  
 								if (updated_raster[row][max_col]  != NoDataValue) {
-									counts.at(5) = 1; 
-									total_elev += updated_raster[row][max_col];
-									n_obs++;
+									if (counts.at(5) == 0) {
+										total_elev += updated_raster[row][max_col];
+										n_obs++;
+										counts.at(5) = 1;
+									}
 								}
 								if (updated_raster[max_row][max_col]  != NoDataValue) {
-									counts.at(6) = 1; 
-									total_elev += updated_raster[max_row][max_col];
-									n_obs++;
+									if (counts.at(6) == 0) {
+										total_elev += updated_raster[max_row][max_col];
+										n_obs++;
+										counts.at(6) = 1;
+									}
 								}
 								if (updated_raster[max_row][col] != NoDataValue) {
-									counts.at(7) = 1; 
-									total_elev += updated_raster[max_row][col];
-									n_obs++;
+									if (counts.at(7) == 0) {
+										total_elev += updated_raster[max_row][col];
+										n_obs++;
+										counts.at(7) = 1;
+									}
 								}
 								// if 1s surround the pixel, then fill in the pixel
 								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
