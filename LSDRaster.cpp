@@ -12391,36 +12391,36 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
 
   for (int i =0; i < n_values; i++)
   {
-    if (normal_variates[i] <= 0)
-    {
+    //if (normal_variates[i] <= 0)
+    //{
       // get difference between real and normal distributions
-      float diff = abs(quantile_values[i] - mn_values[i]);
-      // express as fraction of the range of data
-      float frac_diff = diff/range;
-      if (frac_diff < threshold_condition)
-      {
-        // first time the condition is fulfilled
-        if (flag == 0)
-        {
-          flag = 1;
-          int count = 0;
-          //search next points to check if they also fulfil the condition
-          for (int j = 1; j <= min_length; j++)
-          {
-            float next_diff = abs(quantile_values[i+j] - mn_values[i+j]);
-            float next_frac = next_diff/range;
-            if (next_frac < threshold_condition) count++;
-          }
-          //cout << "Count is: " << count << endl;
-          if (count == min_length)
-          {
-            threshold = quantile_values[i];
-            cout << "Quantile value at threshold: " << quantile_values[i] << " Normal variate: " <<  normal_variates[i] << endl;
-          }
-          else flag = 0;
-        }
+		float diff = abs(quantile_values[i] - mn_values[i]);
+		// express as fraction of the range of data
+		float frac_diff = diff/range;
+		if (frac_diff < threshold_condition)
+		{
+			// first time the condition is fulfilled
+			if (flag == 0)
+			{
+				flag = 1;
+				int count = 0;
+				//search next points to check if they also fulfil the condition
+				for (int j = 1; j <= min_length; j++)
+				{
+					float next_diff = abs(quantile_values[i+j] - mn_values[i+j]);
+					float next_frac = next_diff/range;
+					if (next_frac < threshold_condition) count++;
+				}
+				//cout << "Count is: " << count << endl;
+				if (count == min_length)
+				{
+					threshold = quantile_values[i];
+					cout << "Quantile value at threshold: " << quantile_values[i] << " Normal variate: " <<  normal_variates[i] << endl;
+				}
+				else flag = 0;
+			}
       }
-    }
+   // }
   }
 
   return threshold;
