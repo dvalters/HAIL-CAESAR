@@ -482,7 +482,7 @@ protected:
 
   double ERODEFACTOR=0.05;
   double DX=5.0;
-  double root=7.07;
+  const double root=7.07;
 
   /// memory limit
   int LIMIT=1;
