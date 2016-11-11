@@ -10,4 +10,8 @@ SOURCES = ../../HAIL-CAESAR_driver.cpp \
 ../../../LSDStatsTools.cpp \
 ../../../LSDShapeTools.cpp \
 ../../../LSDGrainMatrix.cpp \
-../../../LSDRainfallRunoff.cpp
+../../../LSDRainfallRunoff.cpp \
+    ../../../LSDSedimentErosion.cpp
+
+HEADERS += \
+    ../../../LSDSedimentErosion.hpp
