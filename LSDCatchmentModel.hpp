@@ -217,7 +217,7 @@ public:
   void output_data();
   
   /// @brief Writes the time series of catchment output data.
-  /// @detail Overloaded to take a reference to a runoff object
+  /// @details Overloaded to take a reference to a runoff object
   /// to allow calculation from the OOP method.-
   /// @author DAV
   void output_data(double temptotal, runoffGrid& runoff);
@@ -246,11 +246,7 @@ public:
   /// @details Erosion only takes place above certain threshold.
   /// Contains calls to subroutines such as addGS() and d50().
   /// Needs re-factoring to extract seprate methods (bedrock vs loose sedi erosion etc.)
-  /// @author DAV
-  double erode_OLD(double mult_factor);
-  
-  double erode_OLDER(double mult_factor);
-  
+  /// @author DAV  
   double erode(double mult_factor);
 
   /// @brief carries out the lateral bank erosion.
@@ -331,59 +327,6 @@ public:
 
   /// @brief Runs a very basic test to see if you can run code in parallel mode.
   void quickOpenMPtest();
-
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  //
-  // Maps holding parameters and switches read from input paramter files
-  // 
-  // (DEPRECATED)
-  //
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
-  /// Calculates the water velocities for the erosion routines
-  void erosion_velocities(std::vector<double>& tempdir, int& x, double& velnum, 
-                          double& slopetot, double& vel, double& qtot, 
-                          double& temptot2, double& veltot, int& y);
-  
-  /// Calculate the shear stresses in each cell for doing erosion entrainment
-  void erosion_shear_stresses(double& vel, int& y, double& slopetot, 
-                              double& qtot, int& x, double& tau);
-  
-  /// Calculate sediment entrainment from lose layers
-  void sediment_entrainment(double& Di, std::vector<double>& temp_dist, 
-                            double& graintot, double& mult_factor, double& d_50, 
-                            double& Fs, double& rho, int& y, double& temptot1, 
-                            int& x, double& tau);
-  
-  void wilcock_sed_transport(double& mult_factor, double& d_50, int& y, 
-                             double& tau, int& n, double& graintot, 
-                             std::vector<double>& temp_dist, double& rho, 
-                             int& x, double& Di, double& Fs);
-  
-  void einstein_sed_transport(std::vector<double>& temp_dist, double& tau, 
-                              int& n, double& Di, double& mult_factor);
-  
-  void bedrock_erosion(int& x, double& tau, double& temptot1, 
-                       int& y, std::vector<double>& temp_dist, double& mult_factor);
-  
-  void erosion_vegetation_buffer(double& tau, double& mult_factor, int& x, int& y, 
-                                 double& temptot1, std::vector<double>& temp_dist);
-  
-  void route_bedload(int& x, std::vector<double>& temp_dist, std::vector<double>& tempdir, 
-                     double& temptot2, int& y, double& veltot);
-  
-  void erosion_sediment_totals(TNT::Array2D<double>& erodetot, 
-                               TNT::Array2D<double>& erodetot3);
-  
-  void move_sedi_x_dir(TNT::Array2D<double>& erodetot3, double& mult_factor);
-  
-  void move_sedi_y_dir(double& mult_factor, TNT::Array2D<double>& erodetot3);
-  
-  void sediment_outputs(std::array<double, 20>& gtot2);
-  
-  void zero_velocities_and_sediment_arrays(int y, int x);
-  
-  void calc_erosion_timefactor();
   
 protected:
 
@@ -431,6 +374,7 @@ protected:
   bool uniquefilecheck = false;
 
   //constants
+  const double root = 7.07;
   const double gravity = 9.81;
   const float g = 9.81F;
   const float kappa = 0.4F;
@@ -595,7 +539,7 @@ protected:
   // loop through array to access each grainsize fraction
   // the weird length is a hangover from CAESAR-Lisflood...
   //std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068, 0.146, 0.22, 0.231, 0.121, 0.0}}; // Default
-  std::array<double, 11> dprop = {{0.0, 0.05, 0.05, 0.15, 0.225, 0.25, 0.1, 0.075, 0.05, 0.05, 0.0}}; // Swale
+  double dprop[11] = {0.0, 0.05, 0.05, 0.15, 0.225, 0.25, 0.1, 0.075, 0.05, 0.05, 0.0}; // Swale
 
   double previous;
   int hours = 0;
@@ -676,6 +620,7 @@ protected:
   std::vector<double> fallVelocity;
   std::vector<bool> isSuspended;
   TNT::Array2D<double> Vsusptot;
+
 
   std::vector<int> nActualGridCells;
   double Jw_newvol = 0.0;

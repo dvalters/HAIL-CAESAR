@@ -1,6 +1,6 @@
 CC = icc 
-CFLAGS= -c -Wall -O2 -std=c++11 -qopenmp -DOMP_COMPILE_FOR_PARALLEL
-OFLAGS = -Wall -O2 -std=c++11 -qopenmp
+CFLAGS= -c -Wall -g -O2 -march=native -std=c++11 -qopenmp -DOMP_COMPILE_FOR_PARALLEL
+OFLAGS = -Wall -g -O2 -march=native -std=c++11 -qopenmp -DOMP_COMPILE_FOR_PARALLEL
 LDFLAGS= -Wreturn-type
 SOURCES = ../HAIL-CAESAR_driver.cpp \
 			../../LSDCatchmentModel.cpp \
@@ -15,7 +15,7 @@ OBJ = $(SOURCES:.cpp=.o)
 #LIBS = -lfftw3 -lpython2.7 -g -O0 -D_GLIBCXX_DEBUG
 #LIBS = -lfftw3 -lpython2.7 -Wwrite-strings
 LIBS = 
-EXEC = HAIL-CAESAR_OpenMP_Intel_Optimised.out
+EXEC = HAIL-CAESAR_OpenMP_Intel_Optimised_O2_g_vtune.out
 
 all: $(SOURCES) $(SCRIPTS) $(EXEC)
 

@@ -1,7 +1,7 @@
 CC = g++
-CFLAGS= -c -Wreturn-type -O3 -funroll-loops -ffast-math -std=gnu++11 -fopenmp \
-		-DOMP_COMPILE_FOR_PARALLEL
-OFLAGS = -Wall -O3 -funroll-loops -ffast-math -std=gnu++11 -fopenmp 
+CFLAGS= -c -Wall -O3  -march=native -fopenmp \
+		-DOMP_COMPILE_FOR_PARALLEL 
+OFLAGS = -Wall -O3 -fopenmp -march=native -DOMP_COMPILE_FOR_PARALLEL 
 LDFLAGS= -Wall
 SOURCES = ../HAIL-CAESAR_driver.cpp \
 			../../LSDCatchmentModel.cpp \
@@ -16,7 +16,7 @@ OBJ = $(SOURCES:.cpp=.o)
 #LIBS = -lfftw3 -lpython2.7 -g -O0 -D_GLIBCXX_DEBUG
 #LIBS = -lfftw3 -lpython2.7 -Wwrite-strings
 LIBS = 
-EXEC = HAIL-CAESAR_OpenMP_GCC_Optimised_O3_funroll.out
+EXEC = HAIL-CAESAR_OpenMP_GCC_Optimised_O3_marchnative.out
 
 all: $(SOURCES) $(SCRIPTS) $(EXEC)
 
