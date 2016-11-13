@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     }
 
     // Water outputs from edges/catchment outlet
-    simulation.water_flux_out(local_time_factor);
+    simulation.water_flux_out();
 
     // Hillslope & vegetation processes
     simulation.local_landsliding(local_landsliding_interval);

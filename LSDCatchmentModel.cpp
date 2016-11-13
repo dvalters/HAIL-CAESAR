@@ -69,16 +69,6 @@
 
 #define ENABLE_PREFETCH
 
-// A wrapper method that calls the chief erosional and water routing methods.
-// Should really go in the main/driver.cpp file and be made so you can customise
-// which components are run in a more OOP way.
-void LSDCatchmentModel::run_components() 
-{
-
-}
-
-
-
 
 // ingest data tools
 // DAV: I've copied these here for now to make the model self-contained for testing purposes
@@ -2363,9 +2353,10 @@ void LSDCatchmentModel::zero_values()
 // This must be done so that water can still move sediment to the edge of the catchment
 // and hence remove it from the catchment. (otherwise you would get sediment build
 // up around the edges.
-void LSDCatchmentModel::water_flux_out(double local_time_factor)
+void LSDCatchmentModel::water_flux_out()
 // Extracted as a seprate method from erodepo()
 {
+  double local_time_factor = time_factor;
   // Zero the water, but then we set it to the minimum depth - DV
   temptot = 0;
   for (int i = 1; i <= imax; i++)
@@ -4553,7 +4544,6 @@ void LSDCatchmentModel::creep(double time)
   }
 
 }
-
 
 void LSDCatchmentModel::slide_3()
 {
