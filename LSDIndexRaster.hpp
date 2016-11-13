@@ -291,8 +291,7 @@ class LSDIndexRaster
   /// @date 22/12/2014
   void get_UTM_information(int& UTM_zone, bool& is_North);
 
-  /// @brief Method to flatten an LSDRaster to a text file, with a sigle value on each line. 
-  /// @brief Method to flatten an LSDRaster and place the non NDV values in a csv file.
+  /// @brief Method to flatten an LSDIndexRaster and place the non NDV values in a csv file.
   /// @detail Each value is placed on its own line, so that it can be read more quickly in python etc.
   ///   It includes the x and y locations so it can be read by GIS software
   /// @param FileName_prefix The prefix of the file to write, if no path is included it will write to the current directory. 
@@ -300,6 +299,16 @@ class LSDIndexRaster
   /// @author SMM
   /// @date 29/6/15
   void FlattenToCSV(string FileName);
+
+  /// @brief Method to flatten an LSDIndexRaster and place the non NDV values in a csv file.
+  ///
+  /// @detail Each value is placed on its own line, so that it can be read more quickly in python etc.
+  ///   It includes the lat long coordinates in CSV
+  /// @param FileName_prefix The prefix of the file to write, if no path is included it will write to the current directory.
+  ///  The csv extension is added automatically.
+  /// @author SMM
+  /// @date 12/11/16
+  void FlattenToWGS84CSV(string FileName);
 
 
   /// @brief Checks to see if two rasters have the same dimensions
