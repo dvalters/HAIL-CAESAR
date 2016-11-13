@@ -171,32 +171,40 @@ public:
   /// @return
   void call_lateral();
 
-  //// @brief Calculates water fluxes out of the catchment
-  //// @return
-  ////void water_flux_out();
+  void set_time_counters();
 
-  /// @brief Calls the landsliding methods
-  /// @return
-  void call_landsliding();
+  void set_loop_cycle();
 
-  void call_slide5();
+  void set_inputoutput_diff();
 
-  /// @brief Calls the soil creep method
-  /// @return
-  void call_soilcreep();
+  void set_global_timefactor();
 
-  /// @brief Calls the soil erosion method
-  void call_soil_erosion();
+  double set_local_timefactor();
 
-  /// @brief Calls the soil development method
-  void call_soil_devel();
+  void increment_counters();
 
-  /// @brief Calls the evapo-transpiration method
-  /// @return
-  void call_evapotrans();
+  void save_raster_output();
 
-  /// @brief Calls the grass growing method
-  void call_grass_growing();
+  void print_cycle();
+
+  void write_output_timeseries(runoffGrid& runoff);
+
+  void local_landsliding(int local_landsliding_interval);
+
+  void slope_creep(int creep_time_interval_days, double creep_coeff);
+
+  void inchannel_landsliding(int inchannel_landsliding_interval_hours);
+
+  void grow_vegetation(int vegetation_growth_interval_hours);
+
+  void check_wetted_area(int scan_area_interval_iter);
+
+  void catchment_waterinputs(runoffGrid& runoff);
+
+  void initialise_rainfall_runoff(runoffGrid& runoff);
+
+  void initialise_drainage_area();
+
 
   /// @brief Calculates the area and calls area4().
   /// @details This is basically a wrapper function now. It sets area = 0,
@@ -326,7 +334,13 @@ public:
   void print_parameters();
 
   /// @brief Runs a very basic test to see if you can run code in parallel mode.
-  void quickOpenMPtest();
+  static void quickOpenMPtest();
+
+  int get_imax() const { return imax; }
+  int get_jmax() const { return jmax; }
+  double get_cycle() const { return cycle; }
+  int get_maxcycle() const { return maxcycle; }
+  bool is_hydro_only() const { return hydro_only; }
   
 protected:
 
@@ -394,6 +408,7 @@ protected:
   double creep_time = 1;
   double creep_time2 = 1;
   double creep_time3 = 1;
+  double grass_grow_interval = 1;
 
   double soil_erosion_time = 1;
   double soil_development_time = 1;
@@ -411,7 +426,8 @@ protected:
 
   double waterinput = 0;
   double waterOut = 0;
-  double in_out_difference = 0;
+  double input_output_difference = 0;
+  double in_out_difference_allowed = 0;
   double mannings = 0.04;
 
   /// no. of rainfall cells
@@ -426,7 +442,6 @@ protected:
 
   double ERODEFACTOR=0.05;
   double DX=5.0;
-  const double root=7.07;
 
   /// memory limit
   int LIMIT=1;
