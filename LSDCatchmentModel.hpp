@@ -207,11 +207,11 @@ public:
   ///  and area_depth = 1 where there is actual elevation data. Then calls
   /// get_area4() which does the actual work.
   /// @author Translated by DAV
-  void get_area();
+  void zero_and_calc_drainage_area();
 
   /// @brief Calculates the drainage area, after being called by get_area()
   /// @author Translated by DAV
-  void get_area4();
+  void drainage_area_D8();
 
   void get_catchment_input_points();
   
@@ -287,7 +287,7 @@ public:
   /// @details Uses the Bates et al. (2010) simplification of the St. Venant
   /// shallow water equations. Does not assume steady state flow across the
   /// landscape.
-  void qroute();
+  void flow_route();
 
   /// Calculates the amount of runoff on a grid-cell from the rainfall
   /// timeseries input
@@ -300,12 +300,14 @@ public:
 
   /// Calculates the amount of water entering grid cells from the rainfall timeseries
   /// and hydroindex if spatially variable rainfall is used.
-  void calc_J( double cycle);
+  /// @details Based on the semi-dsitributed TOPMODEL rainfall runoff model
+  void topmodel_runoff( double cycle);
 
   /// Calculates amount of water entering grid cells when using the fully-distributed
   /// rainfall runoff model (i.e. where every single cell can have diffferent rainfall
   /// and saturation levels.
-  void calc_J(double cycle, runoffGrid& runoff);
+  /// @details Based on TOPMODEL, modified to fully 2D distributed version
+  void topmodel_runoff(double cycle, runoffGrid& runoff);
 
   void calchydrograph( double time);
 
@@ -338,8 +340,7 @@ public:
   int get_maxcycle() const { return maxcycle; }
   bool is_hydro_only() const { return hydro_only; }
   
-protected:
-
+private:
 
   string dem_read_extension;
   string dem_write_extension;
@@ -348,39 +349,6 @@ protected:
   string write_fname = "catchment.dat";
   string read_fname;
 
-  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-  // MASSIVE LIST OF VARIABLES USED IN CL
-  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-  // DAV: 2014-10-01
-  // At the moment I have just copied and pasted all the variable declartions
-  // anddefinitions from the CL original source file. Some of them can be thinned out
-  // and should also consider where is best to place them (private/public etc)
-  
-  // TO DO: should not have all these public variables!!
-
-  // TO DO: Convert C-style arrays to std::vector<type>
-
-  // HINT:
-  // C# Arrays:
-  // double[] array_name
-  //
-  // C++ Arrays:
-  // double array_name[]
-  //
-  // C++ equivalent vector:
-  // std::vector<double>(length) {Initial_value1, initial_value2, etc}
-
-  // You can also use the TNT arrays (Template Numerical Toolkit)
-  // TNT::Array2D<float> {1.0, 2.0, 3.0}
-  //
-  // Note that C++ vectors do not need tobe intialised with a length or
-  // initial values if you don't want them to, they will dynamicaly resize
-  // as need. (Unlike the standard practice of initiaising C-style arrays
-  // with new[] etc....
-
-  // toms global variables
-  // DAV: Note: You are only allowed to initialize non-static variables in C++11.
   bool uniquefilecheck = false;
 
   //constants
@@ -427,10 +395,10 @@ protected:
   double mannings = 0.04;
 
   /// no. of rainfall cells
-  int rfnum = 1;
+  unsigned rfnum = 1;
 
   /// set by ncols and nrows
-  int jmax, imax;
+  unsigned int jmax, imax;
   double xll, yll;
   double no_data_value;
 
@@ -723,7 +691,6 @@ protected:
   // Mainly just the definitions of the create() functions go here:
   // The implementations are in the .cpp file.
   
-private:
   void create();
   void create(std::string pname, std::string pfname);
 };

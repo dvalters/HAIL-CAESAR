@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
     // Hydrological and flow routing processes
     simulation.catchment_waterinputs(runoff);
-    simulation.qroute();
+    simulation.flow_route();
     simulation.depth_update();
 
     // Check drainage area (For traditional TOPMODEL)

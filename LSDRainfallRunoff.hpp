@@ -105,6 +105,10 @@ private:
               TNT::Array2D<int>& hydroindex,
               int imax, int jmax, int current_rainfall_timestep, int rf_num);
 
+  /// Creates a raingrid for the current timestep by extracting from the netCDF data file.
+  /// TO DO
+  void create(TNT::Array3D<double>& rain_data, int current_raindata_timestep, int imax, int jmax);
+
 };
 
 
@@ -133,10 +137,6 @@ public:
                      const rainGrid& current_rainGrid,
                      const TNT::Array2D<double>& elevations)
   {
-    /*std::cout << "Creating a LSD runoffGrid object from the" << std::endl
-                 << " current rainGrid and domain parameters..." \
-                 << std::endl;
-                 */
     create(current_rainfall_timestep, imax, jmax,
            rain_factor, M,
            current_rainGrid, 
