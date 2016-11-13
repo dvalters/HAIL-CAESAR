@@ -159,10 +159,6 @@ public:
   /// @details also sets 'hard-coded' parameters to start the model
   void initialise_arrays();
 
-  /// @brief Wrapper function that calls the main erosional and depositional methods
-  /// @return
-  void run_components();
-
   /// @brief Wrapper function that calls the main erosion method
   /// @return
   void call_erosion();
@@ -321,7 +317,7 @@ public:
 
   void scan_area();
 
-  void water_flux_out(double local_time_factor);
+  void water_flux_out();
   
   /// Counts the number of cells within the catchment boundary. For
   /// spatially variable rainfall, this counts the number of cells
