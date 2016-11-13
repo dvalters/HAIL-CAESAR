@@ -74,200 +74,10 @@
 // which components are run in a more OOP way.
 void LSDCatchmentModel::run_components() 
 {
-  // For testing purposes, can be removed later - dv
-  // Just prints out how many threads/cores you have.
-  #ifdef OMP_COMPILE_FOR_PARALLEL
-  quickOpenMPtest();
-  #endif
-  // Originally main_loop() in CL, but no need (I think) for separete
-  // loops here.
-  std::cout << "Initialising first iteration..." << std::endl;
-  time_1 = 1;
 
-  // J is the local rainfall inputed into the cell at each timestep
-  std::cout << "Initialising J for first time..." << std::endl;
-
-  runoffGrid runoff(imax, jmax); /* TO DO fix. annoying, because obviously
-  you can't put it in the conditional below, as we need it to exist out of scope
-  yet it should really only be created if we are using the complex rainfall-runoff option
-  (i.e., not best practive to go around using up memory when we don't need to...)
-  see stackoverflow for possible solutions:
-  http://stackoverflow.com/questions/9346477/create-objects-in-conditional-c-statements
-  */
-  if (spatially_complex_rainfall == true)
-  {
-    // Create a runoff object same size as model domains
-    calc_J(1.0, runoff);  // Creates a rainfall grid object, uses the runoff grid object as well
-  }
-  else
-  {
-    calc_J(1.0);
-  }
-
-  save_time = cycle;
-  creep_time = cycle;
-  creep_time2 = cycle;
-  soil_erosion_time = cycle;
-  soil_development_time = cycle;
-  time_1 = cycle;
-
-  std::cout << "Initialising drainage area for first time..." << std::endl;
-  // calculate the contributing drainage area
-  
-  if (spatially_complex_rainfall == false)
-  {  
-  get_area();   // is this needed for spatially complex case? - DAV no, but soil erosion uses it.
-  }
-  
-  if (spatially_complex_rainfall == false)
-  {
-    std::cout << "Initialising catchment input points for first time..." << std::endl;
-    get_catchment_input_points();
-  }
-
-  time_factor = 1;
-
-  print_parameters();
-  // Originally erodedepo() in CAESAR-LISFLOOD...
-  // Entering the main loop here
-  std::cout << "Entering main model loop..." << std::endl;
-
-  // Main iteration loop
-  do
-  {
-    previous = cycle;
-    old_cycle = std::fmod(cycle, output_file_save_interval);
-    //std::cout << "Old cycle: " << old_cycle << std::endl;
-    //std::cout << "Calculate time step-related variables, make sure they don't fall below the threshold values..." << std::endl;
-    double input_output_difference = std::abs(waterinput - waterOut);
-    // calculate time step-related variables, make sure they don't fall below the threshold values
-    if (maxdepth <= 0.1)
-    {
-      maxdepth = 0.1;
-    }
-    if (time_factor < (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
-    {
-      time_factor = (courant_number * (DX / std::sqrt(gravity * (maxdepth))));
-    }
-    if (input_output_difference > in_out_difference && time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
-    {
-      time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
-    }
-
-    double local_time_factor = time_factor;
-    if (local_time_factor > (courant_number * (DX  / std::sqrt(gravity * (maxdepth)))))
-    {
-      local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
-    }
-    //std::cout << maxdepth << ", " << local_time_factor << std::endl;
-
-    // increment the counters
-    counter++;
-    cycle += time_factor / 60;
-    // cycle is minutes, time_factor is seconds
-    new_cycle = std::fmod(cycle, output_file_save_interval);
-
-    // WATER ROUTING
-    // first zero counter to tally up water inputs
-    waterinput = 0;
-
-    // In CL there was an option to set either reach or tidal mode.
-    // Only catchment mode is implemented in this spin-off version
-
-    // Also applies if you wanted spatially complex hydrological response
-    if (spatially_complex_rainfall == true)
-    {
-      catchment_water_input_and_hydrology(local_time_factor, runoff);
-    }
-    else
-    {
-      catchment_water_input_and_hydrology(local_time_factor);
-    }
-
-    //std::cout << "route the water and update the flow depths\r" << std::flush;
-    qroute();
-    depth_update();
-
-    // check scan area every 5 iters.. maybe re-visit for reach mode if it causes too much backing up of sed. see code commented below nex if..
-    if ((counter % 5) == 0)
-    {
-      scan_area();
-    }
-
-    // Will run hydrological model only if "hydro_model_only" set to yes/true
-    if (!hydro_only)
-    {
-      call_erosion();
-    }
-    //call_lateral();
-    water_flux_out(local_time_factor);  // temptot is zeroed, then calculated here
-    
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    // LANDSLIDING, VEGEATION AND CREEP CALLS
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    // Local landsliding every 10 iterations
-    // Soil creep every 10 days
-    if (!hydro_only)
-    {
-      if ((counter % 10) == 0)
-      {
-        slide_3();
-      }
-      if (cycle > creep_time)
-      {
-        creep_time += 14400; // Add 10 days
-        creep(0.028);  // Make this number user selectable
-      }
-    }
-    
-    // Channel landsliding every day
-    if (cycle > creep_time2)
-    {
-      // evaporate(1440);
-      creep_time2 += 1440; // Add 1 day
-      
-      if (!hydro_only)
-      {
-        slide_5();
-        
-        if (vegetation_on) 
-        {
-          grow_grass(1 / (grow_grass_time * 365));
-        }
-      }
-    }
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-    temptotal = temptot;
-
-    if (spatially_complex_rainfall ==true)
-    {
-      // uses the runoff object
-      output_data(temptotal, runoff);  
-    }
-    else
-    {
-      // uses the global array
-      output_data();
-    }
-    
-    // removed for archer output files
-    if (DEBUG_print_cycle_on==true)
-    {
-    std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
-    }
-    //std::cout << "Water Out (Qw): " << waterOut << "                  \r" << std::flush;
-
-    if (cycle >= save_time)
-    {
-      // deprecated // save_data_and_draw_graphics(); //similar to above worry?
-      save_raster_data(std::abs(cycle));
-      save_time += saveinterval;
-    }
-
-    // if we have reached the end of the run, kill the cycle
-  } while (cycle / 60 < maxcycle);
 }
+
+
 
 
 // ingest data tools
@@ -394,6 +204,7 @@ void LSDCatchmentModel::create(string pname, string pfname)
   std::cout << "Creating an instance of LSDCatchmentModel.." << std::endl;
   // Using the parameter file
   initialise_variables(pname, pfname);
+  std::cout << "The user-defined parameters have been ingested from the param file." << std::endl;
 }
 
 void LSDCatchmentModel::initialise_model_domain_extents()
@@ -427,6 +238,8 @@ void LSDCatchmentModel::initialise_model_domain_extents()
             >> str >> yll
             >> str >> DX // cell size or grid resolution
             >> str >> no_data_value;
+
+
   }
   catch(...)
   {
@@ -435,6 +248,8 @@ void LSDCatchmentModel::initialise_model_domain_extents()
                  std::endl << "2) Non standard raster format" << std::endl;
     exit(EXIT_FAILURE);
   }
+  std::cout << "The model domain has been set from reading the elevation DEM header." << std::endl;
+
 
 }
 
@@ -533,6 +348,8 @@ void LSDCatchmentModel::load_data()
     }
   }
   
+  std::cout << "The terrain array and supplementary input data has been loaded." << std::endl;
+
   // This has to go after the loading of the hydroindex,
   // otherwise your rfareas will all be 1!
   count_catchment_gridcells();
@@ -1142,8 +959,8 @@ void LSDCatchmentModel::initialise_variables(std::string pname, std::string pfna
 
     else if (lower == "in_out_difference")
     {
-      in_out_difference = atof(value.c_str());
-      std::cout << "in-output difference allowed (cumecs): " << in_out_difference << std::endl;
+      in_out_difference_allowed = atof(value.c_str());
+      std::cout << "in-output difference allowed (cumecs): " << in_out_difference_allowed << std::endl;
     }
 
     else if (lower == "min_q_for_depth_calc")
@@ -1449,6 +1266,182 @@ void LSDCatchmentModel::set_fall_velocities()
   fallVelocity[9] = 1.357;
 }
 
+
+void LSDCatchmentModel::set_time_counters()
+{
+  save_time = cycle;
+  creep_time = cycle;
+  creep_time2 = cycle;
+  soil_erosion_time = cycle;
+  soil_development_time = cycle;
+  time_1 = cycle;
+}
+
+void LSDCatchmentModel::set_loop_cycle()
+{
+  previous = cycle;
+  old_cycle = std::fmod(cycle, output_file_save_interval);
+}
+
+void LSDCatchmentModel::set_inputoutput_diff()
+{
+  input_output_difference = std::abs(waterinput - waterOut);
+}
+
+void LSDCatchmentModel::set_global_timefactor()
+{
+  if (maxdepth <= 0.1)
+  {
+    maxdepth = 0.1;
+  }
+  if (time_factor < (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+  {
+    time_factor = (courant_number * (DX / std::sqrt(gravity * (maxdepth))));
+  }
+  if (input_output_difference > in_out_difference_allowed && time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+  {
+    time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+  }
+}
+
+double LSDCatchmentModel::set_local_timefactor()
+{
+  double local_time_factor = time_factor; // take the current global time factor
+  if (local_time_factor > (courant_number * (DX  / std::sqrt(gravity * (maxdepth)))))
+  {
+    local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+  }
+  return local_time_factor;
+}
+
+void LSDCatchmentModel::increment_counters()
+{
+  counter++;
+  cycle += time_factor / 60;
+  // cycle is minutes, time_factor is seconds
+  new_cycle = std::fmod(cycle, output_file_save_interval);
+}
+
+void LSDCatchmentModel::save_raster_output()
+{
+  if (cycle >= save_time)
+  {
+    save_raster_data(std::abs(cycle));
+    save_time += saveinterval;
+  }
+}
+
+void LSDCatchmentModel::print_cycle()
+{
+  if (DEBUG_print_cycle_on==true)
+  {
+  std::cout << "Cycle: " << cycle << "                  \r" << std::flush;
+  }
+}
+
+void LSDCatchmentModel::write_output_timeseries(runoffGrid& runoff)
+{
+  temptotal = temptot;
+
+  if (spatially_complex_rainfall ==true)
+  {
+    // uses the runoff object
+    output_data(temptotal, runoff);
+  }
+  else
+  {
+    // uses the global array
+    output_data();
+  }
+}
+
+void LSDCatchmentModel::local_landsliding(int local_landsliding_interval)
+{
+  if (!hydro_only && ((counter % local_landsliding_interval) == 0))
+  {
+    slide_3();
+  }
+}
+
+void LSDCatchmentModel::slope_creep(int creep_time_interval_days, double creep_coeff)
+{
+  if (!hydro_only && (cycle > creep_time))
+  {
+    creep_time += creep_time_interval_days; // Add 10 days
+    creep(creep_coeff);  // Make this number user selectable
+  }
+}
+
+void LSDCatchmentModel::inchannel_landsliding(int inchannel_landsliding_interval_hours)
+{
+  if (!hydro_only && cycle > creep_time2)
+  {
+    // evaporate(1440);
+    creep_time2 += inchannel_landsliding_interval_hours; // Add 1 day in hours
+    slide_5();
+  }
+}
+
+void LSDCatchmentModel::grow_vegetation(int vegetation_growth_interval_hours)
+{
+  if (!hydro_only && vegetation_on && (cycle > grass_grow_interval))
+  {
+    grass_grow_interval += vegetation_growth_interval_hours; // Add 1 day in hours
+    grow_grass(1 / (grow_grass_time * 365));
+  }
+}
+
+void LSDCatchmentModel::check_wetted_area(int scan_area_interval_iter)
+{
+  if ((counter % scan_area_interval_iter) == 0)
+  {
+    scan_area();
+  }
+}
+
+void LSDCatchmentModel::catchment_waterinputs(runoffGrid& runoff)
+{
+  waterinput = 0;
+  double local_time_factor = set_local_timefactor();
+  if (spatially_complex_rainfall == true)
+  {
+    catchment_water_input_and_hydrology(local_time_factor, runoff);
+  }
+  else
+  {
+    catchment_water_input_and_hydrology(local_time_factor);
+  }
+}
+
+void LSDCatchmentModel::initialise_rainfall_runoff(runoffGrid& runoff)
+{
+  std::cout << "Initialising rainfall runoff for first time..." << std::endl;
+  if (spatially_complex_rainfall == true)
+  {
+    // Create a runoff object same size as model domains
+    calc_J(1.0, runoff);  // Creates a rainfall grid object, uses the runoff grid object as well
+  }
+  else
+  {
+    calc_J(1.0);
+  }
+}
+
+void LSDCatchmentModel::initialise_drainage_area()
+{
+  std::cout << "Initialising drainage area for first time..." << std::endl;
+  // calculate the contributing drainage area
+
+  // There's no need to intitialise the wetted area or catchment input
+  // points for the distributed topmodel case, since every cell is checked.
+  if (spatially_complex_rainfall == false)
+  {
+  get_area();   // is this needed for spatially complex case? - DAV no, but soil erosion uses it.
+  std::cout << "Initialising catchment input points for first time..." << std::endl;
+  get_catchment_input_points();
+  }
+}
+
 void LSDCatchmentModel::get_area()
 {
   // Zeros the area and are-depth arrays
@@ -1673,73 +1666,73 @@ void LSDCatchmentModel::call_lateral()
 // CARRY OUT SOIL CREEP, GRASS-GROWING ETC
 // To Do
 
-// CARRY OUT LOCAL LANDSLIDES EVERY X ITERATIONS...
-void LSDCatchmentModel::call_landsliding()
-{
-  if (counter % 10 == 0)
-  {
-    slide_3();   // slide_3 in CL is the implemented land sliding function
-  }
-}
+//// CARRY OUT LOCAL LANDSLIDES EVERY X ITERATIONS...
+//void LSDCatchmentModel::call_landsliding()
+//{
+//  if (counter % 10 == 0)
+//  {
+//    slide_3();   // slide_3 in CL is the implemented land sliding function
+//  }
+//}
 
-// SOIL CREEP
-void LSDCatchmentModel::call_soilcreep()
-{
-  if (cycle > creep_time)
-  {
-    // update the counter creep_time
-    creep_time += 14400;    // 10 days if minutes (or four hours if seconds!)
-    // call the soil creep function
-    creep(0.028);  // where does this value come from?! - DAV
-  }
-}
+//// SOIL CREEP
+//void LSDCatchmentModel::call_soilcreep()
+//{
+//  if (cycle > creep_time)
+//  {
+//    // update the counter creep_time
+//    creep_time += 14400;    // 10 days if minutes (or four hours if seconds!)
+//    // call the soil creep function
+//    creep(0.028);  // where does this value come from?! - DAV
+//  }
+//}
 
-// NOT TESTED YET - DAV
-// If you use this with the complex rainfall runoff method, you will have 
-// to renable get_area() updates, as soil_erosion is dependent on area[][] array.
-void LSDCatchmentModel::call_soil_erosion()
-{
-  if (spatially_complex_rainfall == true)
-  {
-    std::cout << "Sorry, you cannot currently use the soil erosion function with" 
-              << " spatially complex rainfall-runoff methods." << std::endl;
+//// NOT TESTED YET - DAV
+//// If you use this with the complex rainfall runoff method, you will have
+//// to renable get_area() updates, as soil_erosion is dependent on area[][] array.
+//void LSDCatchmentModel::call_soil_erosion()
+//{
+//  if (spatially_complex_rainfall == true)
+//  {
+//    std::cout << "Sorry, you cannot currently use the soil erosion function with"
+//              << " spatially complex rainfall-runoff methods." << std::endl;
     
-    exit(EXIT_FAILURE);
-  }
-  if (SOIL_RATE > 0 && cycle > soil_erosion_time)
-  {
-    get_area();    // gets the drainage area before doing the maths below. Useful to have fresh D.A.
-    soil_erosion_time += 1440;  // do soil erosion daily
-    soil_erosion(0.0028);
-  }
-}
+//    exit(EXIT_FAILURE);
+//  }
+//  if (SOIL_RATE > 0 && cycle > soil_erosion_time)
+//  {
+//    get_area();    // gets the drainage area before doing the maths below. Useful to have fresh D.A.
+//    soil_erosion_time += 1440;  // do soil erosion daily
+//    soil_erosion(0.0028);
+//  }
+//}
 
-// DEVELOP SOIL
-void LSDCatchmentModel::call_soil_devel()
-{
-  if (cycle > soil_development_time)
-  {
-    soil_development_time += 1440 * 365/12;
-    if (soildevoption == true)
-      soil_development();
-  }
-}
+//// DEVELOP SOIL
+//void LSDCatchmentModel::call_soil_devel()
+//{
+//  if (cycle > soil_development_time)
+//  {
+//    soil_development_time += 1440 * 365/12;
+//    if (soildevoption == true)
+//      soil_development();
+//  }
+//}
 
-// MORE SLOPE PROCESSES
-void LSDCatchmentModel::call_evapotrans()
-{
-  if (cycle > creep_time2)
-    evaporate(1440);
-  // update the creep_time2 
-  creep_time2 += 1440; // daily (1440 minutes in a day)
-}
-void LSDCatchmentModel::call_slide5()   // not exactly sure what slide_5 does differently to slide_3: not commented well in the original code!
-{
-  // update the creep_time2
-  creep_time3 += 1440; // daily (1440 minutes in a day)  // NEED A SEPARATE COUTNER FOR THIS CREEP!
-  // BOOL for flow only option...
-  slide_5();
-}
+//// MORE SLOPE PROCESSES
+//void LSDCatchmentModel::call_evapotrans()
+//{
+//  if (cycle > creep_time2)
+//    evaporate(1440);
+//  // update the creep_time2
+//  creep_time2 += 1440; // daily (1440 minutes in a day)
+//}
+//void LSDCatchmentModel::call_slide5()   // not exactly sure what slide_5 does differently to slide_3: not commented well in the original code!
+//{
+//  // update the creep_time2
+//  creep_time3 += 1440; // daily (1440 minutes in a day)  // NEED A SEPARATE COUTNER FOR THIS CREEP!
+//  // BOOL for flow only option...
+//  slide_5();
+//}
 
 //=-=-=-=-=-=-=-=-=-=
 // DATA OUTPUTS ETC.
@@ -2425,13 +2418,7 @@ void LSDCatchmentModel::water_flux_out(double local_time_factor)
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::qroute()
 {
-  double local_time_factor = time_factor;
-  if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) 
-  {
-    local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
-  }
-
-  // Should use explicitly private/shared here to avoid bugs - DAV TO DO
+  double local_time_factor = set_local_timefactor();
   
   #pragma omp parallel for
   for (int y=1; y<=jmax; y++)
@@ -2582,8 +2569,7 @@ void LSDCatchmentModel::qroute()
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::depth_update()
 {
-  double local_time_factor = time_factor;
-  if (local_time_factor > (courant_number * (DX / std::sqrt(gravity * (maxdepth))))) local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+  double local_time_factor = set_local_timefactor();
 
   maxdepth = 0;
   double l_maxdepth = maxdepth;
@@ -3386,12 +3372,12 @@ double LSDCatchmentModel::erode(double mult_factor)
   double tempbmax = 0;
   float gtot2[20] = {};
   
-  time_factor = time_factor * 1.5;
-  if (time_factor > max_time_step) time_factor = max_time_step;
+  double local_time_factor = time_factor * 1.5;
+  if (local_time_factor > max_time_step) local_time_factor = max_time_step;
   
   do
   {
-   
+  tempbmax = 0;
 #pragma omp parallel for reduction(max:tempbmax) \
 //  private(tempdir, temp_dist, temptot2, veltot, vel, qtot, tau, velnum, slopetot) schedule(runtime)
     for (unsigned int y = 1; y < jmax; ++y) 
@@ -3536,14 +3522,14 @@ double LSDCatchmentModel::erode(double mult_factor)
                   Wi_star = 14 * std::pow(1 - (0.894 / std::pow(tau / tau_ri, 0.5)), 4.5);
                 }
                 //maybe should divide by DX as well..
-                temp_dist[n] = mult_factor * time_factor *
+                temp_dist[n] = mult_factor * local_time_factor *
                                ((Fi * (U_star * U_star * U_star)) / ((2.65 - 1) * gravity)) * Wi_star / DX;
               }
               // Einstein sed tpt eqtn
               if (einstein == 1)
               {
                 // maybe should divide by DX as well.. 
-                temp_dist[n] = mult_factor * time_factor * (40 * std::pow((1 / (((2650 - 1000) * Di) / (tau / gravity))), 3))
+                temp_dist[n] = mult_factor * local_time_factor * (40 * std::pow((1 / (((2650 - 1000) * Di) / (tau / gravity))), 3))
                                / std::sqrt(1000 / ((2250 - 1000) * gravity * (Di * Di * Di))) / DX;
               }
               
@@ -3596,7 +3582,7 @@ double LSDCatchmentModel::erode(double mult_factor)
               if (tau > bedrock_erosion_threshold)
               {
                 double amount = 0; // amount is amount of erosion into the bedrock.
-                amount = std::pow(bedrock_erosion_rate * tau, 1.5) * time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
+                amount = std::pow(bedrock_erosion_rate * tau, 1.5) * local_time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
                 bedrock[x][y] -= amount;
                 // now add amount of bedrock eroded into sediment proportions.
                 for (unsigned int n2 = 1; n2 <= G_MAX - 1; n2++)
@@ -3612,7 +3598,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (veg[x][y][1] > 0 && tau > vegTauCrit)
             {
               // now to remove from veg layer..
-              veg[x][y][1] -= mult_factor * time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
+              veg[x][y][1] -= mult_factor * local_time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
               if (veg[x][y][1] < 0) veg[x][y][1] = 0;
             }
             
@@ -3702,7 +3688,7 @@ double LSDCatchmentModel::erode(double mult_factor)
     
     if (tempbmax > ERODEFACTOR)
     {
-      time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
+      local_time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
     }
   } while(tempbmax > ERODEFACTOR);
   
@@ -3737,7 +3723,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (!inputpointsarray[x][y])
             {
               // now calc ss to be dropped
-              double coeff = (fallVelocity[n] * time_factor) / water_depth[x][y];
+              double coeff = (fallVelocity[n] * local_time_factor) / water_depth[x][y];
               if (coeff > 1) coeff = 1;
               double Vpdrop = coeff * Vsusptot[x][y];
               if (Vpdrop > 0.001) Vpdrop = 0.001; //only allow 1mm to be deposited per iteration
@@ -3777,7 +3763,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             
             if (water_depth[x - 1][y] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * time_factor /DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * local_time_factor /DX;
             }
             else 
             {
@@ -3799,7 +3785,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0; 
             if (water_depth[x + 1][y] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * time_factor / DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * local_time_factor / DX;
             }
             else 
             {
@@ -3841,7 +3827,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0;
             if (water_depth[x][y - 1] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y - 1] * time_factor / DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y - 1] * local_time_factor / DX;
             }
             else
             {
@@ -3863,7 +3849,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0;
             if (water_depth[x][y + 1] < water_depth_erosion_threshold)
             {
-              amt = amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y + 1] * time_factor / DX;
+              amt = amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y + 1] * local_time_factor / DX;
             }
             else 
             {
@@ -5108,7 +5094,7 @@ void LSDCatchmentModel::print_parameters()
   std::cout << "CELL SIZE                      " << DX << std::endl;
     
   std::cout << "WATER DEPTH EROSION THRESHOLD: " << water_depth_erosion_threshold << std::endl;
-  std::cout << "WATER INPUT OUTPUT DIFF:       " << in_out_difference << std::endl;
+  std::cout << "WATER INPUT OUTPUT DIFF:       " << in_out_difference_allowed << std::endl;
   std::cout << "MANNINGS N:                    " << mannings << std::endl;
   std::cout << "NUMBER OF RAINFALL CELLS:      " << rfnum << std::endl;
   std::cout << "RAINDATA TIMESTEP:             " << rain_data_time_step << std::endl;

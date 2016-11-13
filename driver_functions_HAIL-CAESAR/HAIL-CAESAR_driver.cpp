@@ -1,24 +1,35 @@
 /// HAIL-CAESAR_main.cpp
+///
+/// The Catchment Hydrogeomorphology Model v1.0 (CHM1)
 /// 
-/// This is the main function for running the HAIL-CAESAR (HAIL-CAESAR)
+/// This is the main function for running the CHM1 catchment hydrology and
+/// sediment erosion model.
 /// 
-/// By convention, in the LSDTopoTools package, we write these 'driver
-/// function' files to contain the main function, create an instance of 
-/// the object we are interested in using (here, an LSDCatchmentModel object)
-/// and then perform the various analyses or model components by calling
-/// the relvant methods in the class.
+/// Update: November 2016:
+/// Major driver file reorganisation:
+///
+/// You can now create 'modular' style model simulations by building your
+/// own driver files from the CHM1 components. (Inspired by the
+/// neat Landlab modelling framework). Most functionallity is still controlled
+/// via the parameter file, but now you can have finer grained control over
+/// the catchment simulation building blocks.
+
 /// 
-/// As it currently stands, all you can meaningfully call for LSDCatchmentModel
-/// is the 'run_components()' method, which is basically a big wrapper method
-/// that calls the other functions like water routing and sediment erosion. 
-/// Ideally, I would split this up so that you can call the individual components
-/// here, making the model much more modular in its operation, similar to 
-/// something like the Landlab model functionality. If you want to change which
-/// components are currently called, you need to edit the run_components() method
-/// in the LSDCatchmentModel.cpp file. 
-/// 
-/// - DAV August 2016.
-/// 
+/// Acknowledgements:
+///
+/// Numerous people have contributed directly and indirectly to the algorithms,
+/// code structure, libraries and functionallity behind the Catchment Model.
+/// Much code has been adapted from other open source numerical models, including:
+///
+/// - The CAESAR-Lisflood model (Coulthard et. al, 2013)
+/// (Cellular automaton code, erosional model, area scanning algorithm,
+/// implementation of the LISFLOOD flow routing algorithm.)
+///
+/// - LSDTopoTools pacakge (Edinburgh Land Surface Dynamics group):
+/// Raster data input/output routines, Parameter file parsing, Object-oriented
+/// driver files, general C++ coding style.
+///
+///
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
@@ -39,13 +50,10 @@ int main(int argc, char *argv[])
   double start_time = omp_get_wtime();
   #endif
 
-  std::cerr << "argc = " << argc << '\n';
-    if ((argc > 0) && (argv[1] == NULL)) std::cerr << "Urk! 1\n";
-    if ((argc > 1) && (argv[2] == NULL)) std::cerr << "Urk! 2\n";
-    if ((argc > 2) && (argv[3] == NULL)) std::cerr << "Urk! 3\n";
-    std::cerr << "Past Urks\n";
-
-  std::stringstream ss;
+  // Just prints out how many threads/cores you have, when run in parallel mode
+  #ifdef OMP_COMPILE_FOR_PARALLEL
+  LSDCatchmentModel::quickOpenMPtest();
+  #endif
 
   if (argc < 3)
   {
@@ -59,50 +67,90 @@ int main(int argc, char *argv[])
     exit(0);  // Game over, try again.
   }
 
-  if (argc == 3)
-  // Bingo!
-    
-  // DAV - Copied this out of "main_loop()" in origial CAESAR (after initialising
+  if (argc > 3)
   {
-
-    std::string pname(argv[1]);
-    std::string pfname(argv[2]);
-    // The path name and the parameter file name, respectively.
-    // Remember: argc[0] is the program name that you just typed in to the terminal.
-    std::cout << "The pathname is: " << pname << " and the paramter file is: " << pfname << std::endl;
-
-    LSDCatchmentModel modelrun(pname, pfname); // This create function calls
-    // initialise_variables() as well as creating an instance of LSDCatchmentModel called 'modelrun'
-    std::cout << "The user-defined parameters have been ingested from the param file." << std::endl;
-
-    modelrun.initialise_model_domain_extents();
-    std::cout << "The model domain has been set from reading the elevation DEM header." << std::endl;
-
-    modelrun.initialise_arrays(); // could be part of create() ??
-    // also calls zero_values()
-    std::cout << "The model field arrays have been initialised and zeroed where necessary." << std::endl;
-
-    modelrun.load_data(); // Loads data from external files (DEM, hydroindex etc.)
-    std::cout << "The terrain array and supplementary input data has been loaded." << std::endl;
-
-    // Begin the simulation
-    modelrun.run_components();
-  }
-
-  else
-  {
-    std::cout << "\n###################################################" << std::endl;
-    std::cout << "Either you have supplied too many arguments" << std::endl;
-    std::cout << "or, somehow, you have supplied a negative number" << std::endl;
-    std::cout << "of arguments. Specify the path name and the parameter file name only." << std::endl;
-    std::cout << "There are no other options with this version yet." << std::endl;
-    std::cout << "###################################################" << std::endl;
-
+    std::cout << "Too many input arguments supplied (should be 3...)" << std::endl;
     exit(0);
   }
 
-  std::cout << "The model ran successfully!" << std::endl;
-  std::cout << "SCIENCE IS DONE" << std::endl;
+    
+  std::string pname(argv[1]);
+  std::string pfname(argv[2]);
+  // The path name and the parameter file name, respectively.
+  // Remember: argc[0] is the program name that you just typed in to the terminal.
+  std::cout << "The pathname is: " << pname
+            << " and the parameter file is: " << pfname << std::endl;
+
+  // Create a catchment model object
+  LSDCatchmentModel simulation(pname, pfname);
+  simulation.initialise_model_domain_extents();
+  simulation.initialise_arrays();
+  simulation.load_data();
+  simulation.set_time_counters();
+
+  // Create a runoff object
+  runoffGrid runoff(simulation.get_imax(), simulation.get_jmax());
+  simulation.initialise_rainfall_runoff(runoff);
+  simulation.initialise_drainage_area();
+
+  // These parameters control the interval in which
+  // certain model components are called,
+  // such as landsliding, vegetation, and creep
+  // I don't put them in the parameter file as they
+  // are not usually needed to be altered.
+  int local_landsliding_interval = 10;
+  int creep_time_interval_days = 14400;
+  int scan_area_interval_iter = 5;
+  int inchannel_landsliding_interval_hours = 1440;
+  int vegetation_growth_interval_hours = 1440;
+  double creep_coeff = 0.028;
+
+  // Check parameters
+  simulation.print_parameters();
+
+  // Entering the main loop here
+  std::cout << "Entering main model loop..." << std::endl;
+  do
+  {
+    // Simulation iteration functions
+    simulation.set_loop_cycle();
+    simulation.set_inputoutput_diff();
+    simulation.set_global_timefactor();
+    simulation.increment_counters();
+
+    // Hydrological and flow routing processes
+    simulation.catchment_waterinputs(runoff);
+    simulation.qroute();
+    simulation.depth_update();
+
+    // Check drainage area (For traditional TOPMODEL)
+    simulation.check_wetted_area(scan_area_interval_iter);
+
+    // Erosion processes if not a hydro-only simulation
+    if (!simulation.is_hydro_only())
+    {
+      simulation.call_erosion();
+      //simulation.call_lateral(); // not tested in this version!
+    }
+
+    // Water outputs from edges/catchment outlet
+    simulation.water_flux_out(local_time_factor);
+
+    // Hillslope & vegetation processes
+    simulation.local_landsliding(local_landsliding_interval);
+    simulation.slope_creep(creep_time_interval_days, creep_coeff);
+    simulation.inchannel_landsliding(inchannel_landsliding_interval_hours);
+    simulation.grow_vegetation(vegetation_growth_interval_hours);
+
+    // Outputs
+    simulation.write_output_timeseries(runoff);
+    simulation.print_cycle();
+    simulation.save_raster_output();
+
+    // if we have reached the end of the simulation, stop the loop
+  } while (simulation.get_cycle() / 60 < simulation.get_maxcycle());
+
+  std::cout << "THE SIMULATION IS FINISHED!" << std::endl;
 
   // Timing routine for parallel
   #ifdef OMP_COMPILE_FOR_PARALLEL
