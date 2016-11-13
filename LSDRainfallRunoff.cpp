@@ -40,7 +40,12 @@ void rainGrid::create(std::vector< std::vector<float> >& rain_data,
   rainfallgrid2D = TNT::Array2D<double>(imax+2, jmax+2, 0.0);
 
   // DEBUG
-  
+  if (rf_num == 1)
+  {
+    rainfallgrid2D = rain_data[current_rainfall_timestep][0];  // or [1]?
+    return;
+  }
+
   //std::cout << "HYDROINDEX DEBUG: " << std::endl;
   //std::cout << hydroindex.dim1() << ", " << hydroindex.dim2() << std::endl;
   // DAV addeded pragma for testing 08/2016
@@ -53,9 +58,23 @@ void rainGrid::create(std::vector< std::vector<float> >& rain_data,
       {
         if (hydroindex[i][j]==rf) 
         {
-          rainfallgrid2D[i][j] = rain_data[current_rainfall_timestep][rf];
+          rainfallgrid2D[i][j] = rain_data[current_rainfall_timestep][rf-1]; // added -1
         }
       }
+    }
+  }
+}
+
+void rainGrid::create(TNT::Array3D<double>& rain_data, int current_raindata_timestep, int imax, int jmax)
+{
+  //Ingest from netcdf file
+  rainfallgrid2D = TNT::Array2D<double>(imax+2,jmax+2, 0.0);
+
+  for (int i=1; i<imax; i++)
+  {
+    for (int j=1; j<jmax; j++)
+    {
+      rainfallgrid2D = rain_data[current_raindata_timestep][i][j];
     }
   }
 }
