@@ -1094,6 +1094,50 @@ void LSDIndexRaster::FlattenToCSV(string FileName_prefix)
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Method to flatten an LSDRaster and place the non NDV values in a csv file.
+// Each value is placed on its own line, so that it can be read more quickly in python etc.
+// It includes only lat long in WGS1984 so it can be read by GIS software
+// SMM 12/11/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::FlattenToWGS84CSV(string FileName_prefix)
+{
+
+  // append csv to the filename
+  string FileName = FileName_prefix+".csv";
+
+  //open a file to write
+  ofstream WriteData;
+  WriteData.open(FileName.c_str());
+
+  WriteData.precision(8);
+  WriteData << "latitude,longitude,value" << endl;
+
+  // the x and y locations
+  double latitude,longitude;
+
+  // this is for latitude and longitude
+  LSDCoordinateConverterLLandUTM Converter;
+
+  //loop over each cell and if there is a value, write it to the file
+  for(int i = 0; i < NRows; ++i)
+  {
+    for(int j = 0; j < NCols; ++j)
+    {
+      if (RasterData[i][j] != NoDataValue)
+      {
+        get_lat_and_long_locations(i, j, latitude, longitude, Converter);
+
+        WriteData << latitude << "," << longitude << "," << RasterData[i][j] << endl;
+      }
+    }
+  }
+
+  WriteData.close();
+
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
 // This function checks to see if two rasters have the same dimesions 
 // It DOES NOT check georeferencingand
