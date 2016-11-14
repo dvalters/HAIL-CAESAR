@@ -12431,7 +12431,7 @@ float LSDRaster::get_threshold_for_floodplain_QQ(string q_q_filename, float thre
   cout << "\t finding deviation from Gaussian distribution to define q-q threshold" << endl;
   int flag = 0;
   float threshold=0;
-  float min_length=1;
+  float min_length=200;
 
   for (int i =0; i < n_values; i++)
   {
