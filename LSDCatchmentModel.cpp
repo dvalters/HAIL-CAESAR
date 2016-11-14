@@ -1257,6 +1257,7 @@ void LSDCatchmentModel::set_time_counters()
   save_time = cycle;
   creep_time = cycle;
   creep_time2 = cycle;
+  grass_grow_interval = cycle;
   soil_erosion_time = cycle;
   soil_development_time = cycle;
   time_1 = cycle;
@@ -1304,6 +1305,8 @@ void LSDCatchmentModel::increment_counters()
   counter++;
   cycle += time_factor / 60;
   // cycle is minutes, time_factor is seconds
+  // cycle is the actual simulated time elapsed in the model
+  // counter is the iteration number
   new_cycle = std::fmod(cycle, output_file_save_interval);
 }
 
@@ -3253,7 +3256,7 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 //
 // EROSION ROUTINE(S)
 //
-// This huge (sorry - will be refactored eventually)
+// This huge (sorry - will be refactored eventually!)
 // block of code does the erosion
 // in the model. It iterates over every cell
 // in the domain and calculates amounts to be
@@ -3272,7 +3275,7 @@ void LSDCatchmentModel::slide_GS(int x,int y, double amount,int x2, int y2)
 // It really ought to be split into smaller
 // functions, but it is what it is for now.
 //
-// Based on the erod function in CAESAR-Lisflood
+// Based on the erode function in CAESAR-Lisflood
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=
 double LSDCatchmentModel::erode(double mult_factor)
@@ -3282,7 +3285,8 @@ double LSDCatchmentModel::erode(double mult_factor)
   double tempbmax = 0;
   float gtot2[20] = {};
   
-  double local_time_factor = time_factor * 1.5;
+  double local_time_factor = time_factor * 1.5;   
+  // DV -Changed to using local timefactor rather than the global time_factor
   if (local_time_factor > max_time_step) local_time_factor = max_time_step;
   
   do
