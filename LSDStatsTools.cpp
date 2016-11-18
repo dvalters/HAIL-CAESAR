@@ -5701,6 +5701,58 @@ string ReadTextFile(ifstream& File){
   }
 }
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=
+// This reads the header from a csv file and returns a vector of strings 
+// that are the header columns
+// IMPORTANT!! Headers cannot contain spaces since these get removed!!!
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
+vector<string> ReadCSVHeader(string path, string fname)
+{
+
+  string filename = FixPath(path)+ fname;
+  
+  // make sure the filename works
+  ifstream ifs(filename.c_str());
+  if( ifs.fail() )
+  {
+    cout << "\nFATAL ERROR: Trying to load csv cosmo data file, but the file" << filename
+         << "doesn't exist; LINE 245 LSDCosmoData" << endl;
+    exit(EXIT_FAILURE);
+  }
+  
+  // initiate the string to hold the file
+  string line_from_file;
+  vector<string> this_string_vec;
+  string temp_string;
+  
+  // get the first line: these are the headers
+  getline(ifs, line_from_file);
+
+  // create a stringstream
+  stringstream ss(line_from_file);
+    
+  while( ss.good() )
+  {
+    string substr;
+    getline( ss, substr, ',' );
+      
+    // remove the spaces
+    substr.erase(remove_if(substr.begin(), substr.end(), ::isspace), substr.end());
+    
+    // remove control characters
+    substr.erase(remove_if(substr.begin(), substr.end(), ::iscntrl), substr.end());
+      
+    // add the string to the string vec
+    this_string_vec.push_back( substr );
+  }
+  
+  ifs.close();
+  return this_string_vec;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=
+
+
 // Reads a string and splits given a delimiter, into a vector, v
 void split_delimited_string(const string& s, char c, vector<string>& v)
 {

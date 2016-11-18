@@ -517,6 +517,11 @@ void rank_vector_with_groups(vector<float> sorted_data,
 // SWDG 16/07/14
 string ReadTextFile(ifstream& File);
 
+// This reads a csv file and takes the headers out. 
+// These headers can't have spaces since the spaces are removed. 
+// SMM 18/11/2016
+vector<string> ReadCSVHeader(string path, string fname);
+
 /// Splits a string delimited by a character, c, into a sequence of strings, here
 /// stored in a vector, v.
 /// @author DAV, but taken out of C++ Cookbook (Stevens, Digins, Turkanis, and Coswell. O'Reilly)
