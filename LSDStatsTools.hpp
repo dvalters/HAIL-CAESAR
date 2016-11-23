@@ -609,7 +609,7 @@ public:
 };
 
 
-
+struct tm Parse_time_string(string time_string);
 
 
 #endif
