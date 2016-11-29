@@ -2849,8 +2849,8 @@ void LSDCatchmentModel::get_catchment_input_points(runoffGrid& runoff)
   {
     for (unsigned j=1; j <= jmax; j++)
     {
-      if ((area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) > MIN_Q \
-        && (area[i][j] * runoff.get_j_mean(i,j) * 3 * DX * DX) < MIN_Q_MAXVAL)
+      if ((area[i][j] * baseflow * 3 * DX * DX) > MIN_Q \
+        && (area[i][j] * baseflow * 3 * DX * DX) < MIN_Q_MAXVAL)
       {
         catchment_input_x_coord[totalinputpoints] = i;
         catchment_input_y_coord[totalinputpoints] = j;

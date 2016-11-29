@@ -37,6 +37,11 @@
 
 #include "../LSDCatchmentModel.hpp"
 
+#ifndef SVN_REVISION
+#define SVN_REVISION "N/A"
+#endif
+#define CHM_VERS 1.0
+
 bool file_check(string name)
 {
   struct stat buffer;
@@ -45,6 +50,17 @@ bool file_check(string name)
 
 int main(int argc, char *argv[])
 {
+
+  std::cout << "##################################" << std::endl;
+  std::cout << "#  CATCHMENT HYDROGEOMORPHOLOGY  #" << std::endl;
+  std::cout << "#        MODEL version 1.0       #" << std::endl;
+  std::cout << "#          (HAIL-CAESAR)         #" << std::endl;
+  std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
+  std::cout << " Version: "<< CHM_VERS << std::endl;
+  std::cout << " Subversion revision: " SVN_REVISION << std::endl;
+  std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
+                                       
+
   // For the timing routine
   #ifdef OMP_COMPILE_FOR_PARALLEL
   double start_time = omp_get_wtime();
