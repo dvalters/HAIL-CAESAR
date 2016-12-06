@@ -3284,10 +3284,24 @@ double LSDCatchmentModel::erode(double mult_factor)
   const double rho = 1000.0;
   double tempbmax = 0;
   float gtot2[20] = {};
+  //double local_time_factor = 0;
   
-  double local_time_factor = time_factor * 1.5;   
-  // DV -Changed to using local timefactor rather than the global time_factor
-  if (local_time_factor > max_time_step) local_time_factor = max_time_step;
+  time_factor = time_factor * 1.5;
+  
+  // Deal with erosion timestep
+//  switch (erode_timestep_type)
+//  {
+//    case 0:  // Erosion controls global time step and thus next hydro timestep
+//      time_factor = time_factor * 1.5;
+//      if (time_factor > max_time_step) time_factor = max_time_step;
+//      local_time_factor = time_factor;
+//      break;
+      
+//    case 1:  // Erosion uses local timestep: global timestep and thus hydro timestep not affected
+//      local_time_factor = time_factor * 1.5;   
+//      if (local_time_factor > max_time_step) local_time_factor = max_time_step;
+//      break;
+//  }
   
   do
   {
@@ -3436,14 +3450,14 @@ double LSDCatchmentModel::erode(double mult_factor)
                   Wi_star = 14 * std::pow(1 - (0.894 / std::pow(tau / tau_ri, 0.5)), 4.5);
                 }
                 //maybe should divide by DX as well..
-                temp_dist[n] = mult_factor * local_time_factor *
+                temp_dist[n] = mult_factor * time_factor *
                                ((Fi * (U_star * U_star * U_star)) / ((2.65 - 1) * gravity)) * Wi_star / DX;
               }
               // Einstein sed tpt eqtn
               if (einstein == 1)
               {
                 // maybe should divide by DX as well.. 
-                temp_dist[n] = mult_factor * local_time_factor * (40 * std::pow((1 / (((2650 - 1000) * Di) / (tau / gravity))), 3))
+                temp_dist[n] = mult_factor * time_factor * (40 * std::pow((1 / (((2650 - 1000) * Di) / (tau / gravity))), 3))
                                / std::sqrt(1000 / ((2250 - 1000) * gravity * (Di * Di * Di))) / DX;
               }
               
@@ -3496,7 +3510,7 @@ double LSDCatchmentModel::erode(double mult_factor)
               if (tau > bedrock_erosion_threshold)
               {
                 double amount = 0; // amount is amount of erosion into the bedrock.
-                amount = std::pow(bedrock_erosion_rate * tau, 1.5) * local_time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
+                amount = std::pow(bedrock_erosion_rate * tau, 1.5) * time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
                 bedrock[x][y] -= amount;
                 // now add amount of bedrock eroded into sediment proportions.
                 for (unsigned int n2 = 1; n2 <= G_MAX - 1; n2++)
@@ -3512,7 +3526,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (veg[x][y][1] > 0 && tau > vegTauCrit)
             {
               // now to remove from veg layer..
-              veg[x][y][1] -= mult_factor * local_time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
+              veg[x][y][1] -= mult_factor * time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
               if (veg[x][y][1] < 0) veg[x][y][1] = 0;
             }
             
@@ -3602,8 +3616,19 @@ double LSDCatchmentModel::erode(double mult_factor)
     
     if (tempbmax > ERODEFACTOR)
     {
-      local_time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
+      time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
     }
+//      switch (erode_timestep_type)
+//      {
+//        case 0:
+//          time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
+//          local_time_factor = time_factor;
+//          break;
+//        case 1:
+//          local_time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
+//          break;
+//      }
+//    }
   } while(tempbmax > ERODEFACTOR);
   
   TNT::Array2D<double> erodetot(imax+2, jmax+2, 0.0);
@@ -3637,7 +3662,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (!inputpointsarray[x][y])
             {
               // now calc ss to be dropped
-              double coeff = (fallVelocity[n] * local_time_factor) / water_depth[x][y];
+              double coeff = (fallVelocity[n] * time_factor) / water_depth[x][y];
               if (coeff > 1) coeff = 1;
               double Vpdrop = coeff * Vsusptot[x][y];
               if (Vpdrop > 0.001) Vpdrop = 0.001; //only allow 1mm to be deposited per iteration
@@ -3677,7 +3702,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             
             if (water_depth[x - 1][y] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * local_time_factor /DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * time_factor /DX;
             }
             else 
             {
@@ -3699,7 +3724,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0; 
             if (water_depth[x + 1][y] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * local_time_factor / DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * time_factor / DX;
             }
             else 
             {
@@ -3741,7 +3766,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0;
             if (water_depth[x][y - 1] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y - 1] * local_time_factor / DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y - 1] * time_factor / DX;
             }
             else
             {
@@ -3763,7 +3788,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0;
             if (water_depth[x][y + 1] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y + 1] * local_time_factor / DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y + 1] * time_factor / DX;
             }
             else 
             {

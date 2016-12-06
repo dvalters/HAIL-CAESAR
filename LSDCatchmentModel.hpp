@@ -651,6 +651,9 @@ private:
   bool graindata_from_file = false;
 
   bool spatially_complex_rainfall = false;
+  
+  int erode_timestep_type = 0;  // 0 for default based on erosion amount, 1 for basedon hydro timestep
+  int hydro_timestep_type = 0;  // 0 for default
 
   // Bools for writing out files
   bool write_elev_file = false;
