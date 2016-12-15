@@ -1226,6 +1226,18 @@ class LSDRaster
   /// @date 28/9/2016
   LSDRaster mask_to_nodata_using_threshold(float threshold,bool belowthresholdisnodata);
 
+
+  /// @brief This function changes any data point either above or below threshold to NoDataValue
+  ///  The threshold is determined by a second raster
+  /// @param threshold The threshold value
+  /// @param belowthresholdisnodata a boolean that if true means anything below the
+  ///   threshold turns to nodata
+  /// @param MaskingRaster an LSDRaster that is used to define the mask
+  /// @return Returns the masked raster
+  /// @author SMM
+  /// @date 28/9/2016
+  LSDRaster mask_to_nodata_using_threshold_using_other_raster(float threshold,bool belowthresholdisnodata, LSDRaster& MaskingRaster);
+
   /// @brief This function creats an LSDIndexRaster mask (with true == 1 and otherwise nodata)
   /// from an LSDRaster. Can mask either above or below a threshold
   /// @param threshold The threshold value

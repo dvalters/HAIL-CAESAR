@@ -1892,6 +1892,7 @@ void LSDRaster::rewrite_with_random_values(float range)
 //
 // Written by JAJ 6-6-2014
 // Inserted into trunk by SMM 9-6-2014
+// Modified to better deal with nodata SMM 15/12/2016
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDRaster LSDRaster::calculate_relief(float kernelWidth, int kernelType)
@@ -1904,32 +1905,60 @@ LSDRaster LSDRaster::calculate_relief(float kernelWidth, int kernelType)
     kernelWidth = 2.5;
     kr = 1;
   }
+
   for (int i=0; i<NRows; ++i)
   {
     for (int j=0; j<NCols; ++j)
     {
-      max = RasterData[i][j];
-      min = RasterData[i][j];
-      for (int sub_i = i-kr; sub_i<=i+kr; ++sub_i)
+      if (RasterData[i][j] != NoDataValue)
       {
-        if (sub_i<0 || sub_i>=NRows) continue;
-        for (int sub_j = j-kr; sub_j<=j+kr; ++sub_j)
+        max = RasterData[i][j];
+        min = RasterData[i][j];
+        for (int sub_i = i-kr; sub_i<=i+kr; ++sub_i)
         {
-          if (sub_j<0 || sub_j>=NCols) continue;
-          if (RasterData[sub_i][sub_j] == NoDataValue) continue;
-
-          if (kernelType == 1)  //circular
-            if ((pow(sub_i-i,2) + pow(sub_j-j,2))*DataResolution > kernelWidth/2)
-              continue;
-          if (RasterData[sub_i][sub_j] > max)
-            max = RasterData[sub_i][sub_j];
-          if (RasterData[sub_i][sub_j] < min)
-            min = RasterData[sub_i][sub_j];
+          // don't exend past the end of map
+          if (sub_i>=0 && sub_i<NRows)
+          {
+            for (int sub_j = j-kr; sub_j<=j+kr; ++sub_j)
+            {
+              // don't extend past end of map
+              if (sub_j>=0 && sub_j<NCols)
+              {
+                // make sure the data exists
+                if (RasterData[sub_i][sub_j] != NoDataValue)
+                {
+                  if (kernelType == 1)  //circular
+                  {
+                    if ((pow(sub_i-i,2) + pow(sub_j-j,2))*DataResolution > kernelWidth/2)
+                    {
+                      if (RasterData[sub_i][sub_j] > max)
+                        max = RasterData[sub_i][sub_j];
+                      if (RasterData[sub_i][sub_j] < min)
+                        min = RasterData[sub_i][sub_j];
+                    }
+                  }
+                  else
+                  {
+                    if (RasterData[sub_i][sub_j] > max)
+                      max = RasterData[sub_i][sub_j];
+                    if (RasterData[sub_i][sub_j] < min)
+                      min = RasterData[sub_i][sub_j];
+                  }
+                }
+              }
+            }
+          }
         }
+        reliefMap[i][j] = max-min;
       }
-      reliefMap[i][j] = max-min;
+      else
+      {
+        reliefMap[i][j] = NoDataValue;
+      }
     }
   }
+
+  
   return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution,
                    NoDataValue, reliefMap, GeoReferencingStrings);
 }
@@ -5439,6 +5468,70 @@ LSDRaster  LSDRaster::mask_to_nodata_using_threshold(float threshold,bool belowt
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
+// This masks to nodata below or above a threshold value
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster  LSDRaster::mask_to_nodata_using_threshold_using_other_raster(float threshold,bool belowthresholdisnodata, LSDRaster& MaskingRaster)
+{
+
+  Array2D<float> NewArray;
+  NewArray = RasterData.copy();
+
+  // first check to see if the rasters are the same size
+  int IR_NRows = MaskingRaster.get_NRows();
+  int IR_NCols = MaskingRaster.get_NCols();
+  
+  float this_mask_value;
+
+  if(IR_NRows == NRows && IR_NCols == NCols)
+  {
+    for(int row = 0; row<NRows; row++)
+    {
+      for(int col = 0; col<NCols; col++)
+      {
+
+        // only do anything if the value at the raster point is not nodata
+        if(NewArray[row][col] != NoDataValue)
+        {
+          this_mask_value = MaskingRaster.get_data_element(row,col);
+          if(this_mask_value != NoDataValue)
+          {
+          
+            // logic for testing below nodata
+            if(belowthresholdisnodata)
+            {
+              if(this_mask_value <= threshold)
+              {
+                NewArray[row][col] = NoDataValue;
+              }
+            }
+            else  // this logic is for if you are changing to nodata if above threshold
+            {
+              if(this_mask_value >= threshold)
+              {
+                NewArray[row][col] = NoDataValue;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    cout << "Trying to mask raster but the dimensions of the mask do not match"
+         << " the dimensions of the raster" << endl;
+  }
+
+  LSDRaster NDR(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                             NoDataValue,NewArray,GeoReferencingStrings);
+  return NDR;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
 // This masks to nodata below a threshold value
 //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -6487,7 +6580,8 @@ pair<float,float> LSDRaster::Boomerang(LSDRaster& Slope, LSDRaster& Dinf, string
 // Updated 24/9/13 to return a vector of LSDRasters SWDG
 // SWDG 27/8/13
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray){
+vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster BasinArray)
+{
 
   Array2D<int> BasinRaster = BasinArray.get_RasterData();
 
@@ -6524,7 +6618,8 @@ vector<LSDRaster> LSDRaster::BasinPuncher(vector<int> basin_ids, LSDIndexRaster 
 //
 // SWDG 06/07/15
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster LSDRaster::CookieCutRaster(LSDRaster Cutter){
+LSDRaster LSDRaster::CookieCutRaster(LSDRaster Cutter)
+{
 
   Array2D<float> CutterData = Cutter.get_RasterData();
   Array2D<float> cookie(NRows, NCols, NoDataValue);
