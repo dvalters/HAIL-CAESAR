@@ -513,6 +513,21 @@ class LSDIndexRaster
   /// @author FJC
   /// @date 30/10/15
   LSDIndexRaster remove_checkerboard_pattern();
+	
+	/// @brief Function to calculate the reliability of floodplain method
+  /// @param ActualRaster raster of actual values
+  /// @author FJC
+  /// @date 26/06/16
+  vector<float> AnalysisOfQuality(LSDIndexRaster& ActualRaster);
+	
+	/// @brief Function to calculate the percentage area difference between
+	/// two binary rasters
+  /// @param ActualRaster raster of actual values
+	/// @return Percentage difference betwen the area of the two rasters
+  /// @author FJC
+  /// @date 18/01/17
+  float GetAreaDifference(LSDIndexRaster& ActualRaster);
+	
   
   protected:
   ///Number of rows.
