@@ -2695,7 +2695,7 @@ float LSDIndexRaster::GetAreaDifference(LSDIndexRaster& ActualRaster)
 	}
 	
 	float ActualArea = NActualPixels*DataResolution*DataResolution;
-	float PredictedArea = NPRedictedPixels*DataResolution*DataResolution;
+	float PredictedArea = NPredictedPixels*DataResolution*DataResolution;
 	
 	//get the percentage difference
 	float PercentDiff = (PredictedArea/ActualArea) * 100;
