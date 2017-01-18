@@ -2545,7 +2545,7 @@ LSDIndexRaster LSDIndexRaster::remove_holes_in_patches_connected_components(int 
   return FilledPatches;  
 }                                                                                                                         
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=                                                                                                                                                                           
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=                                                                                                                                                                        
 // Method to remove checkerboard pattern from an integer raster (at the moment set to run on                                     
 // a raster made up of 0s and 1s).                                                                                               
 // FJC 22/10/15                                                                                                                  
@@ -2595,7 +2595,113 @@ LSDIndexRaster LSDIndexRaster::remove_checkerboard_pattern()
   return FilledRaster;                    
                                               
 }                                           
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
+// QUALITY ANALYSIS ROUTINES
+// These functions can be used to compare two rasters and calculate the reliability,
+// sensitivity, etc. of a method
+// FJC 18/01/17
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Function to calculate the quality analysis of floodplain method based on true positives and
+// false postivies. Need to pass in a raster of predicted values and a raster of actual values
+// Predicted values: 1 = floodplain, NoDataValue = not floodplain
+// Actual values: 1 = floodplain, 0 = not floodplain
+// results are in a vector:
+// 0 - reliability
+// 1 - sensitvity
+// 2 - false positive rate
+// 3 - true negative rate
+// 4 - false negative rate
+// FJC 29/06/16
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+vector<float> LSDIndexRaster::AnalysisOfQuality(LSDIndexRaster& ActualRaster)
+{
+  int SumTP = 0;
+  int SumFP = 0;
+  int SumTN = 0;
+	int SumFN = 0;
+	vector<float> quality_results(5);
+
+  for (int row = 0; row < NRows -1; row++)
+  {
+    for (int col = 0; col < NCols -1; col++)
+    {
+      int ActualValue = ActualRaster.get_data_element(row, col);
+      //cout << ActualValue << endl;
+      // check if it is a true positive
+      if (RasterData[row][col] == 1 && ActualValue == 1)
+      {
+        //cout << "TP" << endl;
+        SumTP++;
+      }
+      // check if it is a false positive
+      if (RasterData[row][col] == 1 && ActualValue <= 0)
+      {
+        //cout << "FP" << endl;
+        SumFP++;
+      }
+      // check if it is a true negative
+      if (RasterData[row][col] == NoDataValue && ActualValue <= 0)
+      {
+        SumTN++;
+      }
+			// check if it is a false negative
+			if (RasterData[row][col] == NoDataValue && ActualValue ==1)
+      {
+        SumFN++;
+      }
+    }
+  }
+  //cout << "Got the total TPs and FPs" << endl;
+  cout << "SumTP = " << SumTP << " SumFP = " << SumFP << " SumTN = " << SumTN << " SUM FN = " << SumFN << endl;
+
+  //now calculate the quality analyses
+  //reliability
+  quality_results[0] = SumTP/(SumTP + SumFP);
+	//sensitivity r_tp
+	quality_results[1] = SumTP/(SumTP + SumFN);
+	// r_fp
+	quality_results[2] = SumFP/(SumFP + SumTN);
+	// r_tn
+	quality_results[3] = SumTN/(SumFP + SumTN);
+	// r_fn
+	quality_results[4] = 1 - quality_results[1];
+
+  return quality_results;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Function to calculate the percentage area difference between the predicted and mapped 
+// rasters
+// FJC 18/01/17
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float LSDIndexRaster::GetAreaDifference(LSDIndexRaster& ActualRaster)
+{
+	//calculate the areas
+	Array2D<int> ActualRaster_array = ActualRaster.get_RasterData();
+	Array2D<int> PredictedRaster_array = RasterData;
+	int NActualPixels = 0;
+	int NPredictedPixels = 0;
+	
+	for (int i = 0; i < NRows; i++)
+	{
+		for (int j = 0; j < NCols; j++)
+		{
+			if (ActualRaster_array[i][j] == 1) { ++NActualPixels; }
+			if (PredictedRaster_array[i][j] == 1) { ++NPredictedPixels; }
+		}
+	}
+	
+	float ActualArea = NActualPixels*DataResolution*DataResolution;
+	float PredictedArea = NPRedictedPixels*DataResolution*DataResolution;
+	
+	//get the percentage difference
+	float PercentDiff = (PredictedArea/ActualArea) * 100;
+	
+	return PercentDiff;	
+}
 
 #endif
 

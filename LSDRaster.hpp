@@ -2163,12 +2163,6 @@ class LSDRaster
   /// @date 16/11/15
   float get_threshold_for_floodplain_QQ(string q_q_filename, float threshold_condition, int lower_percentile, int upper_percentile);
 
-  /// @brief Function to calculate the reliability of floodplain method
-  /// @param ActualRaster raster of actual values
-  /// @author FJC
-  /// @date 26/06/16
-  vector<float> AnalysisOfQuality(LSDRaster& ActualRaster);
-
   /// @brief Get the lengths in spatial units of each part of the channel network, divided by strahler order.
   /// @param StreamNetwork Raster of the stream network coded by strahler order.
   /// @param FlowDir Array of flowdirections from FlowInfo (Not D-inf).
