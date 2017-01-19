@@ -1994,12 +1994,12 @@ class LSDRaster
   /// @author SMM
   /// @date 09/12/2014
   LSDRaster alternating_direction_nodata_fill_with_trimmer(int window_width);
-	
-	/// @brief Function to fill in no data holes in an irregular raster. Pixel must have 
-	/// all neighbours not equal to no data value within the specified window radius.  Data is 
+
+	/// @brief Function to fill in no data holes in an irregular raster. Pixel must have
+	/// all neighbours not equal to no data value within the specified window radius.  Data is
 	/// filled based on mean of pixels within the window radius.
 	LSDRaster nodata_fill_irregular_raster(int window_radius);
-	
+
 	/// @brief A routine that fills nodata holes. Modified by FJC to only fill holes
 	/// surrounded in all directions by pixels with valid elevation values
   /// @detail The routine sweeps the raster looking for nodata and filling
@@ -2203,6 +2203,8 @@ class LSDRaster
   /// @author SWDG
   /// @date 2/11/16
   void HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster& gradient, int UTMZone, bool isNorth, int eId, string filename);
+
+  vector<float> Sample_Along_Ridge(LSDRaster& Hilltops, int a, int b, int threshold);
 
 protected:
 

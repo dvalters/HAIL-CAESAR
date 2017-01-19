@@ -1958,7 +1958,7 @@ LSDRaster LSDRaster::calculate_relief(float kernelWidth, int kernelType)
     }
   }
 
-  
+
   return LSDRaster(NRows, NCols, XMinimum, YMinimum, DataResolution,
                    NoDataValue, reliefMap, GeoReferencingStrings);
 }
@@ -5480,7 +5480,7 @@ LSDRaster  LSDRaster::mask_to_nodata_using_threshold_using_other_raster(float th
   // first check to see if the rasters are the same size
   int IR_NRows = MaskingRaster.get_NRows();
   int IR_NCols = MaskingRaster.get_NCols();
-  
+
   float this_mask_value;
 
   if(IR_NRows == NRows && IR_NCols == NCols)
@@ -5496,7 +5496,7 @@ LSDRaster  LSDRaster::mask_to_nodata_using_threshold_using_other_raster(float th
           this_mask_value = MaskingRaster.get_data_element(row,col);
           if(this_mask_value != NoDataValue)
           {
-          
+
             // logic for testing below nodata
             if(belowthresholdisnodata)
             {
@@ -11028,13 +11028,13 @@ LSDRaster LSDRaster::nodata_fill_irregular_raster(int window_radius)
           int max_row = row+i;
           if (min_row < 0) min_row = 0;
           if (max_row >= NRows) max_row = NRows-1;
-          
+
           //set exceptions for first or last col
           int min_col = col-i;
           int max_col = col+i;
           if (min_col < 0) min_col = 0;
           if (max_col >= NCols) max_col = NCols-1;
-          
+
           //check whether surrounding pixels in all directions are equal to 0
           if (RasterArray[min_row][min_col]  != NoDataValue) {
 						counts.at(0) = 1;
@@ -11042,12 +11042,12 @@ LSDRaster LSDRaster::nodata_fill_irregular_raster(int window_radius)
 						n_obs++;
 					}
           if (RasterArray[row][min_col]  != NoDataValue) {
-						counts.at(1) = 1; 
+						counts.at(1) = 1;
 						total_elev += RasterArray[row][min_col];
 						n_obs++;
 					}
           if (RasterArray[max_row][min_col]  != NoDataValue) {
-						counts.at(2) = 1; 
+						counts.at(2) = 1;
 						total_elev += RasterArray[max_row][min_col];
 						n_obs++;
 					}
@@ -11055,42 +11055,42 @@ LSDRaster LSDRaster::nodata_fill_irregular_raster(int window_radius)
 						counts.at(3) = 1;
 						total_elev += RasterArray[min_row][col];
 						n_obs++;
-					}  
+					}
           if (RasterArray[min_row][max_col]  != NoDataValue) {
 						counts.at(4) = 1;
 						total_elev += RasterArray[min_row][max_col];
 						n_obs++;
-					}  
+					}
           if (RasterArray[row][max_col]  != NoDataValue) {
-						counts.at(5) = 1; 
+						counts.at(5) = 1;
 						total_elev += RasterArray[row][max_col];
 						n_obs++;
 					}
           if (RasterArray[max_row][max_col]  != NoDataValue) {
-						counts.at(6) = 1; 
+						counts.at(6) = 1;
 						total_elev += RasterArray[max_row][max_col];
 						n_obs++;
 					}
           if (RasterArray[max_row][col] != NoDataValue) {
-						counts.at(7) = 1; 
+						counts.at(7) = 1;
 						total_elev += RasterArray[max_row][col];
 						n_obs++;
 					}
-          
+
           // if 1s surround the pixel, then fill in the pixel
-          if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+          if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0)
           {
 						FilledRaster[row][col] = total_elev/n_obs;
             i = pixel_radius+1;
-          } 
+          }
         }
       }
     }
   }
-  
+
   //create new LSDIndexRaster with the filled patches
   LSDRaster FilledDEM(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,FilledRaster,GeoReferencingStrings);
-  return FilledDEM;  
+  return FilledDEM;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -11149,9 +11149,9 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
               total_elev = 0;
               n_obs = 0;
 							vector<int> counts(8,0);
-							
-							for (int i = 1; i < window_width; i++) 
-							{							
+
+							for (int i = 1; i < window_width; i++)
+							{
 								//set exceptions for first or last row
 								int min_row = row-i;
 								int max_row = row+i;
@@ -11163,7 +11163,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 								int max_col = col+i;
 								if (min_col < 0) min_col = 0;
 								if (max_col >= NCols) max_col = NCols-1;
-								
+
 								//check whether surrounding pixels in all directions are equal to 0
 								if (updated_raster[min_row][min_col]  != NoDataValue) {
 									if (counts.at(0) == 0) {
@@ -11192,14 +11192,14 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 										n_obs++;
 										counts.at(3) = 1;
 									}
-								}  
+								}
 								if (updated_raster[min_row][max_col]  != NoDataValue) {
 									if (counts.at(4) == 0) {
 										total_elev += updated_raster[min_row][max_col];
 										n_obs++;
 										counts.at(4) = 1;
 									}
-								}  
+								}
 								if (updated_raster[row][max_col]  != NoDataValue) {
 									if (counts.at(5) == 0) {
 										total_elev += updated_raster[row][max_col];
@@ -11221,16 +11221,16 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 										counts.at(7) = 1;
 									}
 								}
-								
+
 								// if 1s surround the pixel, then fill in the pixel
-								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0)
 								{
 									//cout << "total elev: " << total_elev << " N obs: " << n_obs << endl;
 									this_sweep_data[row][col] = total_elev/float(n_obs);
 									i = window_width+1;
 								}
-							}	
-						}						 
+							}
+						}
 					}
 	 		 	}
         break;
@@ -11248,9 +11248,9 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
               total_elev = 0;
               n_obs = 0;
 							vector<int> counts(8,0);
-							
-							for (int i = 1; i < window_width; i++) 
-							{							
+
+							for (int i = 1; i < window_width; i++)
+							{
 								//set exceptions for first or last row
 								int min_row = row-i;
 								int max_row = row+i;
@@ -11262,7 +11262,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 								int max_col = col+i;
 								if (min_col < 0) min_col = 0;
 								if (max_col >= NCols) max_col = NCols-1;
-								
+
 									//check whether surrounding pixels in all directions are equal to 0
 								if (updated_raster[min_row][min_col]  != NoDataValue) {
 									if (counts.at(0) == 0) {
@@ -11291,14 +11291,14 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 										n_obs++;
 										counts.at(3) = 1;
 									}
-								}  
+								}
 								if (updated_raster[min_row][max_col]  != NoDataValue) {
 									if (counts.at(4) == 0) {
 										total_elev += updated_raster[min_row][max_col];
 										n_obs++;
 										counts.at(4) = 1;
 									}
-								}  
+								}
 								if (updated_raster[row][max_col]  != NoDataValue) {
 									if (counts.at(5) == 0) {
 										total_elev += updated_raster[row][max_col];
@@ -11320,15 +11320,15 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 										counts.at(7) = 1;
 									}
 								}
-								
+
 								// if 1s surround the pixel, then fill in the pixel
-								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0)
 								{
 									this_sweep_data[row][col] = total_elev/float(n_obs);
 									i = window_width+1;
 								}
-							}							
-						}						 
+							}
+						}
 					}
 	 		 	}
         break;
@@ -11346,9 +11346,9 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
               total_elev = 0;
               n_obs = 0;
 							vector<int> counts(8,0);
-							
-							for (int i = 1; i < window_width; i++) 
-							{							
+
+							for (int i = 1; i < window_width; i++)
+							{
 								//set exceptions for first or last row
 								int min_row = row-i;
 								int max_row = row+i;
@@ -11360,7 +11360,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 								int max_col = col+i;
 								if (min_col < 0) min_col = 0;
 								if (max_col >= NCols) max_col = NCols-1;
-								
+
 									//check whether surrounding pixels in all directions are equal to 0
 								if (updated_raster[min_row][min_col]  != NoDataValue) {
 									if (counts.at(0) == 0) {
@@ -11389,14 +11389,14 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 										n_obs++;
 										counts.at(3) = 1;
 									}
-								}  
+								}
 								if (updated_raster[min_row][max_col]  != NoDataValue) {
 									if (counts.at(4) == 0) {
 										total_elev += updated_raster[min_row][max_col];
 										n_obs++;
 										counts.at(4) = 1;
 									}
-								}  
+								}
 								if (updated_raster[row][max_col]  != NoDataValue) {
 									if (counts.at(5) == 0) {
 										total_elev += updated_raster[row][max_col];
@@ -11419,13 +11419,13 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 									}
 								}
 								// if 1s surround the pixel, then fill in the pixel
-								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0)
 								{
 									this_sweep_data[row][col] = total_elev/float(n_obs);
 									i = window_width+1;
 								}
-							}						
-						}						 
+							}
+						}
 					}
 	 		 	}
         break;
@@ -11444,9 +11444,9 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
               total_elev = 0;
               n_obs = 0;
 							vector<int> counts(8,0);
-							
-							for (int i = 1; i < window_width; i++) 
-							{							
+
+							for (int i = 1; i < window_width; i++)
+							{
 								//set exceptions for first or last row
 								int min_row = row-i;
 								int max_row = row+i;
@@ -11458,7 +11458,7 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 								int max_col = col+i;
 								if (min_col < 0) min_col = 0;
 								if (max_col >= NCols) max_col = NCols-1;
-								
+
 										//check whether surrounding pixels in all directions are equal to 0
 								if (updated_raster[min_row][min_col]  != NoDataValue) {
 									if (counts.at(0) == 0) {
@@ -11487,14 +11487,14 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 										n_obs++;
 										counts.at(3) = 1;
 									}
-								}  
+								}
 								if (updated_raster[min_row][max_col]  != NoDataValue) {
 									if (counts.at(4) == 0) {
 										total_elev += updated_raster[min_row][max_col];
 										n_obs++;
 										counts.at(4) = 1;
 									}
-								}  
+								}
 								if (updated_raster[row][max_col]  != NoDataValue) {
 									if (counts.at(5) == 0) {
 										total_elev += updated_raster[row][max_col];
@@ -11517,13 +11517,13 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_irregular_raster(int wind
 									}
 								}
 								// if 1s surround the pixel, then fill in the pixel
-								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0) 
+								if (counts.at(0) > 0 && counts.at(1) > 0 && counts.at(2) > 0 && counts.at(3) > 0 && counts.at(4) > 0 && counts.at(5) > 0 && counts.at(6) > 0 && counts.at(7) > 0)
 								{
 									this_sweep_data[row][col] = total_elev/float(n_obs);
 									i = window_width+1;
 								}
-							}				
-						}						 
+							}
+						}
 					}
 	 		 	}
         break;
@@ -12746,5 +12746,52 @@ void LSDRaster::HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster
 
 }
 
+vector<float> LSDRaster::Sample_Along_Ridge(LSDRaster& Hilltops, int a, int b, int threshold){
+
+  vector<int> sorted;
+  vector<size_t> index_map;
+  vector<size_t> index_map_2;
+  vector<int> sub_map;
+  vector<float> dists;
+  vector<float> sorted_dists;
+
+  LSDIndexRaster BinaryHilltops = Hilltops.ConvertToBinary(1, NoDataValue);
+  LSDIndexRaster HilltopPatches = BinaryHilltops.ConnectedComponents();
+
+  int ID = HilltopPatches.get_data_element(a, b);
+
+  vector<int> Flat = Flatten(HilltopPatches.get_RasterData());
+
+  //sort the 1D elevation vector and produce an index
+  matlab_int_sort(Flat, sorted, index_map);
+
+
+  for(int q = 0; q < int(Flat.size()); ++q){ //switch to while sorted[q] <= ID
+
+    if (sorted[q] == ID){
+
+      //use row major ordering to reconstruct each cell's i,j coordinates
+      int i = index_map[q] / NCols;
+      int j = index_map[q] % NCols;
+
+      dists.push_back(distbetween(a,b,i,j));
+      sub_map.push_back(int(index_map[q]));
+    }
+  }
+
+  matlab_float_sort(dists, sorted_dists, index_map_2);
+
+  vector<float> Samples;
+
+  for(int w = 0; w < threshold; ++w){
+
+    int tmp_i = sub_map[index_map_2[w]] / NCols;
+    int tmp_j = sub_map[index_map_2[w]] % NCols;
+
+    Samples.push_back(Hilltops.get_data_element(tmp_i, tmp_j));
+  }
+
+  return Samples;
+}
 
 #endif
