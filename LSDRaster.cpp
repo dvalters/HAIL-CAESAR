@@ -12783,6 +12783,11 @@ vector<float> LSDRaster::Sample_Along_Ridge(LSDRaster& Hilltops, int a, int b, i
 
   vector<float> Samples;
 
+  if (int(dists.size()) < threshold){
+    threshold = int(dists.size());
+    cout << "Threshold is larger than number of pixels in hilltop segment" << endl;
+  }
+
   for(int w = 0; w < threshold; ++w){
 
     int tmp_i = sub_map[index_map_2[w]] / NCols;
