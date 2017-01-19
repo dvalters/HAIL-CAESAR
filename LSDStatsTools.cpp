@@ -142,7 +142,7 @@ float ran3(long *idum)
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //These return the keys from a map
-vector<string> extract_keys(map<string, int> input_map) 
+vector<string> extract_keys(map<string, int> input_map)
 {
   vector<string> retkey;
 
@@ -157,7 +157,7 @@ vector<string> extract_keys(map<string, int> input_map)
 
 }
 
-vector<string> extract_keys(map<string, float> input_map) 
+vector<string> extract_keys(map<string, float> input_map)
 {
   vector<string> retkey;
 
@@ -171,7 +171,7 @@ vector<string> extract_keys(map<string, float> input_map)
   return retkey;
 }
 
-vector<string> extract_keys(map<string, bool> input_map) 
+vector<string> extract_keys(map<string, bool> input_map)
 {
   vector<string> retkey;
 
@@ -185,7 +185,7 @@ vector<string> extract_keys(map<string, bool> input_map)
   return retkey;
 }
 
-vector<string> extract_keys(map<string, string> input_map) 
+vector<string> extract_keys(map<string, string> input_map)
 {
   vector<string> retkey;
 
@@ -5703,7 +5703,7 @@ string ReadTextFile(ifstream& File){
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=
-// This reads the header from a csv file and returns a vector of strings 
+// This reads the header from a csv file and returns a vector of strings
 // that are the header columns
 // IMPORTANT!! Headers cannot contain spaces since these get removed!!!
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
@@ -5711,7 +5711,7 @@ vector<string> ReadCSVHeader(string path, string fname)
 {
 
   string filename = FixPath(path)+ fname;
-  
+
   // make sure the filename works
   ifstream ifs(filename.c_str());
   if( ifs.fail() )
@@ -5720,33 +5720,33 @@ vector<string> ReadCSVHeader(string path, string fname)
          << "doesn't exist; LINE 245 LSDCosmoData" << endl;
     exit(EXIT_FAILURE);
   }
-  
+
   // initiate the string to hold the file
   string line_from_file;
   vector<string> this_string_vec;
   string temp_string;
-  
+
   // get the first line: these are the headers
   getline(ifs, line_from_file);
 
   // create a stringstream
   stringstream ss(line_from_file);
-    
+
   while( ss.good() )
   {
     string substr;
     getline( ss, substr, ',' );
-      
+
     // remove the spaces
     substr.erase(remove_if(substr.begin(), substr.end(), ::isspace), substr.end());
-    
+
     // remove control characters
     substr.erase(remove_if(substr.begin(), substr.end(), ::iscntrl), substr.end());
-      
+
     // add the string to the string vec
     this_string_vec.push_back( substr );
   }
-  
+
   ifs.close();
   return this_string_vec;
 }
@@ -5833,9 +5833,9 @@ string FixPath(string PathtoFix)
 {
   // first get rid of conrol characters
   string noContrl = RemoveControlCharacters(PathtoFix);
-  
+
   string lchar = noContrl.substr(noContrl.length()-1,1);
-  
+
   string slash = "/";
   //cout << "Checking pathname, pathname is: " << noContrl << endl;
   //cout << "lchar is " << lchar << " and slash is " << slash << endl;
@@ -6281,7 +6281,7 @@ struct tm Parse_time_string(string time_string)
   vector<string> hs_break;
   string ymd_string;
   string hm_string;
-  
+
   // these are used in a time struct
   int year, month, day, hour, minute;
 
@@ -6291,58 +6291,64 @@ struct tm Parse_time_string(string time_string)
   {
     string substr;
     getline( ss, substr, ' ' );
-    
+
     // add the string to the string vec
     space_break.push_back( substr );
   }
-  
+
   ymd_string = space_break[0];
   hm_string = space_break[1];
-  
+
   // now get the Y-M-D data
   stringstream ss2(ymd_string);
   while( ss2.good() )
   {
     string substr;
     getline( ss2, substr, '-' );
-    
+
     // add the string to the string vec
     space_break.push_back( substr );
   }
-  
+
   year = atoi(space_break[0].c_str());
   month = atoi(space_break[1].c_str());
   day = atoi(space_break[2].c_str());
-  
+
   cout << year << "," << month << "," << day << ",";
-  
+
   // now get the Y-M-D data
   stringstream ss3(hm_string);
   while( ss3.good() )
   {
     string substr;
     getline( ss3, substr, ':' );
-    
+
     // add the string to the string vec
     hs_break.push_back( substr );
   }
-  
+
   hour = atoi(hs_break[0].c_str());
   minute = atoi(hs_break[1].c_str());
-  
+
   cout << hour << "," << minute << endl;
-  
+
   struct tm * timeinfo;
-  
+
   timeinfo->tm_year = year-1900;
   timeinfo->tm_mon = month-1;
   timeinfo->tm_mday = day;
   timeinfo->tm_hour = hour;
   timeinfo->tm_min = minute;
-  
+
   //mktime(timeinfo);
-  
+
   return *timeinfo;
+}
+
+//Returns the distance between 2 pairs of raster indexes
+//SWDG 19/1/17
+float distbetween(int row1, int col1, int row2, int col2){
+  return sqrt(((row2 - row1) * (row2 - row1)) + ((col2 - col1) * (col2 - col1)));
 }
 
 #endif
