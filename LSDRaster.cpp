@@ -12746,7 +12746,7 @@ void LSDRaster::HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster
 
 }
 
-vector<float> LSDRaster::Sample_Along_Ridge(LSDRaster& Hilltops, int a, int b, int threshold){
+vector< vector<float> > LSDRaster::Sample_Along_Ridge(LSDRaster& Raster1, LSDRaster& Raster2, LSDRaster& Raster3, int a, int b, int threshold){
 
   vector<int> sorted;
   vector<size_t> index_map;
@@ -12755,7 +12755,7 @@ vector<float> LSDRaster::Sample_Along_Ridge(LSDRaster& Hilltops, int a, int b, i
   vector<float> dists;
   vector<float> sorted_dists;
 
-  LSDIndexRaster BinaryHilltops = Hilltops.ConvertToBinary(1, NoDataValue);
+  LSDIndexRaster BinaryHilltops = Raster1.ConvertToBinary(1, NoDataValue);
   LSDIndexRaster HilltopPatches = BinaryHilltops.ConnectedComponents();
 
   int ID = HilltopPatches.get_data_element(a, b);
@@ -12781,11 +12781,15 @@ vector<float> LSDRaster::Sample_Along_Ridge(LSDRaster& Hilltops, int a, int b, i
 
   matlab_float_sort(dists, sorted_dists, index_map_2);
 
-  vector<float> Samples;
+  vector<float> Sample1;
+  vector<float> Sample2;
+  vector<float> Sample3;
+  vector< vector<float> > Vector_of_Samples;
+  Vector_of_Samples.reserve(3); //pre-allocate memory for this vector
 
   if (int(dists.size()) < threshold){
     threshold = int(dists.size());
-    cout << "Threshold is larger than number of pixels in hilltop segment" << endl;
+    cout << "Threshold is larger than the number of pixels in the hilltop segment" << endl;
   }
 
   for(int w = 0; w < threshold; ++w){
@@ -12793,10 +12797,16 @@ vector<float> LSDRaster::Sample_Along_Ridge(LSDRaster& Hilltops, int a, int b, i
     int tmp_i = sub_map[index_map_2[w]] / NCols;
     int tmp_j = sub_map[index_map_2[w]] % NCols;
 
-    Samples.push_back(Hilltops.get_data_element(tmp_i, tmp_j));
+    Sample1.push_back(Raster1.get_data_element(tmp_i, tmp_j));
+    Sample2.push_back(Raster2.get_data_element(tmp_i, tmp_j));
+    Sample3.push_back(Raster3.get_data_element(tmp_i, tmp_j));
   }
 
-  return Samples;
+  Vector_of_Samples.push_back(Sample1);
+  Vector_of_Samples.push_back(Sample2);
+  Vector_of_Samples.push_back(Sample3);
+
+  return Vector_of_Samples;
 }
 
 #endif

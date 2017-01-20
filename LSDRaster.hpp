@@ -2204,7 +2204,7 @@ class LSDRaster
   /// @date 2/11/16
   void HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster& gradient, int UTMZone, bool isNorth, int eId, string filename);
 
-  vector<float> Sample_Along_Ridge(LSDRaster& Hilltops, int a, int b, int threshold);
+  vector< vector<float> > Sample_Along_Ridge(LSDRaster& Raster1, LSDRaster& Raster2, LSDRaster& Raster3, int a, int b, int threshold);
 
 protected:
 
