@@ -2689,10 +2689,11 @@ float LSDIndexRaster::GetAreaDifference(LSDIndexRaster& ActualRaster)
 	{
 		for (int j = 0; j < NCols; j++)
 		{
-			if (ActualRaster_array[i][j] > 0) { ++NActualPixels; }
-			if (PredictedRaster_array[i][j] > 0) { ++NPredictedPixels; }
+			if (ActualRaster_array[i][j] == 1) { ++NActualPixels; }
+			if (PredictedRaster_array[i][j] == 1) { ++NPredictedPixels; }
 		}
 	}
+	cout << "N predicted pixels: " << NPredictedPixels << " N actual pixels: " << NActualPixels << endl;
 	
 	float ActualArea = NActualPixels*DataResolution*DataResolution;
 	float PredictedArea = NPredictedPixels*DataResolution*DataResolution;
