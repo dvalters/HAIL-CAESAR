@@ -2204,6 +2204,19 @@ class LSDRaster
   /// @date 2/11/16
   void HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster& gradient, int UTMZone, bool isNorth, int eId, string filename);
 
+  /// @brief Sample the values of 3 input rasters that intersect with the point a,b within
+  /// the area defined by threshold.
+  ///
+  /// @param Raster1 First LSDRaster to sample.
+  /// @param Raster2 Second LSDRaster to sample.
+  /// @param Raster3 Third LSDRaster to sample.
+  /// @param a Integer row index of point to sample.
+  /// @param b Integer col index of point to sample.
+
+  /// @param threshold The number of cells of hilltop to sample.
+  /// @return A vector of vectors of floats, containing the sampled values for each raster.
+  /// @author SWDG
+  /// @date 23/1/17
   vector< vector<float> > Sample_Along_Ridge(LSDRaster& Raster1, LSDRaster& Raster2, LSDRaster& Raster3, int a, int b, int threshold);
 
 protected:
