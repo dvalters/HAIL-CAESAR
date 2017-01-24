@@ -12746,6 +12746,11 @@ void LSDRaster::HilltopsToCSV(LSDRaster& CHT, LSDRaster& CHT_gradient, LSDRaster
 
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Sample the values of 3 input rasters that intersect with the point a,b within
+// the area defined by threshold
+// SWDG 23/1/17
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector< vector<float> > LSDRaster::Sample_Along_Ridge(LSDRaster& Raster1, LSDRaster& Raster2, LSDRaster& Raster3, int a, int b, int threshold){
 
   vector<int> sorted;
