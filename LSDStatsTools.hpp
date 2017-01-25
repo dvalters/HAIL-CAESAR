@@ -611,6 +611,12 @@ public:
 
 struct tm Parse_time_string(string time_string);
 
+//Returns the distance between 2 pairs of raster indexes
+//SWDG 19/1/17
 float distbetween(int row1, int col1, int row2, int col2);
+
+// Normalize the values of an array of floats to between 0 and MaxValue
+// SWDG 25/1/17
+Array2D<float> normalize(Array2D<float> Data, float MaxValue, float NoDataValue);
 
 #endif
