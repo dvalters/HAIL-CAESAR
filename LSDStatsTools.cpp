@@ -6351,4 +6351,28 @@ float distbetween(int row1, int col1, int row2, int col2){
   return sqrt(((row2 - row1) * (row2 - row1)) + ((col2 - col1) * (col2 - col1)));
 }
 
+// Normalize the values of an array of floats to between 0 and MaxValue
+// SWDG 25/1/17
+Array2D<float> normalize(Array2D<float> Data, float MaxValue, float NoDataValue){
+
+  int n_rows = Data.dim1();
+  int n_cols = Data.dim2();
+
+  Array2D<float> Normed(n_rows, n_cols, NoDataValue);
+
+  float minimum = Get_Minimum(Data, NoDataValue);
+  float maximum = Get_Maximum(Data, NoDataValue);
+
+  for(int i = 0; i < n_rows; i++){
+    for (int j = 0; j < n_cols; j++){
+      if (Data[i][j] != NoDataValue){
+        Normed[i][j] = ((Data[i][j] - minimum) / (maximum - minimum)) * MaxValue;
+      }
+    }
+  }
+
+  return Normed;
+
+}
+
 #endif
