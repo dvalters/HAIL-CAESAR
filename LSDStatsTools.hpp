@@ -615,8 +615,21 @@ struct tm Parse_time_string(string time_string);
 //SWDG 19/1/17
 float distbetween(int row1, int col1, int row2, int col2);
 
-// Normalize the values of an array of floats to between 0 and MaxValue
+// Normalize the values of an array of floats to between 0 and MaxValue.
+// pass in percentiles eg 98 for the 98th percentile to truncate the data
+// about the median. For no truncation pass in 0 and 100.
 // SWDG 25/1/17
-Array2D<float> normalize(Array2D<float> Data, float MaxValue, float NoDataValue);
+Array2D<float> normalize_terrain_index(Array2D<float> Data, float lower_percentile, float upper_percentile, float MaxValue, float NoDataValue);
+
+// Implementation of the Jordan Curve theorem to test if a given point is inside
+// a polygon.
+// returns an integer counting the number of times a ray traced from the point (XCoord,YCoord)
+// crosses the border of the polygon.
+// An even return value (0 is even) means the point is outside the polygon, and an odd
+// value means the point is inside the polygon.
+//
+// Adapted from: http://stackoverflow.com/a/2922778/1627162
+//SWDG - 25/1/17
+int PointInPolygon(int VertexCount, float XCoords[], float YCoords[], float XCoord, float YCoord);
 
 #endif

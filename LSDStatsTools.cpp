@@ -6351,22 +6351,33 @@ float distbetween(int row1, int col1, int row2, int col2){
   return sqrt(((row2 - row1) * (row2 - row1)) + ((col2 - col1) * (col2 - col1)));
 }
 
-// Normalize the values of an array of floats to between 0 and MaxValue
+// Normalize the values of an array terrain shape index values to between 0 and MaxValue.
+// pass in percentiles eg 98 for the 98th percentile to truncate the data
+// about the median. For no truncation pass in 0 and 100.
 // SWDG 25/1/17
-Array2D<float> normalize(Array2D<float> Data, float MaxValue, float NoDataValue){
+Array2D<float> normalize_terrain_index(Array2D<float> Data, float lower_percentile, float upper_percentile, float MaxValue, float NoDataValue){
 
   int n_rows = Data.dim1();
   int n_cols = Data.dim2();
 
   Array2D<float> Normed(n_rows, n_cols, NoDataValue);
+  vector<float> flat = Flatten_Without_Nodata(Data, NoDataValue);
 
-  float minimum = Get_Minimum(Data, NoDataValue);
-  float maximum = Get_Maximum(Data, NoDataValue);
+  //because of the nature of the index the 'max' value == the upper percentile
+  float minimum = get_percentile(flat, upper_percentile);
+  float maximum = get_percentile(flat, lower_percentile);
 
   for(int i = 0; i < n_rows; i++){
     for (int j = 0; j < n_cols; j++){
       if (Data[i][j] != NoDataValue){
-        Normed[i][j] = ((Data[i][j] - minimum) / (maximum - minimum)) * MaxValue;
+        float tmp = Data[i][j];
+        if (Data[i][j] > maximum){
+          tmp = maximum;
+        }
+        if (Data[i][j] < minimum){
+          tmp = minimum;
+        }
+        Normed[i][j] = ((tmp - minimum) / (maximum - minimum)) * MaxValue;
       }
     }
   }
@@ -6374,5 +6385,29 @@ Array2D<float> normalize(Array2D<float> Data, float MaxValue, float NoDataValue)
   return Normed;
 
 }
+
+// Implementation of the Jordan Curve theorem to test if a given point is inside
+// a polygon.
+// returns an integer counting the number of times a ray traced from the point (XCoord,YCoord)
+// crosses the border of the polygon.
+// An even return value (0 is even) means the point is outside the polygon, and an odd
+// value means the point is inside the polygon.
+//
+// Adapted from: http://stackoverflow.com/a/2922778/1627162
+// SWDG - 25/1/17
+int PointInPolygon(int VertexCount, float XCoords[], float YCoords[], float XCoord, float YCoord){
+
+  int c = 0;
+  int j = VertexCount - 1;
+
+  for (int i = 0; i < VertexCount; ++i){
+    if (((YCoords[i] > YCoord) != (YCoords[j] > YCoord)) && (XCoord < (XCoords[j] - XCoords[i]) * (YCoord-YCoords[i]) / (YCoords[j] - YCoords[i]) + XCoords[i])){
+      c++;
+    }
+    j = i;
+  }
+  return c;
+}
+
 
 #endif
