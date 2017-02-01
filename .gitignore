@@ -1,3 +1,4 @@
 *.o
 *.out
 *.exe
+driver_functions_FJC/terraces/build/*
