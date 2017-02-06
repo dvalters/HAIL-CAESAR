@@ -448,6 +448,12 @@ class LSDRaster
   ///@date 06/11/15
   vector<float> get_RasterData_vector();
 
+  ///@brief This function returns the raster data as a vector, ignoring NDVs
+  ///@return vector<float> with raster data
+  ///@author MDH
+  ///@date 06/02/17
+  vector<float> get_RasterData_vector_No_NDVs();
+
 	///@brief This function returns the raster data as text file
   ///@return text file with raster data
   ///@author FJC

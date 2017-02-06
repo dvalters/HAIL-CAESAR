@@ -9337,6 +9337,28 @@ vector<float> LSDRaster::get_RasterData_vector()
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// This function gets the raster data into a vector, ignoring NDVs
+// MDH 06/02/17
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+vector<float> LSDRaster::get_RasterData_vector_No_NDVs()
+{
+  vector<float> Raster_vector;
+  for (int row = 0; row < NRows; row++)
+  {
+    for (int col = 0; col < NCols; col++)
+    {
+      if (RasterData[row][col] != NoDataValue)
+		{	
+			Raster_vector.push_back(RasterData[row][col]);
+		}
+    }
+  }
+
+  return Raster_vector;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This function writes the raster data (where != NoDataValue) to a text file
 // FJC 30/09/16
 //
