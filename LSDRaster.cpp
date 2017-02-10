@@ -9200,6 +9200,7 @@ void LSDRaster::strip_raster_padding()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
 LSDRaster LSDRaster::BufferRasterData(float window_radius)
 {
+  // set the kernel radius
   int kr = ceil(window_radius/DataResolution);
   // set exceptions on kr
   if (kr < 1)
@@ -9229,8 +9230,12 @@ LSDRaster LSDRaster::BufferRasterData(float window_radius)
                 float radial_dist = sqrt(pow(((sub_i-i)*DataResolution),2) + pow(((sub_j-j)*DataResolution),2));
                 if (radial_dist <= window_radius)
                 {
-                  // within the kernel, overwrite raster with centre value
-                  BufferedData[sub_i][sub_j] = RasterData[i][j];
+                  // only overwrite the data if the value is larger
+                  if (BufferedData[sub_i][sub_j] < RasterData[i][j])
+                  {
+                    // within the kernel, overwrite raster with centre value
+                    BufferedData[sub_i][sub_j] = RasterData[i][j];
+                  }
                 }
               }
             }
