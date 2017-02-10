@@ -9193,6 +9193,58 @@ void LSDRaster::strip_raster_padding()
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Buffers a raster using a circular kernel of a user-defined radius
+// User specifies the window radius in metres.
+//
+// FJC 10/02/17
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=
+LSDRaster LSDRaster::BufferRasterData(float window_radius)
+{
+  int kr = ceil(window_radius/DataResolution);
+  // set exceptions on kr
+  if (kr < 1)
+  {
+    kr = 1;
+  }
+  Array2D<float> BufferedData(NRows,NCols,NoDataValue);
+
+  // loop through the DEM and get data in a circular kernel around each point
+  for (int i = 0; i < NRows; ++i)
+  {
+    for (int j = 0; j < NCols; ++j)
+    {
+      if (RasterData[i][j] != NoDataValue)
+      {
+        for (int sub_i = i-kr; sub_i <= i+kr; ++sub_i)
+        {
+          //don't extent past end of map
+          if (sub_i >=0 && sub_i < NRows)
+          {
+            for (int sub_j = j-kr; sub_j <= j+kr; ++sub_j)
+            {
+              //don't extend past end of map
+              if (sub_j >=0 && sub_j<NCols)
+              {
+                //circular kernel
+                float radial_dist = sqrt(pow(((sub_i-i)*DataResolution),2) + pow(((sub_j-j)*DataResolution),2));
+                if (radial_dist <= window_radius)
+                {
+                  // within the kernel, overwrite raster with centre value
+                  BufferedData[sub_i][sub_j] = RasterData[i][j];
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  LSDRaster BufferedRaster(NRows,NCols, XMinimum, YMinimum, DataResolution,
+                            NoDataValue, BufferedData, GeoReferencingStrings);
+  return BufferedRaster;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // THis clips to a smaller raster. The smaller raster does not need
 // to have the same data resolution as the old raster
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -9349,7 +9401,7 @@ vector<float> LSDRaster::get_RasterData_vector_No_NDVs()
     for (int col = 0; col < NCols; col++)
     {
       if (RasterData[row][col] != NoDataValue)
-		{	
+		{
 			Raster_vector.push_back(RasterData[row][col]);
 		}
     }
