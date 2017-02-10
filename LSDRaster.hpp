@@ -536,6 +536,12 @@ class LSDRaster
   /// @date 01/04/2016
   void strip_raster_padding();
 
+  /// @brief Buffers a raster using a circular kernel of a user-defined radius (m)
+  /// @param window_radius radius in metres
+  /// @author FJC
+  /// @date 10/02/17
+  LSDRaster BufferRasterData(float window_radius);
+
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   //
