@@ -79,11 +79,14 @@ Array2D<int> reverse_array_cols(Array2D<int>& data);
 // the Durbin-Watson test statistic which looks for autocorrelation of the residuals
 vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_data, vector<float>& residuals);
 float get_mean(vector<float>& y_data);
+float get_mean_ignore_ndv(vector<float>& y_data, float ndv);
 float get_mean_ignore_ndv(Array2D<float>& data, float ndv);
 float get_SST(vector<float>& y_data, float mean);
 float get_variance_ignore_ndv(Array2D<float>& data, float ndv, float mean);
 float get_range_ignore_ndv(Array2D<float>& data, float ndv);
 float get_range_from_vector(vector<float>& y_data, float ndv);
+float Get_Minimum(vector<float>& y_data, float ndv);
+float Get_Maximum(vector<float>& y_data, float ndv);
 float get_durbin_watson_statistic(vector<float> residuals);
 float get_standard_deviation(vector<float>& y_data, float mean);
 float get_standard_error(vector<float>& y_data, float standard_deviation);
