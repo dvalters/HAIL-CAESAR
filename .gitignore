@@ -2,3 +2,4 @@
 *.out
 *.exe
 driver_functions_FJC/terraces/build/*
+driver_functions_FJC/swath_profiles/build/*
