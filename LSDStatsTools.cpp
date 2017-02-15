@@ -402,6 +402,26 @@ float get_mean(vector<float>& y_data)
   return mean;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// gets the mean from a population of y_data and ignores no data values
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float get_mean_ignore_ndv(vector<float>& y_data, float ndv)
+{
+  int n_data_points=0;
+  float total = 0;
+  float mean;
+  for (int i = 0; i< int(y_data.size()); i++)
+  {
+    if (y_data[i] != ndv)
+    {
+      total+=y_data[i];
+      n_data_points++;
+    }
+  }
+  mean = total/float(n_data_points);
+  return mean;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the mean from a population of y_data
@@ -552,6 +572,43 @@ float get_range_from_vector(vector<float>& y_data, float ndv)
   return range;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// gets the minimum of a population of data
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float Get_Minimum(vector<float>& y_data, float ndv)
+{
+  float min = 10000;
+  for (int i =0; i < int(y_data.size()); i++)
+  {
+    if (y_data[i] != ndv)
+    {
+      if (y_data[i] < min)
+      {
+        min = y_data[i];
+      }
+    }
+  }
+  return min;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// gets the maximum of a population of data
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+float Get_Maximum(vector<float>& y_data, float ndv)
+{
+  float max = 0;
+  for (int i =0; i < int(y_data.size()); i++)
+  {
+    if (y_data[i] != ndv)
+    {
+      if (y_data[i] > max)
+      {
+        max = y_data[i];
+      }
+    }
+  }
+  return max;
+}
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // gets the standard deviation from a population of data
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
