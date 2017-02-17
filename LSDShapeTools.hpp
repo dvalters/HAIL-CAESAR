@@ -53,7 +53,7 @@
 
 using namespace std;
 #include <vector>
-#include <cstdlib> 
+#include <cstdlib>
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -84,7 +84,7 @@ bool SystemEndiannessTest();
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 struct PointData
 {
-  
+
   vector<double> X;
   vector<double> Y;
 
@@ -101,15 +101,15 @@ void ByteSwap(int length, void * ByteData);
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to load an ESRI ShapeFile.
-// 
-// Only works for X,Y point shapefiles at present and it's behavious is totally undefined 
+//
+// Only works for X,Y point shapefiles at present and it's behavious is totally undefined
 // if you pass in any other type of file.
-//  
-// In future this will be rebuilt into a full class that can support shapefiles of 
+//
+// In future this will be rebuilt into a full class that can support shapefiles of
 // different types.
 //
 // Built in part from:
-// http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/ 
+// http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/
 //
 // SWDG 13/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -117,17 +117,17 @@ PointData LoadShapefile(string Filename);
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to load an ESRI polyline Shapefile.
-// 
-// Only works for polyline shapefiles at present and it's behaviour is totally undefined 
+//
+// Only works for polyline shapefiles at present and it's behaviour is totally undefined
 // if you pass in any other type of file.
-//  
-// In future this will be rebuilt into a full class that can support shapefiles of 
+//
+// In future this will be rebuilt into a full class that can support shapefiles of
 // different types.
 //
 // Returns a vector of points. So that each item in the vector represents a single polyline.
 //
 // Built in part from:
-// http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/ 
+// http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/
 //
 // SWDG 17/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -135,7 +135,7 @@ vector<PointData> LoadPolyline(string Filename);
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to convert an IndexChannelTree to a PointData object.
-// 
+//
 // Returns a vector of points.
 //
 // multistem_option -> 0 = mainstem only, 1 = all tributaries, 2 specify tributary number (DAV 09/04/2015)
@@ -143,10 +143,20 @@ vector<PointData> LoadPolyline(string Filename);
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 PointData LoadChannelTree(string Filename, int multistem_option = 0, int trib_number = 0);
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to convert vectors of coordinates to a PointData object.
+//
+// Returns the point data
+// FJC 17/02/17
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+PointData get_point_data_from_coordinates(vector<double>& X_coordinates, vector<double>& Y_coordinates);
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to get the size of the binary file being loaded.
 //
-// Taken from http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/ 
+// Taken from http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/
 //
 // SWDG 10/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -156,10 +166,10 @@ long getFileSize(FILE *file);
 class LSDEllipsoid
 {
   public:
-  
+
   /// @detail the default constructor
   LSDEllipsoid()    {};
-  
+
   /// @detail assigment constructor for the ellipsiod class
   /// @param id a reference into the ellipsoid
   /// @param name the name of the ellipsoid
@@ -167,14 +177,14 @@ class LSDEllipsoid
   /// @param fr not sure what this is
   LSDEllipsoid(int id, char* name, double radius, double fr)
       { Name=name;  EquatorialRadius=radius;  eccSquared=2/fr-1/(fr*fr);}
-  
+
   /// name of the ellipsoid
   char* Name;
-  
+
   /// equatorial radius in km
   double EquatorialRadius;
-  
-  /// square of the equatorial radius 
+
+  /// square of the equatorial radius
   double eccSquared;
 };
 
@@ -185,13 +195,13 @@ class LSDDatum
     LSDDatum(){};
     LSDDatum(int id, char* name, int eid, double dx, double dy, double dz)
       { Name=name;  eId=eid;  dX=dx;  dY=dy;  dZ=dz;}
-  
+
   /// name of the datum
   char* Name;
-  
+
   /// the ellipsoid id
   int   eId;
-  
+
   double dX;
   double dY;
   double dZ;
@@ -203,7 +213,7 @@ class LSDDatum
 class LSDCoordinateConverterLLandUTM
 {
   public:
-    // default constructor. This sets up the data elements. 
+    // default constructor. This sets up the data elements.
     LSDCoordinateConverterLLandUTM()     { create(); }
 
     /// @brief converts LatLong to UTM coords
@@ -239,7 +249,7 @@ class LSDCoordinateConverterLLandUTM
     /// @param Zone the UTM zone. This argument is replaced by the function
     /// @author SMM, modified from Chuck Gantz
     /// @date 07/12/2014
-    void LLtoUTM(int eId, double Lat, double Long,  
+    void LLtoUTM(int eId, double Lat, double Long,
              double& Northing, double& Easting, int& Zone);
 
     /// @brief converts LatLong to UTM coords, but forces the data to a specific zone
@@ -276,10 +286,10 @@ class LSDCoordinateConverterLLandUTM
     /// @param Zone the UTM zone. This argument is replaced by the function
     /// @author SMM, modified from Chuck Gantz
     /// @date 11/04/2016
-    void LLtoUTM_ForceZone(int eId, double Lat, double Long,  
+    void LLtoUTM_ForceZone(int eId, double Lat, double Long,
              double& Northing, double& Easting, int Zone);
 
-  
+
     /// @brief converts LatLong to UTM coords
     /// 3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
     /// @param eID the ellipsoid ID. Options are:
@@ -306,35 +316,35 @@ class LSDCoordinateConverterLLandUTM
     ///  20 = "SouthAmerican1969";
     ///  21 = "WGS72";
     ///  22 = "WGS84";
-    /// @param Northing in metres. 
-    /// @param Easting in metres. 
-    /// @param Zone the UTM zone. 
+    /// @param Northing in metres.
+    /// @param Easting in metres.
+    /// @param Zone the UTM zone.
     /// @param isNorth is a boolean that states if the map is in the northern hemisphere
-    /// @param Lat the latitude in decimal degrees. 
+    /// @param Lat the latitude in decimal degrees.
     ///  This argument is replaced by the function
     /// @param Long the longitude in decimal degrees
     ///  This argument is replaced by the function
     /// @author SMM, modified from Chuck Gantz
     /// @date 07/12/2014
-    void UTMtoLL(int eId, double Northing, double Easting, int Zone, bool isNorth,  
+    void UTMtoLL(int eId, double Northing, double Easting, int Zone, bool isNorth,
              double& Lat, double& Long);
 
 
 
-    /// @brief converts LatLongHt in datum dIn, to LatLongHt in datum dTo;  
+    /// @brief converts LatLongHt in datum dIn, to LatLongHt in datum dTo;
     /// @detail 2002dec: by Eugene Reimer, from PeterDana equations.
-    ///   Lat and Long params are in degrees;  
+    ///   Lat and Long params are in degrees;
     /// North latitudes and East longitudes are positive;  Height is in meters;
-    /// ==This approach to Datum-conversion is a waste of time;  
+    /// ==This approach to Datum-conversion is a waste of time;
     /// to get acceptable accuracy a large table is needed -- see NADCON, NTv2...
-    void DatumConvert(int dIn, double LatIn, double LongIn, double HtIn, 
+    void DatumConvert(int dIn, double LatIn, double LongIn, double HtIn,
                   int dTo,  double& LatTo, double& LongTo, double& HtTo);
-  
+
   protected:
-  
+
     /// @brief a vector holding the ellipsoids
     vector<LSDEllipsoid> Ellipsoids;
-    
+
     /// @brief a vectro holding the datums
     vector<LSDDatum> Datums;
 
@@ -366,7 +376,7 @@ class LSDCoordinateConverterLLandUTM
     double UTM_EP2;             // e'^2
 
   private:
-  
+
     /// @brief This create function sets up the data membeers that hold the
     ///  ellipsoid and datum data
     void create();
