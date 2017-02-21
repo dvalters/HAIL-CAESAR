@@ -330,6 +330,8 @@ class LSDCoordinateConverterLLandUTM
              double& Lat, double& Long);
 
 
+    /// @brief converts British national grid to WGS84 lat-long
+    void BNGtoLL(double Northing, double Easting, double& Lat, double& Long);
 
     /// @brief converts LatLongHt in datum dIn, to LatLongHt in datum dTo;
     /// @detail 2002dec: by Eugene Reimer, from PeterDana equations.
