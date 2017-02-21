@@ -583,9 +583,9 @@ PointData LoadChannelTree(string Filename, int multistem_option, int trib_number
   float elev;
   float drain_area;
 
-  int last_cn = 0;    // this is 1 if this is the first node in a channel
+  //int last_cn = 0;    // this is 1 if this is the first node in a channel
   int last_receiver_node = -1;
-  int last_receiver_channel = -1;
+  //int last_receiver_channel;
 
   float XMinimum,YMinimum,DataResolution,NoDataValue;
   int NRows,NCols;
@@ -599,7 +599,7 @@ PointData LoadChannelTree(string Filename, int multistem_option, int trib_number
     if (last_receiver_node == -1)
     {
       last_receiver_node = recevier_cnode;
-      last_receiver_channel = receiver_cnumber;
+      //last_receiver_channel = receiver_cnumber;
     }
     // now load everything into the PointData object :-)
 
@@ -1121,6 +1121,86 @@ void LSDCoordinateConverterLLandUTM::UTMtoLL(int eId, double UTMNorthing, double
 
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Converts from british national grid to lat long
+// From hannah fry's website:
+// http://www.hannahfry.co.uk/blog//2011/10/10/converting-british-national-grid-to-latitude-and-longitude
+//
+// see also
+// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDCoordinateConverterLLandUTM::BNGtoLL(double Northing, double Easting, double& Lat, double& Long)
+{
+  // The Airy 180 semi-major and semi-minor axes used for OSGB36 (m)
+  double a = 6377563.396;
+  double b =  6356256.909; 
+  
+  double F0 = 0.9996012717;    // scale factor on the central meridian
+  double lat0 = 49*M_PI/180;   // Latitude of true origin (radians)
+  double lon0 = -2*M_PI/180;      // Longtitude of true origin and central meridian (radians)
+  
+  // Northing & easting of true origin (m)
+  double N0 = -100000;
+  double E0 = 400000; 
+
+  double e2 = 1 - (b*b)/(a*a);  // eccentricity squared
+  double n = (a-b)/(a+b);
+  
+  // Initialise the iterative variables
+  double lat = lat0;
+  double M = 0;
+  double M1,M2,M3,M4;
+  
+  // Loop until you get the right latitude
+  while(  (Northing - N0 - M) > 0.00001)
+  {
+    lat = (Northing-N0-M)/(a*F0) + lat;
+    M1 = (1 + n + (5/4)*n*n + (5/4)*n*n*n) * (lat-lat0); 
+    M2 = (3*n + 3*n*n + (21/8)*n*n*n) * sin(lat-lat0) * cos(lat+lat0);
+    M3 = ((15/8)*n*n + (15/8)*n*n*n) * sin(2*(lat-lat0)) * cos(2*(lat+lat0));
+    M4 = (35/24)*n*n*n * sin(3*(lat-lat0)) * cos(3*(lat+lat0));
+    
+    // calculate the meridional arc
+    M = b * F0 * (M1 - M2 + M3 - M4);
+  }
+
+  // transverse radius of curvature
+  double nu = a*F0/sqrt(1-e2*sin(lat)*sin(lat));
+
+  // meridional radius of curvature
+  double rho = a*F0*(1-e2)*pow((1-e2*sin(lat)*sin(lat)),-1.5);
+  double eta2 = nu/rho-1;
+  double nu3 = nu*nu*nu;
+  double nu5 = nu*nu*nu*nu*nu;
+  double nu7 = nu*nu*nu*nu*nu*nu*nu;    // BATMAN!!
+  double tanlat2 = tan(lat)*tan(lat);
+  double tanlat4 = tanlat2*tanlat2;
+
+  double secLat = 1./cos(lat);
+  double VII = tan(lat)/(2*rho*nu);
+  double VIII = tan(lat)/(24*rho*nu3)*(5+3*tanlat2+eta2-9*tanlat2*eta2);
+  double IX = tan(lat)/(720*rho*nu5)*(61+90*tanlat2+45*tanlat4);
+  double X = secLat/nu;
+  double XI = secLat/(6*nu3)*(nu/rho+2*tanlat2);
+  double XII = secLat/(120*nu5)*(5+28*tanlat2+24*tanlat4);
+  double XIIA = secLat/(5040*nu7)*(61+662*tanlat2+1320*tanlat4+720*tanlat2*tanlat4);
+  double dE = Easting-E0;
+  
+  lat = lat - VII*dE*dE + VIII*dE*dE*dE*dE - IX*dE*dE*dE*dE*dE*dE;
+  double lon = lon0 + X*dE - XI*dE*dE*dE + XII*dE*dE*dE*dE*dE - XIIA*dE*dE*dE*dE*dE*dE*dE;
+
+  // convert to degrees
+  lat = lat*180/M_PI;
+  lon = lon*180/M_PI;
+
+  Lat = lat;
+  Long = lon;
+
+
+}
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // converts LatLongHt in datum dIn, to LatLongHt in datum dTo;
