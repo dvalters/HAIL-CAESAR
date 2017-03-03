@@ -60,8 +60,8 @@
 #include <vector>
 #include <fstream>
 #include <cmath>
-#include "LSDShapeTools.hpp"
 #include "LSDStatsTools.hpp"
+#include "LSDShapeTools.hpp"
 using namespace std;
 
 #ifndef ShapeTools_CPP
@@ -1135,33 +1135,33 @@ void LSDCoordinateConverterLLandUTM::BNGtoLL(double Northing, double Easting, do
 {
   // The Airy 180 semi-major and semi-minor axes used for OSGB36 (m)
   double a = 6377563.396;
-  double b =  6356256.909; 
-  
+  double b =  6356256.909;
+
   double F0 = 0.9996012717;    // scale factor on the central meridian
   double lat0 = 49*M_PI/180;   // Latitude of true origin (radians)
   double lon0 = -2*M_PI/180;      // Longtitude of true origin and central meridian (radians)
-  
+
   // Northing & easting of true origin (m)
   double N0 = -100000;
-  double E0 = 400000; 
+  double E0 = 400000;
 
   double e2 = 1 - (b*b)/(a*a);  // eccentricity squared
   double n = (a-b)/(a+b);
-  
+
   // Initialise the iterative variables
   double lat = lat0;
   double M = 0;
   double M1,M2,M3,M4;
-  
+
   // Loop until you get the right latitude
   while(  (Northing - N0 - M) > 0.00001)
   {
     lat = (Northing-N0-M)/(a*F0) + lat;
-    M1 = (1 + n + (5/4)*n*n + (5/4)*n*n*n) * (lat-lat0); 
+    M1 = (1 + n + (5/4)*n*n + (5/4)*n*n*n) * (lat-lat0);
     M2 = (3*n + 3*n*n + (21/8)*n*n*n) * sin(lat-lat0) * cos(lat+lat0);
     M3 = ((15/8)*n*n + (15/8)*n*n*n) * sin(2*(lat-lat0)) * cos(2*(lat+lat0));
     M4 = (35/24)*n*n*n * sin(3*(lat-lat0)) * cos(3*(lat+lat0));
-    
+
     // calculate the meridional arc
     M = b * F0 * (M1 - M2 + M3 - M4);
   }
@@ -1187,7 +1187,7 @@ void LSDCoordinateConverterLLandUTM::BNGtoLL(double Northing, double Easting, do
   double XII = secLat/(120*nu5)*(5+28*tanlat2+24*tanlat4);
   double XIIA = secLat/(5040*nu7)*(61+662*tanlat2+1320*tanlat4+720*tanlat2*tanlat4);
   double dE = Easting-E0;
-  
+
   lat = lat - VII*dE*dE + VIII*dE*dE*dE*dE - IX*dE*dE*dE*dE*dE*dE;
   double lon = lon0 + X*dE - XI*dE*dE*dE + XII*dE*dE*dE*dE*dE - XIIA*dE*dE*dE*dE*dE*dE*dE;
 

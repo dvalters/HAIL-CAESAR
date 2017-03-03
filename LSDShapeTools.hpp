@@ -143,7 +143,6 @@ vector<PointData> LoadPolyline(string Filename);
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 PointData LoadChannelTree(string Filename, int multistem_option = 0, int trib_number = 0);
 
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to convert vectors of coordinates to a PointData object.
 //
