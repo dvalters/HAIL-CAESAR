@@ -5316,7 +5316,11 @@ void LSDRaster::calculate_roughness_rasters(float window_radius, float roughness
     string remainder_str = itoa(decimal_ten_str);
     string p_str = "p";
     string window_size_str = window_number_str+p_str+remainder_str;
-    string DEM_flt_extension = "flt";
+    
+    // switch to bil format 09/03/2017
+    string DEM_flt_extension = "bil";
+    
+    
     string underscore = "_";
 
     int roughness_int = int(roughness_radius);
