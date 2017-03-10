@@ -2093,12 +2093,15 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // The following two functions are used to thin a multi-pixel binary feature into a single pixel skeleton.  It uses the algorithm described by Zhang and Suen (1984), A fast algorithm for thinning digital patterns, Communications of the ACM.
 // Thinning algorithm
-void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter){
+void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter)
+{
 
   Array2D<int> marker(NRows,NCols,0);
   int p2,p3,p4,p5,p6,p7,p8,p9;
-  for(int i = 1; i<NRows-1; ++i){
-    for(int j = 1; j<NCols-1; ++j){
+  for(int i = 1; i<NRows-1; ++i)
+  {
+    for(int j = 1; j<NCols-1; ++j)
+    {
       p2 = binary[i-1][j];
       p3 = binary[i-1][j+1];
       p4 = binary[i][j+1];
@@ -2110,31 +2113,42 @@ void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter){
       int A = ((p2==0) && (p3==1)) + ((p3==0) && (p4==1)) + ((p4==0) && (p5==1)) + ((p5==0) && (p6==1)) + ((p6==0) && (p7==1)) + ((p7==0) && (p8==1)) + ((p8==0) && (p9==1)) + ((p9==0) && (p2==1));
       int B = p2+p3+p4+p5+p6+p7+p8+p9;
       int m1,m2;
-      if(iter==0){
-	m1 = p2*p4*p6;
-	m2 = p4*p6*p8;
+      if(iter==0)
+      {
+        m1 = p2*p4*p6;
+        m2 = p4*p6*p8;
       }
-      else{
-	m1 = p2*p4*p8;
-	m2 = p2*p6*p8;
+      else
+      {
+        m1 = p2*p4*p8;
+        m2 = p2*p6*p8;
       }
-      if(A==1 && B>=2 && B<=6 && m1==0 && m2==0){
-	marker[i][j]=1;
+      if(A==1 && B>=2 && B<=6 && m1==0 && m2==0)
+      {
+        marker[i][j]=1;
       }
     }
   }
-  for(int i=1; i<NRows-1; ++i){
-    for(int j=1;j<NCols-1; ++j){
+  for(int i=1; i<NRows-1; ++i)
+  {
+    for(int j=1;j<NCols-1; ++j)
+    {
       if(marker[i][j]==1) binary[i][j]=0;
     }
   }
 }
-LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
+
+
+
+LSDIndexRaster LSDIndexRaster::thin_to_skeleton()
+{
   int finish_flag = 0;
   Array2D<int> binary_old(NRows,NCols,0);
   // Remove nodata pixels
-  for(int i=0; i<NRows; ++i){
-    for(int j=0; j<NCols; ++j){
+  for(int i=0; i<NRows; ++i)
+  {
+    for(int j=0; j<NCols; ++j)
+    {
       if(RasterData[i][j]==1) binary_old[i][j] = 1;
     }
   }
@@ -2143,21 +2157,25 @@ LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
   int total_removed = 0;
   int even = 1;
   int odd = 0;
-  while(finish_flag == 0){
+  while(finish_flag == 0)
+  {
     cout << flush << "Thinning - iteration number " << count << "; ";
     ++count;
     int removed = 0;
     finish_flag = 1;
     thinningIteration(binary_new,odd);
     thinningIteration(binary_new,even);
-    for(int i=0; i<NRows; ++i){
-      for(int j=0; j<NCols; ++j){
+    for(int i=0; i<NRows; ++i)
+    {
+      for(int j=0; j<NCols; ++j)
+      {
         // Check to see if there are any changes this time
-	// Complete iteration as soon as a difference is detected
-	if(binary_new[i][j]!=binary_old[i][j]){
-	  ++removed;
-	  finish_flag = 0;
-	}
+        // Complete iteration as soon as a difference is detected
+        if(binary_new[i][j]!=binary_old[i][j])
+        {
+          ++removed;
+          finish_flag = 0;
+        }
       }
     }
     total_removed += removed;
@@ -2173,14 +2191,22 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
 {
   Array2D<int> EndPoints(NRows,NCols,NoDataValue);
   int test;
-  for(int i=1; i<NRows-1; ++i){
-    cout << flush << i << "/" << NRows << "\r";
-    for(int j=1; j<NCols-1; ++j){
-      if(RasterData[i][j]==1){
-	test = RasterData[i-1][j]+RasterData[i-1][j+1]+RasterData[i][j+1]+RasterData[i+1][j+1]+RasterData[i+1][j]+RasterData[i+1][j-1]+RasterData[i][j-1]+RasterData[i-1][j-1];
-	if(test<=1){
-	  EndPoints[i][j] = 1;
-	}
+  for(int i=1; i<NRows-1; ++i)
+  {
+    if (i%100 == 0)
+    {
+      cout << flush << i << "/" << NRows << "\r";
+    }
+    
+    for(int j=1; j<NCols-1; ++j)
+    {
+      if(RasterData[i][j]==1)
+      {
+        test = RasterData[i-1][j]+RasterData[i-1][j+1]+RasterData[i][j+1]+RasterData[i+1][j+1]+RasterData[i+1][j]+RasterData[i+1][j-1]+RasterData[i][j-1]+RasterData[i-1][j-1];
+        if(test<=1)
+        {
+          EndPoints[i][j] = 1;
+        }
       }
     }
   }
@@ -2188,11 +2214,14 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
   return Ends;
 }
 
-void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster Topo){
+void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster Topo)
+{
   //first loop through the array to find the number of different components to check
   int max_segment_ID = 0;
-  for(int i = 0; i<NRows; ++i){
-    for(int j = 0; j<NCols; ++j){
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j<NCols; ++j)
+    {
       if(RasterData[i][j]!=NoDataValue && CC.get_data_element(i,j) > max_segment_ID) max_segment_ID = CC.get_data_element(i,j);
     }
   }
@@ -2200,27 +2229,35 @@ void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster To
   vector<vector<float> > end_point_elevations;
   vector<float> empty_float;
   vector<int> empty_int;
-  for(int i=0; i < max_segment_ID+1; ++i){
+  
+  for(int i=0; i < max_segment_ID+1; ++i)
+  {
     end_points_row.push_back(empty_int);
     end_points_col.push_back(empty_int);
     end_point_elevations.push_back(empty_float);
   }
   int index;
-  for(int i = 0; i<NRows; ++i){
-    for(int j = 0; j<NCols; ++j){
-      if(RasterData[i][j]!=NoDataValue){
-	index = CC.get_data_element(i,j);
-	end_points_row[index].push_back(i);
-	end_points_col[index].push_back(j);
-	end_point_elevations[index].push_back(Topo.get_data_element(i,j));
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j<NCols; ++j)
+    {
+      if(RasterData[i][j]!=NoDataValue)
+      {
+        index = CC.get_data_element(i,j);
+        end_points_row[index].push_back(i);
+        end_points_col[index].push_back(j);
+        end_point_elevations[index].push_back(Topo.get_data_element(i,j));
       }
     }
   }
+  
   //Now sort end points by elevation, and remove the lowest elevation point in each group
   Array2D<int> FilteredEnds(NRows,NCols,NoDataValue);
-  for(int i=0; i < max_segment_ID+1;++i){
+  for(int i=0; i < max_segment_ID+1;++i)
+  {
     int N = end_point_elevations[i].size();
-    if(N>0){
+    if(N>0)
+    {
       vector<size_t> index_map;
       matlab_float_sort(end_point_elevations[i], end_point_elevations[i], index_map);
       matlab_int_reorder(end_points_row[i],index_map,end_points_row[i]);
