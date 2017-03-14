@@ -282,6 +282,14 @@ class LSDIndexRaster
   void get_lat_and_long_locations(int row, int col, double& lat, 
                   double& longitude, LSDCoordinateConverterLLandUTM Converter);
 
+  /// @brief This gets the value at a point in UTM coordinates
+  /// @param UTME the easting coordinate
+  /// @param UTMN the northing coordinate
+  /// @return The value at that point
+  /// @author SMM
+  /// @date 14/03/2017
+  int get_value_of_point(float UTME, float UTMN);
+
   /// @brief this function gets the UTM_zone and a boolean that is true if
   /// the map is in the northern hemisphere
   /// @param UTM_zone the UTM zone. Replaced in function. 
@@ -401,7 +409,16 @@ class LSDIndexRaster
   /// @date 13/11/2014
   bool check_if_point_is_in_raster(float X_coordinate,float Y_coordinate);
 
-
+  /// @brief Gets the row and column of a point in the raster
+  /// @param X_coordinate the x location of the point
+  /// @param Y_coordinate the y location of the point
+  /// @param row the row of the point, replaced upon running the routine
+  /// @param col the col of the point, replaced upon running the routine
+  /// @author SMM
+  /// @date 22/01/2016
+  void get_row_and_col_of_a_point(float X_coordinate,float Y_coordinate,int& row, int& col);
+  
+  
   /// @brief Calculate the minimum bounding rectangle for an LSDIndexRaster Object and crop out
   /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
   ///
