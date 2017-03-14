@@ -413,6 +413,15 @@ class LSDRaster
   void get_lat_and_long_locations(int row, int col, double& lat,
                   double& longitude, LSDCoordinateConverterLLandUTM Converter);
 
+
+  /// @brief This gets the value at a point in UTM coordinates
+  /// @param UTME the easting coordinate
+  /// @param UTMN the northing coordinate
+  /// @return The value at that point
+  /// @author SMM
+  /// @date 14/03/2017
+  float get_value_of_point(float UTME, float UTMN);
+
   /// @brief this check to see if a point is within the raster
   /// @param X_coordinate the x location of the point
   /// @param Y_coordinate the y location of the point
