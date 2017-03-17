@@ -1647,6 +1647,58 @@ void LSDRaster::get_lat_and_long_locations(int row, int col, double& lat,
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Gets the x and y vectors (used for interpolation)
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::get_easting_and_northing_vectors(vector<float>& Eastings, vector<float>& Northings)
+{
+  vector<float> this_easting;
+  vector<float> this_northing;
+  
+  for (int row = 0; row < NRows; row++)
+  {
+    this_northing.push_back(YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution);
+  }
+  for (int col = 0; col<NCols; col++)
+  {
+    this_easting.push_back(XMinimum + float(col)*DataResolution + 0.5*DataResolution);
+  }
+  
+  this_easting = Eastings;
+  this_northing = Northings;
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Gets the value of a point in UTM using bilinear interpolation
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<float> LSDRaster::interpolate_points_bilinear(vector<float> UTMEvec, vector<float> UTMNvec)
+{
+  vector<float> Eastings;
+  vector<float> Northings;
+  
+  vector<float> interp_data;
+  float this_data;
+  
+  int n_samples = int(UTMEvec.size());
+  
+  if(UTMEvec.size() != UTMNvec.size())
+  {
+    cout << "LSDRaster::interpolate_points_bilinear you x and y vecs are not the same size, prepare for segmentation." << endl;
+  }
+  
+  for(int i = 0; n_samples; i++)
+  {
+    this_data = interp2D_bilinear(Eastings, Northings, RasterData,
+                                  UTMEvec[i], UTMNvec[i]);
+    interp_data.push_back(this_data);
+  }
+  
+  return interp_data;
+}
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Gets the value of a point in UTM
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

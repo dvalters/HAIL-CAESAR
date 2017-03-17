@@ -413,6 +413,21 @@ class LSDRaster
   void get_lat_and_long_locations(int row, int col, double& lat,
                   double& longitude, LSDCoordinateConverterLLandUTM Converter);
 
+  /// @brief This returns vectors of all the easting and northing points in the raster
+  ///  Used for interpolations
+  /// @param Eastings a vector of easting coordinates. Will be replaced by method.
+  /// @param Northings a vector of northing coordinates. Will be replaced by method.
+  /// @author SMM
+  /// @date 17/03/2017
+  void get_easting_and_northing_vectors(vector<float>& Eastings, vector<float>& Northings);
+
+  /// @brief This interpolates a vector of points onto the raster. Uses bilinear interpolation.
+  /// @param UTMEvec Easting coordinates of points to be interpolatiod.
+  /// @param UTMNvec Northing coordinates of points to be interpolatiod.
+  /// @return The vector of interpolated data.
+  /// @author SMM
+  /// @date 17/03/2017
+  vector<float> interpolate_points_bilinear(vector<float> UTMEvec, vector<float> UTMNvec);
 
   /// @brief This gets the value at a point in UTM coordinates
   /// @param UTME the easting coordinate
