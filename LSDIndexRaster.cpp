@@ -1895,14 +1895,16 @@ LSDIndexRaster LSDIndexRaster::RasterTrimmer(){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This is a brute force method to try and find nodata at edges rather than in holes. 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps)
+LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSweeps)
 {
 
   Array2D<int> Visited(NRows,NCols,0);
   
   // go along the edges, releasing bots
   // first the top
-  cout << "Running columns " << endl;
+  
+  // This is the first sweep. It runs along the edge
+  cout << "Initial sweep. " << endl;
   for(int col = 0; col <NCols; col++)
   {
     if (col %250 == 0)
@@ -1926,6 +1928,29 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps)
     release_random_bot(Visited, row,NCols-1, NSteps);
   }
   
+  
+  // now subsequent sweeps run from visited nodes
+  for (int sweep = 0; sweep < NSweeps; sweep++)
+  {
+    cout << "Sweep number " << sweep << endl;
+  
+    for(int row = 0; row< NRows; row++)
+    {
+      for (int col = 0; col<NCols; col++)
+      {
+        
+        // release sweepers if the nodes have been visited
+        // don't bother with ones that have been visited a lot
+        if(Visited[row][col] > 0 && Visited[row][col] < 25)
+        {
+          //cout << "Getting this one, visted is: " << Visited[row][col] << endl;
+          release_random_bot(Visited, row,col, NSteps);
+        }
+      }
+    }
+  }
+  
+
   // now we change any nodata elements that have not been visited to a hole
   for(int row = 0; row< NRows; row++)
   {

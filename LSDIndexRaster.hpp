@@ -435,10 +435,11 @@ class LSDIndexRaster
   /// @brief This is a brute force method for finding all the nodata regions connected to 
   ///  the edge of the raster
   /// @param NSteps the number of steps for each cellular automata bot
+  /// @param NSweeps the number of times the raster is swept
   /// @return a raster with 0 for non-visited points and and integer elsewhere
   /// @author SMM
   /// @date 17/3/2017
-  LSDIndexRaster find_holes_with_nodata_bots(int NSteps);
+  LSDIndexRaster find_holes_with_nodata_bots(int NSteps, int NSweeps);
 
   /// @brief This takes a starting position and releases a random bot that 
   ///  moves about in nodata regions, marking its presence
