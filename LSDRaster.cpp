@@ -11150,6 +11150,32 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Same as above but trims the data
+// SMM
+// 09/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDRaster::create_binary_isdata_raster()
+{
+  Array2D<int> IsDataArray(NRows,NCols,1);
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if (RasterData[row][col] == NoDataValue)
+      {
+        IsDataArray[row][col] = 0;
+      }
+    }
+  }
+  
+  LSDIndexRaster IsDataRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                         int(NoDataValue),IsDataArray,GeoReferencingStrings);
+  return IsDataRaster;
+
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Fill no data in an irregular raster
 // No data values must have all neighbours within the window radius != NDV.  Local
 // mean of all pixels in the window radius.
