@@ -429,6 +429,15 @@ class LSDRaster
   /// @date 17/03/2017
   vector<float> interpolate_points_bilinear(vector<float> UTMEvec, vector<float> UTMNvec);
 
+  /// @brief This fills a raster with precalculated interpolated data
+  /// @param UTMEvec the eastings of the interpolated points
+  /// @param UTMNvec the northings of the interpolated points
+  /// @param interpolated data the actual data that has been interpolated
+  /// @author SMM
+  /// @date 17/02/2017
+  LSDRaster fill_with_interpolated_data(vector<float> UTMEvec, vector<float> UTMNvec, 
+                                        vector<float> interpolated_data);
+
   /// @brief This gets the value at a point in UTM coordinates
   /// @param UTME the easting coordinate
   /// @param UTMN the northing coordinate

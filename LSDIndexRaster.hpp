@@ -431,6 +431,20 @@ class LSDIndexRaster
   /// @date 22/08/13
   LSDIndexRaster RasterTrimmer();
 
+  /// @brief This function runs the hole finding algorithm but instead of printing
+  ///  a raster it returns the points that are in holes. This can be used
+  ///  for interpolation. 
+  /// @param NSteps the number of steps for each cellular automata bot
+  /// @param NSweeps the number of times the raster is swept
+  /// @param UTME the easting coordinates of the hole points (overwritten)
+  /// @param UTMN the northing coordinates of the hole points (overwritten)
+  /// @param row_nodes the row numbers of the hole nodes (overwritten)
+  /// @param col_nodes the col numbers of the hole nodes (overwritten)
+  /// @author SMM
+  /// @date 17/03/2017
+  void get_points_in_holes_for_interpolation(int NSteps, int NSweeps,
+                                          vector<float>& UTME, vector<float>& UTMN,
+                                          vector<int>& row_nodes, vector<int>& col_nodes);
 
   /// @brief This is a brute force method for finding all the nodata regions connected to 
   ///  the edge of the raster

@@ -1665,8 +1665,8 @@ void LSDRaster::get_easting_and_northing_vectors(vector<float>& Eastings, vector
     this_easting.push_back(XMinimum + float(col)*DataResolution + 0.5*DataResolution);
   }
   
-  this_easting = Eastings;
-  this_northing = Northings;
+  Eastings = this_easting;
+  Northings = this_northing;
 }
 
 
@@ -1677,6 +1677,20 @@ vector<float> LSDRaster::interpolate_points_bilinear(vector<float> UTMEvec, vect
 {
   vector<float> Eastings;
   vector<float> Northings;
+  get_easting_and_northing_vectors(Eastings, Northings);
+  
+  // This is quite annoying since the number of rows in the raster is the first dimension
+  // and the number of columns is the second dimension. 
+  // Also the raster is inverted so we need to change the direction of the x vector
+  cout << "The size of the easting is: " << Eastings.size() << " N: " << Northings.size() << endl;
+  cout << "D1: " << RasterData.dim1() << " D2: " << RasterData.dim2() << endl;
+  
+  if (RasterData.dim2() != int(Eastings.size()))
+  {
+    cout << "Something has gone wrong with the dimensions of the x and y data for interpolation" << endl;
+    cout << "LSDRaster::interpolate_points_bilinear" << endl;
+    exit(EXIT_FAILURE);
+  }
   
   vector<float> interp_data;
   float this_data;
@@ -1688,14 +1702,57 @@ vector<float> LSDRaster::interpolate_points_bilinear(vector<float> UTMEvec, vect
     cout << "LSDRaster::interpolate_points_bilinear you x and y vecs are not the same size, prepare for segmentation." << endl;
   }
   
+  
+  Array2D<float> flipped(NCols,NRows);
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col< NCols; col++)
+    {
+      flipped[col][row] = RasterData[row][col];
+    }
+  }
+
+  
+  
   for(int i = 0; n_samples; i++)
   {
-    this_data = interp2D_bilinear(Eastings, Northings, RasterData,
-                                  UTMEvec[i], UTMNvec[i]);
+  
+    //cout << "eastings: " << Eastings[0] << " " << Eastings[NRows-1] << endl;
+    //cout << "Northings: " << Northings[0] << " " << Northings[NCols-1] << endl;
+    //cout << "e: " << UTMEvec[i] << " n: " << UTMNvec[i] << endl;
+    
+    // this stupid ordering is due to the fact that the rows are first dimension
+    // and the 
+    this_data = interp2D_bilinear(Eastings, Northings, flipped,
+                                  UTMEvec[i],UTMNvec[i]);
     interp_data.push_back(this_data);
   }
   
   return interp_data;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Uses precalculated interpolated data to fill a DEM
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::fill_with_interpolated_data(vector<float> UTMEvec, 
+                                                 vector<float> UTMNvec, 
+                                                 vector<float> interpolated_data)
+{
+
+  Array2D<float> NewArray = RasterData.copy();
+  int row,col;
+  
+  int N_nodes = int(UTMEvec.size());
+  for(int i = 0; i<N_nodes; i++)
+  {
+    get_row_and_col_of_a_point(UTMEvec[i],UTMNvec[i],row,col);
+    NewArray[row][col]= interpolated_data[i];
+  }
+  
+  //create LSDRaster object
+  LSDRaster NewRaster(NRows, NCols, XMinimum, YMinimum, DataResolution,
+                               NoDataValue, NewArray, GeoReferencingStrings);
+  return NewRaster;
 }
 
 
