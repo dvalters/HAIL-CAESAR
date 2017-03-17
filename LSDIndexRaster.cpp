@@ -1892,6 +1892,96 @@ LSDIndexRaster LSDIndexRaster::RasterTrimmer(){
 
 }
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::get_points_in_holes_for_interpolation(int NSteps, int NSweeps,
+                                          vector<float>& UTME, vector<float>& UTMN,
+                                          vector<int>& row_nodes, vector<int>& col_nodes)
+{
+  // this generates a hole raster then converts to UTM coords
+  Array2D<int> Visited(NRows,NCols,0);
+  
+  // go along the edges, releasing bots
+  // first the top
+  
+  // This is the first sweep. It runs along the edge
+  cout << "Initial sweep. " << endl;
+  for(int col = 0; col <NCols; col++)
+  {
+    if (col %250 == 0)
+    {
+      cout << "Column " << col << " of " << NCols << endl;
+    }
+    
+    release_random_bot(Visited, 0,col, NSteps);
+    release_random_bot(Visited, NRows-1,col, NSteps);
+  }
+  
+  cout << "Running rows" << endl;
+  for (int row = 0; row<NRows; row++)
+  {
+    if (row %250 == 0)
+    {
+      cout << "Row " << row << " of " << NRows << endl;
+    }
+    
+    release_random_bot(Visited, row,0, NSteps);
+    release_random_bot(Visited, row,NCols-1, NSteps);
+  }
+  
+  
+  // now subsequent sweeps run from visited nodes
+  for (int sweep = 0; sweep < NSweeps; sweep++)
+  {
+    cout << "Sweep number " << sweep << endl;
+  
+    for(int row = 0; row< NRows; row++)
+    {
+      for (int col = 0; col<NCols; col++)
+      {
+        
+        // release sweepers if the nodes have been visited
+        // don't bother with ones that have been visited a lot
+        if(Visited[row][col] > 0 && Visited[row][col] < 25)
+        {
+          //cout << "Getting this one, visted is: " << Visited[row][col] << endl;
+          release_random_bot(Visited, row,col, NSteps);
+        }
+      }
+    }
+  }
+  
+  vector<float> this_UTME;
+  vector<float> this_UTMN;
+  vector<int> these_rows;
+  vector<int> these_cols;
+  double thisx;
+  double thisy;
+  // now we change any nodata elements that have not been visited to a hole
+  for(int row = 0; row< NRows; row++)
+  {
+    for (int col = 0; col<NCols; col++)
+    {
+      if (RasterData[row][col] == NoDataValue && Visited[row][col] == 0)
+      {
+        get_x_and_y_locations(row, col, thisx, thisy);
+        this_UTME.push_back(float(thisx));
+        this_UTMN.push_back(float(thisy));
+        these_rows.push_back(row);
+        these_cols.push_back(col);
+      }
+    }
+  }
+  
+  UTME = this_UTME;
+  UTMN = this_UTMN;
+  row_nodes = these_rows ;
+  col_nodes = these_cols;
+  
+}
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This is a brute force method to try and find nodata at edges rather than in holes. 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1974,8 +2064,6 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSwee
   return VisitedRaster;
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // This is a little algorithm to release random bots that move around in nodata areas

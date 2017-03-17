@@ -1462,11 +1462,11 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
       reverse(y_locs.begin(),y_locs.end());
     }
 
-
     // first find the index of the x data
     if(x_interp < x_locs[0])
     {
-      cout << "x is too small for 2D interpolation, defaulting to ndv";
+      cout << "x is too small for 2D interpolation, defaulting to ndv" << endl;
+      cout << "x_locs[0]" << x_locs[0] << " x interp: " << x_interp << endl;
       x_index = ndv_index;
     }
     else if (x_interp > x_locs[n_xlocs-1])
@@ -1490,7 +1490,8 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
     // now get the index of the y data
     if(y_interp < y_locs[0])
     {
-      cout << "y is too small for 2D interpolation, defaulting to ndv";
+      cout << "y is too small for 2D interpolation, defaulting to ndv" << endl;
+      cout << "y_locs[0]" << y_locs[0] << " y interp: " << y_interp << endl;
       y_index = ndv_index;
     }
     else if (y_interp > y_locs[n_ylocs-1])
