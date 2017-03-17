@@ -2017,6 +2017,12 @@ class LSDRaster
   /// @date 09/12/2014
   LSDRaster alternating_direction_nodata_fill(int window_width);
 
+  /// @brief This returns an index raster with 1 for data and 0 for nodata
+  /// @return index raster 1 == data, 0 == nodata
+  /// @author SMM
+  /// @date 17/03/2017
+  LSDIndexRaster create_binary_isdata_raster();
+
   /// @brief A routine that fills nodata holes. It first prepares the data
   ///  with the sprial trimmer so nodata around the edges is removed.
   /// @detail The routine sweeps the raster looking for nodata and filling

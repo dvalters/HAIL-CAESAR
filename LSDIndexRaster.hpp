@@ -431,6 +431,25 @@ class LSDIndexRaster
   /// @date 22/08/13
   LSDIndexRaster RasterTrimmer();
 
+
+  /// @brief This is a brute force method for finding all the nodata regions connected to 
+  ///  the edge of the raster
+  /// @param NSteps the number of steps for each cellular automata bot
+  /// @return a raster with 0 for non-visited points and and integer elsewhere
+  /// @author SMM
+  /// @date 17/3/2017
+  LSDIndexRaster find_holes_with_nodata_bots(int NSteps);
+
+  /// @brief This takes a starting position and releases a random bot that 
+  ///  moves about in nodata regions, marking its presence
+  /// @param Visited and array of numbers for the number of times a pixel is visited
+  /// @param startrow the starting row
+  /// @param startcol the starting column
+  /// @param NSteps the number of steps the bot takes
+  /// @author SMM
+  /// @date 17/03/2017
+  void release_random_bot(Array2D<int>& Visited, int startrow,int startcol, int NSteps);
+
   /// @brief Make LSDIndexRaster object using a 'template' raster and an Array2D of data.
   /// @param InputData 2DArray of ints to be written to LSDIndexRaster.
   /// @return LSDRaster containing the data passed in.

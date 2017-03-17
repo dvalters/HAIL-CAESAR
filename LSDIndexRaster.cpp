@@ -84,6 +84,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <ctime>
 #include <vector>
 #include <string>
 #include <map>
@@ -1891,20 +1892,161 @@ LSDIndexRaster LSDIndexRaster::RasterTrimmer(){
 
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This is a brute force method to try and find nodata at edges rather than in holes. 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps)
+{
+
+  Array2D<int> Visited(NRows,NCols,0);
+  
+  // go along the edges, releasing bots
+  // first the top
+  cout << "Running columns " << endl;
+  for(int col = 0; col <NCols; col++)
+  {
+    if (col %250 == 0)
+    {
+      cout << "Column " << col << " of " << NCols << endl;
+    }
+    
+    release_random_bot(Visited, 0,col, NSteps);
+    release_random_bot(Visited, NRows,col, NSteps);
+  }
+  
+  cout << "Running rows" << endl;
+  for (int row = 0; row<NRows; row++)
+  {
+    if (row %250 == 0)
+    {
+      cout << "Row " << row << " of " << NCols << endl;
+    }
+    
+    release_random_bot(Visited, row,0, NSteps);
+    release_random_bot(Visited, row,NCols, NSteps);
+  }
+  
+  LSDIndexRaster VisitedRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                                NoDataValue,Visited,GeoReferencingStrings);
+  return VisitedRaster;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This is a little algorithm to release random bots that move around in nodata areas
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int startcol, int NSteps)
+{
+  long seed = time(NULL);
+  
+  float direction; 
+  float pos_or_neg;
+  int curr_row, curr_col;
+  
+  // if nodata, release a bot
+  if( RasterData[startrow][startcol] == NoDataValue)
+  {
+    // start bot at current location
+    curr_row = startrow; 
+    curr_col = startcol;
+    
+    // the bot takes NSteps random steps
+    for(int i = 0; i < NSteps; i++)
+    {
+      Visited[curr_row][curr_col]++;
+        
+      direction  = ran3(&seed);
+      pos_or_neg = ran3(&seed);
+
+      if (direction < 0.5)
+      {
+        if (pos_or_neg> 0.5)
+        {
+          curr_row++;
+            
+          // don't allow if you hit data or an edge
+          if (curr_row == NRows)
+          {
+            curr_row = NRows-1;
+          }
+          if (RasterData[curr_row][curr_col] != NoDataValue)
+          {
+            curr_row--;
+          }
+            
+        }
+        else
+        {
+          curr_row--;
+            
+          // don't allow if you hit data or an edge
+          if (curr_row < 0)
+          {
+            curr_row = 0;
+          }
+          if (RasterData[curr_row][curr_col] != NoDataValue)
+          {
+            curr_row++;
+          }
+            
+        }
+      }
+      else
+      {
+        if(pos_or_neg > 0.5)
+        {
+          curr_col++;
+            
+          // don't allow if you hit data or an edge
+          if (curr_col == NCols)
+          {
+            curr_col = NCols-1;
+          }
+          if (RasterData[curr_row][curr_col] != NoDataValue)
+          {
+            curr_col--;
+          }
+            
+        }
+        else
+        {
+          curr_col--;
+            
+          // don't allow if you hit data or an edge
+          if (curr_col < 0)
+          {
+            curr_row = 0;
+          }
+          if (RasterData[curr_row][curr_col] != NoDataValue)
+          {
+            curr_row++;
+          }
+        }
+      }
+    }
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Make LSDIndexRaster object using a 'template' raster and an Array2D of data.
 // SWDG 2/9/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDIndexRaster LSDIndexRaster::LSDRasterTemplate(Array2D<int> InputData){
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDIndexRaster::LSDRasterTemplate(Array2D<int> InputData)
 
+{
   //do a dimensions check and exit on failure
-  if (InputData.dim1() == NRows && InputData.dim2() == NCols){
+  if (InputData.dim1() == NRows && InputData.dim2() == NCols)
+  {
     LSDIndexRaster OutputRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, InputData,GeoReferencingStrings);
     return OutputRaster;
   }
-  else{
-   	cout << "Array dimensions do not match template LSDIndexRaster object" << endl;
-		exit(EXIT_FAILURE);
+  else
+  {
+    cout << "Array dimensions do not match template LSDIndexRaster object" << endl;
+    exit(EXIT_FAILURE);
   }
 
 }
