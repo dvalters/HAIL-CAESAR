@@ -1958,9 +1958,10 @@ void LSDIndexRaster::get_points_in_holes_for_interpolation(int NSteps, int NSwee
   double thisx;
   double thisy;
   // now we change any nodata elements that have not been visited to a hole
-  for(int row = 0; row< NRows; row++)
+  // Note that there cannot be a hole on the edge so we do not loop over the edge
+  for(int row = 1; row< NRows-1; row++)
   {
-    for (int col = 0; col<NCols; col++)
+    for (int col = 1; col<NCols-1; col++)
     {
       if (RasterData[row][col] == NoDataValue && Visited[row][col] == 0)
       {

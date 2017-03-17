@@ -1677,13 +1677,21 @@ vector<float> LSDRaster::interpolate_points_bilinear(vector<float> UTMEvec, vect
 {
   vector<float> Eastings;
   vector<float> Northings;
+  vector<float> New_northings;
   get_easting_and_northing_vectors(Eastings, Northings);
+  
+  // we need to reverse the northing vecor
+  int n_north = int(Northings.size());
+  for (int i = 0; i<n_north; i++)
+  {
+    New_northings.push_back(Northings[NRows-1-i]);
+  }
   
   // This is quite annoying since the number of rows in the raster is the first dimension
   // and the number of columns is the second dimension. 
   // Also the raster is inverted so we need to change the direction of the x vector
-  cout << "The size of the easting is: " << Eastings.size() << " N: " << Northings.size() << endl;
-  cout << "D1: " << RasterData.dim1() << " D2: " << RasterData.dim2() << endl;
+  //cout << "The size of the easting is: " << Eastings.size() << " N: " << Northings.size() << endl;
+  //cout << "D1: " << RasterData.dim1() << " D2: " << RasterData.dim2() << endl;
   
   if (RasterData.dim2() != int(Eastings.size()))
   {
@@ -1708,22 +1716,22 @@ vector<float> LSDRaster::interpolate_points_bilinear(vector<float> UTMEvec, vect
   {
     for(int col = 0; col< NCols; col++)
     {
-      flipped[col][row] = RasterData[row][col];
+      flipped[col][row] = RasterData[NRows-1-row][col];
     }
   }
 
   
   
-  for(int i = 0; n_samples; i++)
+  for(int i = 0; i<n_samples; i++)
   {
-  
+    //cout << "Sample is: " << i << " of " << n_samples << endl;
     //cout << "eastings: " << Eastings[0] << " " << Eastings[NRows-1] << endl;
     //cout << "Northings: " << Northings[0] << " " << Northings[NCols-1] << endl;
     //cout << "e: " << UTMEvec[i] << " n: " << UTMNvec[i] << endl;
     
     // this stupid ordering is due to the fact that the rows are first dimension
     // and the 
-    this_data = interp2D_bilinear(Eastings, Northings, flipped,
+    this_data = interp2D_bilinear(Eastings, New_northings, flipped,
                                   UTMEvec[i],UTMNvec[i]);
     interp_data.push_back(this_data);
   }
@@ -1734,19 +1742,17 @@ vector<float> LSDRaster::interpolate_points_bilinear(vector<float> UTMEvec, vect
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Uses precalculated interpolated data to fill a DEM
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-LSDRaster LSDRaster::fill_with_interpolated_data(vector<float> UTMEvec, 
-                                                 vector<float> UTMNvec, 
+LSDRaster LSDRaster::fill_with_interpolated_data(vector<int> node_rows,
+                                                 vector<int> node_cols,
                                                  vector<float> interpolated_data)
 {
 
   Array2D<float> NewArray = RasterData.copy();
-  int row,col;
-  
-  int N_nodes = int(UTMEvec.size());
+
+  int N_nodes = int(node_rows.size());
   for(int i = 0; i<N_nodes; i++)
   {
-    get_row_and_col_of_a_point(UTMEvec[i],UTMNvec[i],row,col);
-    NewArray[row][col]= interpolated_data[i];
+    NewArray[node_rows[i]][node_cols[i]]= interpolated_data[i];
   }
   
   //create LSDRaster object
