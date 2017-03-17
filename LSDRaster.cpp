@@ -11156,14 +11156,14 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDIndexRaster LSDRaster::create_binary_isdata_raster()
 {
-  Array2D<int> IsDataArray(NRows,NCols,1);
+  Array2D<int> IsDataArray(NRows,NCols,int(NoDataValue));
   for(int row = 0; row<NRows; row++)
   {
     for(int col = 0; col<NCols; col++)
     {
-      if (RasterData[row][col] == NoDataValue)
+      if (RasterData[row][col] != NoDataValue)
       {
-        IsDataArray[row][col] = 0;
+        IsDataArray[row][col] = 1;
       }
     }
   }
