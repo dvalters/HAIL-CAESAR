@@ -1911,7 +1911,7 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps)
     }
     
     release_random_bot(Visited, 0,col, NSteps);
-    release_random_bot(Visited, NRows,col, NSteps);
+    release_random_bot(Visited, NRows-1,col, NSteps);
   }
   
   cout << "Running rows" << endl;
@@ -1919,12 +1919,30 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps)
   {
     if (row %250 == 0)
     {
-      cout << "Row " << row << " of " << NCols << endl;
+      cout << "Row " << row << " of " << NRows << endl;
     }
     
     release_random_bot(Visited, row,0, NSteps);
-    release_random_bot(Visited, row,NCols, NSteps);
+    release_random_bot(Visited, row,NCols-1, NSteps);
   }
+  
+  // now we change any nodata elements that have not been visited to a hole
+  for(int row = 0; row< NRows; row++)
+  {
+    for (int col = 0; col<NCols; col++)
+    {
+      if (RasterData[row][col] == NoDataValue && Visited[row][col] == 0)
+      {
+        Visited[row][col] = 1;
+      }
+      else
+      {
+        Visited[row][col] = NoDataValue;
+      }
+    }
+  }
+  
+  
   
   LSDIndexRaster VisitedRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,
                                 NoDataValue,Visited,GeoReferencingStrings);
@@ -1955,6 +1973,7 @@ void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int 
     // the bot takes NSteps random steps
     for(int i = 0; i < NSteps; i++)
     {
+      //cout << "Curr row: " << curr_row << " and col: " << curr_col << endl;
       Visited[curr_row][curr_col]++;
         
       direction  = ran3(&seed);
@@ -1971,6 +1990,7 @@ void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int 
           {
             curr_row = NRows-1;
           }
+          
           if (RasterData[curr_row][curr_col] != NoDataValue)
           {
             curr_row--;
@@ -2017,11 +2037,11 @@ void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int 
           // don't allow if you hit data or an edge
           if (curr_col < 0)
           {
-            curr_row = 0;
+            curr_col = 0;
           }
           if (RasterData[curr_row][curr_col] != NoDataValue)
           {
-            curr_row++;
+            curr_col++;
           }
         }
       }
