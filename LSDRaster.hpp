@@ -413,6 +413,39 @@ class LSDRaster
   void get_lat_and_long_locations(int row, int col, double& lat,
                   double& longitude, LSDCoordinateConverterLLandUTM Converter);
 
+  /// @brief This returns vectors of all the easting and northing points in the raster
+  ///  Used for interpolations
+  /// @param Eastings a vector of easting coordinates. Will be replaced by method.
+  /// @param Northings a vector of northing coordinates. Will be replaced by method.
+  /// @author SMM
+  /// @date 17/03/2017
+  void get_easting_and_northing_vectors(vector<float>& Eastings, vector<float>& Northings);
+
+  /// @brief This interpolates a vector of points onto the raster. Uses bilinear interpolation.
+  /// @param UTMEvec Easting coordinates of points to be interpolatiod.
+  /// @param UTMNvec Northing coordinates of points to be interpolatiod.
+  /// @return The vector of interpolated data.
+  /// @author SMM
+  /// @date 17/03/2017
+  vector<float> interpolate_points_bilinear(vector<float> UTMEvec, vector<float> UTMNvec);
+
+  /// @brief This fills a raster with precalculated interpolated data
+  /// @param rows_of_nodes the rows of the interpolated points
+  /// @param cols_of_nodes the colss of the interpolated points
+  /// @param interpolated data the actual data that has been interpolated
+  /// @author SMM
+  /// @date 17/02/2017
+  LSDRaster fill_with_interpolated_data(vector<int> rows_of_nodes, vector<int> cols_of_nodes, 
+                                        vector<float> interpolated_data);
+
+  /// @brief This gets the value at a point in UTM coordinates
+  /// @param UTME the easting coordinate
+  /// @param UTMN the northing coordinate
+  /// @return The value at that point
+  /// @author SMM
+  /// @date 14/03/2017
+  float get_value_of_point(float UTME, float UTMN);
+
   /// @brief this check to see if a point is within the raster
   /// @param X_coordinate the x location of the point
   /// @param Y_coordinate the y location of the point
@@ -1992,6 +2025,12 @@ class LSDRaster
   /// @author SMM
   /// @date 09/12/2014
   LSDRaster alternating_direction_nodata_fill(int window_width);
+
+  /// @brief This returns an index raster with 1 for data and 0 for nodata
+  /// @return index raster 1 == data, 0 == nodata
+  /// @author SMM
+  /// @date 17/03/2017
+  LSDIndexRaster create_binary_isdata_raster();
 
   /// @brief A routine that fills nodata holes. It first prepares the data
   ///  with the sprial trimmer so nodata around the edges is removed.

@@ -84,6 +84,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <ctime>
 #include <vector>
 #include <string>
 #include <map>
@@ -987,6 +988,27 @@ void LSDIndexRaster::get_lat_and_long_locations(int row, int col, double& lat,
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Gets the value of a point in UTM
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+int LSDIndexRaster::get_value_of_point(float UTME, float UTMN)
+{
+  int this_value = NoDataValue;
+  int row,col;
+  
+  bool is_in_raster = check_if_point_is_in_raster(UTME, UTMN);
+  if (is_in_raster)
+  {
+    get_row_and_col_of_a_point(UTME,UTMN,row, col);
+    this_value = RasterData[row][col];
+  }
+
+  return this_value;
+
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
 // This function gets the UTM zone
@@ -1734,6 +1756,42 @@ bool LSDIndexRaster::check_if_point_is_in_raster(float X_coordinate, float Y_coo
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Gets the row and column of a point
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::get_row_and_col_of_a_point(float X_coordinate,float Y_coordinate,int& row, int& col)
+{
+  int this_row = NoDataValue;
+  int this_col = NoDataValue;
+
+  // Shift origin to that of dataset
+  float X_coordinate_shifted_origin = X_coordinate - XMinimum;
+  float Y_coordinate_shifted_origin = Y_coordinate - YMinimum;
+
+  // Get row and column of point
+  int col_point = int(X_coordinate_shifted_origin/DataResolution);
+  int row_point = (NRows - 1) - int(round(Y_coordinate_shifted_origin/DataResolution));
+
+  //cout << "Getting row and col, " << row_point << " " << col_point << endl;
+
+  if(col_point > 0 && col_point < NCols-1)
+  {
+    this_col = col_point;
+  }
+  if(row_point > 0 && row_point < NRows -1)
+  {
+    this_row = row_point;
+  }
+
+  row = this_row;
+  col = this_col;
+}
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Calculate the minimum bounding rectangle for an LSDIndexRaster Object and crop out
 // all the surrounding NoDataValues to reduce the size and load times of output
@@ -1834,20 +1892,295 @@ LSDIndexRaster LSDIndexRaster::RasterTrimmer(){
 
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::get_points_in_holes_for_interpolation(int NSteps, int NSweeps,
+                                          vector<float>& UTME, vector<float>& UTMN,
+                                          vector<int>& row_nodes, vector<int>& col_nodes)
+{
+  // this generates a hole raster then converts to UTM coords
+  Array2D<int> Visited(NRows,NCols,0);
+  
+  // go along the edges, releasing bots
+  // first the top
+  
+  // This is the first sweep. It runs along the edge
+  cout << "Initial sweep. " << endl;
+  for(int col = 0; col <NCols; col++)
+  {
+    if (col %250 == 0)
+    {
+      cout << "Column " << col << " of " << NCols << endl;
+    }
+    
+    release_random_bot(Visited, 0,col, NSteps);
+    release_random_bot(Visited, NRows-1,col, NSteps);
+  }
+  
+  cout << "Running rows" << endl;
+  for (int row = 0; row<NRows; row++)
+  {
+    if (row %250 == 0)
+    {
+      cout << "Row " << row << " of " << NRows << endl;
+    }
+    
+    release_random_bot(Visited, row,0, NSteps);
+    release_random_bot(Visited, row,NCols-1, NSteps);
+  }
+  
+  
+  // now subsequent sweeps run from visited nodes
+  for (int sweep = 0; sweep < NSweeps; sweep++)
+  {
+    cout << "Sweep number " << sweep << endl;
+  
+    for(int row = 0; row< NRows; row++)
+    {
+      for (int col = 0; col<NCols; col++)
+      {
+        
+        // release sweepers if the nodes have been visited
+        // don't bother with ones that have been visited a lot
+        if(Visited[row][col] > 0 && Visited[row][col] < 25)
+        {
+          //cout << "Getting this one, visted is: " << Visited[row][col] << endl;
+          release_random_bot(Visited, row,col, NSteps);
+        }
+      }
+    }
+  }
+  
+  vector<float> this_UTME;
+  vector<float> this_UTMN;
+  vector<int> these_rows;
+  vector<int> these_cols;
+  double thisx;
+  double thisy;
+  // now we change any nodata elements that have not been visited to a hole
+  // Note that there cannot be a hole on the edge so we do not loop over the edge
+  for(int row = 1; row< NRows-1; row++)
+  {
+    for (int col = 1; col<NCols-1; col++)
+    {
+      if (RasterData[row][col] == NoDataValue && Visited[row][col] == 0)
+      {
+        get_x_and_y_locations(row, col, thisx, thisy);
+        this_UTME.push_back(float(thisx));
+        this_UTMN.push_back(float(thisy));
+        these_rows.push_back(row);
+        these_cols.push_back(col);
+      }
+    }
+  }
+  
+  UTME = this_UTME;
+  UTMN = this_UTMN;
+  row_nodes = these_rows ;
+  col_nodes = these_cols;
+  
+}
+
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This is a brute force method to try and find nodata at edges rather than in holes. 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSweeps)
+{
+
+  Array2D<int> Visited(NRows,NCols,0);
+  
+  // go along the edges, releasing bots
+  // first the top
+  
+  // This is the first sweep. It runs along the edge
+  cout << "Initial sweep. " << endl;
+  for(int col = 0; col <NCols; col++)
+  {
+    if (col %250 == 0)
+    {
+      cout << "Column " << col << " of " << NCols << endl;
+    }
+    
+    release_random_bot(Visited, 0,col, NSteps);
+    release_random_bot(Visited, NRows-1,col, NSteps);
+  }
+  
+  cout << "Running rows" << endl;
+  for (int row = 0; row<NRows; row++)
+  {
+    if (row %250 == 0)
+    {
+      cout << "Row " << row << " of " << NRows << endl;
+    }
+    
+    release_random_bot(Visited, row,0, NSteps);
+    release_random_bot(Visited, row,NCols-1, NSteps);
+  }
+  
+  
+  // now subsequent sweeps run from visited nodes
+  for (int sweep = 0; sweep < NSweeps; sweep++)
+  {
+    cout << "Sweep number " << sweep << endl;
+  
+    for(int row = 0; row< NRows; row++)
+    {
+      for (int col = 0; col<NCols; col++)
+      {
+        
+        // release sweepers if the nodes have been visited
+        // don't bother with ones that have been visited a lot
+        if(Visited[row][col] > 0 && Visited[row][col] < 25)
+        {
+          //cout << "Getting this one, visted is: " << Visited[row][col] << endl;
+          release_random_bot(Visited, row,col, NSteps);
+        }
+      }
+    }
+  }
+  
+
+  // now we change any nodata elements that have not been visited to a hole
+  for(int row = 0; row< NRows; row++)
+  {
+    for (int col = 0; col<NCols; col++)
+    {
+      if (RasterData[row][col] == NoDataValue && Visited[row][col] == 0)
+      {
+        Visited[row][col] = 1;
+      }
+      else
+      {
+        Visited[row][col] = NoDataValue;
+      }
+    }
+  }
+  
+  
+  
+  LSDIndexRaster VisitedRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                                NoDataValue,Visited,GeoReferencingStrings);
+  return VisitedRaster;
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// This is a little algorithm to release random bots that move around in nodata areas
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int startcol, int NSteps)
+{
+  long seed = time(NULL);
+  
+  float direction; 
+  float pos_or_neg;
+  int curr_row, curr_col;
+  
+  // if nodata, release a bot
+  if( RasterData[startrow][startcol] == NoDataValue)
+  {
+    // start bot at current location
+    curr_row = startrow; 
+    curr_col = startcol;
+    
+    // the bot takes NSteps random steps
+    for(int i = 0; i < NSteps; i++)
+    {
+      //cout << "Curr row: " << curr_row << " and col: " << curr_col << endl;
+      Visited[curr_row][curr_col]++;
+        
+      direction  = ran3(&seed);
+      pos_or_neg = ran3(&seed);
+
+      if (direction < 0.5)
+      {
+        if (pos_or_neg> 0.5)
+        {
+          curr_row++;
+            
+          // don't allow if you hit data or an edge
+          if (curr_row == NRows)
+          {
+            curr_row = NRows-1;
+          }
+          
+          if (RasterData[curr_row][curr_col] != NoDataValue)
+          {
+            curr_row--;
+          }
+            
+        }
+        else
+        {
+          curr_row--;
+            
+          // don't allow if you hit data or an edge
+          if (curr_row < 0)
+          {
+            curr_row = 0;
+          }
+          if (RasterData[curr_row][curr_col] != NoDataValue)
+          {
+            curr_row++;
+          }
+            
+        }
+      }
+      else
+      {
+        if(pos_or_neg > 0.5)
+        {
+          curr_col++;
+            
+          // don't allow if you hit data or an edge
+          if (curr_col == NCols)
+          {
+            curr_col = NCols-1;
+          }
+          if (RasterData[curr_row][curr_col] != NoDataValue)
+          {
+            curr_col--;
+          }
+            
+        }
+        else
+        {
+          curr_col--;
+            
+          // don't allow if you hit data or an edge
+          if (curr_col < 0)
+          {
+            curr_col = 0;
+          }
+          if (RasterData[curr_row][curr_col] != NoDataValue)
+          {
+            curr_col++;
+          }
+        }
+      }
+    }
+  }
+}
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Make LSDIndexRaster object using a 'template' raster and an Array2D of data.
 // SWDG 2/9/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-LSDIndexRaster LSDIndexRaster::LSDRasterTemplate(Array2D<int> InputData){
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDIndexRaster::LSDRasterTemplate(Array2D<int> InputData)
 
+{
   //do a dimensions check and exit on failure
-  if (InputData.dim1() == NRows && InputData.dim2() == NCols){
+  if (InputData.dim1() == NRows && InputData.dim2() == NCols)
+  {
     LSDIndexRaster OutputRaster(NRows, NCols, XMinimum, YMinimum, DataResolution, NoDataValue, InputData,GeoReferencingStrings);
     return OutputRaster;
   }
-  else{
-   	cout << "Array dimensions do not match template LSDIndexRaster object" << endl;
-		exit(EXIT_FAILURE);
+  else
+  {
+    cout << "Array dimensions do not match template LSDIndexRaster object" << endl;
+    exit(EXIT_FAILURE);
   }
 
 }
@@ -2093,12 +2426,15 @@ LSDIndexRaster LSDIndexRaster::ConnectedComponents()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // The following two functions are used to thin a multi-pixel binary feature into a single pixel skeleton.  It uses the algorithm described by Zhang and Suen (1984), A fast algorithm for thinning digital patterns, Communications of the ACM.
 // Thinning algorithm
-void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter){
+void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter)
+{
 
   Array2D<int> marker(NRows,NCols,0);
   int p2,p3,p4,p5,p6,p7,p8,p9;
-  for(int i = 1; i<NRows-1; ++i){
-    for(int j = 1; j<NCols-1; ++j){
+  for(int i = 1; i<NRows-1; ++i)
+  {
+    for(int j = 1; j<NCols-1; ++j)
+    {
       p2 = binary[i-1][j];
       p3 = binary[i-1][j+1];
       p4 = binary[i][j+1];
@@ -2110,31 +2446,42 @@ void LSDIndexRaster::thinningIteration(Array2D<int>& binary, int iter){
       int A = ((p2==0) && (p3==1)) + ((p3==0) && (p4==1)) + ((p4==0) && (p5==1)) + ((p5==0) && (p6==1)) + ((p6==0) && (p7==1)) + ((p7==0) && (p8==1)) + ((p8==0) && (p9==1)) + ((p9==0) && (p2==1));
       int B = p2+p3+p4+p5+p6+p7+p8+p9;
       int m1,m2;
-      if(iter==0){
-	m1 = p2*p4*p6;
-	m2 = p4*p6*p8;
+      if(iter==0)
+      {
+        m1 = p2*p4*p6;
+        m2 = p4*p6*p8;
       }
-      else{
-	m1 = p2*p4*p8;
-	m2 = p2*p6*p8;
+      else
+      {
+        m1 = p2*p4*p8;
+        m2 = p2*p6*p8;
       }
-      if(A==1 && B>=2 && B<=6 && m1==0 && m2==0){
-	marker[i][j]=1;
+      if(A==1 && B>=2 && B<=6 && m1==0 && m2==0)
+      {
+        marker[i][j]=1;
       }
     }
   }
-  for(int i=1; i<NRows-1; ++i){
-    for(int j=1;j<NCols-1; ++j){
+  for(int i=1; i<NRows-1; ++i)
+  {
+    for(int j=1;j<NCols-1; ++j)
+    {
       if(marker[i][j]==1) binary[i][j]=0;
     }
   }
 }
-LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
+
+
+
+LSDIndexRaster LSDIndexRaster::thin_to_skeleton()
+{
   int finish_flag = 0;
   Array2D<int> binary_old(NRows,NCols,0);
   // Remove nodata pixels
-  for(int i=0; i<NRows; ++i){
-    for(int j=0; j<NCols; ++j){
+  for(int i=0; i<NRows; ++i)
+  {
+    for(int j=0; j<NCols; ++j)
+    {
       if(RasterData[i][j]==1) binary_old[i][j] = 1;
     }
   }
@@ -2143,21 +2490,25 @@ LSDIndexRaster LSDIndexRaster::thin_to_skeleton(){
   int total_removed = 0;
   int even = 1;
   int odd = 0;
-  while(finish_flag == 0){
+  while(finish_flag == 0)
+  {
     cout << flush << "Thinning - iteration number " << count << "; ";
     ++count;
     int removed = 0;
     finish_flag = 1;
     thinningIteration(binary_new,odd);
     thinningIteration(binary_new,even);
-    for(int i=0; i<NRows; ++i){
-      for(int j=0; j<NCols; ++j){
+    for(int i=0; i<NRows; ++i)
+    {
+      for(int j=0; j<NCols; ++j)
+      {
         // Check to see if there are any changes this time
-	// Complete iteration as soon as a difference is detected
-	if(binary_new[i][j]!=binary_old[i][j]){
-	  ++removed;
-	  finish_flag = 0;
-	}
+        // Complete iteration as soon as a difference is detected
+        if(binary_new[i][j]!=binary_old[i][j])
+        {
+          ++removed;
+          finish_flag = 0;
+        }
       }
     }
     total_removed += removed;
@@ -2173,14 +2524,22 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
 {
   Array2D<int> EndPoints(NRows,NCols,NoDataValue);
   int test;
-  for(int i=1; i<NRows-1; ++i){
-    cout << flush << i << "/" << NRows << "\r";
-    for(int j=1; j<NCols-1; ++j){
-      if(RasterData[i][j]==1){
-	test = RasterData[i-1][j]+RasterData[i-1][j+1]+RasterData[i][j+1]+RasterData[i+1][j+1]+RasterData[i+1][j]+RasterData[i+1][j-1]+RasterData[i][j-1]+RasterData[i-1][j-1];
-	if(test<=1){
-	  EndPoints[i][j] = 1;
-	}
+  for(int i=1; i<NRows-1; ++i)
+  {
+    if (i%100 == 0)
+    {
+      cout << flush << i << "/" << NRows << "\r";
+    }
+    
+    for(int j=1; j<NCols-1; ++j)
+    {
+      if(RasterData[i][j]==1)
+      {
+        test = RasterData[i-1][j]+RasterData[i-1][j+1]+RasterData[i][j+1]+RasterData[i+1][j+1]+RasterData[i+1][j]+RasterData[i+1][j-1]+RasterData[i][j-1]+RasterData[i-1][j-1];
+        if(test<=1)
+        {
+          EndPoints[i][j] = 1;
+        }
       }
     }
   }
@@ -2188,11 +2547,14 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
   return Ends;
 }
 
-void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster Topo){
+void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster Topo)
+{
   //first loop through the array to find the number of different components to check
   int max_segment_ID = 0;
-  for(int i = 0; i<NRows; ++i){
-    for(int j = 0; j<NCols; ++j){
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j<NCols; ++j)
+    {
       if(RasterData[i][j]!=NoDataValue && CC.get_data_element(i,j) > max_segment_ID) max_segment_ID = CC.get_data_element(i,j);
     }
   }
@@ -2200,27 +2562,35 @@ void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster To
   vector<vector<float> > end_point_elevations;
   vector<float> empty_float;
   vector<int> empty_int;
-  for(int i=0; i < max_segment_ID+1; ++i){
+  
+  for(int i=0; i < max_segment_ID+1; ++i)
+  {
     end_points_row.push_back(empty_int);
     end_points_col.push_back(empty_int);
     end_point_elevations.push_back(empty_float);
   }
   int index;
-  for(int i = 0; i<NRows; ++i){
-    for(int j = 0; j<NCols; ++j){
-      if(RasterData[i][j]!=NoDataValue){
-	index = CC.get_data_element(i,j);
-	end_points_row[index].push_back(i);
-	end_points_col[index].push_back(j);
-	end_point_elevations[index].push_back(Topo.get_data_element(i,j));
+  for(int i = 0; i<NRows; ++i)
+  {
+    for(int j = 0; j<NCols; ++j)
+    {
+      if(RasterData[i][j]!=NoDataValue)
+      {
+        index = CC.get_data_element(i,j);
+        end_points_row[index].push_back(i);
+        end_points_col[index].push_back(j);
+        end_point_elevations[index].push_back(Topo.get_data_element(i,j));
       }
     }
   }
+  
   //Now sort end points by elevation, and remove the lowest elevation point in each group
   Array2D<int> FilteredEnds(NRows,NCols,NoDataValue);
-  for(int i=0; i < max_segment_ID+1;++i){
+  for(int i=0; i < max_segment_ID+1;++i)
+  {
     int N = end_point_elevations[i].size();
-    if(N>0){
+    if(N>0)
+    {
       vector<size_t> index_map;
       matlab_float_sort(end_point_elevations[i], end_point_elevations[i], index_map);
       matlab_int_reorder(end_points_row[i],index_map,end_points_row[i]);
