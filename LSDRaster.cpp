@@ -1648,6 +1648,138 @@ void LSDRaster::get_lat_and_long_locations(int row, int col, double& lat,
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Gets the x and y vectors (used for interpolation)
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+void LSDRaster::get_easting_and_northing_vectors(vector<float>& Eastings, vector<float>& Northings)
+{
+  vector<float> this_easting;
+  vector<float> this_northing;
+  
+  for (int row = 0; row < NRows; row++)
+  {
+    this_northing.push_back(YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution);
+  }
+  for (int col = 0; col<NCols; col++)
+  {
+    this_easting.push_back(XMinimum + float(col)*DataResolution + 0.5*DataResolution);
+  }
+  
+  Eastings = this_easting;
+  Northings = this_northing;
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Gets the value of a point in UTM using bilinear interpolation
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<float> LSDRaster::interpolate_points_bilinear(vector<float> UTMEvec, vector<float> UTMNvec)
+{
+  vector<float> Eastings;
+  vector<float> Northings;
+  vector<float> New_northings;
+  get_easting_and_northing_vectors(Eastings, Northings);
+  
+  // we need to reverse the northing vecor
+  int n_north = int(Northings.size());
+  for (int i = 0; i<n_north; i++)
+  {
+    New_northings.push_back(Northings[NRows-1-i]);
+  }
+  
+  // This is quite annoying since the number of rows in the raster is the first dimension
+  // and the number of columns is the second dimension. 
+  // Also the raster is inverted so we need to change the direction of the x vector
+  //cout << "The size of the easting is: " << Eastings.size() << " N: " << Northings.size() << endl;
+  //cout << "D1: " << RasterData.dim1() << " D2: " << RasterData.dim2() << endl;
+  
+  if (RasterData.dim2() != int(Eastings.size()))
+  {
+    cout << "Something has gone wrong with the dimensions of the x and y data for interpolation" << endl;
+    cout << "LSDRaster::interpolate_points_bilinear" << endl;
+    exit(EXIT_FAILURE);
+  }
+  
+  vector<float> interp_data;
+  float this_data;
+  
+  int n_samples = int(UTMEvec.size());
+  
+  if(UTMEvec.size() != UTMNvec.size())
+  {
+    cout << "LSDRaster::interpolate_points_bilinear you x and y vecs are not the same size, prepare for segmentation." << endl;
+  }
+  
+  
+  Array2D<float> flipped(NCols,NRows);
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col< NCols; col++)
+    {
+      flipped[col][row] = RasterData[NRows-1-row][col];
+    }
+  }
+
+  
+  
+  for(int i = 0; i<n_samples; i++)
+  {
+    //cout << "Sample is: " << i << " of " << n_samples << endl;
+    //cout << "eastings: " << Eastings[0] << " " << Eastings[NRows-1] << endl;
+    //cout << "Northings: " << Northings[0] << " " << Northings[NCols-1] << endl;
+    //cout << "e: " << UTMEvec[i] << " n: " << UTMNvec[i] << endl;
+    
+    // this stupid ordering is due to the fact that the rows are first dimension
+    // and the 
+    this_data = interp2D_bilinear(Eastings, New_northings, flipped,
+                                  UTMEvec[i],UTMNvec[i]);
+    interp_data.push_back(this_data);
+  }
+  
+  return interp_data;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Uses precalculated interpolated data to fill a DEM
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDRaster LSDRaster::fill_with_interpolated_data(vector<int> node_rows,
+                                                 vector<int> node_cols,
+                                                 vector<float> interpolated_data)
+{
+
+  Array2D<float> NewArray = RasterData.copy();
+
+  int N_nodes = int(node_rows.size());
+  for(int i = 0; i<N_nodes; i++)
+  {
+    NewArray[node_rows[i]][node_cols[i]]= interpolated_data[i];
+  }
+  
+  //create LSDRaster object
+  LSDRaster NewRaster(NRows, NCols, XMinimum, YMinimum, DataResolution,
+                               NoDataValue, NewArray, GeoReferencingStrings);
+  return NewRaster;
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Gets the value of a point in UTM
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float LSDRaster::get_value_of_point(float UTME, float UTMN)
+{
+  float this_value = NoDataValue;
+  int row,col;
+  
+  bool is_in_raster = check_if_point_is_in_raster(UTME, UTMN);
+  if (is_in_raster)
+  {
+    get_row_and_col_of_a_point(UTME,UTMN,row, col);
+    this_value = RasterData[row][col];
+  }
+
+  return this_value;
+
+}
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
@@ -5316,7 +5448,11 @@ void LSDRaster::calculate_roughness_rasters(float window_radius, float roughness
     string remainder_str = itoa(decimal_ten_str);
     string p_str = "p";
     string window_size_str = window_number_str+p_str+remainder_str;
-    string DEM_flt_extension = "flt";
+    
+    // switch to bil format 09/03/2017
+    string DEM_flt_extension = "bil";
+    
+    
     string underscore = "_";
 
     int roughness_int = int(roughness_radius);
@@ -11075,6 +11211,32 @@ LSDRaster LSDRaster::alternating_direction_nodata_fill_with_trimmer(int window_w
        << " and cols: " << nodata_filled.get_NCols() << endl;
   return nodata_filled;
 }
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Same as above but trims the data
+// SMM
+// 09/12/2014
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+LSDIndexRaster LSDRaster::create_binary_isdata_raster()
+{
+  Array2D<int> IsDataArray(NRows,NCols,int(NoDataValue));
+  for(int row = 0; row<NRows; row++)
+  {
+    for(int col = 0; col<NCols; col++)
+    {
+      if (RasterData[row][col] != NoDataValue)
+      {
+        IsDataArray[row][col] = 1;
+      }
+    }
+  }
+  
+  LSDIndexRaster IsDataRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,
+                         int(NoDataValue),IsDataArray,GeoReferencingStrings);
+  return IsDataRaster;
+
+}
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Fill no data in an irregular raster

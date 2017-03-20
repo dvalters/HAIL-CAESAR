@@ -282,6 +282,14 @@ class LSDIndexRaster
   void get_lat_and_long_locations(int row, int col, double& lat, 
                   double& longitude, LSDCoordinateConverterLLandUTM Converter);
 
+  /// @brief This gets the value at a point in UTM coordinates
+  /// @param UTME the easting coordinate
+  /// @param UTMN the northing coordinate
+  /// @return The value at that point
+  /// @author SMM
+  /// @date 14/03/2017
+  int get_value_of_point(float UTME, float UTMN);
+
   /// @brief this function gets the UTM_zone and a boolean that is true if
   /// the map is in the northern hemisphere
   /// @param UTM_zone the UTM zone. Replaced in function. 
@@ -401,7 +409,16 @@ class LSDIndexRaster
   /// @date 13/11/2014
   bool check_if_point_is_in_raster(float X_coordinate,float Y_coordinate);
 
-
+  /// @brief Gets the row and column of a point in the raster
+  /// @param X_coordinate the x location of the point
+  /// @param Y_coordinate the y location of the point
+  /// @param row the row of the point, replaced upon running the routine
+  /// @param col the col of the point, replaced upon running the routine
+  /// @author SMM
+  /// @date 22/01/2016
+  void get_row_and_col_of_a_point(float X_coordinate,float Y_coordinate,int& row, int& col);
+  
+  
   /// @brief Calculate the minimum bounding rectangle for an LSDIndexRaster Object and crop out
   /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
   ///
@@ -413,6 +430,40 @@ class LSDIndexRaster
   /// @author SWDG
   /// @date 22/08/13
   LSDIndexRaster RasterTrimmer();
+
+  /// @brief This function runs the hole finding algorithm but instead of printing
+  ///  a raster it returns the points that are in holes. This can be used
+  ///  for interpolation. 
+  /// @param NSteps the number of steps for each cellular automata bot
+  /// @param NSweeps the number of times the raster is swept
+  /// @param UTME the easting coordinates of the hole points (overwritten)
+  /// @param UTMN the northing coordinates of the hole points (overwritten)
+  /// @param row_nodes the row numbers of the hole nodes (overwritten)
+  /// @param col_nodes the col numbers of the hole nodes (overwritten)
+  /// @author SMM
+  /// @date 17/03/2017
+  void get_points_in_holes_for_interpolation(int NSteps, int NSweeps,
+                                          vector<float>& UTME, vector<float>& UTMN,
+                                          vector<int>& row_nodes, vector<int>& col_nodes);
+
+  /// @brief This is a brute force method for finding all the nodata regions connected to 
+  ///  the edge of the raster
+  /// @param NSteps the number of steps for each cellular automata bot
+  /// @param NSweeps the number of times the raster is swept
+  /// @return a raster with 0 for non-visited points and and integer elsewhere
+  /// @author SMM
+  /// @date 17/3/2017
+  LSDIndexRaster find_holes_with_nodata_bots(int NSteps, int NSweeps);
+
+  /// @brief This takes a starting position and releases a random bot that 
+  ///  moves about in nodata regions, marking its presence
+  /// @param Visited and array of numbers for the number of times a pixel is visited
+  /// @param startrow the starting row
+  /// @param startcol the starting column
+  /// @param NSteps the number of steps the bot takes
+  /// @author SMM
+  /// @date 17/03/2017
+  void release_random_bot(Array2D<int>& Visited, int startrow,int startcol, int NSteps);
 
   /// @brief Make LSDIndexRaster object using a 'template' raster and an Array2D of data.
   /// @param InputData 2DArray of ints to be written to LSDIndexRaster.
