@@ -1002,9 +1002,9 @@ int LSDIndexRaster::get_value_of_point(float UTME, float UTMN)
   if (is_in_raster)
   {
     get_row_and_col_of_a_point(UTME,UTMN,row, col);
-    cout << "this_value1" << endl;
+    cout << "Row: " << row << " Col: " << col << endl;
     this_value = RasterData[row][col];
-    cout << "this_value2" << endl;
+
   }
 
   return this_value;
