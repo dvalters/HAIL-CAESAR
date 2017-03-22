@@ -997,10 +997,11 @@ int LSDIndexRaster::get_value_of_point(float UTME, float UTMN)
 {
   int this_value = NoDataValue;
   int row,col;
-  
+
   bool is_in_raster = check_if_point_is_in_raster(UTME, UTMN);
   if (is_in_raster)
   {
+    cout << this_value << endl;
     get_row_and_col_of_a_point(UTME,UTMN,row, col);
     this_value = RasterData[row][col];
   }
@@ -1900,10 +1901,10 @@ void LSDIndexRaster::get_points_in_holes_for_interpolation(int NSteps, int NSwee
 {
   // this generates a hole raster then converts to UTM coords
   Array2D<int> Visited(NRows,NCols,0);
-  
+
   // go along the edges, releasing bots
   // first the top
-  
+
   // This is the first sweep. It runs along the edge
   cout << "Initial sweep. " << endl;
   for(int col = 0; col <NCols; col++)
@@ -1912,11 +1913,11 @@ void LSDIndexRaster::get_points_in_holes_for_interpolation(int NSteps, int NSwee
     {
       cout << "Column " << col << " of " << NCols << endl;
     }
-    
+
     release_random_bot(Visited, 0,col, NSteps);
     release_random_bot(Visited, NRows-1,col, NSteps);
   }
-  
+
   cout << "Running rows" << endl;
   for (int row = 0; row<NRows; row++)
   {
@@ -1924,22 +1925,22 @@ void LSDIndexRaster::get_points_in_holes_for_interpolation(int NSteps, int NSwee
     {
       cout << "Row " << row << " of " << NRows << endl;
     }
-    
+
     release_random_bot(Visited, row,0, NSteps);
     release_random_bot(Visited, row,NCols-1, NSteps);
   }
-  
-  
+
+
   // now subsequent sweeps run from visited nodes
   for (int sweep = 0; sweep < NSweeps; sweep++)
   {
     cout << "Sweep number " << sweep << endl;
-  
+
     for(int row = 0; row< NRows; row++)
     {
       for (int col = 0; col<NCols; col++)
       {
-        
+
         // release sweepers if the nodes have been visited
         // don't bother with ones that have been visited a lot
         if(Visited[row][col] > 0 && Visited[row][col] < 25)
@@ -1950,7 +1951,7 @@ void LSDIndexRaster::get_points_in_holes_for_interpolation(int NSteps, int NSwee
       }
     }
   }
-  
+
   vector<float> this_UTME;
   vector<float> this_UTMN;
   vector<int> these_rows;
@@ -1973,27 +1974,27 @@ void LSDIndexRaster::get_points_in_holes_for_interpolation(int NSteps, int NSwee
       }
     }
   }
-  
+
   UTME = this_UTME;
   UTMN = this_UTMN;
   row_nodes = these_rows ;
   col_nodes = these_cols;
-  
+
 }
 
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// This is a brute force method to try and find nodata at edges rather than in holes. 
+// This is a brute force method to try and find nodata at edges rather than in holes.
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSweeps)
 {
 
   Array2D<int> Visited(NRows,NCols,0);
-  
+
   // go along the edges, releasing bots
   // first the top
-  
+
   // This is the first sweep. It runs along the edge
   cout << "Initial sweep. " << endl;
   for(int col = 0; col <NCols; col++)
@@ -2002,11 +2003,11 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSwee
     {
       cout << "Column " << col << " of " << NCols << endl;
     }
-    
+
     release_random_bot(Visited, 0,col, NSteps);
     release_random_bot(Visited, NRows-1,col, NSteps);
   }
-  
+
   cout << "Running rows" << endl;
   for (int row = 0; row<NRows; row++)
   {
@@ -2014,22 +2015,22 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSwee
     {
       cout << "Row " << row << " of " << NRows << endl;
     }
-    
+
     release_random_bot(Visited, row,0, NSteps);
     release_random_bot(Visited, row,NCols-1, NSteps);
   }
-  
-  
+
+
   // now subsequent sweeps run from visited nodes
   for (int sweep = 0; sweep < NSweeps; sweep++)
   {
     cout << "Sweep number " << sweep << endl;
-  
+
     for(int row = 0; row< NRows; row++)
     {
       for (int col = 0; col<NCols; col++)
       {
-        
+
         // release sweepers if the nodes have been visited
         // don't bother with ones that have been visited a lot
         if(Visited[row][col] > 0 && Visited[row][col] < 25)
@@ -2040,7 +2041,7 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSwee
       }
     }
   }
-  
+
 
   // now we change any nodata elements that have not been visited to a hole
   for(int row = 0; row< NRows; row++)
@@ -2057,9 +2058,9 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSwee
       }
     }
   }
-  
-  
-  
+
+
+
   LSDIndexRaster VisitedRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,
                                 NoDataValue,Visited,GeoReferencingStrings);
   return VisitedRaster;
@@ -2072,24 +2073,24 @@ LSDIndexRaster LSDIndexRaster::find_holes_with_nodata_bots(int NSteps, int NSwee
 void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int startcol, int NSteps)
 {
   long seed = time(NULL);
-  
-  float direction; 
+
+  float direction;
   float pos_or_neg;
   int curr_row, curr_col;
-  
+
   // if nodata, release a bot
   if( RasterData[startrow][startcol] == NoDataValue)
   {
     // start bot at current location
-    curr_row = startrow; 
+    curr_row = startrow;
     curr_col = startcol;
-    
+
     // the bot takes NSteps random steps
     for(int i = 0; i < NSteps; i++)
     {
       //cout << "Curr row: " << curr_row << " and col: " << curr_col << endl;
       Visited[curr_row][curr_col]++;
-        
+
       direction  = ran3(&seed);
       pos_or_neg = ran3(&seed);
 
@@ -2098,23 +2099,23 @@ void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int 
         if (pos_or_neg> 0.5)
         {
           curr_row++;
-            
+
           // don't allow if you hit data or an edge
           if (curr_row == NRows)
           {
             curr_row = NRows-1;
           }
-          
+
           if (RasterData[curr_row][curr_col] != NoDataValue)
           {
             curr_row--;
           }
-            
+
         }
         else
         {
           curr_row--;
-            
+
           // don't allow if you hit data or an edge
           if (curr_row < 0)
           {
@@ -2124,7 +2125,7 @@ void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int 
           {
             curr_row++;
           }
-            
+
         }
       }
       else
@@ -2132,7 +2133,7 @@ void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int 
         if(pos_or_neg > 0.5)
         {
           curr_col++;
-            
+
           // don't allow if you hit data or an edge
           if (curr_col == NCols)
           {
@@ -2142,12 +2143,12 @@ void LSDIndexRaster::release_random_bot(Array2D<int>& Visited, int startrow,int 
           {
             curr_col--;
           }
-            
+
         }
         else
         {
           curr_col--;
-            
+
           // don't allow if you hit data or an edge
           if (curr_col < 0)
           {
@@ -2530,7 +2531,7 @@ LSDIndexRaster LSDIndexRaster::find_end_points()
     {
       cout << flush << i << "/" << NRows << "\r";
     }
-    
+
     for(int j=1; j<NCols-1; ++j)
     {
       if(RasterData[i][j]==1)
@@ -2562,7 +2563,7 @@ void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster To
   vector<vector<float> > end_point_elevations;
   vector<float> empty_float;
   vector<int> empty_int;
-  
+
   for(int i=0; i < max_segment_ID+1; ++i)
   {
     end_points_row.push_back(empty_int);
@@ -2583,7 +2584,7 @@ void LSDIndexRaster::remove_downstream_endpoints(LSDIndexRaster CC, LSDRaster To
       }
     }
   }
-  
+
   //Now sort end points by elevation, and remove the lowest elevation point in each group
   Array2D<int> FilteredEnds(NRows,NCols,NoDataValue);
   for(int i=0; i < max_segment_ID+1;++i)
