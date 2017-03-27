@@ -66,7 +66,7 @@ int main (int nNumberofArgs,char *argv[])
 	map<string,int> int_default_map;
 	map<string,float> float_default_map;
 	map<string,bool> bool_default_map;
-	//map<string,string> string_default_map;
+	map<string,string> string_default_map;
 
 	// set default int parameters
 	int_default_map["Threshold_SO"] = 3;
@@ -194,7 +194,7 @@ int main (int nNumberofArgs,char *argv[])
 
 	// get the floodplain object
 	cout << "Getting the floodplain object" << endl;
-	LSDFloodplain Floodplain(ChannelRelief, Slope, ChanNetwork, FlowInfo, relief_threshold_from_qq, slope_threshold_from_qq, this_int_map["Min patch size"], this_int_map["Threshold_SO"];
+	LSDFloodplain Floodplain(ChannelRelief, Slope, ChanNetwork, FlowInfo, relief_threshold_from_qq, slope_threshold_from_qq, this_int_map["Min patch size"], this_int_map["Threshold_SO"]);
 
 	// get the relief relative to nearest channel
 	Floodplain.Get_Relief_of_Nearest_Channel(ChanNetwork, FlowInfo, filled_topo_test, DistFromOutlet, this_int_map["Threshold_SO"]);
