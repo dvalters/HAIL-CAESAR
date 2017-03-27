@@ -1453,13 +1453,13 @@ double interp2D_bilinear(vector<double>& x_locs, vector<double>& y_locs, Array2D
     // reverse to positive order if reversed
     if( x_locs[0] > x_locs[1])
     {
-      cout << "Reversing x" << endl;
+      //cout << "Reversing x" << endl;
       is_x_reversed = true;
       reverse(x_locs.begin(),x_locs.end());
     }
     if( y_locs[0] > y_locs[1])
     {
-      cout << "Reversing y" << endl;
+      //cout << "Reversing y" << endl;
       is_y_reversed = true;
       reverse(y_locs.begin(),y_locs.end());
     }
