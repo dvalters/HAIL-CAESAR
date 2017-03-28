@@ -3,3 +3,7 @@
 *.exe
 driver_functions_FJC/terraces/build/*
 driver_functions_FJC/swath_profiles/build/*
+driver_functions_Floodplains-Terraces/build/CMakeCache.txt
+driver_functions_Floodplains-Terraces/build/CMakeFiles/*
+driver_functions_Floodplains-Terraces/build/Makefile
+driver_functions_Floodplains-Terraces/build/cmake_install.cmake
