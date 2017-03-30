@@ -1049,6 +1049,20 @@ float getGaussianRandom(float minimum, float mean, bool allowNegative){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_data, vector<float>& residuals)
 {
+  
+  int n_x = int(x_data.size());
+  int n_y = int(y_data.size());
+  
+  if (n_x != n_y)
+  {
+    cout << "WARNING simple_linear_regression x and y vecs no the same size. Prepare for segmentation!" << endl;
+  }
+  if (n_x == 0)
+  {
+    cout << "WARNING simple_linear_regression I haven't got x data! Prepare for segmentation!" << endl;
+  }
+  
+  
   float rounding_cutoff = 1e-12;
 
   int n_rows = x_data.size();
@@ -1072,7 +1086,14 @@ vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_d
   Array2D<float> RHS = matmult(A_transpose,b);
   LU<float> LU_mat(LHS);
   Array2D<float> solution= LU_mat.solve(RHS);
-
+  
+  if (solution.dim1() == 0)
+  {
+    cout << "WARNING simple_linear_regression Solution data is empty! Prepare for segmentation!" << endl;
+    cout << "Dimensions are: n_x: " << n_x << " solution matrix: " << solution.dim1() << " " << solution.dim2() << endl;
+  }
+  
+  
   vector<float> soln;
   for(int i = 0; i<2; i++)
   {
