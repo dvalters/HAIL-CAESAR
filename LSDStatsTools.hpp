@@ -93,6 +93,16 @@ float get_standard_error(vector<float>& y_data, float standard_deviation);
 vector<float> get_common_statistics(vector<float>& y_data);
 float get_percentile(vector<float>& data, float percentile);
 
+// orthogonal regression
+// 01/04/2017 SMM No foolin
+// This comes from davegiles.blogspot.co.uk/2014/11/orthogonal-regression-first-steps.html
+// NOTE: THis is more generally called Total Least Squares
+//  There is a solution using matrices that is probably compuationally faster
+//  Might want to implement that in the future if this is slow
+//  Also note this does not calculate R^2
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>& y_data, float& intercept, float& gradient);
+
 // this function gets the difference between nearest neighbours in a vector of y data
 // FJC 10/11/15
 vector<float> difference(vector<float>& y_data);

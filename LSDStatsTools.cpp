@@ -1159,6 +1159,36 @@ void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, 
   intercept = y_mean - gradient*x_mean;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// orthogonal linear regression
+// 01/04/2017 SMM No foolin
+// This comes from davegiles.blogspot.co.uk/2014/11/orthogonal-regression-first-steps.html
+// NOTE: THis is more generally called Total Least Squares
+//  There is a solution using matrices that is probably compuationally faster
+//  Might want to implement that in the future if this is slow
+//  Also note this does not calculate R^2
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>& y_data, float& intercept, float& gradient);
+{
+  float SS_xx=0;
+  float SS_yy=0;
+  float SS_xy=0;
+  float x_mean = get_mean(x_data);
+  float y_mean = get_mean(y_data);
+  for(int i = 0; i<int(x_data.size()); ++i)
+  {
+    SS_xx += (x_data[i]-x_mean)*(x_data[i]-x_mean);
+    SS_yy += (y_data[i]-y_mean)*(y_data[i]-y_mean);
+    SS_xy += (x_data[i]-x_mean)*(y_data[i]-y_mean);
+  }
+  
+  gradient = (SS_yy-SS_xx+sqrt( (SS_xx-SS_yy)*(SS_xx-SS_yy)+ 4*SS_xy*SS_xy ))/2*SS_xy;
+  intercept = y_mean - gradient*x_mean;
+
+}
+
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
