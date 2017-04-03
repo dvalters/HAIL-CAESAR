@@ -1049,10 +1049,10 @@ float getGaussianRandom(float minimum, float mean, bool allowNegative){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_data, vector<float>& residuals)
 {
-  
+
   int n_x = int(x_data.size());
   int n_y = int(y_data.size());
-  
+
   if (n_x != n_y)
   {
     cout << "WARNING simple_linear_regression x and y vecs no the same size. Prepare for segmentation!" << endl;
@@ -1061,8 +1061,8 @@ vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_d
   {
     cout << "WARNING simple_linear_regression I haven't got x data! Prepare for segmentation!" << endl;
   }
-  
-  
+
+
   float rounding_cutoff = 1e-12;
 
   int n_rows = x_data.size();
@@ -1086,14 +1086,14 @@ vector<float> simple_linear_regression(vector<float>& x_data, vector<float>& y_d
   Array2D<float> RHS = matmult(A_transpose,b);
   LU<float> LU_mat(LHS);
   Array2D<float> solution= LU_mat.solve(RHS);
-  
+
   if (solution.dim1() == 0)
   {
     cout << "WARNING simple_linear_regression Solution data is empty! Prepare for segmentation!" << endl;
     cout << "Dimensions are: n_x: " << n_x << " solution matrix: " << solution.dim1() << " " << solution.dim2() << endl;
   }
-  
-  
+
+
   vector<float> soln;
   for(int i = 0; i<2; i++)
   {
@@ -1168,7 +1168,7 @@ void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, 
 //  Might want to implement that in the future if this is slow
 //  Also note this does not calculate R^2
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>& y_data, float& intercept, float& gradient);
+vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>& y_data, float& intercept, float& gradient)
 {
   float SS_xx=0;
   float SS_yy=0;
@@ -1181,7 +1181,7 @@ vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>
     SS_yy += (y_data[i]-y_mean)*(y_data[i]-y_mean);
     SS_xy += (x_data[i]-x_mean)*(y_data[i]-y_mean);
   }
-  
+
   gradient = (SS_yy-SS_xx+sqrt( (SS_xx-SS_yy)*(SS_xx-SS_yy)+ 4*SS_xy*SS_xy ))/2*SS_xy;
   intercept = y_mean - gradient*x_mean;
 
