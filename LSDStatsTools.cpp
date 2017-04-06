@@ -1170,6 +1170,8 @@ void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>& y_data, float& intercept, float& gradient)
 {
+  vector<float> means(2,0.0);
+  
   float SS_xx=0;
   float SS_yy=0;
   float SS_xy=0;
@@ -1184,6 +1186,10 @@ vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>
 
   gradient = (SS_yy-SS_xx+sqrt( (SS_xx-SS_yy)*(SS_xx-SS_yy)+ 4*SS_xy*SS_xy ))/2*SS_xy;
   intercept = y_mean - gradient*x_mean;
+  
+  means[0] = x_mean;
+  means[1]= y_mean;
+  return means;
 
 }
 
@@ -4857,8 +4863,8 @@ double rad(double degree)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // conversion from radians to degrees - SWDG 12/12/13
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 float deg(float radians)
 {
   float pi = 3.14159265;
@@ -4872,7 +4878,64 @@ double deg(double radians)
   return (radians/M_PI)*deg;
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Get the angle between two vectors in radians
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+float angle_between_vectors(float x1, float y1, float x2, float y2)
+{
+  float dot = x1*x2 + y1*y2;      // dot product
+  float det = x1*y2 - y1*x2;      // determinant
+  float angle = atan2(det, dot);
+  return angle;
+}
+
+float angle_between_two_vector_datasets(vector<float>& x1_data, vector<float>& y1_data,
+                                        vector<float>& x2_data, vector<float>& y2_data)
+{
+  
+  // get the vector intercept and floats
+  float v1_intercept, v1_gradient, v2_intercept, v2_gradient;
+  vector<float> first_vector_mean = orthogonal_linear_regression( x1_data, y1_data, v1_intercept, v1_gradient);
+  vector<float> second_vector_mean = orthogonal_linear_regression( x2_data, y2_data, v2_intercept, v2_gradient);
+
+  // now we make the x,y coords for the vectors
+  // we need to know what quadrant each channel is in
+  int quadrant = 1;
+  if( first_vector_mean[0] > x1_data[0] )
+  {
+    if ( first_vector_mean[1] > y1_data[0])
+    {
+      quadrant = 1;
+    }
+    else
+    {
+      quadrant = 4;
+    }
+  
+  }
+  else
+  {
+    if ( first_vector_mean[1] > y1_data[0])
+    {
+      quadrant = 2;
+    }
+    else
+    {
+      quadrant = 3;
+    }  
+  
+  }
+  
+  
+  float x1 = 1;
+  float x2 = 1;
+  float y1 = v1_gradient;
+  float y2 = v2_gradient;
+
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Get the data for a boxplot from an unsorted vector of floats, which does not
 // contain any NDV values.
 //
@@ -4881,7 +4944,7 @@ double deg(double radians)
 // 2Percentile 25Percentile median mean 75Percentile 98Percentile minimum maximum
 //
 // SWDG 12/11/15
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 vector<float> BoxPlot(vector<float> data){
 
   vector<float> Boxplot;
