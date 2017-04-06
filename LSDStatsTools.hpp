@@ -445,6 +445,15 @@ double rad(double degree);
 float deg(float radians);
 double deg(double radians);
 
+// Get the angle between two vectors
+float angle_between_vectors(float x1, float y1, float x2, float y2);
+
+// This function takes two x,y, datasets, calculates the orthogonal regression
+// and gets the angle between them. It assumes the starting point of each of the vectors
+// is the first node
+float angle_between_two_vector_datasets(vector<float>& x1_data, vector<float>& y1_data,
+                                        vector<float>& x2_data, vector<float>& y2_data);
+
 // Get the data for a boxplot from an unsorted vector of floats, which does not
 // contain any NDV values.
 //
