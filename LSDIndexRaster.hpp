@@ -586,7 +586,7 @@ class LSDIndexRaster
 	/// @return LSDIndexRaster merged raster
   /// @author FJC
   /// @date 07/04/17
-  LSDIndexRaster MergeIndexRasters(LSDIndexRaster& RasterToAdd);
+  void MergeIndexRasters(LSDIndexRaster& RasterToAdd);
 
   protected:
   ///Number of rows.
