@@ -3082,4 +3082,41 @@ float LSDIndexRaster::GetAreaDifference(LSDIndexRaster& ActualRaster)
 	return PercentDiff;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// Method to merge data from two LSDIndexRasters WITH SAME EXTENT together.  The data from the
+// raster specified as an argument will be added (will overwrite the original raster if there
+// is a conflict).
+// FJC 07/04/17
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+LSDIndexRaster LSDIndexRaster::MergeIndexRasters(LSDIndexRaster& RasterToAdd)
+{
+	Array2D<int> SecondRasterData = RasterToAdd.get_RasterData();
+	Array2D<int> NewRasterData(NRows,NCols,NoDataValue);
+
+	for (int row = 0; row < NRows; row++)
+	{
+		for (int col = 0; col < NCols; col++)
+		{
+			// no data in first raster, data in second raster
+			if (RasterData[row][col] == NoDataValue && SecondRasterData[row][col] != NoDataValue)
+			{
+				NewRasterData[row][col] = SecondRasterData[row][col];
+			}
+			// data in first raster, no data in second raster
+			else if (RasterData[row][col] != NoDataValue && SecondRasterData[row][col] == NoDataValue)
+			{
+				NewRasterData[row][col] = RasterData[row][col];
+			}
+			// data in both rasters - select data from the second raster
+			else if (RasterData[row][col] != NoDataValue && SecondRasterData[row][col] != NoDataValue)
+			{
+				NewRasterData[row][col] = SecondRasterData[row][col];
+			}
+		}
+	}
+
+	LSDIndexRaster NewRaster(NRows,NCols,XMinimum,YMinimum,DataResolution,NoDataValue,NewRasterData,GeoReferencingStrings);
+	return NewRaster;
+}
+
 #endif
