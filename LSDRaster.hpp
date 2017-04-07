@@ -435,7 +435,7 @@ class LSDRaster
   /// @param interpolated data the actual data that has been interpolated
   /// @author SMM
   /// @date 17/02/2017
-  LSDRaster fill_with_interpolated_data(vector<int> rows_of_nodes, vector<int> cols_of_nodes, 
+  LSDRaster fill_with_interpolated_data(vector<int> rows_of_nodes, vector<int> cols_of_nodes,
                                         vector<float> interpolated_data);
 
   /// @brief This gets the value at a point in UTM coordinates
@@ -499,6 +499,11 @@ class LSDRaster
   /// @author SMM
   /// @date 18/02/14
   void rewrite_with_random_values(float range);
+
+  /// @brief Create a raster in of the same number of rows and cols with nodata
+  /// @author FJC
+  /// @date 07/04/17
+  LSDRaster create_raster_nodata();
 
   /// @brief Calculate the minimum bounding rectangle for an LSDRaster Object and crop out
   /// all the surrounding NoDataValues to reduce the size and load times of output rasters.
@@ -2186,6 +2191,14 @@ class LSDRaster
   /// @author FJC
   /// @date 30/09/16
 	LSDRaster MergeRasters(LSDRaster& RasterToAdd);
+
+  /// @brief Method to merge data from two LSDRasters WITH SAME EXTENT together.  /// The data from the raster specified as an argument will be added (will
+  /// overwrite the original raster if there is a conflict). Overloaded function to rewrite original raster
+  /// rather than creating a new one
+  /// @param RasterToAdd second raster to add to original raster
+  /// @author FJC
+  /// @date 07/04/17
+  void OverwriteRaster(LSDRaster& RasterToAdd);
 
   /// @brief Function to get potential floodplain patches using a slope and relief threshold
   /// @param Relief raster with relief values
