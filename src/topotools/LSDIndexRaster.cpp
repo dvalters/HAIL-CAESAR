@@ -91,10 +91,10 @@
 #include <algorithm>
 #include <numeric>
 #include "TNT/tnt.h"
-#include "LSDIndexRaster.hpp"
-#include "LSDRaster.hpp"
-#include "LSDStatsTools.hpp"
-#include "LSDShapeTools.hpp"
+#include "topotools/LSDIndexRaster.hpp"
+#include "topotools/LSDRaster.hpp"
+#include "topotools/LSDStatsTools.hpp"
+#include "topotools/LSDShapeTools.hpp"
 
 using namespace std;
 using namespace TNT;

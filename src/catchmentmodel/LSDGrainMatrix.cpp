@@ -36,7 +36,7 @@
 #include <cstdio>
 
 
-#include "LSDGrainMatrix.hpp"
+#include "catchmentmodel/LSDGrainMatrix.hpp"
 
 #ifndef LSDGrainMatrix_CPP
 #define LSDGrainMatrix_CPP

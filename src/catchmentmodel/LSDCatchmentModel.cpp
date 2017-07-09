@@ -57,7 +57,7 @@
 #include <sys/stat.h> // For errors
 #include <cstdio> // Only for the debug macro
 
-#include "LSDCatchmentModel.hpp"
+#include "catchmentmodel/LSDCatchmentModel.hpp"
 
 // DV - One day, I'd like to integrate this more into the LSDTopoTools,
 // particulalrly the LSDBasin object using it to 'cut out' basins,

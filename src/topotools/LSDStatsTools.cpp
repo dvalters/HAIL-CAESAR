@@ -64,7 +64,7 @@
 #include <map>
 #include "TNT/tnt.h"
 #include "TNT/jama_lu.h"
-#include "LSDStatsTools.hpp"
+#include "topotools/LSDStatsTools.hpp"
 using namespace std;
 using namespace TNT;
 using namespace JAMA;
