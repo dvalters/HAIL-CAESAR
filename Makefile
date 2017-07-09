@@ -1,4 +1,4 @@
-CC := gcc # This is the main compiler
+CC := g++ # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 SRCDIR := src
 BUILDDIR := build
@@ -16,12 +16,13 @@ $(TARGET): $(OBJECTS)
 	@echo " $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
-	@mkdir -p $(BUILDDIR)
+	@mkdir -p $(BUILDDIR)/topotools
+	@mkdir -p $(BUILDDIR)/catchmentmodel
 	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
 clean:
 	@echo " Cleaning..."; 
-	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
+	@echo " $(RM) -r $(BUILDDIR)/catchmentmodel/ $(BUILDDIR)/topotools/ $(TARGET)"; $(RM) -r $(BUILDDIR)/catchmentmodel/ $(BUILDDIR)/topotools/ $(TARGET)
 
 # Tests
 tester:
