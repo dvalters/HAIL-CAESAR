@@ -103,10 +103,10 @@
 #include "TNT/tnt.h"
 #include "TNT/jama_lu.h"
 #include "TNT/jama_eig.h"
-#include "LSDRaster.hpp"
-#include "LSDStatsTools.hpp"
-#include "LSDIndexRaster.hpp"
-#include "LSDShapeTools.hpp"
+#include "topotools/LSDRaster.hpp"
+#include "topotools/LSDStatsTools.hpp"
+#include "topotools/LSDIndexRaster.hpp"
+#include "topotools/LSDShapeTools.hpp"
 using namespace std;
 using namespace TNT;
 using namespace JAMA;

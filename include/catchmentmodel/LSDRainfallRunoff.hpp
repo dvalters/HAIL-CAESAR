@@ -21,7 +21,7 @@
 #define LSDRAINFALLRUNOFF_H
 
 #include "TNT/tnt.h"
-#include "LSDStatsTools.hpp" // This contains some spline interpolation functions already
+#include "topotools/LSDStatsTools.hpp" // This contains some spline interpolation functions already
 
 /// @brief rainGrid is a class used to store and manipulate rainfall data.
 /// @detail It can be used to interpolate or downscale rainfall data from coarser

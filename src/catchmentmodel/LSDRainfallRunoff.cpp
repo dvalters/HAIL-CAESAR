@@ -19,8 +19,8 @@
 #ifndef LSDRainfallRunoff_CPP
 #define LSDRainfallRunoff_CPP
 
-#include "LSDRainfallRunoff.hpp"
-#include "LSDRaster.hpp"
+#include "catchmentmodel/LSDRainfallRunoff.hpp"
+#include "topotools/LSDRaster.hpp"
 
 void rainGrid::create()
 {

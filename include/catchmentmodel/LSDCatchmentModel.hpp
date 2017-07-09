@@ -16,9 +16,9 @@
 #include <omp.h>
 
 
-#include "LSDRaster.hpp"
+#include "topotools/LSDRaster.hpp"
 #include "LSDGrainMatrix.hpp"
-#include "LSDStatsTools.hpp"
+#include "topotools/LSDStatsTools.hpp"
 #include "LSDRainfallRunoff.hpp"
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.

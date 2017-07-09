@@ -60,8 +60,8 @@
 #include <vector>
 #include <fstream>
 #include <cmath>
-#include "LSDStatsTools.hpp"
-#include "LSDShapeTools.hpp"
+#include "topotools/LSDStatsTools.hpp"
+#include "topotools/LSDShapeTools.hpp"
 using namespace std;
 
 #ifndef ShapeTools_CPP

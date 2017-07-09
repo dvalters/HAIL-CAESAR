@@ -35,7 +35,7 @@
 #include <cstdlib>
 #include <sys/stat.h>
 
-#include "../LSDCatchmentModel.hpp"
+#include "catchmentmodel/LSDCatchmentModel.hpp"
 
 #ifndef SVN_REVISION
 #define SVN_REVISION "N/A"
