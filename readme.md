@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dvalters/HAIL-CAESAR.svg?branch=master)](https://travis-ci.org/dvalters/HAIL-CAESAR)
+
 # HAIL-CAESAR
 
 This is the development version of the HAIL-CAESAR model. 
