@@ -1,7 +1,18 @@
-language: c++
+sudo: false
+language: cpp
 script: make
-
 compiler:
-  - clang++
-  - g++
-
+  - gcc
+  - clang
+install:
+- if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+    - g++-5.0
+    - g++-6.0
+    - clang
