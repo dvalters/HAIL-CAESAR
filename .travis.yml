@@ -13,6 +13,4 @@ addons:
     packages:
     - gcc-4.8
     - g++-4.8
-    - g++-5.0
-    - g++-6.0
     - clang
