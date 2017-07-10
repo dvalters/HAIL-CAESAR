@@ -38,4 +38,4 @@ before_install:
     - eval "${MATRIX_EVAL}"
 
 script: 
-    - make
+    - make $CC=CC $CXX=CXX
