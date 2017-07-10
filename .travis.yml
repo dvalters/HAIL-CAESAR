@@ -46,4 +46,4 @@ matrix:
       env: COMPILER=clang++-3.6
 
 script:
-  make CXX=$COMPILER -j3
+  make CC=$COMPILER -j3
