@@ -1,4 +1,4 @@
-CC := g++ # This is the main compiler
+CXX := g++ # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 SRCDIR := src
 BUILDDIR := build
@@ -13,13 +13,13 @@ INC := -I include
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."
-	@echo " $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
+	@echo " $(CXX) $^ -o $(TARGET) $(LIB)"; $(CXX) $^ -o $(TARGET) $(LIB)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p bin
 	@mkdir -p $(BUILDDIR)/topotools
 	@mkdir -p $(BUILDDIR)/catchmentmodel
-	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@echo " $(CXX) $(CFLAGS) $(INC) -c -o $@ $<"; $(CXX) $(CFLAGS) $(INC) -c -o $@ $<
 
 clean:
 	@echo " Cleaning..."; 
@@ -27,10 +27,10 @@ clean:
 
 # Tests
 tester:
-	$(CC) $(CFLAGS) test/tester.cpp $(INC) $(LIB) -o bin/tester
+	$(CXX) $(CFLAGS) test/tester.cpp $(INC) $(LIB) -o bin/tester
 
 # Spikes
 ticket:
-	$(CC) $(CFLAGS) spikes/ticket.cpp $(INC) $(LIB) -o bin/ticket
+	$(CXX) $(CFLAGS) spikes/ticket.cpp $(INC) $(LIB) -o bin/ticket
 
 .PHONY: clean
