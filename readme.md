@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/11f4e6d1de1e4c5a9e1de7acbd3b6246)](https://www.codacy.com/app/dvalters/HAIL-CAESAR?utm_source=github.com&utm_medium=referral&utm_content=dvalters/HAIL-CAESAR&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/dvalters/HAIL-CAESAR.svg?branch=master)](https://travis-ci.org/dvalters/HAIL-CAESAR) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/11f4e6d1de1e4c5a9e1de7acbd3b6246)](https://www.codacy.com/app/dvalters/HAIL-CAESAR?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dvalters/HAIL-CAESAR&amp;utm_campaign=Badge_Grade)
 
