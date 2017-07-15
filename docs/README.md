@@ -1,6 +1,8 @@
 
 **TL;DR**: The HAIL-CAESAR _(High-performance Architecture Independent Lisflood-CAESAR model)_ is a 2.5D 'hydrodynamic' landscape evolution model that simulates flooding and erosional processes at the catchment scale, on the order of hours to 100s of years. 
 
+![Model output image](https://github.com/dvalters/HAIL-CAESAR/blob/master/docs/banner.png "Erosion modelling after the Boscastle 2004 storm, UK")
+
 ## Installation
 1. Download the software, either as a zip/tar file, or by cloning the latest version from github. 
 2. The makefile is currently set up to use the gcc compiler, edit `Makefile` if you wish to change this, otherwise:
