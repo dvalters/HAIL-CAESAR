@@ -16,9 +16,9 @@ HAIL-CAESAR was developed out of a need to run ensemble-style simulations on a v
 
 This readme documents how to use the HAIL-CAESAR model to set up and run simulations of hydrology and catchment-scale erosion and evolution. The model is based on the CAESAR-Lisflood model [(Coulthard et al., 2013)](http://onlinelibrary.wiley.com/doi/10.1002/esp.3478/abstract). The model is a [Cellular Automaton](http://natureofcode.com/book/chapter-7-cellular-automata/) model, whereby the grid cells in the model domain each have their own parameters associated with them (such as elevation, water depth, water velocity, sediment load, etc.) and the change in these parameters is determined by the state of the neighbouring grid cells. 
 
-Unlike many models of landscape evolution, this model features an explicit calculation of water flow through the landscape based on a highly simplified form of the shallow water equations [(Bates et al., 2010)](http://www.sciencedirect.com/science/article/pii/S0022169410001538.) Most other models, in order to simulate long term evolution, rely on approximations for water discharge based on drainage area, and assume instantaneous run-off of water under hydrological steady-state conditions. The LSDCatchmentModel is therefore suited to modelling both flooding and erosional processes. It can be run as a standalone hydrological model (no erosion) if so desired.
+Unlike many models of landscape evolution, this model features an explicit calculation of water flow through the landscape based on a highly simplified form of the shallow water equations [(Bates et al., 2010)](http://www.sciencedirect.com/science/article/pii/S0022169410001538.) Most other models, in order to simulate long term evolution, rely on approximations for water discharge based on drainage area, and assume instantaneous run-off of water under hydrological steady-state conditions. The HAIL-CAESAR model is therefore suited to modelling both flooding and erosional processes. It can be run as a standalone hydrological model (no erosion) if so desired.
 
-The model is also developed to run on parallel computing architectures (Multi-core/cluster computers).
+The model is also developed to run on parallel computing architectures (Multi-core/cluster computers) using OpenMP.
 
 
 ********************************************************
