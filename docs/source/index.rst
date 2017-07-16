@@ -6,7 +6,7 @@
 HAIL-CAESAR documentation
 =======================================
 
-Welcome to gthe documentation pages for the HAIL-CAESAR
+Welcome to the documentation pages for the HAIL-CAESAR
 catchment modelling software. These pages will help you
 set up and run the model, and configure it to do 
 hydrological, flood-inudation and sediment erosion
