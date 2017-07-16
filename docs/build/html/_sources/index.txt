@@ -10,16 +10,21 @@ Welcome to gthe documentation pages for the HAIL-CAESAR
 catchment modelling software. These pages will help you
 set up and run the model, and configure it to do 
 hydrological, flood-inudation and sediment erosion
-modelling.
+modelling. Have fun!
 
-Have fun!
+.. image:: _static/images/banner.png
 
-Contents:
+Contents
+========
 
 .. toctree::
    :maxdepth: 2
   
    intro
+   background
+   installation
+   running
+   params
 
 
 Indices and tables

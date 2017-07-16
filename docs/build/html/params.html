@@ -1,0 +1,515 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Parameter File &mdash; HAIL-CAESAR 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="HAIL-CAESAR 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Running the Model" href="running.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="parameter-file">
+<h1>Parameter File<a class="headerlink" href="#parameter-file" title="Permalink to this headline">¶</a></h1>
+<p>The parameter file is read by the CatchmentModel program when it starts,
+setting the variables for various components of the model, as well as
+the names of the DEM files and supplementary input files needed for the
+model simulation. It is a plain text file and can be called anything you
+like. By convention, the example parameter file supplied with the code
+has the suffix <code class="docutils literal"><span class="pre">.params</span></code>, but you may use whatever you like.</p>
+<p>Anything in the parameter file preceded by a <code class="docutils literal"><span class="pre">#</span></code> will be treated as a
+comment. You are free to comment away in the parameter file to your
+heart’s content.</p>
+<p>The order of the parameters in the parameter file is not strict, but we
+stick to the convention used in the sample file for reference here. The
+parameter names must not be changed, and must be lowercase.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="26%" />
+<col width="49%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter Name</th>
+<th class="head">Units/Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">read_fname</span></code></td>
+<td>text</td>
+<td>The name of your DEM that will act
+as the terrain surface in the model.
+Do not give the extension here.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">dem_read_extensi</span>
+<span class="pre">on</span></code></td>
+<td>text</td>
+<td>The extension of the input DEM. Only
+ASCII (asc) is currently supported,
+we are working on supporting other
+input formats soon.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">dem_write_extens</span>
+<span class="pre">ion</span></code></td>
+<td>text</td>
+<td>The format to save output rasters
+in. Supported choices are: &#8216;asc&#8217; or
+&#8216;flt&#8217; (binary). &#8216;bil&#8217; also works but
+no georeferencing is supported yet.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">read_path</span></code></td>
+<td>text</td>
+<td>The path where your input files can
+be found</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">write_path</span></code></td>
+<td>text</td>
+<td>The path where your output files
+will be written</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">write_fname</span></code></td>
+<td>text</td>
+<td>A name for the output timeseries
+file. You can supply your own
+extension, but it will always be a
+plain text file.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">timeseries_save_</span>
+<span class="pre">interval</span></code></td>
+<td>model
+minutes/integer</td>
+<td>Will record a timeseries record (new
+row) every X minutes in model time.
+The timeseries output contains the
+discharge of water and sediment.</td>
+</tr>
+<tr class="row-odd"><td colspan="3"><code class="docutils literal"><span class="pre">SUPPLEMENTARY</span> <span class="pre">INPUT</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">hydroindex_file</span></code></td>
+<td>text</td>
+<td>The hydroindex file name (with
+extension). Only ascii (asc)
+currently supported.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">rainfall_data_fi</span>
+<span class="pre">le</span></code></td>
+<td>text</td>
+<td>The rainfall data file name (with
+extension). Must be a plain text
+file.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">grain_data_file</span></code></td>
+<td>text</td>
+<td>Name of your grain data input file.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">bedrock_data_fil</span>
+<span class="pre">e</span></code></td>
+<td>text</td>
+<td>Name of the bedrock DEM. If
+specified, this DEM (ascii only)
+will be loaded as a solid bedrock
+layer beneath your top-layer terrain
+DEM. It’s up to the use to make sure
+the elevations are lower than the
+top layer!</td>
+</tr>
+<tr class="row-even"><td colspan="3"><code class="docutils literal"><span class="pre">NUMERICAL</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">min_time_step</span></code></td>
+<td>model seconds,
+integer</td>
+<td>The minimum timestep used in the
+model</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">max_time_step</span></code></td>
+<td>model seconds,
+integer</td>
+<td>Maximum timestep used by model.
+Should not really be higher than
+your rainfall data interval,
+otherwise you will skip input data.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">max_run_</span>
+<span class="pre">duration</span></code></td>
+<td>model hours,
+integer</td>
+<td>Length of your simulation, minus 1.
+(So for a 72 hour simulation, enter
+&#8216;71&#8217; here.) This is a weird quirk
+that will be fixed in a later
+release.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">memory_limit</span></code></td>
+<td>&nbsp;</td>
+<td>Ignore, leave at 1.</td>
+</tr>
+<tr class="row-odd"><td colspan="3"><code class="docutils literal"><span class="pre">SEDIMENT</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">transport_law</span></code></td>
+<td>text</td>
+<td>Can either be <strong>wilcock</strong> or
+<strong>einstein</strong>. Determines which
+sediment transport law is used by
+the model.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">max_tau_</span>
+<span class="pre">velocity</span></code></td>
+<td>meters/second</td>
+<td>Limits the maximum velocity used to
+calculate sediment transport. The
+default is 5. It is rarely invoked
+except in very steep slopes.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">active_layer_thi</span>
+<span class="pre">ckness</span></code></td>
+<td>metres</td>
+<td>This controls the thickness of layer
+representing the surface, bedload or
+subsurface. It should be around 0.1
+to 0.2. It must be at least 4 times
+the <strong>erode_limit</strong> parameter. (See
+below)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">chann_lateral_er</span>
+<span class="pre">osion</span></code></td>
+<td>&nbsp;</td>
+<td>In channel lateral erosion rate.
+Prevents overdeepening feedback.
+<a class="reference external" href="http://www.showme.com/sh/?i=24567">See explanation
+here</a></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">erode_limit</span></code></td>
+<td>metres</td>
+<td>Maximum erosion limit per cell (or
+deposition). Prevents numerical
+instabilities by transferring too
+much between cell to cell. Should be
+around 0.01 for 10m or less DEMs,
+slightly higher for coarse DEMs.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">suspended_sedime</span>
+<span class="pre">nt_on</span></code></td>
+<td>boolean (yes/no)</td>
+<td>Turns on suspended sediment for the
+first fraction only at present.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">read_in_graindat</span>
+<span class="pre">a_from_file</span></code></td>
+<td>boolean (yes/no)</td>
+<td>Reads in the initial grain size data
+from a file. Normally the initial
+distribution of grainsizes is
+uniform across the landscape if this
+is not specified.</td>
+</tr>
+<tr class="row-odd"><td colspan="3"><code class="docutils literal"><span class="pre">LATERAL</span> <span class="pre">EROSION</span> <span class="pre">OPTIONS</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">lateral_erosion_</span>
+<span class="pre">on</span></code></td>
+<td>boolean (yes/no)</td>
+<td>Turns on lateral erosion in channels
+(UNTESTED)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">lateral_erosion_</span>
+<span class="pre">const</span></code></td>
+<td>&nbsp;</td>
+<td>See Coulthard and Van de Wiel (2007)
+for details. This parameter sets the
+lateral erosion rates, and ought to
+be calibrated to a field site.
+Values can ramge from 0.01-0.001 for
+braided rivers; 0.0001 for
+meandering channels. This value is
+grid cell size independent.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">edge_smoothing_p</span>
+<span class="pre">asses</span></code></td>
+<td>integer</td>
+<td>Determines how well smoothed the
+curvature of the channels will be.
+Should be set as the frequency of
+meanders/distance between two
+meanders in grid cell size.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">downstream_cell_</span>
+<span class="pre">shift</span></code></td>
+<td>integer</td>
+<td>The gradient used to determine
+lateral erosion rates can be shifted
+downstream, allowing meander bars
+and bends to migrate down channel.
+Suggested values are around 10% of
+the <strong>edge_smoothing_passes</strong>
+parameter. So around 1-5.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">lateral_cross_ch</span>
+<span class="pre">an_smoothing</span></code></td>
+<td>&nbsp;</td>
+<td>The maximum difference allowed in
+the the cross channel smoothing of
+edge values. After calculating the
+radius of curvature for the outside
+of a meander bend, the model must
+interpolate this value to determine
+how much sediment can be moved
+laterally. Smaller values result in
+better cross channel gradients, but
+take up more CPU time. Typical
+default value is 0.0001. If your
+channels are well resolved by DEM
+resolution, you may need to reduce
+by an order of magnitude.</td>
+</tr>
+<tr class="row-odd"><td colspan="3"><code class="docutils literal"><span class="pre">HYDROLOGY</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">hydro_model_</span>
+<span class="pre">only</span></code></td>
+<td>boolean (yes/no)</td>
+<td>Runs the model as a
+hydrological/flood inundation model
+only if set to yes. Will turn off
+all the erosion routines and terrain
+will be fixed. Speeds up run times
+considerably.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">topmodel_m_</span>
+<span class="pre">value</span></code></td>
+<td>&nbsp;</td>
+<td><p class="first">As well as the water routing
+sub-model, LSDCatchmentModel also
+calculates the discharge based on
+Beven’s TOPMODEL (i.e. discharge
+approximation based on drainage area
+and topography. The model contains
+the infamous <strong>m</strong> parameter, which
+varies depending on environment. You
+should consult the literature for
+appropriate values.</p>
+<blockquote class="last">
+<div><p><strong>Tip</strong></p>
+<p>For catchment mode this is an
+important variable as it
+controls the peak and duration
+of the hydrograph generated by a
+rain event. It is the same as
+the &#8216;m&#8217; value in TOPMODEL, that
+CAESAR-lisflood’s hydrological
+model is based on. Typical
+values for m are from 0.02 (low
+- meaning low flood peaks and
+long duration hydrographs) to
+0.005 (higher, flashier peaks)
+and examples of values used can
+be found in the CAESAR and
+TOPMODEL literature.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">in_out_differenc</span>
+<span class="pre">e</span></code></td>
+<td>cumecs</td>
+<td>If greater than 0, allows the model
+to run faster in periods of
+hydrological steady state. If the
+difference between water entering
+the catchment and water leaving the
+catchment is equal to or less than
+this value, the model will increase
+the time step. The time step will
+then be determined by erosional and
+depositional processes, which are
+typically much slower acting. Can be
+set to a low mean annual flow value
+for the river.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">min_q_for_depth_</span>
+<span class="pre">calc</span></code></td>
+<td>cumecs</td>
+<td>Threshold for calculating flow
+depths. The model will not calculate
+flow depths when the discharge at a
+cell is below this value, avoiding
+CPU time spent calculating
+incredibly small flow amounts.
+Should be set to approximately 10%
+of grid cell size. e.g 0.5 for a 50m
+DEM.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">max_q_for_depth_</span>
+<span class="pre">calc</span></code></td>
+<td>cumecs</td>
+<td>An upper discharge threshold that
+will prevent water being added above
+the given discharge threshold.
+Typically 1000.0, but lowering the
+value will shift the balance of
+water being added to the headwaters,
+rather than lower down through the
+catchment.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">water_depth_eros</span>
+<span class="pre">ion_threshold</span></code></td>
+<td>metres</td>
+<td>If water depths are below this
+threshold, the model will not
+calculate erosion for that cell in
+that timestep. Used to prevent CPU
+time being spent on incredibly small
+amounts of erosion calculations.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">slope_on_edge_ce</span>
+<span class="pre">ll</span></code></td>
+<td>&nbsp;</td>
+<td>The slope used to calculate water
+flow on the edge of the DEM (since
+there is no neighbouring cell to
+calculate the downstream gradient.
+You should set this to approximately
+the same as the average channel
+gradient near the outlet of your
+river.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">evaporation_</span>
+<span class="pre">rate</span></code></td>
+<td>&nbsp;</td>
+<td>Untested/unimplemented yet</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">courant_number</span></code></td>
+<td>&nbsp;</td>
+<td>Controls the numerical stability and
+execution speed of the flow model.
+See Bates et al (2009). Typical
+values should be between 0.3 and
+0.7. Higher values will speed up the
+model, but are more unstable.
+Parameter is dependent on grid cell
+size. DEMs of 20-50m resolution can
+use values of 0.7, finer DEMs (e.g.
+&lt;2m) will need the lowest value of
+0.3, but do not set it lower than
+0.3.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">froude_num_</span>
+<span class="pre">limit</span></code></td>
+<td>&nbsp;</td>
+<td>Restricts flow between cells per
+time step, as too much can lead to
+checkerboarding effects. If this
+happens the froude number can be
+lowered. The default value of 0.8
+results in subcritical flow - flow
+dominated by gravitational forces
+and behving in a slow or stable way.
+A value of 1 results in critical
+flow, which may be ok for shallow
+flows at coarse grid cell
+resolutions. Note that reducing flow
+with the Froude number will reduce
+the speed of a flood wave moving
+downstream.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">mannings_n</span></code></td>
+<td>&nbsp;</td>
+<td>A roughness coefficient used by the
+flow model. <a class="reference external" href="http://www.fsl.orst.edu/geowater/FX3/help/8_Hydraulic_Reference/Mannings_n_Tables.htm">Values can be looked-up
+here.</a></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">hflow_threshold</span></code></td>
+<td>metres</td>
+<td>This threshold prevents water being
+routed between adjacent cells when
+the gradient is incredibly small. A
+good default value is 0.00001.</td>
+</tr>
+</tbody>
+</table>
+<p>Table: Guide to the parameter file. Row/parameters can be in any order.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="running.html" title="previous chapter">Running the Model</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/params.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Declan Valters.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/params.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/dvalters/HAIL-CAESAR" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

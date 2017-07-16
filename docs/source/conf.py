@@ -39,6 +39,8 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinxcontrib.fulltoc'
+
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -136,6 +138,13 @@ html_theme = 'alabaster'
 # documentation.
 #
 # html_theme_options = {}
+html_theme_options = {
+    'logo': 'images/flood_depth_fig_crop.png',
+    'github_user': 'dvalters',
+    'github_repo': 'HAIL-CAESAR',
+    'github_button': 'true',
+    'github_banner': 'true'
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
