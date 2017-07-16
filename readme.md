@@ -13,7 +13,7 @@ HAIL-CAESAR is a hydrodynamic, landscape evolution, cellular automaton model. In
 
 The model is derived from the [CAESAR-Lisflood model](https://sourceforge.net/projects/caesar-lisflood/), which is a C#/.NET Windows-based implementation of the model, with a very useful GUI. (HAIL-CAESAR doesn't do GUIs and is designed for linux or command line use.)
 
-[Documentation can be found here](http://lsdtopotools.github.io/LSDTT_book/#_hydrological_and_erosion_modelling). (Part of the @LSDTopoTools documentation). I may one-day write some separate documentation.
+[Documentation can be found here](http://hail-caesar.readthedocs.io/en/latest).
 
 
 
