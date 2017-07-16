@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; HAIL-CAESAR 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="HAIL-CAESAR 1.0 documentation" href="index.html" />
+    <link rel="prev" title="HAIL-CAESAR documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="hydrological-and-erosion-modelling">
+<h2>Hydrological and Erosion Modelling<a class="headerlink" href="#hydrological-and-erosion-modelling" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/flood_depth_fig_crop.png" src="_images/flood_depth_fig_crop.png" />
+<p>Numerical models are useful tools for testing hypotheses of geomorphic processes and landscape evolution. Long term landscape evolution takes place over extensive geological time periods, but is controlled by the dynamics of water flow, and sediment transport within river catchments on much shorter, day-to-day time scales. The HAIL-CAESAR package provides a model for simulating catchment processes at short-term scales.</p>
+<p>This chapter documents how to use the HAIL-CAESAR model to set up and run simulations of hydrology and catchment-scale erosion and evolution. HAIL-CAESAR is a 2.5D numerical model of landscape evolution based on the <a class="reference external" href="http://onlinelibrary.wiley.com/doi/10.1002/esp.3478/abstract">CAESAR-Lisflood model (Coulthard et al., 2013)</a>. The model is a <a class="reference external" href="http://natureofcode.com/book/chapter-7-cellular-automata/">cellular automaton</a> model, whereby the grid cells in the model domain each have their own parameters associated with them (such as elevation, water depth, water velocity, sediment load, etc.) and the change in these parameters is determined by the state of the neighbouring grid cells.</p>
+<p>Unlike many models of landscape evolution, this model features an explicit calculation of water flow through the landscape based on a highly simplified form of the shallow water equations <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0022169410001538">(Bates et al., 2010)</a>. Most other models, in order to simulate long term evolution, rely on approximations for water discharge based on drainage area, and assume instantaneous run-off of water under hydrological steady-state conditions. The HAIL-CAESAR model is therefore suited to modelling both flooding and erosional processes. It can be run as a standalone hydrological model (no erosion) if so desired.</p>
+<p>The model is also developed to run on parallel computing architectures (Multi-core/cluster computers).</p>
+<div class="section" id="quick-guide-if-you-know-roughly-what-you-are-doing">
+<h3>Quick guide if you know roughly what you are doing<a class="headerlink" href="#quick-guide-if-you-know-roughly-what-you-are-doing" title="Permalink to this headline">¶</a></h3>
+<p>Overview of running HAIL-CAESAR if you have used it before:</p>
+<ol class="arabic simple">
+<li>Prepare your DEM so it has an outlet point touching the side of the DEM bounds. (You may need to rotate it or draw on a channel outlet)</li>
+<li>Make sure the DEM is in ascii (.asc) format.</li>
+<li>Prepare a rainfall input file (A list of rain rates per time step, e.g. hourly rainfall). Just a plain text file will do.</li>
+<li>Put all your input files and the paramter file in the same folder. Make sure you specify this path in the parameter file as well.</li>
+<li>If not already done so, compile the code with the makefile: <cite>make</cite>, when in the top-level directory.</li>
+<li>Double check that all your parameters are set correctly in the parameter file.</li>
+<li>Run the program with <cite>./HAIL-CAESAR.exe /path/to/data/ parameter_file.params</cite></li>
+<li>View the timeseries data and output rasters with a scripting language or GIS of your choice.</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction</a><ul>
+<li><a class="reference internal" href="#hydrological-and-erosion-modelling">Hydrological and Erosion Modelling</a><ul>
+<li><a class="reference internal" href="#quick-guide-if-you-know-roughly-what-you-are-doing">Quick guide if you know roughly what you are doing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">HAIL-CAESAR documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/intro.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Declan Valters.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/intro.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
