@@ -4,7 +4,7 @@ Introduction
 Hydrological and Erosion Modelling
 ----------------------------------
 
-.. image:: images/flood_depth_fig_crop.png
+.. image:: _static/images/flood_depth_fig_crop.png
 
 Numerical models are useful tools for testing hypotheses of geomorphic processes and landscape evolution. Long term landscape evolution takes place over extensive geological time periods, but is controlled by the dynamics of water flow, and sediment transport within river catchments on much shorter, day-to-day time scales. The HAIL-CAESAR package provides a model for simulating catchment processes at short-term scales.
 
