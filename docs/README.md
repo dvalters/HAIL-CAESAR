@@ -3,6 +3,8 @@ The **HAIL-CAESAR** model _(High-performance Architecture Independent Lisflood-C
 
 ![Model output image](https://raw.githubusercontent.com/dvalters/HAIL-CAESAR/master/docs/banner.png)
 
+**Documentation can be found here**: [![Documentation Status](https://readthedocs.org/projects/hail-caesar/badge/?version=latest)](http://hail-caesar.readthedocs.io/en/latest/?badge=latest)
+
 ## Installation
 1. Download the software, either as a zip/tar file, or by cloning the latest version from github. 
 2. The makefile is currently set up to use the gcc compiler, edit `Makefile` if you wish to change this, otherwise:
