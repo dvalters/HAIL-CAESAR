@@ -1,9 +1,8 @@
 
-The **HAIL-CAESAR** model _(High-performance Architecture Independent Lisflood-CAESAR model)_ is a hydrodynamic landscape evolution model that simulates flooding and erosional processes within river catchments, on timescales of hours to 100s of years. It is based on a port of the [CAESAR-Lisflood](https://sourceforge.net/projects/caesar-lisflood/) model for Unix systems.
+The **HAIL-CAESAR** model _(High-performance Architecture Independent Lisflood-CAESAR model)_ is a hydrodynamic landscape evolution model that simulates flooding and erosional processes within river catchments, on timescales of hours to 100s of years. It is based on a port of the [CAESAR-Lisflood](https://sourceforge.net/projects/caesar-lisflood/). **Documentation can be found here**: [![Documentation Status](https://readthedocs.org/projects/hail-caesar/badge/?version=latest)](http://hail-caesar.readthedocs.io/en/latest/?badge=latest).
 
 ![Model output image](https://raw.githubusercontent.com/dvalters/HAIL-CAESAR/master/docs/banner.png)
 
-**Documentation can be found here**: [![Documentation Status](https://readthedocs.org/projects/hail-caesar/badge/?version=latest)](http://hail-caesar.readthedocs.io/en/latest/?badge=latest)
 
 ## Installation
 1. Download the software, either as a zip/tar file, or by cloning the latest version from github. 
