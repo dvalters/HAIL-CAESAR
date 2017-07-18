@@ -3,17 +3,6 @@ The **HAIL-CAESAR** model _(High-performance Architecture Independent Lisflood-C
 
 ![Model output image](https://raw.githubusercontent.com/dvalters/HAIL-CAESAR/master/docs/banner.png)
 
-
-## Installation
-1. Download the software, either as a zip/tar file, or by cloning the latest version from github. 
-2. The makefile is currently set up to use the gcc compiler, edit `Makefile` if you wish to change this, otherwise:
-3. Run `make` in the same folder as `Makefile`.
-4. Wait for the code to compile, when finished it will have produced an executable called `HAIL-CAESAR.exe`.
-5. You are now ready to run the model!
-
-## Documentation
-Documentation can be found here: [![Documentation Status](https://readthedocs.org/projects/hail-caesar/badge/?version=latest)](http://hail-caesar.readthedocs.io/en/latest/?badge=latest).
-
 ## Introduction
 
 HAIL-CAESAR was developed out of a need to run ensemble-style simulations on a variety of software architectures, such as HPC systems and desktop workstations. It has been tested on Linux and Mac OS platforms, and should run on Windows too, provided you have a recent Microsoft C++ compiler. 
@@ -23,6 +12,17 @@ This readme documents how to use the HAIL-CAESAR model to set up and run simulat
 Unlike many models of landscape evolution, this model features an explicit calculation of water flow through the landscape based on a highly simplified form of the shallow water equations [(Bates et al., 2010)](http://www.sciencedirect.com/science/article/pii/S0022169410001538.) Most other models, in order to simulate long term evolution, rely on approximations for water discharge based on drainage area, and assume instantaneous run-off of water under hydrological steady-state conditions. The HAIL-CAESAR model is therefore suited to modelling both flooding and erosional processes. It can be run as a standalone hydrological model (no erosion) if so desired.
 
 The model is also developed to run on parallel computing architectures (Multi-core/cluster computers) using OpenMP.
+
+
+## Installation
+1. Download the software, either as a zip/tar file, or by cloning the latest version from github. 
+2. The makefile is currently set up to use the gcc compiler, edit `Makefile` if you wish to change this, otherwise:
+3. Run `make` in the same folder as `Makefile`.
+4. Wait for the code to compile, when finished it will have produced an executable called `HAIL-CAESAR.exe`.
+5. You are now ready to run the model!
+
+## Documentation
+Full documentation to supplement these brief notes can be found here: [![Documentation Status](https://readthedocs.org/projects/hail-caesar/badge/?version=latest)](http://hail-caesar.readthedocs.io/en/latest/?badge=latest).
 
 
 ********************************************************
