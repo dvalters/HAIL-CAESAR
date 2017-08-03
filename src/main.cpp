@@ -37,8 +37,8 @@
 
 #include "catchmentmodel/LSDCatchmentModel.hpp"
 
-#ifndef SVN_REVISION
-#define SVN_REVISION "N/A"
+#ifndef GIT_REVISION
+#define GIT_REVISION "N/A"
 #endif
 #define CHM_VERS 1.0
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
   std::cout << "#          (HAIL-CAESAR)         #" << std::endl;
   std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
   std::cout << " Version: "<< CHM_VERS << std::endl;
-  std::cout << " Subversion revision: " SVN_REVISION << std::endl;
+  std::cout << " at git commit number: " GIT_REVISION << std::endl;
   std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
                                        
 
@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
     std::cout << "\n###################################################" << std::endl;
     std::cout << "No parameter file supplied" << std::endl;
     std::cout << "You must supply a path and parameter file!" << std::endl;
-    std::cout << "see http://www.geos.ed.ac.uk/~smudd/LSDTT_docs/html/" << std::endl;
-    std::cout << "LSDCatchmentModel docs for assistance." << std::endl;
+    std::cout << "see https://dvalters.github.io/HAIL-CAESAR/" << std::endl;
+    std::cout << "for assistance." << std::endl;
     std::cout << "###################################################" << std::endl;
 
     exit(0);  // Game over, try again.

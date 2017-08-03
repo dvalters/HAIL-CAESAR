@@ -5074,7 +5074,7 @@ void LSDCatchmentModel::quickOpenMPtest()
   std::cout << "Your system has: " << num_procs << " PROCESSORS available and " << num_threads << " THREADS to use!" << std::endl;
   std::cout << "(Note: On some systems, threads are reported the same as processors.)" << std::endl;
 
-  #pragma omp parallel private ( thread_id )
+  #pragma omp parallel private ( thread_id ) num_threads (num_threads)
   {
     thread_id = omp_get_thread_num();
 
