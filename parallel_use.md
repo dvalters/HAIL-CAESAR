@@ -44,5 +44,26 @@ You need to check with your system's documentation to see which one is necessary
 may wish to experiment with a number of threads than cores if you doing a lot of heavy and frequent I/O
 (i.e. something crazy like writing DEMs every few seconds...)
 
+__I am confused whether my laptop/computer/server/cluster/hpc has cores/CPUs/processors/nodes or something else__
 
+- If you have a relatively modern computer or laptop, you can almost certainly make use of the parallel options 
+in HAIL-CAESAR. (When I'm travelling I test it on a crappy netbook, and even that has multiple cores, so it can
+do stuff in parallel)
+
+- _CPU_ is used as a generic term nowadays to mean a processing unit. _Processor_ can mean the physical chip(s)
+inside your machine (though sometimes it is used interchangeably with CPU.). _Core_ is a region of the physical
+computer chip that can be treated as if it were a single, independent CPU. 
+
+- A laptop, for example, usually has a single chip inside it, which has multiple cores. Each core can execute 
+a portion of the HAIL-CAESAR code at the same time -- in parallel -- and so speed up the running of the model.
+If you were to look in the system settings, this sometimes shows up as individual CPUs.
+
+- To make matters more confusing, some systems (cluster computers, servers, fancy workstation computers, have 
+multiple _physical_ processors with multiple cores. So if you have a server with 4 processor chips, and each has
+4 cores on it, you actually have 16 'CPUs' to use.
+
+- _Nodes_ are something else entirely found on cluster machines and HPC/supercomputers. A _node_ is a single unit
+of processors that can all access the same memory. Nodes are networked together to form supercomputers or clusters.
+You cannot (yet) run _one_ instance of HAIL-CAESAR over multiple nodes, but you can run _multiple_ instances of 
+HAIL-CAESAR over multiple nodes, e.g. for ensemble simulations or sensitivity analyses.
 
