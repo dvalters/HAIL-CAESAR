@@ -2330,8 +2330,9 @@ void LSDCatchmentModel::flow_route()
           && elev[x - 1][y] > -9999)
           // need to check water and not -9999 on elev?
         {
-          double hflow = std::max(elev[x][y] + water_depth[x][y], elev[x - 1][y] + water_depth[x - 1][y]) -
-              std::max(elev[x - 1][y], elev[x][y]);
+          double hflow = std::max(elev[x][y] + water_depth[x][y],
+                                  elev[x - 1][y] + water_depth[x - 1][y]) \
+                                  - std::max(elev[x - 1][y], elev[x][y]);
 
           if (hflow > hflow_threshold)
           {
@@ -2342,43 +2343,80 @@ void LSDCatchmentModel::flow_route()
             if (x <= 2) tempslope = 0 - edgeslope;
 
             //double oldqx = qx[x][y];
-            qx[x][y] = ((qx[x][y] - (gravity * hflow * local_time_factor * tempslope)) /
-                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qx[x][y]) /
-                         std::pow(hflow, (10 / 3))));
+            qx[x][y] = ((qx[x][y] - (gravity * hflow \
+                          * local_time_factor * tempslope)) \
+                          / (1 + gravity * hflow * local_time_factor \
+                          * (mannings * mannings) * std::abs(qx[x][y]) \
+                          / std::pow(hflow, (10 / 3))));
             //if (oldqx != 0) qx[x][y] = (oldqx + qx[x][y]) / 2;
 
-            // need to have these lines to stop too much water moving from one cellt o another - resulting in -ve discharges
-            // whihc causes a large instability to develop - only in steep catchments really
-            if (qx[x][y] > 0 && (qx[x][y] / hflow)/std::sqrt(gravity*hflow) > froude_limit )
+            // need to have these lines to stop too much water moving from
+            // one cell to another - resulting in negative discharges
+            // which causes a large instability to develop
+            // - only in steep catchments really
+
+            // FROUDE NUBER CHECKS
+            if (qx[x][y] > 0 && (qx[x][y]
+                / hflow) / std::sqrt(gravity * hflow) > froude_limit )
+            {
               qx[x][y] = hflow * (std::sqrt(gravity*hflow) * froude_limit );
-
-            if (qx[x][y] < 0 && std::abs(qx[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit )
+            }
+            // If the discahrge is now negative and above the froude_limit...
+            if (qx[x][y] < 0 && std::abs(qx[x][y] / hflow)
+                / std::sqrt(gravity * hflow) > froude_limit )
+            {
               qx[x][y] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit ));
+            }
 
-            if (qx[x][y] > 0 && (qx[x][y] * local_time_factor / DX) > (water_depth[x][y] / 4))
+            // DISCHARGE MAGNITUDE/TIMESTEP CHECKS
+            // If the discharge is too high for this timestep, scale back...
+            if (qx[x][y] > 0 && (qx[x][y] * local_time_factor / DX)
+                > (water_depth[x][y] / 4))
+            {
               qx[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
-
-            if (qx[x][y] < 0 && std::abs(qx[x][y] * local_time_factor / DX) > (water_depth[x - 1][y] / 4))
+            }
+            // If the discharge is negative and too large, scale back...
+            if (qx[x][y] < 0 && std::abs(qx[x][y] * local_time_factor / DX)
+              > (water_depth[x - 1][y] / 4))
+            {
               qx[x][y] = 0 - ((water_depth[x - 1][y] * DX) / 5) / local_time_factor;
+            }
 
+            // Update suspended fraction discharges
             if (isSuspended[1])
             {
+              if (qx[x][y] > 0)
+              {
+                qxs[x][y] = qx[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
+              }
+              if (qx[x][y] < 0)
+              {
+                qxs[x][y] = qx[x][y] \
+                  * (Vsusptot[x - 1][y] / water_depth[x - 1][y]);
+              }
 
-              if (qx[x][y] > 0) qxs[x][y] = qx[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
-              if (qx[x][y] < 0) qxs[x][y] = qx[x][y] * (Vsusptot[x - 1][y] / water_depth[x - 1][y]);
-
-              if (qxs[x][y] > 0 && qxs[x][y] * local_time_factor > (Vsusptot[x][y] * DX) / 4)
+              if (qxs[x][y] > 0 && qxs[x][y] * local_time_factor
+                > (Vsusptot[x][y] * DX) / 4)
+              {
                 qxs[x][y] = ((Vsusptot[x][y] * DX) / 5) / local_time_factor;
+              }
 
-              if (qxs[x][y] < 0 && std::abs(qxs[x][y] * local_time_factor) > (Vsusptot[x - 1][y] * DX) / 4)
+              if (qxs[x][y] < 0 && std::abs(qxs[x][y] * local_time_factor)
+                > (Vsusptot[x - 1][y] * DX) / 4)
+              {
                 qxs[x][y] = 0 - ((Vsusptot[x - 1][y] * DX) / 5) / local_time_factor;
+              }
             }
 
             // calc velocity now
             if (qx[x][y] > 0)
+            {
               vel_dir[x][y][7] = qx[x][y] / hflow;
+            }
             if (qx[x][y] < 0)
+            {
               vel_dir[x - 1][y][3] = (0- qx[x][y]) / hflow;
+            }
 
           }
           else

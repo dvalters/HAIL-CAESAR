@@ -2,8 +2,8 @@ CXX := g++ # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 SRCDIR := src
 BUILDDIR := build
-TARGET := bin/hailcaesar
- 
+TARGET := bin/HAIL-CAESAR.exe
+
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
@@ -22,7 +22,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@echo " $(CXX) $(CFLAGS) $(INC) -c -o $@ $<"; $(CXX) $(CFLAGS) $(INC) -c -o $@ $<
 
 clean:
-	@echo " Cleaning..."; 
+	@echo " Cleaning...";
 	@echo " $(RM) -r $(BUILDDIR)/catchmentmodel/ $(BUILDDIR)/topotools/ $(TARGET)"; $(RM) -r $(BUILDDIR)/catchmentmodel/ $(BUILDDIR)/topotools/ $(TARGET)
 
 # Tests
