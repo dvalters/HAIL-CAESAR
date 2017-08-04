@@ -1171,7 +1171,7 @@ void least_squares_linear_regression(vector<float> x_data,vector<float> y_data, 
 vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>& y_data, float& intercept, float& gradient)
 {
   vector<float> means(2,0.0);
-  
+
   float SS_xx=0;
   float SS_yy=0;
   float SS_xy=0;
@@ -1186,7 +1186,7 @@ vector<float> orthogonal_linear_regression( vector<float>& x_data, vector<float>
 
   gradient = (SS_yy-SS_xx+sqrt( (SS_xx-SS_yy)*(SS_xx-SS_yy)+ 4*SS_xy*SS_xy ))/2*SS_xy;
   intercept = y_mean - gradient*x_mean;
-  
+
   means[0] = x_mean;
   means[1]= y_mean;
   return means;
@@ -4893,7 +4893,7 @@ float angle_between_vectors(float x1, float y1, float x2, float y2)
 float angle_between_two_vector_datasets(vector<float>& x1_data, vector<float>& y1_data,
                                         vector<float>& x2_data, vector<float>& y2_data)
 {
-  
+
   // get the vector intercept and floats
   float v1_intercept, v1_gradient, v2_intercept, v2_gradient;
   vector<float> first_vector_mean = orthogonal_linear_regression( x1_data, y1_data, v1_intercept, v1_gradient);
@@ -4912,7 +4912,7 @@ float angle_between_two_vector_datasets(vector<float>& x1_data, vector<float>& y
     {
       quadrant = 4;
     }
-  
+
   }
   else
   {
@@ -4923,11 +4923,11 @@ float angle_between_two_vector_datasets(vector<float>& x1_data, vector<float>& y
     else
     {
       quadrant = 3;
-    }  
-  
+    }
+
   }
-  
-  
+
+
   float x1 = 1;
   float x2 = 1;
   float y1 = v1_gradient;
@@ -5950,24 +5950,6 @@ void split_delimited_string(const string& s, char c, vector<string>& v)
       v.push_back(s.substr(i, s.length()));
     }
   }
-}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
-// This function removes control characters from the end of a string
-// These get introduced if you use the DOS format in your parameter file
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==
-string RemoveControlCharactersFromEndOfString(string toRemove)
-{
-  int len =  toRemove.length();
-  if(len != 0)
-  {
-    if (iscntrl(toRemove[len-1]))
-    {
-      //cout << "Bloody hell, here is another control character! Why Microsoft? Why?" << endl;
-      toRemove.erase(len-1);
-    }
-  }
-  return toRemove;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==

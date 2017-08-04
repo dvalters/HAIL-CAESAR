@@ -17,6 +17,7 @@
 
 
 #include "topotools/LSDRaster.hpp"
+//#include "catchmentmodel/LSDUtils.hpp"
 #include "LSDGrainMatrix.hpp"
 #include "topotools/LSDStatsTools.hpp"
 #include "LSDRainfallRunoff.hpp"
@@ -110,12 +111,12 @@ public:
   /// in the rainfall data file specified in the parameter list file as floats.
   /// @return Returns a vector of vector<float>. (A 2D-like vector).
   std::vector< std::vector<float> > read_rainfalldata(std::string FILENAME);
-  
-  /// @brief Reads in the grain data file, note, that this is not a raster and in 
+
+  /// @brief Reads in the grain data file, note, that this is not a raster and in
   /// a special format like the rainfall file.
   /// @author DAV
   /// @details The grain data file consists of multiple columns of data in a text file
-  /// that store the grain size fractions for the surface and the subsurface strata. Also 
+  /// that store the grain size fractions for the surface and the subsurface strata. Also
   /// contains an index number and the x y location of each grid cell containing grain data.
   void ingest_graindata_from_file(std::string FILENAME);
 
@@ -139,17 +140,17 @@ public:
   /// Checks to see if a file exists using the stat function.
   /// @param const std::string &name, where name is the full filename.
   /// @return Returns a true bool value if the file exists.
-  inline bool does_file_exist(const std::string &filename);
+  //inline bool does_file_exist(const std::string &filename);
 
   /// @brief Parses lines in an input file for ingestion
   /// @author Whoever wrote LSDStatsTools - borrowed here by DAV
   /// @note Would fit better in some generic class for file functions etc? LSDFileTools?
-  void parse_line(std::ifstream &infile, string &parameter, string &value);
+  //void parse_line(std::ifstream &infile, string &parameter, string &value);
 
   /// @brief Removes the end-of-line weird character mess that you get in Windows
   /// @author JAJ? SMM? - borrowed here by DAV
   /// @return returns a string with the control characters removed.
-  std::string RemoveControlCharactersFromEndOfString(std::string toRemove);
+  //std::string RemoveControlCharactersFromEndOfString(std::string toRemove);
 
   /// @brief reads data values from the parameter file into the relevant maps
   /// @return
@@ -214,12 +215,12 @@ public:
   void drainage_area_D8();
 
   void get_catchment_input_points();
-  
+
   void get_catchment_input_points(runoffGrid& runoff);
 
   /// @brief Writes the time series of catchment output data.
   void output_data();
-  
+
   /// @brief Writes the time series of catchment output data.
   /// @details Overloaded to take a reference to a runoff object
   /// to allow calculation from the OOP method.-
@@ -250,7 +251,7 @@ public:
   /// @details Erosion only takes place above certain threshold.
   /// Contains calls to subroutines such as addGS() and d50().
   /// Needs re-factoring to extract seprate methods (bedrock vs loose sedi erosion etc.)
-  /// @author DAV  
+  /// @author DAV
   double erode(double mult_factor);
 
   /// @brief carries out the lateral bank erosion.
@@ -320,15 +321,15 @@ public:
   void scan_area();
 
   void water_flux_out();
-  
+
   /// Counts the number of cells within the catchment boundary. For
   /// spatially variable rainfall, this counts the number of cells
-  /// within each hydroindex region that are within the boundary. It 
+  /// within each hydroindex region that are within the boundary. It
   /// modifies nActualGridCells.
   void count_catchment_gridcells();
-  
+
   void grow_grass(double amount3);
-  
+
   void print_parameters();
 
   /// @brief Runs a very basic test to see if you can run code in parallel mode.
@@ -339,7 +340,7 @@ public:
   double get_cycle() const { return cycle; }
   int get_maxcycle() const { return maxcycle; }
   bool is_hydro_only() const { return hydro_only; }
-  
+
 private:
 
   string dem_read_extension;
@@ -631,7 +632,7 @@ private:
   /// Option Bools
   bool soildevoption = false;
   bool suspended_opt = false;
-  bool jmeaninputfile_opt = false; 
+  bool jmeaninputfile_opt = false;
   // This is for reading discharge direct from input file - DAV 2/2016 (Dear god I've been working on this code for 2.5 years nearly...)
   bool recirculate_opt = false;
   bool reach_mode_opt = false;
@@ -651,7 +652,7 @@ private:
   bool graindata_from_file = false;
 
   bool spatially_complex_rainfall = false;
-  
+
   int erode_timestep_type = 0;  // 0 for default based on erosion amount, 1 for basedon hydro timestep
   int hydro_timestep_type = 0;  // 0 for default
 
@@ -679,7 +680,7 @@ private:
   std::string elevdiff_fname;
   std::string raingrid_fname;
   std::string runoffgrid_fname;
-  
+
   bool DEBUG_print_cycle_on = false;
   bool DEBUG_write_raingrid = false;
   bool DEBUG_write_runoffgrid = false;
@@ -691,10 +692,10 @@ private:
   int tempcycle = 0;
 
   std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
-  
+
   // Mainly just the definitions of the create() functions go here:
   // The implementations are in the .cpp file.
-  
+
   void create();
   void create(std::string pname, std::string pfname);
 };

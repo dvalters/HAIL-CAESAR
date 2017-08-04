@@ -1,20 +1,21 @@
 /// HAIL-CAESAR_main.cpp
 ///
+/// HAIL-CAESAR
+/// (The High Performance Architecture Independent LISFLOOD CAESAR model)
 /// The Catchment Hydrogeomorphology Model v1.0 (CHM1)
-/// 
-/// This is the main function for running the CHM1 catchment hydrology and
-/// sediment erosion model.
-/// 
+///
+/// This is the main function for running the HAIL-CAESAR model.
+///
 /// Update: November 2016:
 /// Major driver file reorganisation:
 ///
 /// You can now create 'modular' style model simulations by building your
-/// own driver files from the CHM1 components. (Inspired by the
+/// own driver files from the various model components. (Inspired by the
 /// neat Landlab modelling framework). Most functionallity is still controlled
 /// via the parameter file, but now you can have finer grained control over
 /// the catchment simulation building blocks.
 
-/// 
+///
 /// Acknowledgements:
 ///
 /// Numerous people have contributed directly and indirectly to the algorithms,
@@ -23,11 +24,12 @@
 ///
 /// - The CAESAR-Lisflood model (Coulthard et. al, 2013)
 /// (Cellular automaton code, erosional model, area scanning algorithm,
-/// implementation of the LISFLOOD flow routing algorithm.)
+/// implementation of the LISFLOOD flow routing algorithm.) Tom Coulthard et al.
+/// Paul Bates et al.
 ///
 /// - LSDTopoTools pacakge (Edinburgh Land Surface Dynamics group):
 /// Raster data input/output routines, Parameter file parsing, Object-oriented
-/// driver files, general C++ coding style.
+/// driver files, general C++ coding style. Simon Mudd, et al.
 ///
 ///
 #include <iostream>
@@ -55,11 +57,11 @@ int main(int argc, char *argv[])
   std::cout << "#  CATCHMENT HYDROGEOMORPHOLOGY  #" << std::endl;
   std::cout << "#        MODEL version 1.0       #" << std::endl;
   std::cout << "#          (HAIL-CAESAR)         #" << std::endl;
-  std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
+  std::cout << "##################################" << std::endl;
   std::cout << " Version: "<< CHM_VERS << std::endl;
   std::cout << " at git commit number: " GIT_REVISION << std::endl;
   std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
-                                       
+
 
   // For the timing routine
   #ifdef OMP_COMPILE_FOR_PARALLEL
@@ -89,7 +91,7 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
-    
+
   std::string pname(argv[1]);
   std::string pfname(argv[2]);
   // The path name and the parameter file name, respectively.
@@ -97,14 +99,16 @@ int main(int argc, char *argv[])
   std::cout << "The pathname is: " << pname
             << " and the parameter file is: " << pfname << std::endl;
 
-  // Create a catchment model object
+  // Create a catchment model object initialising the model
+  // domain extents from the DEM header.
   LSDCatchmentModel simulation(pname, pfname);
   simulation.initialise_model_domain_extents();
   simulation.initialise_arrays();
   simulation.load_data();
   simulation.set_time_counters();
 
-  // Create a runoff object
+  // Create a runoff object, a grid to manage the input
+  // of rainfall to the catchment domain.
   runoffGrid runoff(simulation.get_imax(), simulation.get_jmax());
   simulation.initialise_rainfall_runoff(runoff);
   simulation.initialise_drainage_area();
@@ -121,7 +125,7 @@ int main(int argc, char *argv[])
   int vegetation_growth_interval_hours = 1440;
   double creep_coeff = 0.028;
 
-  // Check parameters
+  // Check parameters by prining them to STDOUT.
   simulation.print_parameters();
 
   // Entering the main loop here
@@ -130,21 +134,32 @@ int main(int argc, char *argv[])
   {
     // Simulation iteration functions
     simulation.set_loop_cycle();
+    // This is the difference between water entering the catchment_waterinputs
+    // (from rainfall) and water exiting the catchment from it's boundaries.
+    // If this value meets a user-defined threshold, the time step is
+    // automatically increased.
     simulation.set_inputoutput_diff();
     simulation.set_global_timefactor();
     simulation.increment_counters();
 
     // Hydrological and flow routing processes
+    // Add water to the catchment from rainfall input file
     simulation.catchment_waterinputs(runoff);
+    // Distribute the water with the LISFLOOD Cellular Automaton algorithm
     simulation.flow_route();
+    // Calculate the new water depths in the catchment
     simulation.depth_update();
 
-    // Check drainage area (For traditional TOPMODEL)
+    // Check wetted area
+    // This masks a portion of the catchment that actually
+    // contains water, which is then used to speed up
+    // iterations later by skipping cells that have miniscule water content.
     simulation.check_wetted_area(scan_area_interval_iter);
 
-    // Erosion processes if not a hydro-only simulation
+    // Erosion processes if not a hydrology-only simulation
     if (!simulation.is_hydro_only())
     {
+      // This is quite inefficient code in the current version...
       simulation.call_erosion();
       //simulation.call_lateral(); // not tested in this version!
     }
@@ -160,7 +175,9 @@ int main(int argc, char *argv[])
 
     // Outputs
     simulation.write_output_timeseries(runoff);
+    // Prints current timestep/cycle to STDOUT
     simulation.print_cycle();
+    // Writes the DEM files with water depth, erosion etc.
     simulation.save_raster_output();
 
     // if we have reached the end of the simulation, stop the loop
