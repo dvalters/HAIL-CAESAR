@@ -12,6 +12,22 @@
 
 namespace LSDUtils
 {
+  /// @brief Template for sorting a std::pair.
+  /// @details This template will perform a sort on the std::pair types. It
+  /// will sort ascending based on the second item in the pair. It is intended
+  /// to mimic the C# method: sort(Array,Array). Needs further testing, but
+  /// should work in principle.
+  /// @author DAV
+  template <class T1, class T2, class Pred = std::less<T2> >
+  struct sort_pair_second
+  {
+    bool operator()(const std::pair<T1,T2>&left, const std::pair<T1,T2>&right)
+    {
+      Pred p;
+      return p(left.second, right.second);
+    }
+  };
+
   inline void parse_line(std::ifstream &infile, string &parameter, string &value)
   {
     char c;
