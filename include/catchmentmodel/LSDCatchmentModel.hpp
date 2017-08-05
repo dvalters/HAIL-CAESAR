@@ -24,7 +24,6 @@
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
-
 #ifndef LSDCatchmentModel_H
 #define LSDCatchmentModel_H
 
@@ -64,17 +63,15 @@ public:
     create(pname, pfname);
   }
 
-  //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // Methods for loading and manipulating files (should probably co in separate class/file)
-  //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // MODEL DOMAIN METHODS
+  // Set up of model domain, initialisation
+  // of arrays.
+  //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
   /// @brief Initialises the size of the arrays holding the various
   /// model fields such as elevation, water depth etc.
   void initialise_model_domain_extents();
-
-  /// @brief Loads the required data files based on the parameters set in the parameter file
-  /// @author dav
-  void load_data();
 
   /// @brief Checks that there is a real terrain point on at least one side of the DEM
   /// and also counts the number of actual grid cells in the catchment.
@@ -83,9 +80,26 @@ public:
   /// should probably be added.
   void check_DEM_edge_condition();
 
+  /// @brief reads data values from the parameter file into the relevant maps
+  /// @return
+  void initialise_variables(std::string pname, std::string pfname);
+
+  /// @brief initialises array sizes based on DEM dimensions
+  /// @details also sets 'hard-coded' parameters to start the model
+  void initialise_arrays();
+
+  //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // Methods for loading and manipulating files
+  // (should probably co in separate class/file)
+  //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  /// @brief Loads the required data files based on the parameters set in the parameter file
+  /// @author dav
+  void load_data();
+
   /// Prints the initial values set by user from param file
   /// as well as those default initial values in the code.
-  void print_initial_values();
+  void print_parameters();
 
   /// @brief Loads the rainfall data file which is in a special format (headerless text file)
   /// @author DAV
@@ -117,32 +131,10 @@ public:
   /// for the function that writes the hydrograph/sediment time series, see the write_output() function.
   void save_raster_data(double tempcycle);
 
-  /// @brief Checks to see if a file exists
-  /// @author DAV (Thanks to StackOverflow)
-  /// @return Returns a bool value
-  /// @details Uses the <sys/stat.h> include. May not work on Windows? Need to test.
-  /// Checks to see if a file exists using the stat function.
-  /// @param const std::string &name, where name is the full filename.
-  /// @return Returns a true bool value if the file exists.
-  //inline bool does_file_exist(const std::string &filename);
-
-  /// @brief Parses lines in an input file for ingestion
-  /// @author Whoever wrote LSDStatsTools - borrowed here by DAV
-  /// @note Would fit better in some generic class for file functions etc? LSDFileTools?
-  //void parse_line(std::ifstream &infile, string &parameter, string &value);
-
-  /// @brief Removes the end-of-line weird character mess that you get in Windows
-  /// @author JAJ? SMM? - borrowed here by DAV
-  /// @return returns a string with the control characters removed.
-  //std::string RemoveControlCharactersFromEndOfString(std::string toRemove);
-
-  /// @brief reads data values from the parameter file into the relevant maps
-  /// @return
-  void initialise_variables(std::string pname, std::string pfname);
-
-  /// @brief initialises array sizes based on DEM dimensions
-  /// @details also sets 'hard-coded' parameters to start the model
-  void initialise_arrays();
+  /// @brief Writes the timeseries file for current timestep.
+  /// @detail Writes discharge and sediment flux according to
+  /// the same format as found in the CAESAR-Lisflood catchmetn
+  void write_output_timeseries(runoffGrid& runoff);
 
   /// @brief Wrapper function that calls the main erosion method
   /// @return
@@ -168,12 +160,10 @@ public:
 
   void print_cycle();
 
-  void write_output_timeseries(runoffGrid& runoff);
-
-  void local_landsliding(int local_landsliding_interval);
-
-  void slope_creep(int creep_time_interval_days, double creep_coeff);
-
+  // Prevents overdeepening of channels through downcutting from
+  // the main erode function. I.e. removes material in channel
+  // when neighbouring pixels have gradient between them greater
+  // than critical angle.T
   void inchannel_landsliding(int inchannel_landsliding_interval_hours);
 
   void grow_vegetation(int vegetation_growth_interval_hours);
@@ -185,7 +175,6 @@ public:
   void initialise_rainfall_runoff(runoffGrid& runoff);
 
   void initialise_drainage_area();
-
 
   /// @brief Calculates the area and calls area4().
   /// @details This is basically a wrapper function now. It sets area = 0,
@@ -244,22 +233,31 @@ public:
   /// mountain/upland channels for example.
   void lateral3();
 
-  void slide_3();
-
-  void slide_5();
-
-  void creep( double );
-
-  void soil_erosion( double time );
-
-  void soil_development();
-
   /// @brief Sets the fall velocities of suspended sediment.
   /// @details These are hard coded. Should be set up to read from
   /// an sediment properties input file at a later stage.
   /// @author DAV
   void set_fall_velocities();
 
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // SLOPE PROCESS COMPONENTS
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+  void slide_3();
+
+  void slide_5();
+
+  void local_landsliding(int local_landsliding_interval);
+
+  // Slope creep is a wrapper that calls the creep (main soil creep
+  // method.)
+  void slope_creep(int creep_time_interval_days, double creep_coeff);
+
+  void creep( double );
+
+  void soil_erosion( double time );
+
+  void soil_development();
 
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   // HYDROLOGY COMPONENTS
@@ -313,8 +311,6 @@ public:
   void count_catchment_gridcells();
 
   void grow_grass(double amount3);
-
-  void print_parameters();
 
   /// @brief Runs a very basic test to see if you can run code in parallel mode.
   static void quickOpenMPtest();
@@ -407,7 +403,7 @@ private:
   /// Number of cells to shift lat erosion downstream
   double downstream_shift= 5.0;
   /// Max difference allowed in cross channel smoothing of edge values
-  double lateral_cross_channel_smoothing = 0.0001; //Max difference allowed in cross channel smoothing of edge values
+  double lateral_cross_channel_smoothing = 0.0001;
   double lateral_constant=0.0000002;
 
   double time_factor = 1;
@@ -454,31 +450,7 @@ private:
   int variable_m_value_flag = 0;
 
   // TO DO: DAV - these could be read from an input file.
-  // grain size variables - the sizes
-// CAESAR DEFAULTS
-//  double d1=0.0005;
-//  double d2=0.001;
-//  double d3=0.002;
-//  double d4=0.004;
-//  double d5=0.008;
-//  double d6=0.016;
-//  double d7=0.032;
-//  double d8=0.064;
-//  double d9=0.128;
-
-//  // grain size proportions for each fraction... as a proportion of 1.
-//  double d1prop=0.144;
-//  double d2prop=0.022;
-//  double d3prop=0.019;
-//  double d4prop=0.029;
-//  double d5prop=0.068;
-//  double d6prop=0.146;
-//  double d7prop=0.22;
-//  double d8prop=0.231;
-//  double d9prop=0.121;
-
   // Swale grainsizes
-  // grain size variables - the sizes
   double d1=0.000065;
   double d2=0.001;
   double d3=0.002;
@@ -489,21 +461,7 @@ private:
   double d8=0.064;
   double d9=0.128;
 
-  // grain size proportions for each fraction... as a proportion of 1.
-//  double d1prop=0.05;
-//  double d2prop=0.05;
-//  double d3prop=0.15;
-//  double d4prop=0.225;
-//  double d5prop=0.25;
-//  double d6prop=0.1;
-//  double d7prop=0.075;
-//  double d8prop=0.05;
-//  double d9prop=0.05;
-
-  // Replaces above implementation
-  // loop through array to access each grainsize fraction
-  // the weird length is a hangover from CAESAR-Lisflood...
-  //std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068, 0.146, 0.22, 0.231, 0.121, 0.0}}; // Default
+  // std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068, 0.146, 0.22, 0.231, 0.121, 0.0}}; // Default
   double dprop[11] = {0.0, 0.05, 0.05, 0.15, 0.225, 0.25, 0.1, 0.075, 0.05, 0.05, 0.0}; // Swale
 
   double previous;
@@ -534,12 +492,6 @@ private:
   std::vector<double> Qg_step, Qg_step2, Qg_hour, Qg_hour2;
   std::vector<double> Qg_over, Qg_over2, Qg_last,Qg_last2;
 
-  // DAV: Move towards using the LSD Objects such as LSDRaster for reading/storing DEMs and LSDBasin
-  /// Surface elevation LSDRaster object
-
-  /// Water depth LSDRaster object
-  /// LSDRaster water_depthR;
-
   TNT::Array2D<double> elev;
   TNT::Array2D<double> bedrock;
   TNT::Array2D<double> init_elevs;
@@ -552,7 +504,7 @@ private:
   TNT::Array2D<double> qy;
   TNT::Array2D<double> qxs;
   TNT::Array2D<double> qys;
-  /* dune arrays */
+  // TODO - these are for the dune model which is as of yet unimplemented
   TNT::Array2D<double> area_depth;
   TNT::Array2D<double> sand;
   TNT::Array2D<double> elev2;
@@ -597,9 +549,6 @@ private:
   double Jw_overvol = 0.0;
   double k_evap = 0.0;
 
-  // JOE global vars
-  std::string inputheader;			//Read from ASCII DEM <JOE 20050605>
-
   // sedi tpt flags
   bool einstein = false;
   bool wilcock = false;
@@ -617,7 +566,8 @@ private:
   bool soildevoption = false;
   bool suspended_opt = false;
   bool jmeaninputfile_opt = false;
-  // This is for reading discharge direct from input file - DAV 2/2016 (Dear god I've been working on this code for 2.5 years nearly...)
+  // This is for reading discharge direct from input file - DAV 2/2016
+  // (Dear god I've been working on this code for 2.5 years nearly...)
   bool recirculate_opt = false;
   bool reach_mode_opt = false;
   bool dunes_opt = false;

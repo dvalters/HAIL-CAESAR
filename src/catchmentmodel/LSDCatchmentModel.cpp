@@ -2123,13 +2123,6 @@ void LSDCatchmentModel::check_DEM_edge_condition()
   }
 }
 
-void LSDCatchmentModel::print_initial_values()
-{
-  // TO DO: (just for debugging, really)
-  std::cout << "Printing initial parameter values: " << std::endl;
-  // to be implemented
-}
-
 void LSDCatchmentModel::zero_values()
 {
   for(unsigned i=0; i <= imax+1; i++)
