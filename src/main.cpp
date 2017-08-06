@@ -45,6 +45,8 @@
 #endif
 #define CHM_VERS 1.0
 
+using namespace LSDUtils;
+
 bool file_check(string name)
 {
   struct stat buffer;
@@ -71,7 +73,7 @@ int main(int argc, char *argv[])
 
   // Just prints out how many threads/cores you have, when run in parallel mode
   #ifdef OMP_COMPILE_FOR_PARALLEL
-  LSDUtils::quickOpenMPtest();
+  quickOpenMPtest();
   #endif
 
   if (argc < 3)
