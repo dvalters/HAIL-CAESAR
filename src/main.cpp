@@ -115,10 +115,10 @@ int main(int argc, char *argv[])
   // such as landsliding, vegetation, and creep
   // I don't put them in the parameter file as they
   // are not usually needed to be altered.
-  int local_landsliding_interval = 10;
+  int in_channel_landslide_iter_interval = 10;
   int creep_time_interval_days = 14400;
   int scan_area_interval_iter = 5;
-  int inchannel_landsliding_interval_hours = 1440;
+  int global_landsliding_interval_hours = 1440;
   int vegetation_growth_interval_hours = 1440;
   double creep_coeff = 0.028;
 
@@ -165,9 +165,9 @@ int main(int argc, char *argv[])
     simulation.water_flux_out();
 
     // Hillslope & vegetation processes
-    simulation.local_landsliding(local_landsliding_interval);
+    simulation.call_channel_landsliding(in_channel_landslide_iter_interval);
     simulation.slope_creep(creep_time_interval_days, creep_coeff);
-    simulation.inchannel_landsliding(inchannel_landsliding_interval_hours);
+    simulation.call_global_landsliding(global_landsliding_interval_hours);
     simulation.grow_vegetation(vegetation_growth_interval_hours);
 
     // Outputs

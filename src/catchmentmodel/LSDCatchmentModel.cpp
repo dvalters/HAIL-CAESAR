@@ -1268,11 +1268,11 @@ void LSDCatchmentModel::write_output_timeseries(runoffGrid& runoff)
   }
 }
 
-void LSDCatchmentModel::local_landsliding(int local_landsliding_interval)
+void LSDCatchmentModel::call_channel_landsliding(int in_channel_landslide_iter_interval)
 {
-  if (!hydro_only && ((counter % local_landsliding_interval) == 0))
+  if (!hydro_only && ((counter % in_channel_landslide_iter_interval) == 0))
   {
-    slide_3();
+    in_channel_landsliding();
   }
 }
 
@@ -1286,15 +1286,15 @@ void LSDCatchmentModel::slope_creep(int creep_time_interval_days,
   }
 }
 
-void LSDCatchmentModel::inchannel_landsliding(
-  int inchannel_landsliding_interval_hours)
+void LSDCatchmentModel::call_global_landsliding(
+  int global_landsliding_interval_hours)
 {
   if (!hydro_only && cycle > creep_time2)
   {
     // evaporate(1440);
-    creep_time2 += inchannel_landsliding_interval_hours; // Add 1 day in hours
+    creep_time2 += global_landsliding_interval_hours; // Add 1 day in hours
     // TODO DAV - This is a stupid name:
-    slide_5();
+    global_landsliding();
   }
 }
 
@@ -2939,8 +2939,8 @@ void LSDCatchmentModel::scan_area()
 //  6) mean_ws_elev
 //  7) erode
 //  8) lateral3
-//  9) slide_3
-//  10) slide_5
+//  9) in_channel_landsliding
+//  10) global_landsliding
 //  11) creep
 //  12) soil_erosion
 //  13) soil_development
@@ -4497,10 +4497,11 @@ void LSDCatchmentModel::creep(double time)
 
 }
 
-void LSDCatchmentModel::slide_3()
+void LSDCatchmentModel::in_channel_landsliding()
 {
   unsigned x,y,inc;
   double wet_factor;
+  // This is a runtime constant, calculated every function call..!
   double factor=std::tan((failureangle*(3.141592654/180)))*DX;
   double diff=0;
 
@@ -4508,6 +4509,7 @@ void LSDCatchmentModel::slide_3()
   {
 
     inc=1;
+    // Only do on wetted cells and their neigbours
     while(down_scan[y][inc]>0)
     {
 
@@ -4595,7 +4597,7 @@ void LSDCatchmentModel::slide_3()
 
 }
 
-void LSDCatchmentModel::slide_5()
+void LSDCatchmentModel::global_landsliding()
 {
   unsigned x, y, inc=0;
   double wet_factor;

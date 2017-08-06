@@ -152,13 +152,6 @@ public:
 
   void print_cycle();
 
-  /// @brief Prevents overdeepening of channels through downcutting from
-  /// the main erode function.
-  /// @detail I.e. removes material in channel
-  /// when neighbouring pixels have gradient between them greater
-  /// than critical angle.
-  void inchannel_landsliding(int inchannel_landsliding_interval_hours);
-
   void grow_vegetation(int vegetation_growth_interval_hours);
 
   void check_wetted_area(int scan_area_interval_iter);
@@ -240,11 +233,18 @@ public:
   // SLOPE PROCESS COMPONENTS
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-  void slide_3();
+  /// @brief Prevents overdeepening of channels through downcutting from
+  /// the main erode function.
+  /// @detail I.e. removes material in channel
+  /// when neighbouring pixels have gradient between them greater
+  /// than critical angle.
+  void in_channel_landsliding();
 
-  void slide_5();
+  void global_landsliding();
 
-  void local_landsliding(int local_landsliding_interval);
+  void call_global_landsliding(int global_landsliding_interval_hours);
+
+  void call_channel_landsliding(int in_channel_landslide_iter_interval);
 
   // Slope creep is a wrapper that calls the creep (main soil creep
   // method.)
