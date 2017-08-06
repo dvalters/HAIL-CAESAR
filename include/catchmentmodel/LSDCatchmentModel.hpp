@@ -136,13 +136,7 @@ public:
   /// the same format as found in the CAESAR-Lisflood catchmetn
   void write_output_timeseries(runoffGrid& runoff);
 
-  /// @brief Wrapper function that calls the main erosion method
-  /// @return
-  void call_erosion();
 
-  /// @brief Calls the lateral erosion method
-  /// @return
-  void call_lateral();
 
   void set_time_counters();
 
@@ -160,10 +154,11 @@ public:
 
   void print_cycle();
 
-  // Prevents overdeepening of channels through downcutting from
-  // the main erode function. I.e. removes material in channel
-  // when neighbouring pixels have gradient between them greater
-  // than critical angle.T
+  /// @brief Prevents overdeepening of channels through downcutting from
+  /// the main erode function.
+  /// @detail I.e. removes material in channel
+  /// when neighbouring pixels have gradient between them greater
+  /// than critical angle.
   void inchannel_landsliding(int inchannel_landsliding_interval_hours);
 
   void grow_vegetation(int vegetation_growth_interval_hours);
@@ -187,10 +182,6 @@ public:
   /// @author Translated by DAV
   void drainage_area_D8();
 
-  void get_catchment_input_points();
-
-  void get_catchment_input_points(runoffGrid& runoff);
-
   /// @brief Writes the time series of catchment output data.
   void output_data();
 
@@ -207,6 +198,14 @@ public:
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   // EROSION COMPONENTS
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  /// @brief Wrapper function that calls the main erosion method
+  /// @return
+  void call_erosion();
+
+  /// @brief Calls the lateral erosion method
+  /// @return
+  void call_lateral();
 
   void sort_active(int x,int y);
 
@@ -269,17 +268,27 @@ public:
   /// @brief Performs the water routing method
   /// @details Uses the Bates et al. (2010) simplification of the St. Venant
   /// shallow water equations. Does not assume steady state flow across the
-  /// landscape.
+  /// landscape. (i.e. this is the LISFLOOD algorithm)
   void flow_route();
 
   /// Calculates the amount of runoff on a grid-cell from the rainfall
   /// timeseries input
   void catchment_water_input_and_hydrology( double local_time_factor);
 
-  /// Overlaoded function is for when sing the fully distriuted/complex
+  /// Overloaded function is for when sing the fully distriuted/complex
   /// rainfall patterns option in the model. Takes a reference to the runoffGrid
   /// object.
   void catchment_water_input_and_hydrology( double local_time_factor, runoffGrid& runoff);
+
+  /// @brief Gets the number of catchment cells that have water input to them
+  /// @detail Calculates which cells contain a discharge greater than MIN_Q
+  /// and lower than MIN_Q_MAXVAL multiplies by a parameter related to the
+  /// contributng draingage area and the BASEFLOW parameter.
+  void get_catchment_input_points();
+
+  /// @brief Same as method above but uses the runoff object-based approach
+  /// @detail This version is still experimental as of 2017 -DAV TODO
+  void get_catchment_input_points(runoffGrid& runoff);
 
   /// Calculates the amount of water entering grid cells from the rainfall timeseries
   /// and hydroindex if spatially variable rainfall is used.
@@ -292,6 +301,8 @@ public:
   /// @details Based on TOPMODEL, modified to fully 2D distributed version
   void topmodel_runoff(double cycle, runoffGrid& runoff);
 
+  /// @brief Calculates the hydrograph values (TOPMODEL) for printing to
+  /// the output timeseries file.
   void calchydrograph( double time);
 
   /// Overloaded function for calculating hydrograph when using the fully distributed
@@ -300,8 +311,21 @@ public:
 
   void evaporate(double time);
 
+  /// @brief Calculates which cells have water content and marks these
+  /// cells with a flag.
+  /// @detail By creating a mask of cells that contain water, later calculations
+  /// can be sped up by only iterating over cells that contain water (and there
+  /// -fore will have discharges, water to route, erosion occuring etc.)
+  /// Interesting to see how useful this is in catchments where majority of
+  /// cells contain water, i.e. during flood events, etc. and whether there
+  /// is worth to this method which has overhead but ultimately reduces
+  /// compute time, especially in situations where there is large areas of
+  /// catchment with minimal water content.
   void scan_area();
 
+  /// @brief Calculates water exiting from the catchment boundaries (on all
+  /// four sides of the domain, regardles of where 'true' catchment outlet
+  /// point is.)
   void water_flux_out();
 
   /// Counts the number of cells within the catchment boundary. For
@@ -311,9 +335,6 @@ public:
   void count_catchment_gridcells();
 
   void grow_grass(double amount3);
-
-  /// @brief Runs a very basic test to see if you can run code in parallel mode.
-  static void quickOpenMPtest();
 
   int get_imax() const { return imax; }
   int get_jmax() const { return jmax; }
@@ -388,11 +409,10 @@ private:
   double ERODEFACTOR=0.05;
   double DX=5.0;
 
-
   /// memory limit
   int LIMIT=1;
-  double MIN_Q=0.01; // PARAM
-  double MIN_Q_MAXVAL=1000.0; // PARAM
+  double MIN_Q=0.01;
+  double MIN_Q_MAXVAL=1000.0;
   double CREEP_RATE=0.0025;
   double SOIL_RATE = 0.0025;
   double active=0.2;
