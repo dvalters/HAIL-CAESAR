@@ -15,11 +15,11 @@
 // Include for OpenMP
 #include <omp.h>
 
-
+// Topotools includes for stats tools and raster handling
 #include "topotools/LSDRaster.hpp"
-//#include "catchmentmodel/LSDUtils.hpp"
-#include "LSDGrainMatrix.hpp"
 #include "topotools/LSDStatsTools.hpp"
+
+#include "LSDGrainMatrix.hpp"
 #include "LSDRainfallRunoff.hpp"
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
@@ -135,8 +135,6 @@ public:
   /// @detail Writes discharge and sediment flux according to
   /// the same format as found in the CAESAR-Lisflood catchmetn
   void write_output_timeseries(runoffGrid& runoff);
-
-
 
   void set_time_counters();
 

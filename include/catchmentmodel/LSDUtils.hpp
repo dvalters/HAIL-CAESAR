@@ -114,6 +114,13 @@ namespace LSDUtils
     return toRemove;
   }
 
+  // Duplicated below -pick one to remove!
+  inline bool file_check(std::string name)
+  {
+    struct stat buffer;
+    return (stat (name.c_str(), &buffer) == 0);
+  }
+
   // Wee function to check if file exists
   // Not sure if this works in Windows...must test sometime
   inline bool does_file_exist(const std::string &filename)

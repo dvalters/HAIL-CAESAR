@@ -47,12 +47,6 @@
 
 using namespace LSDUtils;
 
-bool file_check(string name)
-{
-  struct stat buffer;
-  return (stat (name.c_str(), &buffer) == 0);
-}
-
 int main(int argc, char *argv[])
 {
 
