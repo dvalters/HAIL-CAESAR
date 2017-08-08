@@ -1591,7 +1591,7 @@ void LSDCatchmentModel::call_lateral()
 {
   if (counter >= lateralcounter)
   {
-    lateral3();   // call the actual erosion function
+    lateral_channel_erode();   // call the actual erosion function
     lateralcounter = counter + (50 * erode_mult);
   }
 }
@@ -2938,7 +2938,7 @@ void LSDCatchmentModel::scan_area()
 //  5) slide_GS
 //  6) mean_ws_elev
 //  7) erode
-//  8) lateral3
+//  8) lateral_channel_erode
 //  9) in_channel_landsliding
 //  10) global_landsliding
 //  11) creep
@@ -3101,7 +3101,8 @@ double LSDCatchmentModel::mean_ws_elev(int x, int y)
     }
 
   }
-  if (counter > 0) {
+  if (counter > 0)
+  {
     elevtot /= counter;
     return elevtot;
   }
@@ -3918,7 +3919,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 
 // Does the lateral erosion
 // NOT TESTED YET - IN PROGRESS
-void LSDCatchmentModel::lateral3()
+void LSDCatchmentModel::lateral_channel_erode()
 {
   // declare arrays and initialise the size of them
   TNT::Array2D<double> edge_temp(jmax + 1, imax + 1, 0.0);

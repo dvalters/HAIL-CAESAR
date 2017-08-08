@@ -88,9 +88,19 @@ public:
   /// @details also sets 'hard-coded' parameters to start the model
   void initialise_arrays();
 
+  int get_imax() const { return imax; }
+  int get_jmax() const { return jmax; }
+
+  // MODEL OPERATION FLAGS
+
+  /// @brief Is this a hydrology only simulation?
+  /// I.e. no erosion methods.
+  bool is_hydro_only() const { return hydro_only; }
+
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // INPUT/OUTPUT
   // Methods for loading and manipulating files
-  // (should probably co in separate class/file)
+  // (should probably go in separate class/file)
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   /// @brief Loads the required data files based on the parameters set in the parameter file
@@ -136,11 +146,27 @@ public:
   /// the same format as found in the CAESAR-Lisflood catchmetn
   void write_output_timeseries(runoffGrid& runoff);
 
+  void save_raster_output();
+
+  /// @brief Writes the time series of catchment output data.
+  void output_data();
+
+  /// @brief Writes the time series of catchment output data.
+  /// @details Overloaded to take a reference to a runoff object
+  /// to allow calculation from the OOP method.-
+  /// @author DAV
+  void output_data(double temptotal, runoffGrid& runoff);
+
+
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // MODEL TIMING CONTROL
+  // Routines for incrementing counters,
+  // setting the timestep etc.
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
   void set_time_counters();
 
   void set_loop_cycle();
-
-  void set_inputoutput_diff();
 
   void set_global_timefactor();
 
@@ -148,17 +174,32 @@ public:
 
   void increment_counters();
 
-  void save_raster_output();
-
   void print_cycle();
 
-  void grow_vegetation(int vegetation_growth_interval_hours);
+  double get_cycle() const { return cycle; }
+  int get_maxcycle() const { return maxcycle; }
 
+  /// @brief Zeros certain arrays which have to be reset every timestep
+  /// or every certain number of timesteps.
+  void zero_values();
+
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // CATCHMENT MORPHOMETRICS
+  // Methods that return information about
+  // catchment size, drainage area, wetted area
+  // etc.
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+  /// @brief Counts the number of cells within the catchment boundary.
+  /// @details For
+  /// spatially variable rainfall, this counts the number of cells
+  /// within each hydroindex region that are within the boundary. It
+  /// modifies nActualGridCells.
+  void count_catchment_gridcells();
+
+  /// @brief Calculate which cells within the catchment are
+  /// underwater.
   void check_wetted_area(int scan_area_interval_iter);
-
-  void catchment_waterinputs(runoffGrid& runoff);
-
-  void initialise_rainfall_runoff(runoffGrid& runoff);
 
   void initialise_drainage_area();
 
@@ -173,19 +214,6 @@ public:
   /// @author Translated by DAV
   void drainage_area_D8();
 
-  /// @brief Writes the time series of catchment output data.
-  void output_data();
-
-  /// @brief Writes the time series of catchment output data.
-  /// @details Overloaded to take a reference to a runoff object
-  /// to allow calculation from the OOP method.-
-  /// @author DAV
-  void output_data(double temptotal, runoffGrid& runoff);
-
-  /// @brief Zeros certain arrays which have to be reset every timestep
-  /// or every certain number of timesteps.
-  void zero_values();
-
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   // EROSION COMPONENTS
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -198,16 +226,28 @@ public:
   /// @return
   void call_lateral();
 
+  /// @brief Sorts the acrive erosion layer in terms of its
+  /// grainsizes.
   void sort_active(int x,int y);
 
+  /// @brief Calculate the d50 grain size (median grainsize)
   double d50(int index1);
 
+  /// @brief Calculates the sand fraction component "F_s" for the
+  /// Wilcock sediment transport law.
+  /// @return The sand fraction amount
   double sand_fraction(int index1);
 
+  /// @brief Apportions the erosion amount to the grain
+  /// size distribution fractions.
   void addGS(int x, int y);
 
+  /// @brief Determines which grain size fractions are moved to
+  /// neigbouring cells during erosion routines.
   void slide_GS(int x,int y, double amount,int x2, int y2);
 
+  /// @brief (Used only in lateral channel erosion - under test)
+  /// @returns "elevtot" or zero.
   double mean_ws_elev(int x, int y);
 
   /// @brief The main erosion routine
@@ -221,7 +261,7 @@ public:
   /// @details This is quite computationall expensive and may be
   /// turned off in environments not susceptible to meandering. (bedrock
   /// mountain/upland channels for example.
-  void lateral3();
+  void lateral_channel_erode();
 
   /// @brief Sets the fall velocities of suspended sediment.
   /// @details These are hard coded. Should be set up to read from
@@ -240,6 +280,10 @@ public:
   /// than critical angle.
   void in_channel_landsliding();
 
+  /// @brief Checks whether slopes have exceded critical failure angle
+  /// and if so, does a simple landslide routine.
+  /// @details Lowers elevation of higher cell and deposits on lower cell
+  /// until gradient between two is below the critical angle.
   void global_landsliding();
 
   void call_global_landsliding(int global_landsliding_interval_hours);
@@ -260,6 +304,10 @@ public:
   // HYDROLOGY COMPONENTS
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+  /// @brief Initialises the rainfall runoff grid if using
+  /// spatially complex rainfall runoff object.
+  void initialise_rainfall_runoff(runoffGrid& runoff);
+
   /// @brief Updates the water depths (and susp sedi concentrations)
   void depth_update();
 
@@ -269,11 +317,18 @@ public:
   /// landscape. (i.e. this is the LISFLOOD algorithm)
   void flow_route();
 
-  /// Calculates the amount of runoff on a grid-cell from the rainfall
+  /// @brief Wrapper that determines which water input routine to call,
+  /// either the default one, or the object-based one with spatially complex
+  /// runoff paterns.
+  /// @todo This logic needs simplifying, why bother creating a runoff object
+  /// if it is never used for the simple runoff case (which is most uses.)
+  void catchment_waterinputs(runoffGrid& runoff);
+
+  /// @brief Calculates the amount of runoff on a grid-cell from the rainfall
   /// timeseries input
   void catchment_water_input_and_hydrology( double local_time_factor);
 
-  /// Overloaded function is for when sing the fully distriuted/complex
+  /// @brief Overloaded function is for when using the fully distriuted/complex
   /// rainfall patterns option in the model. Takes a reference to the runoffGrid
   /// object.
   void catchment_water_input_and_hydrology( double local_time_factor, runoffGrid& runoff);
@@ -303,10 +358,11 @@ public:
   /// the output timeseries file.
   void calchydrograph( double time);
 
-  /// Overloaded function for calculating hydrograph when using the fully distributed
+  /// @brief Overloaded function for calculating hydrograph when using the fully distributed
   /// model. Takes an extra reference to the runoff object.
   void calchydrograph(double time, runoffGrid& runoff);
 
+  /// @brief Evaporation routine.
   void evaporate(double time);
 
   /// @brief Calculates which cells have water content and marks these
@@ -326,19 +382,23 @@ public:
   /// point is.)
   void water_flux_out();
 
-  /// Counts the number of cells within the catchment boundary. For
-  /// spatially variable rainfall, this counts the number of cells
-  /// within each hydroindex region that are within the boundary. It
-  /// modifies nActualGridCells.
-  void count_catchment_gridcells();
+  /// @brief Calculates the difference between water entering the catchment
+  /// and water leaving the catchment.
+  /// If this value is below a user-set threshold, the timestep can be increased
+  /// during periods of low water flow. (e.g. inter-storm periods.)
+  void set_inputoutput_diff();
 
+  // =-=-=-=-=-=-=-=-=-=-=
+  // VEGETATION
+  // =-=-=-=-=-=-=-=-=-=-=
+
+  /// @brief Wrapper function that determines whehter to call
+  /// the main grass growing function "grow_grass"
+  void grow_vegetation(int vegetation_growth_interval_hours);
+
+  /// @brief Routine to grow grass for vegetation enabled simulations.
   void grow_grass(double amount3);
 
-  int get_imax() const { return imax; }
-  int get_jmax() const { return jmax; }
-  double get_cycle() const { return cycle; }
-  int get_maxcycle() const { return maxcycle; }
-  bool is_hydro_only() const { return hydro_only; }
 
 private:
 
