@@ -1,0 +1,5 @@
+Contributions are welcome. 
+
+To contribute, fork the reposirtory to your github account and work on the fork. Create a pull request when you wish to suggest changes.
+
+You are welcome to discuss potential changes through email first.
