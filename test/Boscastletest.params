@@ -7,18 +7,18 @@
 
 # FILE INFORMATION
 #=================
-read_fname:                    boscastle_square_500cm      # TOP-LAYER DEM NAME, NO EXTENSION PLEASE
+read_fname:                    boscastle_square_5000cm      # TOP-LAYER DEM NAME, NO EXTENSION PLEASE
 dem_read_extension:            asc                    # OPTIONS ARE ASC OR NOWT
 dem_write_extension:           asc                    # OPTIONS ARE ASC OR NOWT
-read_path:                     ./
-write_path:                    ./
+read_path:                     /home/dvalters/Datasets/test-hail-caesar/boscastle-test-data/
+write_path:                    /home/dvalters/Datasets/test-hail-caesar/boscastle-test-data/
 write_fname:                   boscastle_lumped_hydro_50m.dat       # CATCHMENT HYDROGRAPH AND SEDS OUTPUT TIMESERIES FILE (NOT RASTERS)
 timeseries_save_interval:      5                      # IN MODEL MINUTES
 
 # SUPPLEMENTARY FILES
 #====================
 hydroindex_file:               #boscastle_hydroindex_test_5m_uncropped.asc   # NODATA VALUE MUST BE INTEGER!
-rainfall_data_file:            BOSCASTLE_WEIGHTED_UNIFORM_RAINFALL_5min_72hr_stagger1.txt   # NO NEWLINE AT END OF FILE!
+rainfall_data_file:            boscastle-uniform-rainfall-test.txt   # NO NEWLINE AT END OF FILE!
 grain_data_file:               #boscastle5m_spunup_grain.txt
 bedrock_data_file:             #boscastle7m_bedrock_fill.asc
 
@@ -92,7 +92,7 @@ call_muddpile_model:           yes          # NOT YET IMPLEMENTED
 # WRITE OUTPUT RASTERS
 #======================
 raster_output_interval:        120          # IN MODEL MINUTES
-write_waterdepth_file:         no
+write_waterdepth_file:         yes
 waterdepth_outfile_name:       WaterDepths
 write_elev_file:               no
 write_elevation_file:          Elevations
