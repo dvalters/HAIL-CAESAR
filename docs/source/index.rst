@@ -25,7 +25,7 @@ Contents
    installation
    running
    params
-
+   output
 
 Indices and tables
 ==================
