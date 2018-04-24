@@ -170,7 +170,7 @@ public:
 
   double courant_friedrichs_lewy_condition()
 
-  void set_maximum_timefactor();
+  void set_maximum_timestep();
 
   double set_local_timefactor();
 
@@ -486,7 +486,7 @@ private:
   double lateral_cross_channel_smoothing = 0.0001;
   double lateral_constant=0.0000002;
 
-  double time_factor = 1;
+  double time_step = 1;
   std::vector<double> j, jo, j_mean, old_j_mean, new_j_mean;
 
   /// TOPMODEL 'm'
