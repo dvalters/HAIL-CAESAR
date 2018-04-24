@@ -64,7 +64,6 @@
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
 
-#define COURANT_FRIEDRICH_LEVY_CONDITION = courant_number * (DX / std::sqrt(gravity * (maxdepth)))
 
 using namespace LSDUtils;
 
