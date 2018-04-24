@@ -2690,7 +2690,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double flow_timeste
     } while (time_1 < cycle);
   }
 
-  calchydrograph(time_1 - cycle, runoff;
+  calchydrograph(time_1 - cycle, runoff);
 }
 
 // Fully distributed TOPMODEL
