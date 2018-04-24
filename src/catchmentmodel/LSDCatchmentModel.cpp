@@ -1218,7 +1218,7 @@ void LSDCatchmentModel::set_maximum_timestep()
   // step exceeds the CFL (Courant Friedrich Levy) condition, then reduce the 
   // time step to the CFL-prescribed value.
   if (input_output_difference > in_out_difference_allowed && time_step > \
-     (courant_friedrichs_lewy_condition())
+     (courant_friedrichs_lewy_condition()))
   {
     time_step = courant_friedrichs_lewy_condition();
   }
@@ -2306,7 +2306,7 @@ void LSDCatchmentModel::water_flux_out()
 //
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::flow_route()
-
+{
   double flow_timestep = get_flow_timestep();
 
   #pragma omp parallel for
