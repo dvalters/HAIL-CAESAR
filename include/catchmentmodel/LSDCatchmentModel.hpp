@@ -170,9 +170,11 @@ public:
 
   double courant_friedrichs_lewy_condition()
 
+  /// @brief Calculates and sets the maximum time step (also the erosion timestep)
   void set_maximum_timestep();
 
-  double set_local_timefactor();
+  /// @brief calculates the timestep for the hydro/flow model
+  double get_flow_timestep();
 
   void increment_counters();
 
@@ -328,12 +330,12 @@ public:
 
   /// @brief Calculates the amount of runoff on a grid-cell from the rainfall
   /// timeseries input
-  void catchment_water_input_and_hydrology( double local_time_factor);
+  void catchment_water_input_and_hydrology( double flow_timestep);
 
-  /// @brief Overloaded function is for when using the fully distriuted/complex
+  /// @brief Overloaded function is for when u<a href="#datastructures">Understanding sing the fully distriuted/complex
   /// rainfall patterns option in the model. Takes a reference to the runoffGrid
   /// object.
-  void catchment_water_input_and_hydrology( double local_time_factor, runoffGrid& runoff);
+  void catchment_water_input_and_hydrology( double flow_timestep, runoffGrid& runoff);
 
   /// @brief Gets the number of catchment cells that have water input to them
   /// @detail Calculates which cells contain a discharge greater than MIN_Q
