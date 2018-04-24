@@ -168,7 +168,9 @@ public:
 
   void set_loop_cycle();
 
-  void set_global_timefactor();
+  double courant_friedrichs_lewy_condition()
+
+  void set_maximum_timefactor();
 
   double set_local_timefactor();
 

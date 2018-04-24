@@ -64,7 +64,7 @@
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
 
-#define ENABLE_PREFETCH
+#define COURANT_FRIEDRICH_LEVY_CONDITION = courant_number * (DX / std::sqrt(gravity * (maxdepth)))
 
 using namespace LSDUtils;
 
@@ -1197,30 +1197,41 @@ void LSDCatchmentModel::set_inputoutput_diff()
   input_output_difference = std::abs(waterinput - waterOut);
 }
 
-void LSDCatchmentModel::set_global_timefactor()
+double LSDCatchmentModel::courant_friedrichs_lewy_condition()
 {
+  return courant_number * (DX / std::sqrt(gravity * (maxdepth)))
+}
+
+void LSDCatchmentModel::set_maximum_timefactor()
+{  
   if (maxdepth <= 0.1)
   {
     maxdepth = 0.1;
   }
-  if (time_factor < (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+  // The max time factor should not be less than the maximum prescribed
+  // by the Courant Friedrich Levy Condition (CFL)
+  if (time_factor < courant_friedrichs_lewy_condition())
   {
-    time_factor = (courant_number * (DX / std::sqrt(gravity * (maxdepth))));
+    time_factor = courant_friedrichs_lewy_condition();
   }
+  // If the water input/output difference threshold is exceeded, AND the max time
+  // step exceeds the CFL (Courant Friedrich Levy) condition, then reduce the 
+  // time factor to the CFL-prescribed value.
   if (input_output_difference > in_out_difference_allowed && time_factor > \
-     (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+     (courant_friedrichs_lewy_condition())
   {
-    time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+    time_factor = courant_friedrichs_lewy_condition();
   }
 }
 
 double LSDCatchmentModel::set_local_timefactor()
 {
-  double local_time_factor = time_factor; // take the current global time factor
-  if (local_time_factor > (courant_number \
-                            * (DX  / std::sqrt(gravity * (maxdepth)))))
+  // Start with the maximum time factor
+  double local_time_factor = time_factor;
+  // 
+  if (local_time_factor > courant_friedrichs_lewy_condition())
   {
-    local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+    local_time_factor = courant_friedrichs_lewy_condition();
   }
   return local_time_factor;
 }
