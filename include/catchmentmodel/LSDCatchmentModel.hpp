@@ -168,7 +168,7 @@ public:
 
   void set_loop_cycle();
 
-  double courant_friedrichs_lewy_condition()
+  double courant_friedrichs_lewy_condition();
 
   /// @brief Calculates and sets the maximum time step (also the erosion timestep)
   void set_maximum_timestep();

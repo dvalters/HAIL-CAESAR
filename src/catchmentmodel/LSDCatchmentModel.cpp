@@ -1198,7 +1198,7 @@ void LSDCatchmentModel::set_inputoutput_diff()
 
 double LSDCatchmentModel::courant_friedrichs_lewy_condition()
 {
-  return courant_number * (DX / std::sqrt(gravity * (maxdepth)))
+  return courant_number * (DX / std::sqrt(gravity * (maxdepth)));
 }
 
 // Sets the maximum timestep for the current iteration
