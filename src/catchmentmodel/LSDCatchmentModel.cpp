@@ -64,7 +64,6 @@
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
 
-#define ENABLE_PREFETCH
 
 using namespace LSDUtils;
 
@@ -1197,39 +1196,52 @@ void LSDCatchmentModel::set_inputoutput_diff()
   input_output_difference = std::abs(waterinput - waterOut);
 }
 
-void LSDCatchmentModel::set_global_timefactor()
+double LSDCatchmentModel::courant_friedrichs_lewy_condition()
 {
+  return courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+}
+
+// Sets the maximum timestep for the current iteration
+void LSDCatchmentModel::set_maximum_timestep()
+{  
   if (maxdepth <= 0.1)
   {
     maxdepth = 0.1;
   }
-  if (time_factor < (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+  // The max time step should not be less than the maximum prescribed
+  // by the Courant Friedrich Levy Condition (CFL)
+  if (time_step < courant_friedrichs_lewy_condition())
   {
-    time_factor = (courant_number * (DX / std::sqrt(gravity * (maxdepth))));
+    time_step = courant_friedrichs_lewy_condition();
   }
-  if (input_output_difference > in_out_difference_allowed && time_factor > \
-     (courant_number * (DX / std::sqrt(gravity * (maxdepth)))))
+  // If the water input/output difference threshold is exceeded, AND the max time
+  // step exceeds the CFL (Courant Friedrich Levy) condition, then reduce the 
+  // time step to the CFL-prescribed value.
+  if (input_output_difference > in_out_difference_allowed && time_step > \
+     (courant_friedrichs_lewy_condition()))
   {
-    time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+    time_step = courant_friedrichs_lewy_condition();
   }
 }
 
-double LSDCatchmentModel::set_local_timefactor()
+// Calculates the hydro/flow model timestep
+double LSDCatchmentModel::get_flow_timestep()
 {
-  double local_time_factor = time_factor; // take the current global time factor
-  if (local_time_factor > (courant_number \
-                            * (DX  / std::sqrt(gravity * (maxdepth)))))
+  // Start with the maximum time step currently set
+  double flow_timestep = time_step;
+  // Scale it back to the CFL condition if it exceeds CFL.
+  if (flow_timestep > courant_friedrichs_lewy_condition())
   {
-    local_time_factor = courant_number * (DX / std::sqrt(gravity * (maxdepth)));
+    flow_timestep = courant_friedrichs_lewy_condition();
   }
-  return local_time_factor;
+  return flow_timestep;
 }
 
 void LSDCatchmentModel::increment_counters()
 {
   counter++;
-  cycle += time_factor / 60;
-  // cycle is minutes, time_factor is seconds
+  cycle += time_step / 60;
+  // cycle is minutes, time_step is seconds
   // cycle is the actual simulated time elapsed in the model
   // counter is the iteration number
   new_cycle = std::fmod(cycle, output_file_save_interval);
@@ -1319,14 +1331,14 @@ void LSDCatchmentModel::check_wetted_area(int scan_area_interval_iter)
 void LSDCatchmentModel::catchment_waterinputs(runoffGrid& runoff)
 {
   waterinput = 0;
-  double local_time_factor = set_local_timefactor();
+  double flow_timestep = get_flow_timestep();
   if (spatially_complex_rainfall == true)
   {
-    catchment_water_input_and_hydrology(local_time_factor, runoff);
+    catchment_water_input_and_hydrology(flow_timestep, runoff);
   }
   else
   {
-    catchment_water_input_and_hydrology(local_time_factor);
+    catchment_water_input_and_hydrology(flow_timestep);
   }
 }
 
@@ -2238,7 +2250,7 @@ void LSDCatchmentModel::zero_values()
 void LSDCatchmentModel::water_flux_out()
 // Extracted as a seprate method from erodepo()
 {
-  double local_time_factor = time_factor;
+  double flow_timestep = time_step;
   // Zero the water, but then we set it to the minimum depth - DV
   temptot = 0;
   for (unsigned i = 1; i <= imax; i++)
@@ -2247,14 +2259,14 @@ void LSDCatchmentModel::water_flux_out()
     if (water_depth[i][jmax] > water_depth_erosion_threshold)
     {
       temptot += (water_depth[i][jmax] - water_depth_erosion_threshold) \
-        * DX * DX / local_time_factor;
+        * DX * DX / flow_timestep;
       water_depth[i][jmax] = water_depth_erosion_threshold;
     }
     // LH Edge
     if (water_depth[i][1] > water_depth_erosion_threshold)
     {
       temptot += (water_depth[i][1] - water_depth_erosion_threshold) \
-        * DX * DX / local_time_factor;
+        * DX * DX / flow_timestep;
       water_depth[i][1] = water_depth_erosion_threshold;
     }
   }
@@ -2265,14 +2277,14 @@ void LSDCatchmentModel::water_flux_out()
     if (water_depth[1][j] > water_depth_erosion_threshold)
     {
       temptot += (water_depth[1][j] - water_depth_erosion_threshold) \
-        * DX * DX / local_time_factor;
+        * DX * DX / flow_timestep;
       water_depth[1][j] = water_depth_erosion_threshold;
     }
     // Bottom Edge
     if (water_depth[imax][j] > water_depth_erosion_threshold)
     {
       temptot += (water_depth[imax][j] - water_depth_erosion_threshold) \
-        * DX * DX / local_time_factor;
+        * DX * DX / flow_timestep;
       water_depth[imax][j] = water_depth_erosion_threshold;
     }
   }
@@ -2295,7 +2307,7 @@ void LSDCatchmentModel::water_flux_out()
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::flow_route()
 {
-  double local_time_factor = set_local_timefactor();
+  double flow_timestep = get_flow_timestep();
 
   #pragma omp parallel for
   for (unsigned y=1; y<=jmax; y++)
@@ -2337,8 +2349,8 @@ void LSDCatchmentModel::flow_route()
 
             //double oldqx = qx[x][y];
             qx[x][y] = ((qx[x][y] - (gravity * hflow \
-                          * local_time_factor * tempslope)) \
-                          / (1 + gravity * hflow * local_time_factor \
+                          * flow_timestep * tempslope)) \
+                          / (1 + gravity * hflow * flow_timestep \
                           * (mannings * mannings) * std::abs(qx[x][y]) \
                           / std::pow(hflow, (10 / 3))));
             //if (oldqx != 0) qx[x][y] = (oldqx + qx[x][y]) / 2;
@@ -2363,16 +2375,16 @@ void LSDCatchmentModel::flow_route()
 
             // DISCHARGE MAGNITUDE/TIMESTEP CHECKS
             // If the discharge is too high for this timestep, scale back...
-            if (qx[x][y] > 0 && (qx[x][y] * local_time_factor / DX)
+            if (qx[x][y] > 0 && (qx[x][y] * flow_timestep / DX)
                 > (water_depth[x][y] / 4))
             {
-              qx[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
+              qx[x][y] = ((water_depth[x][y] * DX) / 5) / flow_timestep;
             }
             // If the discharge is negative and too large, scale back...
-            if (qx[x][y] < 0 && std::abs(qx[x][y] * local_time_factor / DX)
+            if (qx[x][y] < 0 && std::abs(qx[x][y] * flow_timestep / DX)
               > (water_depth[x - 1][y] / 4))
             {
-              qx[x][y] = 0 - ((water_depth[x - 1][y] * DX) / 5) / local_time_factor;
+              qx[x][y] = 0 - ((water_depth[x - 1][y] * DX) / 5) / flow_timestep;
             }
 
             // Update suspended fraction discharges
@@ -2388,16 +2400,16 @@ void LSDCatchmentModel::flow_route()
                   * (Vsusptot[x - 1][y] / water_depth[x - 1][y]);
               }
 
-              if (qxs[x][y] > 0 && qxs[x][y] * local_time_factor
+              if (qxs[x][y] > 0 && qxs[x][y] * flow_timestep
                 > (Vsusptot[x][y] * DX) / 4)
               {
-                qxs[x][y] = ((Vsusptot[x][y] * DX) / 5) / local_time_factor;
+                qxs[x][y] = ((Vsusptot[x][y] * DX) / 5) / flow_timestep;
               }
 
-              if (qxs[x][y] < 0 && std::abs(qxs[x][y] * local_time_factor)
+              if (qxs[x][y] < 0 && std::abs(qxs[x][y] * flow_timestep)
                 > (Vsusptot[x - 1][y] * DX) / 4)
               {
-                qxs[x][y] = 0 - ((Vsusptot[x - 1][y] * DX) / 5) / local_time_factor;
+                qxs[x][y] = 0 - ((Vsusptot[x - 1][y] * DX) / 5) / flow_timestep;
               }
             }
 
@@ -2433,8 +2445,8 @@ void LSDCatchmentModel::flow_route()
             if (y <= 2 ) tempslope = 0 - edgeslope;
 
             //double oldqy = qy[x][y];
-            qy[x][y] = ((qy[x][y] - (gravity * hflow * local_time_factor * tempslope)) /
-                        (1 + gravity * hflow * local_time_factor * (mannings * mannings) * std::abs(qy[x][y]) /
+            qy[x][y] = ((qy[x][y] - (gravity * hflow * flow_timestep * tempslope)) /
+                        (1 + gravity * hflow * flow_timestep * (mannings * mannings) * std::abs(qy[x][y]) /
                          std::pow(hflow, (10 / 3))));
             //if (oldqy != 0) qy[x][y] = (oldqy + qy[x][y]) / 2;
 
@@ -2443,8 +2455,8 @@ void LSDCatchmentModel::flow_route()
             if (qy[x][y] > 0 && (qy[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit ) qy[x][y] = hflow * (std::sqrt(gravity * hflow) * froude_limit );
             if (qy[x][y] < 0 && std::abs(qy[x][y] / hflow) / std::sqrt(gravity * hflow) > froude_limit ) qy[x][y] = 0 - (hflow * (std::sqrt(gravity * hflow) * froude_limit));
 
-            if (qy[x][y] > 0 && (qy[x][y] * local_time_factor / DX) > (water_depth[x][y] / 4)) qy[x][y] = ((water_depth[x][y] * DX) / 5) / local_time_factor;
-            if (qy[x][y] < 0 && std::abs(qy[x][y] * local_time_factor / DX) > (water_depth[x][y - 1] / 4)) qy[x][y] = 0 - ((water_depth[x][y - 1] * DX) / 5) / local_time_factor;
+            if (qy[x][y] > 0 && (qy[x][y] * flow_timestep / DX) > (water_depth[x][y] / 4)) qy[x][y] = ((water_depth[x][y] * DX) / 5) / flow_timestep;
+            if (qy[x][y] < 0 && std::abs(qy[x][y] * flow_timestep / DX) > (water_depth[x][y - 1] / 4)) qy[x][y] = 0 - ((water_depth[x][y - 1] * DX) / 5) / flow_timestep;
 
 
             if (isSuspended[1])
@@ -2453,8 +2465,8 @@ void LSDCatchmentModel::flow_route()
               if (qy[x][y] > 0) qys[x][y] = qy[x][y] * (Vsusptot[x][y] / water_depth[x][y]);
               if (qy[x][y] < 0) qys[x][y] = qy[x][y] * (Vsusptot[x][y - 1] / water_depth[x][y - 1]);
 
-              if (qys[x][y] > 0 && qys[x][y] * local_time_factor > (Vsusptot[x][y] * DX) / 4) qys[x][y] = ((Vsusptot[x][y] * DX) / 5) / local_time_factor;
-              if (qys[x][y] < 0 && std::abs(qys[x][y] * local_time_factor) > (Vsusptot[x][y - 1] * DX) / 4) qys[x][y] = 0 - ((Vsusptot[x][y - 1] * DX) / 5) / local_time_factor;
+              if (qys[x][y] > 0 && qys[x][y] * flow_timestep > (Vsusptot[x][y] * DX) / 4) qys[x][y] = ((Vsusptot[x][y] * DX) / 5) / flow_timestep;
+              if (qys[x][y] < 0 && std::abs(qys[x][y] * flow_timestep) > (Vsusptot[x][y - 1] * DX) / 4) qys[x][y] = 0 - ((Vsusptot[x][y - 1] * DX) / 5) / flow_timestep;
 
             }
 
@@ -2486,7 +2498,7 @@ void LSDCatchmentModel::flow_route()
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::depth_update()
 {
-  double local_time_factor = set_local_timefactor();
+  double flow_timestep = get_flow_timestep();
 
   maxdepth = 0;
   double l_maxdepth = maxdepth;
@@ -2501,11 +2513,11 @@ void LSDCatchmentModel::depth_update()
       inc++;
 
       // update water depths
-      water_depth[x][y] += local_time_factor * (qx[x + 1][y] - qx[x][y] + qy[x][y + 1] - qy[x][y]) / DX;
+      water_depth[x][y] += flow_timestep * (qx[x + 1][y] - qx[x][y] + qy[x][y + 1] - qy[x][y]) / DX;
       // now update SS concs
       if (isSuspended[1])
       {
-        Vsusptot[x][y] += local_time_factor * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
+        Vsusptot[x][y] += flow_timestep * (qxs[x + 1][y] - qxs[x][y] + qys[x][y + 1] - qys[x][y]) / DX;
       }
 
       if (water_depth[x][y] > 0)
@@ -2527,7 +2539,7 @@ void LSDCatchmentModel::depth_update()
 }
 
 // DAV - This can be split into subfunctions
-void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor)
+void LSDCatchmentModel::catchment_water_input_and_hydrology( double flow_timestep)
 {
   // This was added in CL 1.8f but not present in 1.8a:
   for (unsigned i = 1; i<=rfnum; i++)
@@ -2540,14 +2552,14 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     int i = catchment_input_x_coord[z];
     int j = catchment_input_y_coord[z];
     double water_add_amt = (j_mean[rfarea[i][j]] * nActualGridCells[rfarea[i][j]]) /
-        (catchment_input_counter[rfarea[i][j]]) * local_time_factor;    //
+        (catchment_input_counter[rfarea[i][j]]) * flow_timestep;    //
     if (water_add_amt > ERODEFACTOR)
     {
       water_add_amt = ERODEFACTOR;
     }
 
     // Removed now as done above
-    // waterinput += (water_add_amt / local_time_factor) * DX * DX;
+    // waterinput += (water_add_amt / flow_timestep) * DX * DX;
     water_depth[i][j] += water_add_amt;
   }
   // if the input type flag is 1 then the discharge is input from the hydrograph
@@ -2558,7 +2570,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
       time_1++;
       topmodel_runoff(time_1);  // calc_J is based on the rainfall rate supplied to the cell
 
-      if (time_factor > max_time_step) // && new_j_mean[1] > (0.2 / (jmax * imax * DX * DX)))
+      if (time_step > max_time_step) // && new_j_mean[1] > (0.2 / (jmax * imax * DX * DX)))
       {
         // Find the current maximum runoff amount
         double j_mean_max_temp = 0;
@@ -2575,7 +2587,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
         if (j_mean_max_temp > (0.2 / (imax * jmax * DX * DX)))
         {
           cycle = time_1 + (max_time_step / 60);
-          time_factor = max_time_step;
+          time_step = max_time_step;
         }
       }
     } while (time_1 < cycle);
@@ -2616,7 +2628,7 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
 }
 
 // DAV - This can be split into subfunctions
-void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_factor,
+void LSDCatchmentModel::catchment_water_input_and_hydrology( double flow_timestep,
                                                                  runoffGrid& runoff)
 {
   for (unsigned i = 1; i<imax; i++)
@@ -2635,14 +2647,14 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
   {
     for (unsigned j=1; j<jmax; j++)
     {
-      double water_add_amt = runoff.get_j_mean(i,j) * local_time_factor;    //
+      double water_add_amt = runoff.get_j_mean(i,j) * flow_timestep;    //
 
       if (water_add_amt > ERODEFACTOR)
       {
         water_add_amt = ERODEFACTOR;
       }
 
-      waterinput += (water_add_amt / local_time_factor) * DX * DX;
+      waterinput += (water_add_amt / flow_timestep) * DX * DX;
 
       water_depth[i][j] += water_add_amt;
     }
@@ -2668,12 +2680,12 @@ void LSDCatchmentModel::catchment_water_input_and_hydrology( double local_time_f
     {
       time_1++;
       topmodel_runoff(time_1, runoff);  // calc_J is based on the rainfall rate supplied to the cell
-      if (time_factor > max_time_step && new_jmeanmax > (0.2 / (jmax * imax * DX * DX)))
+      if (time_step > max_time_step && new_jmeanmax > (0.2 / (jmax * imax * DX * DX)))
         // check after the variable rainfall area has been added
         // stops code going too fast when there is actual flow in the channels greater than 0.2cu
       {
         cycle = time_1 + (max_time_step / 60);
-        time_factor = max_time_step;
+        time_step = max_time_step;
       }
     } while (time_1 < cycle);
   }
@@ -2734,7 +2746,7 @@ void LSDCatchmentModel::topmodel_runoff(double cycle)
   // rfnum is the rainfall number int = 2 to begin with
   {
     double local_rain_fall_rate = 0;   // in metres per second
-    double local_time_step = 60; // in seconds
+    double flow_timestep = 60; // in seconds
 
     old_j_mean[n] = new_j_mean[n];
 
@@ -2764,20 +2776,20 @@ void LSDCatchmentModel::topmodel_runoff(double cycle)
 
     if (local_rain_fall_rate == 0)
     {
-      j[n] = jo[n] / (1 + ((jo[n] * local_time_step) / M));
+      j[n] = jo[n] / (1 + ((jo[n] * flow_timestep) / M));
 
-      new_j_mean[n] = M / local_time_step *
-          std::log(1 + ((jo[n] * local_time_step) / M));
+      new_j_mean[n] = M / flow_timestep *
+          std::log(1 + ((jo[n] * flow_timestep) / M));
     }
 
     if (local_rain_fall_rate > 0)
     {
       j[n] = local_rain_fall_rate / (((local_rain_fall_rate - jo[n]) / jo[n])
-          * std::exp((0 - local_rain_fall_rate) * local_time_step / M) + 1);
+          * std::exp((0 - local_rain_fall_rate) * flow_timestep / M) + 1);
 
-      new_j_mean[n] = (M / local_time_step)
+      new_j_mean[n] = (M / flow_timestep)
           * std::log(((local_rain_fall_rate - jo[n]) + jo[n] *
-                      std::exp((local_rain_fall_rate * local_time_step) / M))
+                      std::exp((local_rain_fall_rate * flow_timestep) / M))
                      / local_rain_fall_rate);
     }
     if (new_j_mean[n] < 0)
@@ -3289,22 +3301,22 @@ double LSDCatchmentModel::erode(double mult_factor)
   const double rho = 1000.0;
   double tempbmax = 0;
   float gtot2[20] = {};
-  //double local_time_factor = 0;
+  //double flow_timestep = 0;
 
-  time_factor = time_factor * 1.5;
+  time_step = time_step * 1.5;
 
   // Deal with erosion timestep
 //  switch (erode_timestep_type)
 //  {
 //    case 0:  // Erosion controls global time step and thus next hydro timestep
-//      time_factor = time_factor * 1.5;
-//      if (time_factor > max_time_step) time_factor = max_time_step;
-//      local_time_factor = time_factor;
+//      time_step = time_step * 1.5;
+//      if (time_step > max_time_step) time_step = max_time_step;
+//      flow_timestep = time_step;
 //      break;
 
 //    case 1:  // Erosion uses local timestep: global timestep and thus hydro timestep not affected
-//      local_time_factor = time_factor * 1.5;
-//      if (local_time_factor > max_time_step) local_time_factor = max_time_step;
+//      flow_timestep = time_step * 1.5;
+//      if (flow_timestep > max_time_step) flow_timestep = max_time_step;
 //      break;
 //  }
 
@@ -3455,14 +3467,14 @@ double LSDCatchmentModel::erode(double mult_factor)
                   Wi_star = 14 * std::pow(1 - (0.894 / std::pow(tau / tau_ri, 0.5)), 4.5);
                 }
                 //maybe should divide by DX as well..
-                temp_dist[n] = mult_factor * time_factor *
+                temp_dist[n] = mult_factor * time_step *
                                ((Fi * (U_star * U_star * U_star)) / ((2.65 - 1) * gravity)) * Wi_star / DX;
               }
               // Einstein sed tpt eqtn
               if (einstein == 1)
               {
                 // maybe should divide by DX as well..
-                temp_dist[n] = mult_factor * time_factor * (40 * std::pow((1 / (((2650 - 1000) * Di) / (tau / gravity))), 3))
+                temp_dist[n] = mult_factor * time_step * (40 * std::pow((1 / (((2650 - 1000) * Di) / (tau / gravity))), 3))
                                / std::sqrt(1000 / ((2250 - 1000) * gravity * (Di * Di * Di))) / DX;
               }
 
@@ -3515,7 +3527,7 @@ double LSDCatchmentModel::erode(double mult_factor)
               if (tau > bedrock_erosion_threshold)
               {
                 double amount = 0; // amount is amount of erosion into the bedrock.
-                amount = std::pow(bedrock_erosion_rate * tau, 1.5) * time_factor * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
+                amount = std::pow(bedrock_erosion_rate * tau, 1.5) * time_step * mult_factor * 0.000000317; // las value to turn it into erosion per year (number of years per second)
                 bedrock[x][y] -= amount;
                 // now add amount of bedrock eroded into sediment proportions.
                 for (unsigned int n2 = 1; n2 <= G_MAX - 1; n2++)
@@ -3531,7 +3543,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (veg[x][y][1] > 0 && tau > vegTauCrit)
             {
               // now to remove from veg layer..
-              veg[x][y][1] -= mult_factor * time_factor * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
+              veg[x][y][1] -= mult_factor * time_step * std::pow(tau - vegTauCrit, 0.5) * 0.00001;
               if (veg[x][y][1] < 0) veg[x][y][1] = 0;
             }
 
@@ -3621,16 +3633,16 @@ double LSDCatchmentModel::erode(double mult_factor)
 
     if (tempbmax > ERODEFACTOR)
     {
-      time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
+      time_step *= (ERODEFACTOR / tempbmax) * 0.5;
     }
 //      switch (erode_timestep_type)
 //      {
 //        case 0:
-//          time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
-//          local_time_factor = time_factor;
+//          time_step *= (ERODEFACTOR / tempbmax) * 0.5;
+//          flow_timestep = time_step;
 //          break;
 //        case 1:
-//          local_time_factor *= (ERODEFACTOR / tempbmax) * 0.5;
+//          flow_timestep *= (ERODEFACTOR / tempbmax) * 0.5;
 //          break;
 //      }
 //    }
@@ -3667,7 +3679,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             if (!inputpointsarray[x][y])
             {
               // now calc ss to be dropped
-              double coeff = (fallVelocity[n] * time_factor) / water_depth[x][y];
+              double coeff = (fallVelocity[n] * time_step) / water_depth[x][y];
               if (coeff > 1) coeff = 1;
               double Vpdrop = coeff * Vsusptot[x][y];
               if (Vpdrop > 0.001) Vpdrop = 0.001; //only allow 1mm to be deposited per iteration
@@ -3707,7 +3719,7 @@ double LSDCatchmentModel::erode(double mult_factor)
 
             if (water_depth[x - 1][y] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * time_factor /DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x - 1][y] * time_step /DX;
             }
             else
             {
@@ -3729,7 +3741,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0;
             if (water_depth[x + 1][y] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * time_factor / DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x + 1][y] * time_step / DX;
             }
             else
             {
@@ -3771,7 +3783,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0;
             if (water_depth[x][y - 1] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y - 1] * time_factor / DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y - 1] * time_step / DX;
             }
             else
             {
@@ -3793,7 +3805,7 @@ double LSDCatchmentModel::erode(double mult_factor)
             double amt = 0;
             if (water_depth[x][y + 1] < water_depth_erosion_threshold)
             {
-              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y + 1] * time_factor / DX;
+              amt = mult_factor * lateral_constant * Tau[x][y] * edge[x][y + 1] * time_step / DX;
             }
             else
             {

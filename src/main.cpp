@@ -2,7 +2,6 @@
 ///
 /// HAIL-CAESAR
 /// (The High Performance Architecture Independent LISFLOOD CAESAR model)
-/// The Catchment Hydrogeomorphology Model v1.0 (CHM1)
 ///
 /// This is the main function for running the HAIL-CAESAR model.
 ///
@@ -136,7 +135,7 @@ int main(int argc, char *argv[])
     // If this value meets a user-defined threshold, the time step is
     // automatically increased.
     simulation.set_inputoutput_diff();
-    simulation.set_global_timefactor();
+    simulation.set_maximum_timestep();
     simulation.increment_counters();
 
     // Hydrological and flow routing processes

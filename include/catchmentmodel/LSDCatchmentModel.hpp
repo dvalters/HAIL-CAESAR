@@ -168,9 +168,13 @@ public:
 
   void set_loop_cycle();
 
-  void set_global_timefactor();
+  double courant_friedrichs_lewy_condition();
 
-  double set_local_timefactor();
+  /// @brief Calculates and sets the maximum time step (also the erosion timestep)
+  void set_maximum_timestep();
+
+  /// @brief calculates the timestep for the hydro/flow model
+  double get_flow_timestep();
 
   void increment_counters();
 
@@ -326,12 +330,12 @@ public:
 
   /// @brief Calculates the amount of runoff on a grid-cell from the rainfall
   /// timeseries input
-  void catchment_water_input_and_hydrology( double local_time_factor);
+  void catchment_water_input_and_hydrology( double flow_timestep);
 
-  /// @brief Overloaded function is for when using the fully distriuted/complex
+  /// @brief Overloaded function is for when u<a href="#datastructures">Understanding sing the fully distriuted/complex
   /// rainfall patterns option in the model. Takes a reference to the runoffGrid
   /// object.
-  void catchment_water_input_and_hydrology( double local_time_factor, runoffGrid& runoff);
+  void catchment_water_input_and_hydrology( double flow_timestep, runoffGrid& runoff);
 
   /// @brief Gets the number of catchment cells that have water input to them
   /// @detail Calculates which cells contain a discharge greater than MIN_Q
@@ -484,7 +488,7 @@ private:
   double lateral_cross_channel_smoothing = 0.0001;
   double lateral_constant=0.0000002;
 
-  double time_factor = 1;
+  double time_step = 1;
   std::vector<double> j, jo, j_mean, old_j_mean, new_j_mean;
 
   /// TOPMODEL 'm'
