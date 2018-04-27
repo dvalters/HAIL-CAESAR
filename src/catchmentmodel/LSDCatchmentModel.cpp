@@ -432,12 +432,12 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(
 void LSDCatchmentModel::print_rainfall_data()
 {
   std::vector< std::vector<float> > vector2d = hourly_rain_data;
-  std::vector<std::vector<float> >::iterator itr = vector2d.begin();
-  std::vector<std::vector<float> >::iterator end = vector2d.end();
+  auto itr = vector2d.begin();
+  auto end = vector2d.end();
 
   while (itr!=end)
   {
-    std::vector<float>::iterator it1=itr->begin(),end1=itr->end();
+    auto it1=itr->begin(),end1=itr->end();
     std::copy(it1,end1,std::ostream_iterator<float>(std::cout, " "));
     std::cout << std::endl;
     ++itr;
@@ -1485,8 +1485,8 @@ void LSDCatchmentModel::drainage_area_D8()
   // then works through the list of x and y co-ordinates from highest to lowest
   for (unsigned n = (jmax * imax); n >= 1; n--)
   {
-    int i = static_cast<int>(std::get<0>(x_keys_elevs_paired[n]) );
-    int j = static_cast<int>(std::get<0>(y_keys_elevs_paired[n]) );
+    auto i = static_cast<int>(std::get<0>(x_keys_elevs_paired[n]) );
+    auto j = static_cast<int>(std::get<0>(y_keys_elevs_paired[n]) );
 
     // I.e. If we are in the catchment (area_depth = 0 in NODATA)
     if (area_depth[i][j] > 0)
@@ -2699,7 +2699,7 @@ void LSDCatchmentModel::topmodel_runoff(double cycle, runoffGrid& runoff)
   // UNique fiulename for raingrids
   //std::cout << "Calculating J for spatially complex rainfall..." << std::endl;
   // For later use with the rain grid object
-  int current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
+  auto current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
 
   // Create a raingrid object from the rainfall timeseries data and hydroindex
   // Only to be used with spatially var rainfall.
@@ -2738,7 +2738,7 @@ void LSDCatchmentModel::topmodel_runoff(double cycle)
   // UNique fiulename for raingrids?
 
   // For later use with the rain grid object
-  int current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
+  auto current_rainfall_timestep = static_cast<int>(cycle / rain_data_time_step);
 
   // Case for uniform OR non-interpolated rainfall
 
