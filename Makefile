@@ -8,7 +8,7 @@ TARGET := bin/HAIL-CAESAR
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -std=c++11 -DOMP_COMPILE_FOR_PARALLEL -fopenmp $(GITREV)# -Wall
+CFLAGS := -g -std=c++11 -DOMP_COMPILE_FOR_PARALLEL -fopenmp $(GITREV) -Wfatal-errors
 GEODECOMP_DIR := /Users/aproeme/libgeodecomp/0.4.0
 INC := -I ./include -I $(GEODECOMP_DIR)/include
 LDFLAGS := -fopenmp -L $(GEODECOMP_DIR)/lib

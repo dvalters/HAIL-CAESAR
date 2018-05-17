@@ -1,5 +1,5 @@
 #include "libgeodecomp.h"
-#include "catchmentmodel/LSDCatchmentModel_geodecomp.hpp"
+#include "catchmentmodel/LSDCatchmentModel.hpp"
 
 using namespace LibGeoDecomp;
 
