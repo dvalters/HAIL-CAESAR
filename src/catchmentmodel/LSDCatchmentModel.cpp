@@ -55,7 +55,8 @@ public:
     //
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-
+    water_depth += 0.1; // Just for debugging until proper rainfall is added
+    
     if (elev > -9999) // to stop moving water in to -9999's on elev
       {
 
@@ -110,10 +111,6 @@ public:
 		  }
 
 
-
-
-
-		
 
 		// refactor: tries to update vel_dir belonging to neighbour sites - can't do this because neighborhood is passed as a CONST. If this is fundamental to libgeodecomp then make flow_route only modify its own vel_dir components, based on neighbouring qx qy (i.e. flip around the current logic of modifying neigbouring vel_dir based on local qx qy
 
@@ -277,7 +274,7 @@ public:
 class CellInitializer : public SimpleInitializer<Cell>
 {
 public:
-  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(512,512), 100) // refactor - make dimensions variable. Second argument is the number of steps to run for
+  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(512,512), 10) // refactor - make dimensions variable. Second argument is the number of steps to run for
   {}
   
   /*   From libgeodecomp:
@@ -291,9 +288,9 @@ public:
   void grid(GridBase<Cell, 2> *subdomain)
   {
     // Stuff in here should initialise all the individual cells within a subdomain
-    for (int y=0; y<256; y++)
+    for (int y=0; y<512; y++)
       {      
-	for (int x=0; x<256; x++)
+	for (int x=0; x<512; x++)
 	  {
 	    Coord<2> c(x, y);
 	    subdomain->set(c, Cell());
@@ -315,7 +312,7 @@ void runSimulation()
 
   sim.addWriter(new PPMWriter<Cell>(&Cell::water_depth, 0.0, 1.0, "water_depth", outputFrequency, Coord<2>(1,1)));
 
-  sim.addWriter(new TracingWriter<Cell>(outputFrequency, 100));
+  sim.addWriter(new TracingWriter<Cell>(outputFrequency, 10));
   
   sim.run();
 }
