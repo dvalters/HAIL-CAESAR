@@ -10,13 +10,16 @@ public:
   class API :
     public APITraits::HasStencil<Stencils::VonNeumann<2,1> >
   {};
-
-
-  Cell()
+  
+  
+  Cell(double elev_in = 0.0, double water_depth_in = 0.0, double qx_in = 0.0, double qy_in = 0.0) : elev(elev_in), water_depth(water_depth_in), qx(qx_in), qy(qy_in)
   {}
 
+
+
+  
   double elev, water_depth;
-  double qx, qy, qxs, qys;
+  double qx, qy;
   TNT::Array1D<double> vel_dir = TNT::Array1D<double> (9, 0.0); // refactor (redefinition of declaration in include/catchmentmodel/LSDCatchmentModel.hpp
   double waterinput = 0; // refactor (already declared in include/catchmentmodel/LSDCatchmentModel.hpp)
   unsigned rfnum = 1; // refactor (already declared in include/catchmentmodel/LSDCatchmentModel.hpp)
@@ -129,7 +132,7 @@ public:
 		else // namely if hflow < hflow_threshold
 		  {
 		    qx = 0;
-		    qxs = 0;
+		    //		    qxs = 0;
 		  }
 
 
@@ -205,7 +208,7 @@ public:
 			else // namely if hflow < hflow_threshold
 			  {
 			    qy = 0;
-			    qys = 0;
+			    //			    qys = 0;
 			  }
 		      }
 
@@ -274,7 +277,7 @@ public:
 class CellInitializer : public SimpleInitializer<Cell>
 {
 public:
-  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(512,512), 100) // refactor - make dimensions variable
+  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(512,512), 100) // refactor - make dimensions variable. Second argument is the number of steps to run for
   {}
   
   /*   From libgeodecomp:
@@ -308,6 +311,12 @@ public:
 void runSimulation()
 {
   SerialSimulator<Cell> sim(new CellInitializer());
+  int outputFrequency = 1;
+
+  sim.addWriter(new PPMWriter<Cell>(&Cell::water_depth, 0.0, 1.0, "water_depth", outputFrequency, Coord<2>(1,1)));
+
+  sim.addWriter(new TracingWriter<Cell>(outputFrequency, 100));
+  
   sim.run();
 }
 
