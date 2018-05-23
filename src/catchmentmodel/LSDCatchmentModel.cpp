@@ -33,16 +33,16 @@ public:
 #define SOUTH neighborhood[Coord<2>( 0, -1)] // refactor: have used this for array[x][y+1]
 
 
-  // DEFINING TEMPORARILY TO BE ABLE TO COMPILE - refactor
-  // *****************************************************
-  double hflow_threshold;
-  double DX;
-  double time_factor;
+  // DEFINING TEMPORARILY TO BE ABLE TO COMPILE - refactor to read from file
+  // ***********************************************************************
+  double hflow_threshold = 1.0;
+  double DX = 1.0; // should be static (class) variable, as DX is the same for the entire grid? (same for DY)
+  double time_factor = 1.0;
   double local_time_factor = time_factor; // refactor?
-  double gravity; // should come from topotools/LSDRaster?
-  double mannings;
-  double froude_limit;
-  // *****************************************************
+  double gravity = 1.0; // should come from topotools/LSDRaster?
+  double mannings = 1.0;
+  double froude_limit = 1.0;
+  // ***********************************************************************
 
 
 
@@ -55,7 +55,7 @@ public:
     //
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-    water_depth += 0.1; // Just for debugging until proper rainfall is added
+    //    water_depth += 0.1; // Just for debugging until proper rainfall is added
     
     if (elev > -9999) // to stop moving water in to -9999's on elev
       {
@@ -64,8 +64,7 @@ public:
 	//---------------------------
 	// routing in x direction
 	//---------------------------
-	if((water_depth > 0 || WEST.water_depth > 0) && WEST.elev > -9999)
-	  // need to check water and not -9999 on elev?
+	if((water_depth > 0 || WEST.water_depth > 0) && WEST.elev > -9999)  // need to check water and not -9999 on elev?
 	  {
 	    double hflow = std::max(elev + water_depth, WEST.elev + WEST.water_depth) - std::max(elev, WEST.elev);
 
@@ -112,20 +111,18 @@ public:
 
 
 
-		// refactor: tries to update vel_dir belonging to neighbour sites - can't do this because neighborhood is passed as a CONST. If this is fundamental to libgeodecomp then make flow_route only modify its own vel_dir components, based on neighbouring qx qy (i.e. flip around the current logic of modifying neigbouring vel_dir based on local qx qy
-
-		
-		/*		// calc velocity now
-				if (qx > 0)
-				{
-				vel_dir[7] = qx / hflow;
-				}
-				if (qx < 0)
-				{
-				WEST.vel_dir[3] = (0 - qx) / hflow;
-				}
-
-				}*/
+		// calc velocity now
+		if (qx > 0)
+		  {
+		    vel_dir[7] = qx / hflow;
+		  }
+		// refactor: tries to update vel_dir belonging to neighbour sites - can't do this because neighborhood is passed as a CONST. If this is fundamental to libgeodecomp then make flow_route only modify its own vel_dir components, based on neighbouring qx qy (i.e. flip around the current logic of modifying neigbouring vel_dir based on local qx qy)
+		// But need all cells to record their hflow (or precompute and store -qx/hflow)
+		/*	if (qx < 0)
+			{
+			WEST.vel_dir[3] = (0 - qx) / hflow;
+			}
+			}*/
 		else // namely if hflow < hflow_threshold
 		  {
 		    qx = 0;
@@ -186,17 +183,15 @@ public:
 			  }
 
 
+			// calc velocity now
+			if (qy > 0)
+			  {
+			    vel_dir[1] = qy / hflow;
+			  }
+			// refactor: tries to update vel_dir belonging to neighbour sites - can't do this because neighborhood is passed as a CONST. If this is fundamental to libgeodecomp then make flow_route only modify its own vel_dir components, based on neighbouring qx qy (i.e. flip around the current logic of modifying neigbouring vel_dir based on local qx qy)
+					// But need all cells to record their hflow (or precompute and store -qx/hflow)
 
-
-
-			// refactor: tries to update vel_dir belonging to neighbour sites - can't do this because neighborhood is passed as a CONST. If this is fundamental to libgeodecomp then make flow_route only modify its own vel_dir components, based on neighbouring qx qy (i.e. flip around the current logic of modifying neigbouring vel_dir based on local qx qy
-
-			/*		// calc velocity now
-					if (qy > 0)
-					{
-					vel_dir[1] = qy / hflow;
-					}
-					if (qx < 0)
+			/*		if (qx < 0)
 					{
 					NORTH.vel_dir[5] = (0 - qy) / hflow;
 					}
@@ -211,24 +206,27 @@ public:
 
 		  }
 	      }
-
-    
-	    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-	    // DEPTH UPDATE
-	    //
-	    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-	    double local_time_factor = time_factor; // refactor?
-
-	    water_depth += local_time_factor * (EAST.qx - qx + SOUTH.qy - qy) / DX;
-	    if (water_depth > 0)
-	      {
-		// line to remove any water depth on nodata cells (that shouldnt get there!)
-		if (elev == -9999) water_depth = 0;
-	      }
-
 	  }
       }
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // DEPTH UPDATE
+    //
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  
+    double local_time_factor = time_factor; // refactor?
+
+    double addition = (EAST.qx - qx + SOUTH.qy - qy);
+    std::cout << addition;
+    
+    water_depth += local_time_factor * (EAST.qx - qx + SOUTH.qy - qy) / DX;  // Is this still the same given geodecomp's ordering of cell updates? i.e. whereas the above would be fine for explicit sequential double-loop through all cells, it's not for geodecomp? 
+    
+    if (water_depth > 0)
+      {
+	// line to remove any water depth on nodata cells (that shouldnt get there!)
+	if (elev == -9999) water_depth = 0;
+      }
+    
+    
   }
   
   
@@ -293,7 +291,9 @@ public:
 	for (int x=0; x<512; x++)
 	  {
 	    Coord<2> c(x, y);
-	    subdomain->set(c, Cell());
+	    // subdomain->set(c, Cell()); // default Cell initialisation - uniform everything
+	    //subdomain->set(c, Cell((double)x/512.0, 0.0, 0.0, 0.0));   // Cell initialisation with non-uniform elevation
+	    subdomain->set(c, Cell(0.0, (double)x/512.0, 0.0, 0.0));   // Cell initialisation with non-uniform water_depth
 	  }
       }
     
@@ -311,7 +311,8 @@ void runSimulation()
   int outputFrequency = 1;
 
   sim.addWriter(new PPMWriter<Cell>(&Cell::water_depth, 0.0, 1.0, "water_depth", outputFrequency, Coord<2>(1,1)));
-
+  sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 1.0, "qx", outputFrequency, Coord<2>(1,1)));
+  sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 1.0, "qy", outputFrequency, Coord<2>(1,1)));
   sim.addWriter(new TracingWriter<Cell>(outputFrequency, 10));
   
   sim.run();
