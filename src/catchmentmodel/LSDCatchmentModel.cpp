@@ -4,6 +4,9 @@
 using namespace LibGeoDecomp;
 
 
+#define STEPS 100
+#define outputFrequency 10
+
 class Cell
 {
 public:
@@ -35,7 +38,7 @@ public:
 
   // DEFINING TEMPORARILY TO BE ABLE TO COMPILE - refactor to read from file
   // ***********************************************************************
-  double hflow_threshold = 1.0;
+  double hflow_threshold = 0.0;
   double DX = 1.0; // should be static (class) variable, as DX is the same for the entire grid? (same for DY)
   double time_factor = 1.0;
   double local_time_factor = time_factor; // refactor?
@@ -43,10 +46,10 @@ public:
   double mannings = 1.0;
   double froude_limit = 1.0;
   // ***********************************************************************
-
-
-
-
+  
+  
+  
+  
   template<typename COORD_MAP>
   void update(const COORD_MAP& neighborhood, unsigned nanoStep)
   {
@@ -55,17 +58,17 @@ public:
     //
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-    //    water_depth += 0.1; // Just for debugging until proper rainfall is added
+    water_depth += 0.01; // Just for debugging until proper rainfall is added
     
     if (elev > -9999) // to stop moving water in to -9999's on elev
       {
-
-
+	
 	//---------------------------
 	// routing in x direction
 	//---------------------------
 	if((water_depth > 0 || WEST.water_depth > 0) && WEST.elev > -9999)  // need to check water and not -9999 on elev?
 	  {
+
 	    double hflow = std::max(elev + water_depth, WEST.elev + WEST.water_depth) - std::max(elev, WEST.elev);
 
 	    if (hflow > hflow_threshold)
@@ -76,12 +79,12 @@ public:
 		//if (x == imax) tempslope = edgeslope;
 		//if (x <= 2) tempslope = 0 - edgeslope;
 
+				
 		qx = ((qx - (gravity * hflow * local_time_factor * tempslope)) \
 		      / (1 + gravity * hflow * local_time_factor * (mannings * mannings) \
 			 * std::abs(qx)	/ std::pow(hflow, (10 / 3))));
-
-
-
+		
+			
 		// need to have these lines to stop too much water moving from
 		// one cell to another - resulting in negative discharges
 		// which causes a large instability to develop
@@ -109,8 +112,7 @@ public:
 		    qx = 0 - ((WEST.water_depth * DX) / 5) / local_time_factor;
 		  }
 
-
-
+		
 		// calc velocity now
 		if (qx > 0)
 		  {
@@ -128,8 +130,6 @@ public:
 		    qx = 0;
 		    //		    qxs = 0;
 		  }
-
-
 
 
 		//---------------------------
@@ -212,13 +212,15 @@ public:
     // DEPTH UPDATE
     //
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-  
+    
     double local_time_factor = time_factor; // refactor?
-
-    double addition = (EAST.qx - qx + SOUTH.qy - qy);
-    std::cout << addition;
     
     water_depth += local_time_factor * (EAST.qx - qx + SOUTH.qy - qy) / DX;  // Is this still the same given geodecomp's ordering of cell updates? i.e. whereas the above would be fine for explicit sequential double-loop through all cells, it's not for geodecomp? 
+
+    double addition = local_time_factor * (EAST.qx - qx + SOUTH.qy - qy) / DX;
+
+    //    std::cout << water_depth << "\t" << addition << "\n";
+    
     
     if (water_depth > 0)
       {
@@ -272,7 +274,7 @@ public:
 class CellInitializer : public SimpleInitializer<Cell>
 {
 public:
-  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(512,512), 10) // refactor - make dimensions variable. Second argument is the number of steps to run for
+  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(512,512), STEPS) // refactor - make dimensions variable. Second argument is the number of steps to run for
   {}
   
   /*   From libgeodecomp:
@@ -308,12 +310,11 @@ public:
 void runSimulation()
 {
   SerialSimulator<Cell> sim(new CellInitializer());
-  int outputFrequency = 1;
 
   sim.addWriter(new PPMWriter<Cell>(&Cell::water_depth, 0.0, 1.0, "water_depth", outputFrequency, Coord<2>(1,1)));
-  sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 1.0, "qx", outputFrequency, Coord<2>(1,1)));
-  sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 1.0, "qy", outputFrequency, Coord<2>(1,1)));
-  sim.addWriter(new TracingWriter<Cell>(outputFrequency, 10));
+  sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 0.002, "qx", outputFrequency, Coord<2>(1,1)));
+  sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 0.002, "qy", outputFrequency, Coord<2>(1,1)));
+  sim.addWriter(new TracingWriter<Cell>(outputFrequency, STEPS));
   
   sim.run();
 }
