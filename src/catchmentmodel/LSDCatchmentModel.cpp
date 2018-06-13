@@ -5,7 +5,16 @@ using namespace LibGeoDecomp;
 
 
 #define STEPS 100
+#define XDIM 10
+#define YDIM 10
 #define outputFrequency 10
+#define edgeslope 0.005
+
+
+enum CellType {INTERNAL, EDGE_WEST, EDGE_EAST, EDGE_NORTH, EDGE_SOUTH, CORNER_NW, CORNER_NE, CORNER_SW, CORNER_SE}; // should declare this elsewhere (header file?). Used in both both Cell and CellInitializer classes. 
+
+
+
 
 class Cell
 {
@@ -13,14 +22,20 @@ public:
   class API :
     public APITraits::HasStencil<Stencils::VonNeumann<2,1> >
   {};
-  
-  
-  Cell(double elev_in = 0.0, double water_depth_in = 0.0, double qx_in = 0.0, double qy_in = 0.0) : elev(elev_in), water_depth(water_depth_in), qx(qx_in), qy(qy_in)
+
+  Cell(int x_in = 0, \
+       int y_in = 0, \
+       CellType celltype_in = INTERNAL, \
+       double elev_in = 0.0, \
+       double water_depth_in = 0.0, \
+       double qx_in = 0.0, \
+       double qy_in = 0.0) \
+    : x(x_in), y(y_in), celltype(celltype_in), elev(elev_in), water_depth(water_depth_in), qx(qx_in), qy(qy_in)
   {}
-
-
-
   
+  
+  int x,y;
+  CellType celltype;
   double elev, water_depth;
   double qx, qy;
   TNT::Array1D<double> vel_dir = TNT::Array1D<double> (9, 0.0); // refactor (redefinition of declaration in include/catchmentmodel/LSDCatchmentModel.hpp
@@ -39,7 +54,8 @@ public:
   // DEFINING TEMPORARILY TO BE ABLE TO COMPILE - refactor to read from file
   // ***********************************************************************
   double hflow_threshold = 0.0;
-  double DX = 1.0; // should be static (class) variable, as DX is the same for the entire grid? (same for DY)
+  double DX = 1.0; 
+  double DY = 1.0;
   double time_factor = 1.0;
   double local_time_factor = time_factor; // refactor?
   double gravity = 1.0; // should come from topotools/LSDRaster?
@@ -68,23 +84,27 @@ public:
 	//---------------------------
 	if((water_depth > 0 || WEST.water_depth > 0) && WEST.elev > -9999)  // need to check water and not -9999 on elev?
 	  {
-
+	    
 	    double hflow = std::max(elev + water_depth, WEST.elev + WEST.water_depth) - std::max(elev, WEST.elev);
-
+	    
 	    if (hflow > hflow_threshold)
 	      {
 		double tempslope = ((WEST.elev + WEST.water_depth) - (elev + water_depth)) / DX;
-
+		
 		// Refactor for geodecomp
-		//if (x == imax) tempslope = edgeslope;
-		//if (x <= 2) tempslope = 0 - edgeslope;
-
-				
+		//if (x == imax) // i.e. at the eastern edge
+		// tempslope = edgeslope; // edgeslope parameter is set in input file, "should be approximately equal to slope at channel outlet", e.g. equal to 0.001 - 0.005
+		// 
+		//if (x <= 2) // i.e. at the western edge - ACTUALLY INCLUDES A TRIPLE BOUNDARY LAYER (x==0, x==1, x==2)
+		// tempslope = 0 - edgeslope; // with new boundary layer, translates as -edgeslope = 
+		
+		//            if (neighborhood[Coord<2>(0,0).x_coordinate?) > bla
+		
 		qx = ((qx - (gravity * hflow * local_time_factor * tempslope)) \
 		      / (1 + gravity * hflow * local_time_factor * (mannings * mannings) \
 			 * std::abs(qx)	/ std::pow(hflow, (10 / 3))));
 		
-			
+		
 		// need to have these lines to stop too much water moving from
 		// one cell to another - resulting in negative discharges
 		// which causes a large instability to develop
@@ -142,12 +162,12 @@ public:
 
 		    if (hflow > hflow_threshold)
 		      {
-			double tempslope = ((NORTH.elev + NORTH.water_depth) - (elev + water_depth)) / DX; // Arno: original code says DX, not DY - correct?
+			double tempslope = ((NORTH.elev + NORTH.water_depth) - (elev + water_depth)) / DY; // Arno: original code says DX, not DY - correct?
 
 
 			// Refactor for geodecomp
 			//if (y == imax) tempslope = edgeslope;
-			//if (x <= 2) tempslope = 0 - edgeslope;
+			//if (x <= 2) tempslope = 0 - edgeslope; // Arno: should criterion be if y <= 1?
 
 			qy = ((qy - (gravity * hflow * local_time_factor * tempslope)) \
 			      / (1 + gravity * hflow * local_time_factor * (mannings * mannings) \
@@ -274,7 +294,9 @@ public:
 class CellInitializer : public SimpleInitializer<Cell>
 {
 public:
-  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(512,512), STEPS) // refactor - make dimensions variable. Second argument is the number of steps to run for
+  using SimpleInitializer<Cell>::gridDimensions;  // gridDimensions = dimensions of subgrid (in parallel case), not of overall grid
+  
+  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(XDIM,YDIM), STEPS) // refactor - make dimensions variable. Second argument is the number of steps to run for
   {}
   
   /*   From libgeodecomp:
@@ -284,21 +306,42 @@ public:
        Initializer will be responsible just for a sub-cuboid of the whole
        grid." */
   
-
+  
   void grid(GridBase<Cell, 2> *subdomain)
   {
-    // Stuff in here should initialise all the individual cells within a subdomain
-    for (int y=0; y<512; y++)
+    CellType celltype;
+      
+    for (int x=0; x<XDIM; x++)
       {      
-	for (int x=0; x<512; x++)
+	for (int y=0; y<YDIM; y++)
 	  {
-	    Coord<2> c(x, y);
-	    // subdomain->set(c, Cell()); // default Cell initialisation - uniform everything
-	    //subdomain->set(c, Cell((double)x/512.0, 0.0, 0.0, 0.0));   // Cell initialisation with non-uniform elevation
-	    subdomain->set(c, Cell(0.0, (double)x/512.0, 0.0, 0.0));   // Cell initialisation with non-uniform water_depth
+	    if (y == 0)
+	      {
+		if (x == 0){ celltype = CORNER_NW; }
+		else if (x == XDIM-1){ celltype = CORNER_NE; }
+		else celltype = EDGE_NORTH;
+	      }
+	    else if (y == YDIM-1)
+	      {
+		if (x == 0){ celltype = CORNER_SW; }
+		else if (x == XDIM-1){ celltype = CORNER_SE; }
+		else celltype = EDGE_SOUTH;
+	      }	      
+	    else  // i.e. for  0 < y < YDIM
+	      {
+		if (x == 0){ celltype = EDGE_WEST; }
+		else if (x == XDIM-1){ celltype = EDGE_EAST; }
+		else celltype = INTERNAL;
+	      }
+	    
+	    Coord<2> coordinate(x, y);
+	    // subdomain->set(coordinate, Cell()); // default Cell initialisation - uniform everything
+	    //subdomain->set(coordinate, Cell((double)x/(double)XDIM, 0.0, 0.0, 0.0));   // Cell initialisation with non-uniform elevation
+	    //subdomain->set(coordinate, Cell(0.0, (double)x/(double)XDIM, 0.0, 0.0));   // Cell initialisation with non-uniform water_depth
+	    //subdomain->set(coordinate, Cell(x, y, 0.0, 0.0, 0.0, 0.0));
+	    subdomain->set(coordinate, Cell(x, y, celltype, 0.0, 0.0, 0.0, 0.0));
 	  }
       }
-    
   }
 };
 
@@ -310,10 +353,20 @@ public:
 void runSimulation()
 {
   SerialSimulator<Cell> sim(new CellInitializer());
+  
+  /*sim.addWriter(new PPMWriter<Cell>(&Cell::water_depth, 0.0, 1.0, "water_depth", outputFrequency, Coord<2>(1,1)));
+    sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 0.002, "qx", outputFrequency, Coord<2>(1,1)));
+    sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 0.002, "qy", outputFrequency, Coord<2>(1,1)));
+    sim.addWriter(new PPMWriter<Cell>(&Cell::x, 0, 9, "x", outputFrequency, Coord<2>(1,1)));
+    sim.addWriter(new PPMWriter<Cell>(&Cell::y, 0, 9, "y", outputFrequency, Coord<2>(1,1)));*/
 
-  sim.addWriter(new PPMWriter<Cell>(&Cell::water_depth, 0.0, 1.0, "water_depth", outputFrequency, Coord<2>(1,1)));
-  sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 0.002, "qx", outputFrequency, Coord<2>(1,1)));
-  sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 0.002, "qy", outputFrequency, Coord<2>(1,1)));
+  
+  
+  //sim.addWriter(new ASCIIWriter<Cell>(Selector<Cell>(&Cell::x,   "x"), "x_coord", outputFrequency));
+  
+  /*sim.addWriter(new ASCIIWriter<Cell>(&Cell::x, 0.0, 1.0, "x", outputFrequency, Coord<2>(1,1)));
+    sim.addWriter(new ASCIIWriter<Cell>(&Cell::y, 0.0, 1.0, "y", outputFrequency, Coord<2>(1,1)));*/
+  
   sim.addWriter(new TracingWriter<Cell>(outputFrequency, STEPS));
   
   sim.run();
