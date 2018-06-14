@@ -17,7 +17,8 @@ using namespace LibGeoDecomp;
 #define edgeslope 0.005
 
 
-enum CellType {INTERNAL, EDGE_WEST, EDGE_EAST, EDGE_NORTH, EDGE_SOUTH, CORNER_NW, CORNER_NE, CORNER_SW, CORNER_SE}; // should declare this elsewhere (header file?). Used in both both Cell and CellInitializer classes. 
+// DEBUG CellType option is just for debugging
+enum CellType {DEBUG, INTERNAL, EDGE_WEST, EDGE_EAST, EDGE_NORTH, EDGE_SOUTH, CORNER_NW, CORNER_NE, CORNER_SW, CORNER_SE}; // should declare this elsewhere (header file?). Used in both both Cell and CellInitializer classes. 
 
 
 
@@ -43,8 +44,8 @@ public:
   TNT::Array1D<double> vel_dir = TNT::Array1D<double> (9, 0.0); // refactor (redefinition of declaration in include/catchmentmodel/LSDCatchmentModel.hpp
   double waterinput = 0; // refactor (already declared in include/catchmentmodel/LSDCatchmentModel.hpp)
   unsigned rfnum = 1; // refactor (already declared in include/catchmentmodel/LSDCatchmentModel.hpp)
-
-
+  
+  
   // refactor - Should replace these defines with type alias declarations (= C++11 template typedef)
   // refactor - check that grid orientation makes sense (write test)
 #define WEST neighborhood[Coord<2>(-1, 0)]   // refactor: have used this for array[x-1][y]
@@ -65,22 +66,36 @@ public:
   double froude_limit = 1.0;
   // ***********************************************************************
   
+
+
+
   
   
   
   template<typename COORD_MAP>
   void update(const COORD_MAP& neighborhood, unsigned nanoStep)
   {
-    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    // THE WATER ROUTING ALGORITHM: LISFLOOD-FP
-    //
-    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    flow_route_x(neighborhood);
+    flow_route_y(neighborhood);
+    depth_update(neighborhood);
+  } 
 
-    
-    //---------------------------
-    // routing in x direction
-    //---------------------------
 
+
+
+
+
+  
+  
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // THE WATER ROUTING ALGORITHM: LISFLOOD-FP
+  //
+  //           X direction
+  //
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  template<typename COORD_MAP>
+  void flow_route_x(const COORD_MAP& neighborhood)
+  {
     double hflow;
     double tempslope;
     
@@ -149,8 +164,6 @@ public:
       break;
     }
     
-    
-		
     // calc velocity now
     //if (qx > 0)
     //  {
@@ -163,12 +176,21 @@ public:
 	WEST.vel_dir[3] = (0 - qx) / hflow;
 	}
 	}*/
-    
-    
+  }
 
-    //---------------------------
-    //routing in the y direction
-    //---------------------------
+
+
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // THE WATER ROUTING ALGORITHM: LISFLOOD-FP
+  //
+  //           Y direction
+  //
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  template<typename COORD_MAP>
+  void flow_route_y(const COORD_MAP& neighborhood)
+  {
+    double hflow;
+    double tempslope;
 
     switch (celltype){
     case INTERNAL:
@@ -235,8 +257,6 @@ public:
       break;
     }
 			
-			
-    
     // calc velocity now
     //if (qy > 0)
     //  {
@@ -249,27 +269,15 @@ public:
 		{
 		NORTH.vel_dir[5] = (0 - qy) / hflow;
 		}
-
+		
 		}*/
-
-
-    depth_update(neighborhood);
-    
-    
   }
-  
-
-
-
-
-
-
-
 
 
 
 
   
+
   
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   // DEPTH UPDATE
@@ -278,7 +286,6 @@ public:
   template<typename COORD_MAP>
   void depth_update(const COORD_MAP& neighborhood)
   {
-    
     double local_time_factor = time_factor; // refactor?
     
     switch (celltype){
@@ -294,6 +301,8 @@ public:
     case CORNER_SW:
     case CORNER_NE:
       water_depth += 0.0; // Appropriate boundary condition?
+    case DEBUG:
+      water_depth = 1.0;
     default:
       break;
     }
@@ -309,24 +318,17 @@ public:
     waterinput = 0;
     catchment_water_input_and_hydrology();
   }
-  
-  
-  
-  
+    
   
   void catchment_water_input_and_hydrology()
   {
-    water_depth += 0.000001;  // refactor - dummy for now
-    
     // topmodel_runoff(); (call some number of times depending on timescales)
     // calchydrograph();
     // zero_and_calc_drainage_area();
     // get_catchment_input_points();
   }
-  
-  
 
-
+  
   void update_qx(double hflow, double tempslope)
   {
     qx = ((qx - (gravity * hflow * local_time_factor * tempslope))	\
@@ -335,15 +337,12 @@ public:
   }
 
 
-
   void update_qy(double hflow, double tempslope)
   {
     qy = ((qy - (gravity * hflow * local_time_factor * tempslope))	\
 	  / (1 + gravity * hflow * local_time_factor * (mannings * mannings) \
 	     * std::abs(qy) / std::pow(hflow, (10 / 3))));
   }
-
-
 
 
   void checks_qx(double hflow)
@@ -419,11 +418,7 @@ public:
 	qy = 0 - ((NORTH.water_depth * DX) / 5) / local_time_factor;
       }
   }
-  
-
-
-  
-};
+}; // end of Cell class
 
 
 
@@ -477,11 +472,24 @@ public:
 	    
 	    Coord<2> coordinate(x, y);
 
-	    // Uniform zero elevation, initial water depth 1.0 in central cell
-	    if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0)); // 
-	    else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0));
+	    // DEBUG TEST INITIALISATIONS
 	    
-	    // Constant ascending slope in x direction, initial water depth 1.0 in central cell
+	    // Uniform zero elevation, uniform zero water depth
+	    //subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0));
+
+	    // Uniform zero elevation, uniform small water depth
+	    //subdomain->set(coordinate, Cell(celltype, 0.0, 0.1, 0.0, 0.0));
+	    
+	    // Uniform zero elevation, initial water depth 1.0 in central cell and zero elsewhere
+	    if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0)); 
+	    else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0));
+
+	    // Uniform zero elevation, water depth always at 1.0 in central cell, initial water depth zero elsewhere
+	    /*CellType central = DEBUG;
+	    if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(central, 0.0, 1.0, 0.0, 0.0)); 
+	    else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0));*/
+	    	    
+	    // Constant ascending elevation in x direction, initial water depth 1.0 in central cell and zero elsewhere
 	    /*	    if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, (double)x/(double)XDIM, 1.0, 0.0, 0.0)); // 
 		    else subdomain->set(coordinate, Cell(celltype, (double)x/(double)XDIM, 0.0, 0.0, 0.0));*/
 	  }
