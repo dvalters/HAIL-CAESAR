@@ -18,7 +18,7 @@ using namespace LibGeoDecomp;
 
 
 // DEBUG CellType option is just for debugging
-enum CellType {DEBUG, INTERNAL, EDGE_WEST, EDGE_EAST, EDGE_NORTH, EDGE_SOUTH, CORNER_NW, CORNER_NE, CORNER_SW, CORNER_SE}; // should declare this elsewhere (header file?). Used in both both Cell and CellInitializer classes. 
+enum CellType {DEBUG, NODATA, INTERNAL, EDGE_WEST, EDGE_EAST, EDGE_NORTH, EDGE_SOUTH, CORNER_NW, CORNER_NE, CORNER_SW, CORNER_SE}; // should declare this elsewhere (header file?). Used in both both Cell and CellInitializer classes. 
 
 
 
@@ -98,71 +98,57 @@ public:
   {
     double hflow;
     double tempslope;
+    double west_water_depth;
+    double west_elev;
+
+    //DEBUG TYPE?
     
     switch (celltype){
     case INTERNAL:
     case EDGE_NORTH:
     case EDGE_SOUTH:
-      if( (water_depth > 0 || WEST.water_depth > 0) )
-	{
-	  hflow = std::max(elev + water_depth, WEST.elev + WEST.water_depth) - std::max(elev, WEST.elev);
-	  if(hflow > hflow_threshold)
-	    {
-	      tempslope = ((WEST.elev + WEST.water_depth) - (elev + water_depth)) / DX;
-	      update_qx(hflow, tempslope);
-	      checks_qx(hflow);
-	      check_negative_discharge_qx(neighborhood);
-	    }
-	  else
-	    {
-	      qx = 0.0;
-	      //qxs = 0.0;
-	    }
-	}
+      west_elev = WEST.elev;
+      west_water_depth = WEST.water_depth;
+      tempslope = ((west_elev + west_water_depth) - (elev + water_depth)) / DX;
       break;
     case EDGE_WEST:
     case CORNER_NW:
     case CORNER_SW:
-      if (water_depth > 0) // Appropriate condition?
-	{
-	  hflow = water_depth;  // GUESSING: uses above equation but make assumption about WEST
-	  if(hflow > hflow_threshold)
-	    {
-	      tempslope = -edgeslope;
-	      update_qx(hflow, tempslope);
-	      checks_qx(hflow);
-	      // Need adapted negative discharge check here?
-	    }
-	  else
-	    {
-	      qx = 0.0;
-	      //qxs = 0.0;
-	    }
-	}
+      west_elev = -9999;
+      west_water_depth = 0.0;
+      tempslope = -edgeslope;
       break;
     case EDGE_EAST:
     case CORNER_NE:
     case CORNER_SE:
-      if (water_depth > 0 || WEST.water_depth > 0)
-	{
-	  hflow = std::max(elev + water_depth, WEST.elev + WEST.water_depth) - std::max(elev, WEST.elev);
-	  if(hflow > hflow_threshold)
-	    {
-	      tempslope = edgeslope;
-	      update_qx(hflow, tempslope);
-	      checks_qx(hflow);
-	      check_negative_discharge_qx(neighborhood);
-	    }
-	  else
-	    {
-	      qx = 0.0;
-	      //qxs = 0.0;
-	    }
-	}
+      west_elev = WEST.elev;
+      west_water_depth = WEST.water_depth;
+      tempslope = edgeslope;
       break;
     default:
+      
       break;
     }
+
+    
+    if (water_depth > 0 || west_water_depth > 0)
+      {
+	hflow = std::max(elev + water_depth, west_elev + west_water_depth) - std::max(elev, west_elev);
+	if (hflow > hflow_threshold)
+	  {
+	    update_qx(hflow, tempslope);
+	    checks_qx(hflow);
+	    check_negative_discharge_qx(west_water_depth);
+	  }
+	else
+	  {
+	    qx = 0.0;
+	    // qxs = 0.0;
+	  }
+      }
+    
+
+    
     
     // calc velocity now
     //if (qx > 0)
@@ -191,72 +177,55 @@ public:
   {
     double hflow;
     double tempslope;
-
+    double north_elev;
+    double north_water_depth;
+      
     switch (celltype){
     case INTERNAL:
     case EDGE_WEST:
     case EDGE_EAST:
-      if((water_depth > 0 || NORTH.water_depth > 0))
-	{
-	  hflow = std::max(elev + water_depth, NORTH.elev + NORTH.water_depth) - std::max(elev, NORTH.elev);
-	  if (hflow > hflow_threshold)
-	    {
-	      tempslope = ((NORTH.elev + NORTH.water_depth) - (elev + water_depth)) / DY;
-	      update_qy(hflow, tempslope);
-	      checks_qy(hflow);
-	      check_negative_discharge_qy(neighborhood);
-	    }
-	  else
-	    {
-	      qy = 0.0;
-	      //qys = 0.0;
-	    }
-	}
-      break;
+      north_elev = NORTH.elev;
+      north_water_depth = NORTH.water_depth;
+      tempslope = ((NORTH.elev + NORTH.water_depth) - (elev + water_depth)) / DY;
+    break;
     case EDGE_NORTH:
     case CORNER_NW:
     case CORNER_NE:
-      if(water_depth > 0) // Appropriate condition?
-	{
-	  hflow = water_depth; // GUESSING: uses above equation but makes assumption about NORTH
-	  if (hflow > hflow_threshold)
-	    {
-	      tempslope = -edgeslope;
-	      update_qy(hflow, tempslope);
-	      checks_qy(hflow);
-	      // Need adapted negative discharge check here?
-	    }
-	  else
-	    {
-	      qy = 0.0;
-	      //qys = 0.0;
-	    }
-	}
+      north_elev = -9999;
+      north_water_depth = 0.0;
+      tempslope = -edgeslope;
       break;
     case EDGE_SOUTH:
     case CORNER_SW:
     case CORNER_SE:
-      if((water_depth > 0 || NORTH.water_depth > 0))
-	{
-	  hflow = std::max(elev + water_depth, NORTH.elev + NORTH.water_depth) - std::max(elev, NORTH.elev);
-	  if (hflow > hflow_threshold)
-	    {
-	      tempslope = edgeslope;
-	      update_qy(hflow, tempslope);
-	      checks_qy(hflow);
-	      check_negative_discharge_qy(neighborhood);
-	    }
-	  else
-	    {
-	      qy = 0.0;
-	      // qys = 0.0;
-	    }
-	}
+      north_elev = NORTH.elev;
+      north_water_depth = NORTH.water_depth;
+      tempslope = edgeslope;
       break;
     default:
       break;
     }
-			
+
+  
+    if (water_depth > 0 || north_water_depth > 0)
+      {
+	hflow = std::max(elev + water_depth, north_elev + north_water_depth) - std::max(elev, north_elev);
+	if (hflow > hflow_threshold)
+	  {
+	    update_qy(hflow, tempslope);
+	    checks_qy(hflow);
+	    check_negative_discharge_qy(north_water_depth);
+	  }
+	else
+	  {
+	    qy = 0.0;
+	    // qys = 0.0;
+	  }
+      }
+
+    
+
+    
     // calc velocity now
     //if (qy > 0)
     //  {
@@ -399,23 +368,21 @@ public:
   }
 
   
-  template<typename COORD_MAP>
-    void check_negative_discharge_qx(const COORD_MAP& neighborhood)
+  void check_negative_discharge_qx(double west_water_depth)
   {
     // If the discharge is negative and too large, scale back...
-    if (qx < 0 && std::abs(qx * local_time_factor / DX) > (WEST.water_depth / 4))
+    if (qx < 0 && std::abs(qx * local_time_factor / DX) > (west_water_depth / 4))
       {
-	qx = 0 - ((WEST.water_depth * DX) / 5) / local_time_factor;
+	qx = 0 - ((west_water_depth * DX) / 5) / local_time_factor;
       }
   }
   
-  template<typename COORD_MAP>
-    void check_negative_discharge_qy(const COORD_MAP& neighborhood)
+    void check_negative_discharge_qy(double north_water_depth)
   {
     // If the discharge is negative and too large, scale back...
-    if (qy < 0 && std::abs(qy * local_time_factor / DX) > (NORTH.water_depth / 4)) 
+    if (qy < 0 && std::abs(qy * local_time_factor / DX) > (north_water_depth / 4)) 
       {
-	qy = 0 - ((NORTH.water_depth * DX) / 5) / local_time_factor;
+	qy = 0 - ((north_water_depth * DX) / 5) / local_time_factor;
       }
   }
 }; // end of Cell class
