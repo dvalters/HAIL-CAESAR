@@ -43,15 +43,16 @@ public:
        double water_depth_in = 0.0,		\
        double qx_in = 0.0,			\
        double qy_in = 0.0,			\
-       bool persistent_rain_flag = false)					\
-    : celltype(celltype_in), elev(elev_in), water_depth(water_depth_in), qx(qx_in), qy(qy_in), persistent_rain(persistent_rain_flag)
+       bool persistent_rain_in = false)					\
+    : celltype(celltype_in), elev(elev_in), water_depth(water_depth_in), qx(qx_in), qy(qy_in), persistent_rain(persistent_rain_in)
   {}
   
   CellType celltype;
   double elev, water_depth;
   double qx, qy;
   TNT::Array1D<double> vel_dir = TNT::Array1D<double> (9, 0.0); // refactor (redefinition of declaration in include/catchmentmodel/LSDCatchmentModel.hpp
-  double waterinput = 0; // refactor (already declared in include/catchmentmodel/LSDCatchmentModel.hpp)
+  static constexpr double waterinput = 0.0; // refactor (already declared in include/catchmentmodel/LSDCatchmentModel.hpp)
+  static constexpr double water_depth_erosion_threshold = 0.0; // ?
   unsigned rfnum = 1; // refactor (already declared in include/catchmentmodel/LSDCatchmentModel.hpp)
   
   
@@ -90,6 +91,7 @@ public:
   {
     set_global_timefactor();
     set_local_timefactor();
+    water_flux_out();
     flow_route_x(neighborhood);
     flow_route_y(neighborhood);
     depth_update(neighborhood);
@@ -98,8 +100,49 @@ public:
 
 
 
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  // WATER FLUXES OUT OF CATCHMENT
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  //
+  // Calculate the water coming out and zero any water depths at the edges
+  // This will actually set it to the minimum water depth
+  // This must be done so that water can still move sediment to the edge of the catchment
+  // and hence remove it from the catchment. (otherwise you would get sediment build
+  // up around the edges.
+  //
+  // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  void water_flux_out()
+  {
+    // must still figure out best way to accumulate total across cells during update executed by LibGeodecomp
+    switch(celltype){
+    case INTERNAL:
+    case EDGE_WEST_INNER:
+    case EDGE_NORTH_INNER:
+    case CORNER_NW_INNER:
+    case CORNER_NW_XPLUS1:
+    case CORNER_NW_YPLUS1:
+    case CORNER_NE_YPLUS1:
+    case CORNER_SW_XPLUS1:
+      break;
+    case EDGE_WEST:
+    case EDGE_NORTH:
+    case EDGE_EAST:
+    case EDGE_SOUTH:
+    case CORNER_NW:
+    case CORNER_NE:
+    case CORNER_SE:
+    case CORNER_SW:
+      if (water_depth > water_depth_erosion_threshold) water_depth = water_depth_erosion_threshold;
+      break;
+    default:
+      std::cout << "\n\n WARNING: no water_flux_out rule specified for cell type " << celltype << "\n\n";
+      break;
+    }
+  }
+  
 
 
+  
   
   
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -186,8 +229,10 @@ public:
 	{
 	WEST.vel_dir[3] = (0 - qx) / hflow;
 	}
+
 	}*/
   }
+
 
 
 
@@ -354,7 +399,7 @@ public:
   void catchment_waterinputs() // refactor - incomplete (include runoffGrid for complex rainfall)
   {
     // refactor - incomplete
-    waterinput = 0;
+    //waterinput = 0;
     catchment_water_input_and_hydrology();
   }
   
