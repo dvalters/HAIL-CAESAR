@@ -161,10 +161,9 @@ public:
 	hflow = std::max(elev + water_depth, west_elev + west_water_depth) - std::max(elev, west_elev);
 	if (hflow > hflow_threshold)
 	  {
-	    update_qx(hflow, tempslope);
-	    froude_check_x(hflow);
-	    discharge_check_x();
-	    discharge_check_x_negative(west_water_depth);
+	    update_q(qx, hflow, tempslope);
+	    froude_check(qx, hflow);
+	    discharge_check(qx, west_water_depth, DX);
 	  }
 	else
 	  {
@@ -251,10 +250,9 @@ public:
 	hflow = std::max(elev + water_depth, north_elev + north_water_depth) - std::max(elev, north_elev);
 	if (hflow > hflow_threshold)
 	  {
-	    update_qy(hflow, tempslope);
-	    froude_check_y(hflow);
-	    discharge_check_y();
-	    discharge_check_y_negative(north_water_depth);
+	    update_q(qy, hflow, tempslope);
+	    froude_check(qy, hflow);
+	    discharge_check(qy, north_water_depth, DY);
 	  }
 	else
 	  {
@@ -338,9 +336,9 @@ public:
       std::cout << "\n\n WARNING: no depth update rule specified for cell type " << CellType(int(celltype))<< "\n\n";
       break;
     }
-
-
-	if(persistent_rain) water_depth = 1.0;
+    
+    
+    if(persistent_rain) water_depth = 1.0;
       
   }
   
@@ -370,84 +368,44 @@ public:
   }
   
   
-  void update_qx(double hflow, double tempslope)
+  void update_q(double &q, double hflow, double tempslope)
   {
-    qx = ((qx - (gravity * hflow * local_time_factor * tempslope))	\
-	  / (1 + gravity * hflow * local_time_factor * (mannings * mannings) \
-	     * std::abs(qx) / std::pow(hflow, (10.0 / 3.0))));
-  }
-  
-  
-  void update_qy(double hflow, double tempslope)
-  {
-    qy = ((qy - (gravity * hflow * local_time_factor * tempslope))	\
+    q = ((q - (gravity * hflow * local_time_factor * tempslope))	\
 	  / (1 + gravity * hflow * local_time_factor * (mannings * mannings) \
 	     * std::abs(qy) / std::pow(hflow, (10.0 / 3.0))));
   }
-  
-  
-  void froude_check_x(double hflow)
+
+
+  // FROUDE NUMBER CHECK
+  // need to have these lines to stop too much water moving from
+  // one cell to another - resulting in negative discharges
+  // which causes a large instability to develop
+  // - only in steep catchments really
+  void froude_check(double &q, double hflow)
   {
-    if ((std::abs(qx / hflow) / std::sqrt(gravity * hflow)) > froude_limit)
+    if ((std::abs(q / hflow) / std::sqrt(gravity * hflow)) > froude_limit)
       {
-	qx = std::copysign(hflow * (std::sqrt(gravity*hflow) * froude_limit), qx);
+	q = std::copysign(hflow * (std::sqrt(gravity*hflow) * froude_limit), q);
       }
   }
   
-  void froude_check_y(double hflow)
+  
+  // DISCHARGE MAGNITUDE/TIMESTEP CHECKS
+  // If the discharge is too high for this timestep, scale back...
+  void discharge_check(double &q, double neighbour_water_depth, double Delta)
   {
-    // need to have these lines to stop too much water moving from
-    // one cell to another - resulting in negative discharges
-    // which causes a large instability to develop
-    // - only in steep catchments really
+    double criterion_magnitude = std::abs(q * local_time_factor / Delta);
     
-    if ((std::abs(qy / hflow) / std::sqrt(gravity * hflow)) > froude_limit)
+    if (q > 0 && criterion_magnitude > (water_depth / 4))
       {
-	qy = std::copysign(hflow * (std::sqrt(gravity*hflow) * froude_limit), qy);
+	q = ((water_depth * Delta) / 5) / local_time_factor;
       }
-  }
-  
-  
-  // DISCHARGE MAGNITUDE/TIMESTEP CHECKS
-  // If the discharge is too high for this timestep, scale back...
-  void discharge_check_x()
-  {
-    if (qx > 0 && (qx * local_time_factor / DX) > (water_depth / 4))
+    else if (q < 0 && criterion_magnitude > (neighbour_water_depth / 4))
       {
-	qx = ((water_depth * DX) / 5) / local_time_factor;
-      }
-    }
-
-  
-  // DISCHARGE MAGNITUDE/TIMESTEP CHECKS
-  // If the discharge is too high for this timestep, scale back...
-  void discharge_check_y()
-  {
-    if (qy > 0 && (qy * local_time_factor / DX) > (water_depth / 4)) 
-      {
-	qy = ((water_depth * DX) / 5) / local_time_factor;
+	q = -((neighbour_water_depth * Delta) / 5) / local_time_factor;
       }
   }
 
-  
-  void discharge_check_x_negative(double west_water_depth)
-  {
-    // If the discharge is negative and too large, scale back...
-    if (qx < 0 && std::abs(qx * local_time_factor / DX) > (west_water_depth / 4))
-      {
-	qx = 0 - ((west_water_depth * DX) / 5) / local_time_factor;
-      }
-  }
-  
-  void discharge_check_y_negative(double north_water_depth)
-  {
-    // If the discharge is negative and too large, scale back...
-    if (qy < 0 && std::abs(qy * local_time_factor / DX) > (north_water_depth / 4)) 
-      {
-	qy = 0 - ((north_water_depth * DX) / 5) / local_time_factor;
-      }
-  }
-  
   
   void set_global_timefactor()
   {
