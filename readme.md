@@ -19,9 +19,10 @@ HAIL-CAESAR doesn't have a GUI - the model is run from scripts or from typing co
 
 [Documentation can be found here](http://hail-caesar.readthedocs.io/en/latest).
 
+### Why is it called HAIL-CAESAR?
 
+*Historical interlude...*
 
-
-
+The original CAESAR Model stood for **C**ellular **A**utomaton **E**volutionary **S**lope **a**nd **R**iver model. It was developed by [Tom Coulthard](http://www.coulthard.org.uk/) and was originally written in the C programming language. Later it was ported to the C# programming language and developed a GUI and you can watch the flood simulation update in real time on screen. Later still (2013), it was coupled with a flood inundation model, LISFLOOD-FP, which replaced the existing non-hydrodynamic flow routing model in CAESAR. In 2014-2016, it was translated into C++ to facilitate an OpenMP parallelisation of the model, so that it could be compiled and run on different computing services such as clusters and HPC, which are usually linux-based. I called it the **H**igh **P**erformance **A**rchitecture **I**ndependent **L**isflood **CAESAR** model, because everybody loves a good project acronym...
 
 

@@ -7,7 +7,7 @@
 
 # FILE INFORMATION
 #=================
-read_fname:                    boscastle_square_5000cm      # TOP-LAYER DEM NAME, NO EXTENSION PLEASE
+read_fname:                    boscastle_square_500cm      # TOP-LAYER DEM NAME, NO EXTENSION PLEASE
 dem_read_extension:            asc                    # OPTIONS ARE ASC OR NOWT
 dem_write_extension:           asc                    # OPTIONS ARE ASC OR NOWT
 read_path:                     /home/dvalters/Datasets/test-hail-caesar/boscastle-test-data/
@@ -17,8 +17,8 @@ timeseries_save_interval:      5                      # IN MODEL MINUTES
 
 # SUPPLEMENTARY FILES
 #====================
-hydroindex_file:               #boscastle_hydroindex_test_5m_uncropped.asc   # NODATA VALUE MUST BE INTEGER!
-rainfall_data_file:            boscastle-uniform-rainfall-test.txt   # NO NEWLINE AT END OF FILE!
+hydroindex_file:               boscastle_hydroindex_test_5m_uncropped.asc   # NODATA VALUE MUST BE INTEGER!
+rainfall_data_file:            boscastle-spatially-variable-rainfall-test.txt   # NO NEWLINE AT END OF FILE!
 grain_data_file:               #boscastle5m_spunup_grain.txt
 bedrock_data_file:             #boscastle7m_bedrock_fill.asc
 
@@ -68,8 +68,8 @@ hflow_threshold:               0.00001     # IN METRES, DETERMINES IF HORIZ. FLO
 rainfall_data_on:              yes         # HAVE YOU SET A RAINFALL FILE? 
                                            # VALUES IN MM/HR, REGARDLESS OF TIMESTEP
 rain_data_time_step:           5           # MINUTES, MUST MATCH RAINFALL FILE
-spatial_var_rain:              no         # WILL READ IN HYDROINDEX FILE
-num_unique_rain_cells:         1           # SHOULD MATCH HYDROINDEX ZONES, COUNT THEM
+spatial_var_rain:              yes         # WILL READ IN HYDROINDEX FILE
+num_unique_rain_cells:         28           # SHOULD MATCH HYDROINDEX ZONES, COUNT THEM
 spatially_complex_rainfall_on: no          # UNTESTED...
 interpolation_method:          cubic       # CAREFUL NOW.
 
