@@ -1,7 +1,9 @@
 {
-  "Final water depth": {
-    "expected": "known_good_answers\/boscastle_water_depth_XXX.asc",
-    "result": "results\/boscastle_water_depth_XXX.asc"
+  "Final water depth raster": {
+    "expected": "known_good_answers\/boscastle50m_72hr_u/WaterDepths3360.asc",
+    "result": "results\/boscastle50m_72_u/WaterDepths3360.asc"
   },
 }
+
+
 
