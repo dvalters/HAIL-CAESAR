@@ -1,38 +1,29 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Parameter File &mdash; HAIL-CAESAR 1.0 documentation</title>
-    
+    <title>Parameters &#8212; HAIL-CAESAR 1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="HAIL-CAESAR 1.0 documentation" href="index.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Running the Model" href="running.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   
 
     <div class="document">
@@ -40,422 +31,308 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="parameter-file">
-<h1>Parameter File<a class="headerlink" href="#parameter-file" title="Permalink to this headline">¶</a></h1>
-<p>The parameter file is read by the CatchmentModel program when it starts,
-setting the variables for various components of the model, as well as
-the names of the DEM files and supplementary input files needed for the
-model simulation. It is a plain text file and can be called anything you
-like. By convention, the example parameter file supplied with the code
-has the suffix <code class="docutils literal"><span class="pre">.params</span></code>, but you may use whatever you like.</p>
-<p>Anything in the parameter file preceded by a <code class="docutils literal"><span class="pre">#</span></code> will be treated as a
-comment. You are free to comment away in the parameter file to your
-heart’s content.</p>
+  <div class="section" id="parameters">
+<h1>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h1>
+<p>The parameter file (<code class="docutils literal notranslate"><span class="pre">HailCaesar.params</span></code>) is read by the program when it starts, setting the variables for various components of the model, as well as the names of the DEM files and supplementary input files needed for the model simulation. It is a plain text file and can be called anything you like. By convention, the example parameter file supplied with the code has the suffix <code class="docutils literal notranslate"><span class="pre">.params</span></code>, but you may use whatever you like.</p>
+<p>Anything in the parameter file preceded by a <code class="docutils literal notranslate"><span class="pre">#</span></code> will be treated as a
+comment. You are free to comment away in the parameter file to your heart’s content.</p>
 <p>The order of the parameters in the parameter file is not strict, but we
 stick to the convention used in the sample file for reference here. The
 parameter names must not be changed, and must be lowercase.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="26%" />
-<col width="26%" />
-<col width="49%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Parameter Name</th>
-<th class="head">Units/Data Type</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">read_fname</span></code></td>
-<td>text</td>
-<td>The name of your DEM that will act
-as the terrain surface in the model.
-Do not give the extension here.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">dem_read_extensi</span>
-<span class="pre">on</span></code></td>
-<td>text</td>
-<td>The extension of the input DEM. Only
-ASCII (asc) is currently supported,
-we are working on supporting other
-input formats soon.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">dem_write_extens</span>
-<span class="pre">ion</span></code></td>
-<td>text</td>
-<td>The format to save output rasters
-in. Supported choices are: &#8216;asc&#8217; or
-&#8216;flt&#8217; (binary). &#8216;bil&#8217; also works but
-no georeferencing is supported yet.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">read_path</span></code></td>
-<td>text</td>
-<td>The path where your input files can
-be found</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">write_path</span></code></td>
-<td>text</td>
-<td>The path where your output files
-will be written</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">write_fname</span></code></td>
-<td>text</td>
-<td>A name for the output timeseries
-file. You can supply your own
-extension, but it will always be a
-plain text file.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">timeseries_save_</span>
-<span class="pre">interval</span></code></td>
-<td>model
-minutes/integer</td>
-<td>Will record a timeseries record (new
-row) every X minutes in model time.
-The timeseries output contains the
-discharge of water and sediment.</td>
-</tr>
-<tr class="row-odd"><td colspan="3"><code class="docutils literal"><span class="pre">SUPPLEMENTARY</span> <span class="pre">INPUT</span></code></td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">hydroindex_file</span></code></td>
-<td>text</td>
-<td>The hydroindex file name (with
-extension). Only ascii (asc)
-currently supported.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">rainfall_data_fi</span>
-<span class="pre">le</span></code></td>
-<td>text</td>
-<td>The rainfall data file name (with
-extension). Must be a plain text
-file.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">grain_data_file</span></code></td>
-<td>text</td>
-<td>Name of your grain data input file.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">bedrock_data_fil</span>
-<span class="pre">e</span></code></td>
-<td>text</td>
-<td>Name of the bedrock DEM. If
-specified, this DEM (ascii only)
-will be loaded as a solid bedrock
-layer beneath your top-layer terrain
-DEM. It’s up to the use to make sure
-the elevations are lower than the
-top layer!</td>
-</tr>
-<tr class="row-even"><td colspan="3"><code class="docutils literal"><span class="pre">NUMERICAL</span></code></td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">min_time_step</span></code></td>
-<td>model seconds,
-integer</td>
-<td>The minimum timestep used in the
-model</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">max_time_step</span></code></td>
-<td>model seconds,
-integer</td>
-<td>Maximum timestep used by model.
-Should not really be higher than
-your rainfall data interval,
-otherwise you will skip input data.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">max_run_</span>
-<span class="pre">duration</span></code></td>
-<td>model hours,
-integer</td>
-<td>Length of your simulation, minus 1.
-(So for a 72 hour simulation, enter
-&#8216;71&#8217; here.) This is a weird quirk
-that will be fixed in a later
-release.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">memory_limit</span></code></td>
-<td>&nbsp;</td>
-<td>Ignore, leave at 1.</td>
-</tr>
-<tr class="row-odd"><td colspan="3"><code class="docutils literal"><span class="pre">SEDIMENT</span></code></td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">transport_law</span></code></td>
-<td>text</td>
-<td>Can either be <strong>wilcock</strong> or
-<strong>einstein</strong>. Determines which
-sediment transport law is used by
-the model.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">max_tau_</span>
-<span class="pre">velocity</span></code></td>
-<td>meters/second</td>
-<td>Limits the maximum velocity used to
-calculate sediment transport. The
-default is 5. It is rarely invoked
-except in very steep slopes.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">active_layer_thi</span>
-<span class="pre">ckness</span></code></td>
-<td>metres</td>
-<td>This controls the thickness of layer
-representing the surface, bedload or
-subsurface. It should be around 0.1
-to 0.2. It must be at least 4 times
-the <strong>erode_limit</strong> parameter. (See
-below)</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">chann_lateral_er</span>
-<span class="pre">osion</span></code></td>
-<td>&nbsp;</td>
-<td>In channel lateral erosion rate.
-Prevents overdeepening feedback.
-<a class="reference external" href="http://www.showme.com/sh/?i=24567">See explanation
-here</a></td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">erode_limit</span></code></td>
-<td>metres</td>
-<td>Maximum erosion limit per cell (or
-deposition). Prevents numerical
-instabilities by transferring too
-much between cell to cell. Should be
-around 0.01 for 10m or less DEMs,
-slightly higher for coarse DEMs.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">suspended_sedime</span>
-<span class="pre">nt_on</span></code></td>
-<td>boolean (yes/no)</td>
-<td>Turns on suspended sediment for the
-first fraction only at present.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">read_in_graindat</span>
-<span class="pre">a_from_file</span></code></td>
-<td>boolean (yes/no)</td>
-<td>Reads in the initial grain size data
-from a file. Normally the initial
-distribution of grainsizes is
-uniform across the landscape if this
-is not specified.</td>
-</tr>
-<tr class="row-odd"><td colspan="3"><code class="docutils literal"><span class="pre">LATERAL</span> <span class="pre">EROSION</span> <span class="pre">OPTIONS</span></code></td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">lateral_erosion_</span>
-<span class="pre">on</span></code></td>
-<td>boolean (yes/no)</td>
-<td>Turns on lateral erosion in channels
-(UNTESTED)</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">lateral_erosion_</span>
-<span class="pre">const</span></code></td>
-<td>&nbsp;</td>
-<td>See Coulthard and Van de Wiel (2007)
-for details. This parameter sets the
-lateral erosion rates, and ought to
-be calibrated to a field site.
-Values can ramge from 0.01-0.001 for
-braided rivers; 0.0001 for
-meandering channels. This value is
-grid cell size independent.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">edge_smoothing_p</span>
-<span class="pre">asses</span></code></td>
-<td>integer</td>
-<td>Determines how well smoothed the
-curvature of the channels will be.
-Should be set as the frequency of
-meanders/distance between two
-meanders in grid cell size.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">downstream_cell_</span>
-<span class="pre">shift</span></code></td>
-<td>integer</td>
-<td>The gradient used to determine
-lateral erosion rates can be shifted
-downstream, allowing meander bars
-and bends to migrate down channel.
-Suggested values are around 10% of
-the <strong>edge_smoothing_passes</strong>
-parameter. So around 1-5.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">lateral_cross_ch</span>
-<span class="pre">an_smoothing</span></code></td>
-<td>&nbsp;</td>
-<td>The maximum difference allowed in
-the the cross channel smoothing of
-edge values. After calculating the
-radius of curvature for the outside
-of a meander bend, the model must
-interpolate this value to determine
-how much sediment can be moved
-laterally. Smaller values result in
-better cross channel gradients, but
-take up more CPU time. Typical
-default value is 0.0001. If your
-channels are well resolved by DEM
-resolution, you may need to reduce
-by an order of magnitude.</td>
-</tr>
-<tr class="row-odd"><td colspan="3"><code class="docutils literal"><span class="pre">HYDROLOGY</span></code></td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">hydro_model_</span>
-<span class="pre">only</span></code></td>
-<td>boolean (yes/no)</td>
-<td>Runs the model as a
-hydrological/flood inundation model
-only if set to yes. Will turn off
-all the erosion routines and terrain
-will be fixed. Speeds up run times
-considerably.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">topmodel_m_</span>
-<span class="pre">value</span></code></td>
-<td>&nbsp;</td>
-<td><p class="first">As well as the water routing
-sub-model, LSDCatchmentModel also
-calculates the discharge based on
-Beven’s TOPMODEL (i.e. discharge
-approximation based on drainage area
-and topography. The model contains
-the infamous <strong>m</strong> parameter, which
-varies depending on environment. You
-should consult the literature for
-appropriate values.</p>
-<blockquote class="last">
-<div><p><strong>Tip</strong></p>
-<p>For catchment mode this is an
-important variable as it
-controls the peak and duration
-of the hydrograph generated by a
-rain event. It is the same as
-the &#8216;m&#8217; value in TOPMODEL, that
-CAESAR-lisflood’s hydrological
-model is based on. Typical
-values for m are from 0.02 (low
-- meaning low flood peaks and
-long duration hydrographs) to
-0.005 (higher, flashier peaks)
-and examples of values used can
-be found in the CAESAR and
-TOPMODEL literature.</p>
+<div class="section" id="parameter-file">
+<h2>Parameter File<a class="headerlink" href="#parameter-file" title="Permalink to this headline">¶</a></h2>
+<p><strong>This section contains explanations on each of the parameters</strong></p>
+<div class="section" id="file-information">
+<h3>File Information<a class="headerlink" href="#file-information" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="read-fname">
+<h4><code class="docutils literal notranslate"><span class="pre">read_fname</span></code><a class="headerlink" href="#read-fname" title="Permalink to this headline">¶</a></h4>
+<p>The name of the DEM (digital elevation model) file that contains the terrain surface/topography.
+<strong>No file extension</strong> should be included here.</p>
+</div>
+<div class="section" id="dem-read-extension">
+<h4><code class="docutils literal notranslate"><span class="pre">dem_read_extension</span></code><a class="headerlink" href="#dem-read-extension" title="Permalink to this headline">¶</a></h4>
+<p>The extension and format of the DEM file. The format is inferred from the extension given.</p>
+<div class="section" id="options">
+<h5>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h5>
+<blockquote>
+<div><ul class="simple">
+<li>asc (ASCII Grid/ESRI Grid)</li>
+</ul>
 </div></blockquote>
-</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">in_out_differenc</span>
-<span class="pre">e</span></code></td>
-<td>cumecs</td>
-<td>If greater than 0, allows the model
-to run faster in periods of
-hydrological steady state. If the
-difference between water entering
-the catchment and water leaving the
-catchment is equal to or less than
-this value, the model will increase
-the time step. The time step will
-then be determined by erosional and
-depositional processes, which are
-typically much slower acting. Can be
-set to a low mean annual flow value
-for the river.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">min_q_for_depth_</span>
-<span class="pre">calc</span></code></td>
-<td>cumecs</td>
-<td>Threshold for calculating flow
-depths. The model will not calculate
-flow depths when the discharge at a
-cell is below this value, avoiding
-CPU time spent calculating
-incredibly small flow amounts.
-Should be set to approximately 10%
-of grid cell size. e.g 0.5 for a 50m
-DEM.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">max_q_for_depth_</span>
-<span class="pre">calc</span></code></td>
-<td>cumecs</td>
-<td>An upper discharge threshold that
-will prevent water being added above
-the given discharge threshold.
-Typically 1000.0, but lowering the
-value will shift the balance of
-water being added to the headwaters,
-rather than lower down through the
-catchment.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">water_depth_eros</span>
-<span class="pre">ion_threshold</span></code></td>
-<td>metres</td>
-<td>If water depths are below this
-threshold, the model will not
-calculate erosion for that cell in
-that timestep. Used to prevent CPU
-time being spent on incredibly small
-amounts of erosion calculations.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">slope_on_edge_ce</span>
-<span class="pre">ll</span></code></td>
-<td>&nbsp;</td>
-<td>The slope used to calculate water
-flow on the edge of the DEM (since
-there is no neighbouring cell to
-calculate the downstream gradient.
-You should set this to approximately
-the same as the average channel
-gradient near the outlet of your
-river.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">evaporation_</span>
-<span class="pre">rate</span></code></td>
-<td>&nbsp;</td>
-<td>Untested/unimplemented yet</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">courant_number</span></code></td>
-<td>&nbsp;</td>
-<td>Controls the numerical stability and
-execution speed of the flow model.
-See Bates et al (2009). Typical
-values should be between 0.3 and
-0.7. Higher values will speed up the
-model, but are more unstable.
-Parameter is dependent on grid cell
-size. DEMs of 20-50m resolution can
-use values of 0.7, finer DEMs (e.g.
-&lt;2m) will need the lowest value of
-0.3, but do not set it lower than
-0.3.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">froude_num_</span>
-<span class="pre">limit</span></code></td>
-<td>&nbsp;</td>
-<td>Restricts flow between cells per
-time step, as too much can lead to
-checkerboarding effects. If this
-happens the froude number can be
-lowered. The default value of 0.8
-results in subcritical flow - flow
-dominated by gravitational forces
-and behving in a slow or stable way.
-A value of 1 results in critical
-flow, which may be ok for shallow
-flows at coarse grid cell
-resolutions. Note that reducing flow
-with the Froude number will reduce
-the speed of a flood wave moving
-downstream.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">mannings_n</span></code></td>
-<td>&nbsp;</td>
-<td>A roughness coefficient used by the
-flow model. <a class="reference external" href="http://www.fsl.orst.edu/geowater/FX3/help/8_Hydraulic_Reference/Mannings_n_Tables.htm">Values can be looked-up
-here.</a></td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">hflow_threshold</span></code></td>
-<td>metres</td>
-<td>This threshold prevents water being
-routed between adjacent cells when
-the gradient is incredibly small. A
-good default value is 0.00001.</td>
-</tr>
-</tbody>
-</table>
-<p>Table: Guide to the parameter file. Row/parameters can be in any order.</p>
+</div>
+</div>
+<div class="section" id="dem-write-extension">
+<h4><code class="docutils literal notranslate"><span class="pre">dem_write_extension</span></code><a class="headerlink" href="#dem-write-extension" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id1">
+<h5>Options<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h5>
+<blockquote>
+<div><ul class="simple">
+<li>asc</li>
+<li>flt</li>
+<li>bil</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="read-path">
+<h4><code class="docutils literal notranslate"><span class="pre">read_path</span></code><a class="headerlink" href="#read-path" title="Permalink to this headline">¶</a></h4>
+<p>The full path that the input files will be read from.
+e.g. DEMs, rainfall files, grain data files.</p>
+</div>
+<div class="section" id="write-path">
+<h4><code class="docutils literal notranslate"><span class="pre">write_path</span></code><a class="headerlink" href="#write-path" title="Permalink to this headline">¶</a></h4>
+<p>The full path that the output files will be read to.</p>
+</div>
+<div class="section" id="write-fname">
+<h4><code class="docutils literal notranslate"><span class="pre">write_fname</span></code><a class="headerlink" href="#write-fname" title="Permalink to this headline">¶</a></h4>
+<p>The output name for the timeseries output. (e.g. Hydrograph and Sedigraph.)
+Will be a plain text file.</p>
+</div>
+<div class="section" id="timeseries-save-interval">
+<h4><code class="docutils literal notranslate"><span class="pre">timeseries_save_interval</span></code><a class="headerlink" href="#timeseries-save-interval" title="Permalink to this headline">¶</a></h4>
+<p>The interval that data is written to the timeseries file. Should be in model minutes, I.e. simulated minutes. (Integer)</p>
+</div>
+</div>
+<div class="section" id="supplementary-files">
+<h3>Supplementary Files<a class="headerlink" href="#supplementary-files" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="hydroindex-file">
+<h4><code class="docutils literal notranslate"><span class="pre">hydroindex_file</span></code><a class="headerlink" href="#hydroindex-file" title="Permalink to this headline">¶</a></h4>
+<p>When using the spatially variable rainfall configuration. The hydroindex file name (with extension). Only ascii (asc) currently supported. This file is a DEM the same resolution and extent as the main terrain DEM, but the cell values are integers from 1, marking each region that will receive a different rainfall input record.</p>
+</div>
+<div class="section" id="rainfall-data-file">
+<h4><code class="docutils literal notranslate"><span class="pre">rainfall_data_file</span></code><a class="headerlink" href="#rainfall-data-file" title="Permalink to this headline">¶</a></h4>
+<p>Name fo the text file timeseries containing the rainfall rate at each rainfall input timestep in mm/hr.</p>
+</div>
+<div class="section" id="grain-data-file">
+<h4><code class="docutils literal notranslate"><span class="pre">grain_data_file</span></code><a class="headerlink" href="#grain-data-file" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="bedrock-data-file">
+<h4><code class="docutils literal notranslate"><span class="pre">bedrock_data_file</span></code><a class="headerlink" href="#bedrock-data-file" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="run-time-and-timestep">
+<h3>Run time and timestep<a class="headerlink" href="#run-time-and-timestep" title="Permalink to this headline">¶</a></h3>
+<p>These parameters control things like time stepping and how long the model runs for.</p>
+<div class="section" id="min-time-step">
+<h4><code class="docutils literal notranslate"><span class="pre">min_time_step</span></code><a class="headerlink" href="#min-time-step" title="Permalink to this headline">¶</a></h4>
+<p>The minimum timestep used in the model.</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>Units, data type</strong>: Model seconds, integer</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="max-time-step">
+<h4><code class="docutils literal notranslate"><span class="pre">max_time_step</span></code><a class="headerlink" href="#max-time-step" title="Permalink to this headline">¶</a></h4>
+<p>The maximum timestep used in the model</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>Units, data type</strong>: Model seconds, integer</li>
+<li><strong>Default value</strong>: 3600</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="run-time-start">
+<h4><code class="docutils literal notranslate"><span class="pre">run_time_start</span></code><a class="headerlink" href="#run-time-start" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="max-run-duration">
+<h4><code class="docutils literal notranslate"><span class="pre">max_run_duration</span></code><a class="headerlink" href="#max-run-duration" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="memory-limit">
+<h4><code class="docutils literal notranslate"><span class="pre">memory_limit</span></code><a class="headerlink" href="#memory-limit" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="sediment-transport">
+<h3>Sediment Transport<a class="headerlink" href="#sediment-transport" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="transport-law">
+<h4><code class="docutils literal notranslate"><span class="pre">transport_law</span></code><a class="headerlink" href="#transport-law" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="max-tau-velocity">
+<h4><code class="docutils literal notranslate"><span class="pre">max_tau_velocity</span></code><a class="headerlink" href="#max-tau-velocity" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="active-layer-thickness">
+<h4><code class="docutils literal notranslate"><span class="pre">active_layer_thickness</span></code><a class="headerlink" href="#active-layer-thickness" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="chann-lateral-erosion">
+<h4><code class="docutils literal notranslate"><span class="pre">chann_lateral_erosion</span></code><a class="headerlink" href="#chann-lateral-erosion" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="erode-limit">
+<h4><code class="docutils literal notranslate"><span class="pre">erode_limit</span></code><a class="headerlink" href="#erode-limit" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="suspended-sediment-on">
+<h4><code class="docutils literal notranslate"><span class="pre">suspended_sediment_on</span></code><a class="headerlink" href="#suspended-sediment-on" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="read-in-graindata-from-file">
+<h4><code class="docutils literal notranslate"><span class="pre">read_in_graindata_from_file</span></code><a class="headerlink" href="#read-in-graindata-from-file" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="bedrock-layer-on">
+<h4><code class="docutils literal notranslate"><span class="pre">bedrock_layer_on</span></code><a class="headerlink" href="#bedrock-layer-on" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+</div>
+<div class="section" id="lateral-bank-erosion">
+<h3>Lateral Bank Erosion<a class="headerlink" href="#lateral-bank-erosion" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="lateral-erosion-on">
+<h4><code class="docutils literal notranslate"><span class="pre">lateral_erosion_on</span></code><a class="headerlink" href="#lateral-erosion-on" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="lateral-erosion-const">
+<h4><code class="docutils literal notranslate"><span class="pre">lateral_erosion_const</span></code><a class="headerlink" href="#lateral-erosion-const" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="edge-smoothing-passes">
+<h4><code class="docutils literal notranslate"><span class="pre">edge_smoothing_passes</span></code><a class="headerlink" href="#edge-smoothing-passes" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="downstream-cell-shift">
+<h4><code class="docutils literal notranslate"><span class="pre">downstream_cell_shift</span></code><a class="headerlink" href="#downstream-cell-shift" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="lateral-cross-chan-smoothing">
+<h4><code class="docutils literal notranslate"><span class="pre">lateral_cross_chan_smoothing</span></code><a class="headerlink" href="#lateral-cross-chan-smoothing" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="hydrology">
+<h3>Hydrology<a class="headerlink" href="#hydrology" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="hydro-model-only">
+<h4><code class="docutils literal notranslate"><span class="pre">hydro_model_only</span></code><a class="headerlink" href="#hydro-model-only" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="topmodel-m-value">
+<h4><code class="docutils literal notranslate"><span class="pre">topmodel_m_value</span></code><a class="headerlink" href="#topmodel-m-value" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="in-out-difference">
+<h4><code class="docutils literal notranslate"><span class="pre">in_out_difference</span></code><a class="headerlink" href="#in-out-difference" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="min-q-for-depth-calc">
+<h4><code class="docutils literal notranslate"><span class="pre">min_q_for_depth_calc</span></code><a class="headerlink" href="#min-q-for-depth-calc" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="max-q-for-depth-calc">
+<h4><code class="docutils literal notranslate"><span class="pre">max_q_for_depth_calc</span></code><a class="headerlink" href="#max-q-for-depth-calc" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="water-depth-erosion-threshold">
+<h4><code class="docutils literal notranslate"><span class="pre">water_depth_erosion_threshold</span></code><a class="headerlink" href="#water-depth-erosion-threshold" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="slope-on-edge-cell">
+<h4><code class="docutils literal notranslate"><span class="pre">slope_on_edge_cell</span></code><a class="headerlink" href="#slope-on-edge-cell" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="evaporation-rate">
+<h4><code class="docutils literal notranslate"><span class="pre">evaporation_rate</span></code><a class="headerlink" href="#evaporation-rate" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="courant-number">
+<h4><code class="docutils literal notranslate"><span class="pre">courant_number</span></code><a class="headerlink" href="#courant-number" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="froude-num-limit">
+<h4><code class="docutils literal notranslate"><span class="pre">froude_num_limit</span></code><a class="headerlink" href="#froude-num-limit" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="mannings-n">
+<h4><code class="docutils literal notranslate"><span class="pre">mannings_n</span></code><a class="headerlink" href="#mannings-n" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="hflow-threshold">
+<h4><code class="docutils literal notranslate"><span class="pre">hflow_threshold</span></code><a class="headerlink" href="#hflow-threshold" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="precipitation">
+<h3>Precipitation<a class="headerlink" href="#precipitation" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="rainfall-data-on">
+<h4><code class="docutils literal notranslate"><span class="pre">rainfall_data_on</span></code><a class="headerlink" href="#rainfall-data-on" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="rain-data-time-step">
+<h4><code class="docutils literal notranslate"><span class="pre">rain_data_time_step</span></code><a class="headerlink" href="#rain-data-time-step" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="spatial-var-rain">
+<h4><code class="docutils literal notranslate"><span class="pre">spatial_var_rain</span></code><a class="headerlink" href="#spatial-var-rain" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="num-unique-rain-cells">
+<h4><code class="docutils literal notranslate"><span class="pre">num_unique_rain_cells</span></code><a class="headerlink" href="#num-unique-rain-cells" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="spatially-complex-rainfall-on">
+<h4><code class="docutils literal notranslate"><span class="pre">spatially_complex_rainfall_on</span></code><a class="headerlink" href="#spatially-complex-rainfall-on" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="interpolation-method">
+<h4><code class="docutils literal notranslate"><span class="pre">interpolation_method</span></code><a class="headerlink" href="#interpolation-method" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="generate-artificial-rainfall">
+<h4><code class="docutils literal notranslate"><span class="pre">generate_artificial_rainfall</span></code><a class="headerlink" href="#generate-artificial-rainfall" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+</div>
+<div class="section" id="vegetation">
+<h3>Vegetation<a class="headerlink" href="#vegetation" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="vegetation-on">
+<h4><code class="docutils literal notranslate"><span class="pre">vegetation_on</span></code><a class="headerlink" href="#vegetation-on" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="grass-grow-rate">
+<h4><code class="docutils literal notranslate"><span class="pre">grass_grow_rate</span></code><a class="headerlink" href="#grass-grow-rate" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="vegetation-crit-shear">
+<h4><code class="docutils literal notranslate"><span class="pre">vegetation_crit_shear</span></code><a class="headerlink" href="#vegetation-crit-shear" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="veg-erosion-prop">
+<h4><code class="docutils literal notranslate"><span class="pre">veg_erosion_prop</span></code><a class="headerlink" href="#veg-erosion-prop" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="hillslope">
+<h3>Hillslope<a class="headerlink" href="#hillslope" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="creep-rate">
+<h4><code class="docutils literal notranslate"><span class="pre">creep_rate</span></code><a class="headerlink" href="#creep-rate" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="slope-failure-thresh">
+<h4><code class="docutils literal notranslate"><span class="pre">slope_failure_thresh</span></code><a class="headerlink" href="#slope-failure-thresh" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="soil-erosion-rate">
+<h4><code class="docutils literal notranslate"><span class="pre">soil_erosion_rate</span></code><a class="headerlink" href="#soil-erosion-rate" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="soil-j-mean-depends">
+<h4><code class="docutils literal notranslate"><span class="pre">soil_j_mean_depends</span></code><a class="headerlink" href="#soil-j-mean-depends" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="call-muddpile-model">
+<h4><code class="docutils literal notranslate"><span class="pre">call_muddpile_model</span></code><a class="headerlink" href="#call-muddpile-model" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="output-rasters">
+<h3>Output Rasters<a class="headerlink" href="#output-rasters" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="raster-output-interval">
+<h4><code class="docutils literal notranslate"><span class="pre">raster_output_interval</span></code><a class="headerlink" href="#raster-output-interval" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="write-waterdepth-file">
+<h4><code class="docutils literal notranslate"><span class="pre">write_waterdepth_file</span></code><a class="headerlink" href="#write-waterdepth-file" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="waterdepth-outfile-name">
+<h4><code class="docutils literal notranslate"><span class="pre">waterdepth_outfile_name</span></code><a class="headerlink" href="#waterdepth-outfile-name" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="write-elev-file">
+<h4><code class="docutils literal notranslate"><span class="pre">write_elev_file</span></code><a class="headerlink" href="#write-elev-file" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="write-elevation-file">
+<h4><code class="docutils literal notranslate"><span class="pre">write_elevation_file</span></code><a class="headerlink" href="#write-elevation-file" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="write-grainsize-file">
+<h4><code class="docutils literal notranslate"><span class="pre">write_grainsize_file</span></code><a class="headerlink" href="#write-grainsize-file" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="grainsize-file">
+<h4><code class="docutils literal notranslate"><span class="pre">grainsize_file</span></code><a class="headerlink" href="#grainsize-file" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="write-elevdiff-file">
+<h4><code class="docutils literal notranslate"><span class="pre">write_elevdiff_file</span></code><a class="headerlink" href="#write-elevdiff-file" title="Permalink to this headline">¶</a></h4>
+<p>(<strong>yes</strong> | <strong>no</strong>)</p>
+</div>
+<div class="section" id="elevdiff-outfile-name">
+<h4><code class="docutils literal notranslate"><span class="pre">elevdiff_outfile_name</span></code><a class="headerlink" href="#elevdiff-outfile-name" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="raingrid-fname-out">
+<h4><code class="docutils literal notranslate"><span class="pre">raingrid_fname_out</span></code><a class="headerlink" href="#raingrid-fname-out" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="debug-options">
+<h3>Debug Options<a class="headerlink" href="#debug-options" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
 </div>
 
 
@@ -463,7 +340,125 @@ good default value is 0.00001.</td>
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running.html">Running the Model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parameter-file">Parameter File</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#file-information">File Information</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#read-fname"><code class="docutils literal notranslate"><span class="pre">read_fname</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dem-read-extension"><code class="docutils literal notranslate"><span class="pre">dem_read_extension</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#options">Options</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#dem-write-extension"><code class="docutils literal notranslate"><span class="pre">dem_write_extension</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#id1">Options</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#read-path"><code class="docutils literal notranslate"><span class="pre">read_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write-path"><code class="docutils literal notranslate"><span class="pre">write_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write-fname"><code class="docutils literal notranslate"><span class="pre">write_fname</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timeseries-save-interval"><code class="docutils literal notranslate"><span class="pre">timeseries_save_interval</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#supplementary-files">Supplementary Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydroindex-file"><code class="docutils literal notranslate"><span class="pre">hydroindex_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rainfall-data-file"><code class="docutils literal notranslate"><span class="pre">rainfall_data_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#grain-data-file"><code class="docutils literal notranslate"><span class="pre">grain_data_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bedrock-data-file"><code class="docutils literal notranslate"><span class="pre">bedrock_data_file</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#run-time-and-timestep">Run time and timestep</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#min-time-step"><code class="docutils literal notranslate"><span class="pre">min_time_step</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#max-time-step"><code class="docutils literal notranslate"><span class="pre">max_time_step</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-time-start"><code class="docutils literal notranslate"><span class="pre">run_time_start</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#max-run-duration"><code class="docutils literal notranslate"><span class="pre">max_run_duration</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#memory-limit"><code class="docutils literal notranslate"><span class="pre">memory_limit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#sediment-transport">Sediment Transport</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#transport-law"><code class="docutils literal notranslate"><span class="pre">transport_law</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#max-tau-velocity"><code class="docutils literal notranslate"><span class="pre">max_tau_velocity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#active-layer-thickness"><code class="docutils literal notranslate"><span class="pre">active_layer_thickness</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#chann-lateral-erosion"><code class="docutils literal notranslate"><span class="pre">chann_lateral_erosion</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#erode-limit"><code class="docutils literal notranslate"><span class="pre">erode_limit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#suspended-sediment-on"><code class="docutils literal notranslate"><span class="pre">suspended_sediment_on</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#read-in-graindata-from-file"><code class="docutils literal notranslate"><span class="pre">read_in_graindata_from_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bedrock-layer-on"><code class="docutils literal notranslate"><span class="pre">bedrock_layer_on</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#lateral-bank-erosion">Lateral Bank Erosion</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#lateral-erosion-on"><code class="docutils literal notranslate"><span class="pre">lateral_erosion_on</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#lateral-erosion-const"><code class="docutils literal notranslate"><span class="pre">lateral_erosion_const</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#edge-smoothing-passes"><code class="docutils literal notranslate"><span class="pre">edge_smoothing_passes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#downstream-cell-shift"><code class="docutils literal notranslate"><span class="pre">downstream_cell_shift</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#lateral-cross-chan-smoothing"><code class="docutils literal notranslate"><span class="pre">lateral_cross_chan_smoothing</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrology">Hydrology</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydro-model-only"><code class="docutils literal notranslate"><span class="pre">hydro_model_only</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#topmodel-m-value"><code class="docutils literal notranslate"><span class="pre">topmodel_m_value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#in-out-difference"><code class="docutils literal notranslate"><span class="pre">in_out_difference</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#min-q-for-depth-calc"><code class="docutils literal notranslate"><span class="pre">min_q_for_depth_calc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#max-q-for-depth-calc"><code class="docutils literal notranslate"><span class="pre">max_q_for_depth_calc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#water-depth-erosion-threshold"><code class="docutils literal notranslate"><span class="pre">water_depth_erosion_threshold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#slope-on-edge-cell"><code class="docutils literal notranslate"><span class="pre">slope_on_edge_cell</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#evaporation-rate"><code class="docutils literal notranslate"><span class="pre">evaporation_rate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#courant-number"><code class="docutils literal notranslate"><span class="pre">courant_number</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#froude-num-limit"><code class="docutils literal notranslate"><span class="pre">froude_num_limit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mannings-n"><code class="docutils literal notranslate"><span class="pre">mannings_n</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hflow-threshold"><code class="docutils literal notranslate"><span class="pre">hflow_threshold</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#precipitation">Precipitation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#rainfall-data-on"><code class="docutils literal notranslate"><span class="pre">rainfall_data_on</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rain-data-time-step"><code class="docutils literal notranslate"><span class="pre">rain_data_time_step</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spatial-var-rain"><code class="docutils literal notranslate"><span class="pre">spatial_var_rain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#num-unique-rain-cells"><code class="docutils literal notranslate"><span class="pre">num_unique_rain_cells</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spatially-complex-rainfall-on"><code class="docutils literal notranslate"><span class="pre">spatially_complex_rainfall_on</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#interpolation-method"><code class="docutils literal notranslate"><span class="pre">interpolation_method</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generate-artificial-rainfall"><code class="docutils literal notranslate"><span class="pre">generate_artificial_rainfall</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#vegetation">Vegetation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#vegetation-on"><code class="docutils literal notranslate"><span class="pre">vegetation_on</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#grass-grow-rate"><code class="docutils literal notranslate"><span class="pre">grass_grow_rate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#vegetation-crit-shear"><code class="docutils literal notranslate"><span class="pre">vegetation_crit_shear</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#veg-erosion-prop"><code class="docutils literal notranslate"><span class="pre">veg_erosion_prop</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hillslope">Hillslope</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#creep-rate"><code class="docutils literal notranslate"><span class="pre">creep_rate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#slope-failure-thresh"><code class="docutils literal notranslate"><span class="pre">slope_failure_thresh</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soil-erosion-rate"><code class="docutils literal notranslate"><span class="pre">soil_erosion_rate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soil-j-mean-depends"><code class="docutils literal notranslate"><span class="pre">soil_j_mean_depends</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#call-muddpile-model"><code class="docutils literal notranslate"><span class="pre">call_muddpile_model</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#output-rasters">Output Rasters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#raster-output-interval"><code class="docutils literal notranslate"><span class="pre">raster_output_interval</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write-waterdepth-file"><code class="docutils literal notranslate"><span class="pre">write_waterdepth_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#waterdepth-outfile-name"><code class="docutils literal notranslate"><span class="pre">waterdepth_outfile_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write-elev-file"><code class="docutils literal notranslate"><span class="pre">write_elev_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write-elevation-file"><code class="docutils literal notranslate"><span class="pre">write_elevation_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write-grainsize-file"><code class="docutils literal notranslate"><span class="pre">write_grainsize_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#grainsize-file"><code class="docutils literal notranslate"><span class="pre">grainsize_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#write-elevdiff-file"><code class="docutils literal notranslate"><span class="pre">write_elevdiff_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#elevdiff-outfile-name"><code class="docutils literal notranslate"><span class="pre">elevdiff_outfile_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#raingrid-fname-out"><code class="docutils literal notranslate"><span class="pre">raingrid_fname_out</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#debug-options">Debug Options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
@@ -474,18 +469,20 @@ good default value is 0.00001.</td>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/params.txt"
+      <li><a href="_sources/params.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -496,11 +493,11 @@ good default value is 0.00001.</td>
       &copy;2017, Declan Valters.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
-      <a href="_sources/params.txt"
+      <a href="_sources/params.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
