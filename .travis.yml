@@ -11,6 +11,14 @@ addons:
     packages:
       - gcc-6
       - g++-6
+install:
+  - pip install --user pytest numpy
+  # From the rasterio docs
+  - sudo add-apt-repository ppa:ubuntugis/ppa -y
+  - sudo apt-get update -y
+  - sudo apt-get install gdal-bin libgdal-dev -y
+  - pip install --user rasterio
+
 script:
   # Link gcc-6 and g++-6 to their standard commands
   - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
@@ -22,3 +30,6 @@ script:
   - gcc -v && g++ -v && cmake --version
   # Run your build commands next
   - make
+  - cd test
+  - ./run_tests.sh
+  - pytest -v basic_kga_tests.py
