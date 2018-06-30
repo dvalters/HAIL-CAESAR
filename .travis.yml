@@ -12,7 +12,7 @@ addons:
       - gcc-6
       - g++-6
 install:
-  - pip install pytest
+  - pip install --user pytest numpy rasterio
 
 script:
   # Link gcc-6 and g++-6 to their standard commands
