@@ -11,6 +11,9 @@ addons:
     packages:
       - gcc-6
       - g++-6
+install:
+  - pip install pytest
+
 script:
   # Link gcc-6 and g++-6 to their standard commands
   - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
@@ -22,3 +25,6 @@ script:
   - gcc -v && g++ -v && cmake --version
   # Run your build commands next
   - make
+  - cd test
+  - ./run_tests.sh
+  - pytest -v basic_kga_tests.py
