@@ -7,3 +7,5 @@ driver_functions_Floodplains-Terraces/build/CMakeCache.txt
 driver_functions_Floodplains-Terraces/build/CMakeFiles/*
 driver_functions_Floodplains-Terraces/build/Makefile
 driver_functions_Floodplains-Terraces/build/cmake_install.cmake
+
+test/results
