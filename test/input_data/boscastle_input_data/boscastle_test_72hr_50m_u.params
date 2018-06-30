@@ -8,18 +8,18 @@
 
 # FILE INFORMATION
 #=================
-read_fname:                    bos_spunup_elev5m      # TOP-LAYER DEM NAME, NO EXTENSION PLEASE
+read_fname:                    boscastle_square_50m      # TOP-LAYER DEM NAME, NO EXTENSION PLEASE
 dem_read_extension:            asc                    # OPTIONS ARE asc (ASCII) ONLY, OTHER FORMATS NOT YET SUPPORTED - SORRY!
 dem_write_extension:           asc                    # OPTIONS ARE asc, flt, OR bil (BIL EXPERIMENTAL)
-read_path:                     /mnt/WORK/Dev/TestingLSDTT/ComplexRain_HydroOnly/
-write_path:                    /mnt/WORK/Dev/TestingLSDTT/ComplexRain_HydroOnly/
-write_fname:                   bos_output.dat         # CATCHMENT HYDROGRAPH AND SEDS OUTPUT TIMESERIES FILE (NOT RASTERS)
+read_path:                     ./input_data/boscastle_input_data/  
+write_path:                    ./results/boscastle50m_72_u/
+write_fname:                   boscastle_50m_72hr_u.dat         # CATCHMENT HYDROGRAPH AND SEDS OUTPUT TIMESERIES FILE (NOT RASTERS)
 timeseries_save_interval:      5                      # IN MODEL MINUTES
 
 # SUPPLEMENTARY FILES
 #====================
-hydroindex_file:               bos5m_hydroindex.asc   # NODATA VALUE MUST BE INTEGER!
-rainfall_data_file:            BOSCASTLE_WEIGHTED_UNIFORM_RAINFALL_5min_72hr_stagger1.txt
+hydroindex_file:               #bos5m_hydroindex.asc   # NODATA VALUE MUST BE INTEGER!
+rainfall_data_file:            boscastle_72hr_rain_u.txt 
 grain_data_file:               #null                  # NEEDS SET IF YOU ARE READING IN GRAINSIZE DATA
                                                       # (THIS OPTION NEEDS MORE TESTING...)
 bedrock_data_file:             #null                  # NEEDS SET IF YOU HAVE SEPARATE BEDROCK DEM LAYER BELOW TOP LAYER
