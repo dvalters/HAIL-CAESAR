@@ -1,4 +1,3 @@
-#!/usr/bin/bash
 mkdir -p ./results/boscastle50m_72_u/
 # Boscastle test 1
 # 50m resolution, 72 hours rainfall
