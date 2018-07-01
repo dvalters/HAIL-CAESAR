@@ -63,6 +63,7 @@ parameter names must not be changed, and must be lowercase.</p>
 </div>
 <div class="section" id="dem-write-extension">
 <h4><code class="docutils literal notranslate"><span class="pre">dem_write_extension</span></code><a class="headerlink" href="#dem-write-extension" title="Permalink to this headline">¶</a></h4>
+<p>The extension of the output rasters. This extension determines the format of the files as well, so specifying <code class="docutils literal notranslate"><span class="pre">flt</span></code> for example will also write them out in binary format as well as appending the extension itself.</p>
 <div class="section" id="id1">
 <h5>Options<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h5>
 <blockquote>
@@ -81,7 +82,7 @@ e.g. DEMs, rainfall files, grain data files.</p>
 </div>
 <div class="section" id="write-path">
 <h4><code class="docutils literal notranslate"><span class="pre">write_path</span></code><a class="headerlink" href="#write-path" title="Permalink to this headline">¶</a></h4>
-<p>The full path that the output files will be read to.</p>
+<p>The full path that the output files will be written to.</p>
 </div>
 <div class="section" id="write-fname">
 <h4><code class="docutils literal notranslate"><span class="pre">write_fname</span></code><a class="headerlink" href="#write-fname" title="Permalink to this headline">¶</a></h4>
@@ -101,13 +102,15 @@ Will be a plain text file.</p>
 </div>
 <div class="section" id="rainfall-data-file">
 <h4><code class="docutils literal notranslate"><span class="pre">rainfall_data_file</span></code><a class="headerlink" href="#rainfall-data-file" title="Permalink to this headline">¶</a></h4>
-<p>Name fo the text file timeseries containing the rainfall rate at each rainfall input timestep in mm/hr.</p>
+<p>Name of the text file timeseries containing the rainfall rate at each rainfall input timestep in mm/hr.</p>
 </div>
 <div class="section" id="grain-data-file">
 <h4><code class="docutils literal notranslate"><span class="pre">grain_data_file</span></code><a class="headerlink" href="#grain-data-file" title="Permalink to this headline">¶</a></h4>
+<p>Name of the file that contains the graindata information. I.e. if you are prepopulating the model domain with grain size and grain fraction information, you need tto set this file. More details are given in the input files section.</p>
 </div>
 <div class="section" id="bedrock-data-file">
 <h4><code class="docutils literal notranslate"><span class="pre">bedrock_data_file</span></code><a class="headerlink" href="#bedrock-data-file" title="Permalink to this headline">¶</a></h4>
+<p>Name of the DEM that will be used to represent the bedrock layer, if the model is configured with this mode. (<code class="docutils literal notranslate"><span class="pre">bedrock_layer_on</span></code>). If this file is specified, then the main terrain DEM, (<code class="docutils literal notranslate"><span class="pre">read_fname</span></code>) will still act as the uppermost terrain surface, with the bedrock DEM situated below it - but you must have correctly set the elevations on the bedrock DEM file to be less than the surface DEM. (i.e. the model currently cannot do this for you.)</p>
 </div>
 </div>
 <div class="section" id="run-time-and-timestep">
@@ -119,6 +122,7 @@ Will be a plain text file.</p>
 <blockquote>
 <div><ul class="simple">
 <li><strong>Units, data type</strong>: Model seconds, integer</li>
+<li><strong>Default</strong>: 1 (second)</li>
 </ul>
 </div></blockquote>
 </div>
@@ -128,43 +132,74 @@ Will be a plain text file.</p>
 <blockquote>
 <div><ul class="simple">
 <li><strong>Units, data type</strong>: Model seconds, integer</li>
-<li><strong>Default value</strong>: 3600</li>
+<li><strong>Default value</strong>: 3600 (seconds)</li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="run-time-start">
 <h4><code class="docutils literal notranslate"><span class="pre">run_time_start</span></code><a class="headerlink" href="#run-time-start" title="Permalink to this headline">¶</a></h4>
+<p>The model run start time - only zero is currently supported as the restart function is currently implemented.</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>Units, data type</strong>: Model hours, integer</li>
+<li><strong>Default value</strong>: 0</li>
+</ul>
+</div></blockquote>
 </div>
 <div class="section" id="max-run-duration">
 <h4><code class="docutils literal notranslate"><span class="pre">max_run_duration</span></code><a class="headerlink" href="#max-run-duration" title="Permalink to this headline">¶</a></h4>
+<p>The maximum run duration of the model. I.e. the model stops when it reaches this point.</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>Units, data type</strong>: Model hours, integer</li>
+<li>(No default value)</li>
+</ul>
+</div></blockquote>
 </div>
 <div class="section" id="memory-limit">
 <h4><code class="docutils literal notranslate"><span class="pre">memory_limit</span></code><a class="headerlink" href="#memory-limit" title="Permalink to this headline">¶</a></h4>
+<p>This can be ignored, it was a feature of CAESAR-Lisflood to restrict the size of the arrays such as the huge grain size array in memory. It is set to 1.</p>
 </div>
 </div>
 <div class="section" id="sediment-transport">
 <h3>Sediment Transport<a class="headerlink" href="#sediment-transport" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="transport-law">
 <h4><code class="docutils literal notranslate"><span class="pre">transport_law</span></code><a class="headerlink" href="#transport-law" title="Permalink to this headline">¶</a></h4>
+<p>Determines which sediment transport law is used by the model. The options are Wilcock and Crowe or Einstein-Brown. See the pages in the documentation for more detail.</p>
+<div class="section" id="id2">
+<h5>Options<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h5>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">wilcock</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">einstein</span></code></li>
+</ul>
+</div></blockquote>
+</div>
 </div>
 <div class="section" id="max-tau-velocity">
 <h4><code class="docutils literal notranslate"><span class="pre">max_tau_velocity</span></code><a class="headerlink" href="#max-tau-velocity" title="Permalink to this headline">¶</a></h4>
+<p>Limits the maximum velocity used to calculate sediment transport. The default is 5. It is rarely invoked except in very steep slopes.</p>
 </div>
 <div class="section" id="active-layer-thickness">
 <h4><code class="docutils literal notranslate"><span class="pre">active_layer_thickness</span></code><a class="headerlink" href="#active-layer-thickness" title="Permalink to this headline">¶</a></h4>
+<p>This controls the thickness of layer representing the surface, bedload or subsurface. It should be around 0.1 to 0.2. It must be at least 4 times the erode_limit parameter. (See below)</p>
 </div>
 <div class="section" id="chann-lateral-erosion">
 <h4><code class="docutils literal notranslate"><span class="pre">chann_lateral_erosion</span></code><a class="headerlink" href="#chann-lateral-erosion" title="Permalink to this headline">¶</a></h4>
+<p>In channel lateral erosion rate. Prevents overdeepening feedback. See explanation here.</p>
 </div>
 <div class="section" id="erode-limit">
 <h4><code class="docutils literal notranslate"><span class="pre">erode_limit</span></code><a class="headerlink" href="#erode-limit" title="Permalink to this headline">¶</a></h4>
+<p>Maximum erosion limit per cell (or deposition). Prevents numerical instabilities by transferring too much between cell to cell. Should be around 0.01 for 10m or less DEMs, slightly higher for coarse DEMs.</p>
 </div>
 <div class="section" id="suspended-sediment-on">
 <h4><code class="docutils literal notranslate"><span class="pre">suspended_sediment_on</span></code><a class="headerlink" href="#suspended-sediment-on" title="Permalink to this headline">¶</a></h4>
+<p>Turns on suspended sediment for the first fraction only at present. (i.e. the smallest grainsize fraction.</p>
 <p>(<strong>yes</strong> | <strong>no</strong>)</p>
 </div>
 <div class="section" id="read-in-graindata-from-file">
 <h4><code class="docutils literal notranslate"><span class="pre">read_in_graindata_from_file</span></code><a class="headerlink" href="#read-in-graindata-from-file" title="Permalink to this headline">¶</a></h4>
+<p>Reads in the initial grain size data from a file. Normally the initial distribution of grainsizes is uniform across the landscape if this is not specified.</p>
 </div>
 <div class="section" id="bedrock-layer-on">
 <h4><code class="docutils literal notranslate"><span class="pre">bedrock_layer_on</span></code><a class="headerlink" href="#bedrock-layer-on" title="Permalink to this headline">¶</a></h4>
@@ -173,87 +208,113 @@ Will be a plain text file.</p>
 </div>
 <div class="section" id="lateral-bank-erosion">
 <h3>Lateral Bank Erosion<a class="headerlink" href="#lateral-bank-erosion" title="Permalink to this headline">¶</a></h3>
+<p>Please note that this feature is untested in HAIL-CAESAR as of yet.</p>
 <div class="section" id="lateral-erosion-on">
 <h4><code class="docutils literal notranslate"><span class="pre">lateral_erosion_on</span></code><a class="headerlink" href="#lateral-erosion-on" title="Permalink to this headline">¶</a></h4>
+<p>Turns on lateral erosion in channels.</p>
 <p>(<strong>yes</strong> | <strong>no</strong>)</p>
 </div>
 <div class="section" id="lateral-erosion-const">
 <h4><code class="docutils literal notranslate"><span class="pre">lateral_erosion_const</span></code><a class="headerlink" href="#lateral-erosion-const" title="Permalink to this headline">¶</a></h4>
+<p>See Coulthard and Van de Wiel (2007) for details. This parameter sets the lateral erosion rates, and ought to be calibrated to a field site. Values can ramge from 0.01-0.001 for braided rivers; 0.0001 for meandering channels. This value is grid cell size independent.</p>
 </div>
 <div class="section" id="edge-smoothing-passes">
 <h4><code class="docutils literal notranslate"><span class="pre">edge_smoothing_passes</span></code><a class="headerlink" href="#edge-smoothing-passes" title="Permalink to this headline">¶</a></h4>
+<p>Determines how well smoothed the curvature of the channels will be. Should be set as the frequency of meanders/distance between two meanders in grid cell size.</p>
 </div>
 <div class="section" id="downstream-cell-shift">
 <h4><code class="docutils literal notranslate"><span class="pre">downstream_cell_shift</span></code><a class="headerlink" href="#downstream-cell-shift" title="Permalink to this headline">¶</a></h4>
+<p>The gradient used to determine lateral erosion rates can be shifted downstream, allowing meander bars and bends to migrate down channel. Suggested values are around 10% of the edge_smoothing_passes parameter. So around 1-5.</p>
 </div>
 <div class="section" id="lateral-cross-chan-smoothing">
 <h4><code class="docutils literal notranslate"><span class="pre">lateral_cross_chan_smoothing</span></code><a class="headerlink" href="#lateral-cross-chan-smoothing" title="Permalink to this headline">¶</a></h4>
+<p>The maximum difference allowed in the the cross channel smoothing of edge values. After calculating the radius of curvature for the outside of a meander bend, the model must interpolate this value to determine how much sediment can be moved laterally. Smaller values result in better cross channel gradients, but take up more CPU time. Typical default value is 0.0001. If your channels are well resolved by DEM resolution, you may need to reduce by an order of magnitude.</p>
 </div>
 </div>
 <div class="section" id="hydrology">
 <h3>Hydrology<a class="headerlink" href="#hydrology" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="hydro-model-only">
 <h4><code class="docutils literal notranslate"><span class="pre">hydro_model_only</span></code><a class="headerlink" href="#hydro-model-only" title="Permalink to this headline">¶</a></h4>
+<p>Runs the model as a hydrological/flood inundation model only if set to yes. Will turn off all the erosion routines and terrain will be fixed. Speeds up run times considerably.</p>
 <p>(<strong>yes</strong> | <strong>no</strong>)</p>
 </div>
 <div class="section" id="topmodel-m-value">
 <h4><code class="docutils literal notranslate"><span class="pre">topmodel_m_value</span></code><a class="headerlink" href="#topmodel-m-value" title="Permalink to this headline">¶</a></h4>
+<p>As well as the water routing sub-model, LSDCatchmentModel also calculates the discharge based on Beven’s TOPMODEL (i.e. discharge approximation based on drainage area and topography. The model contains the infamous m parameter, which varies depending on environment. You should consult the literature for appropriate values.</p>
+<p>For catchment mode this is an important variable as it controls the peak and duration of the hydrograph generated by a rain event. It is the same as the ‘m’ value in TOPMODEL, that CAESAR-lisflood’s hydrological model is based on. Typical values for m are from 0.02 (meaning low flood peaks and long duration hydrographs) to 0.005 (flashier peaks) and examples of values used can be found in the CAESAR and TOPMODEL literature.</p>
 </div>
 <div class="section" id="in-out-difference">
 <h4><code class="docutils literal notranslate"><span class="pre">in_out_difference</span></code><a class="headerlink" href="#in-out-difference" title="Permalink to this headline">¶</a></h4>
+<p>If greater than 0, allows the model to run faster in periods of hydrological steady state. If the difference between water entering the catchment and water leaving the catchment is equal to or less than this value, the model will increase the time step. The time step will then be determined by erosional and depositional processes, which are typically much slower acting. Can be set to a low mean annual flow value for the river.</p>
 </div>
 <div class="section" id="min-q-for-depth-calc">
 <h4><code class="docutils literal notranslate"><span class="pre">min_q_for_depth_calc</span></code><a class="headerlink" href="#min-q-for-depth-calc" title="Permalink to this headline">¶</a></h4>
+<p>Threshold for calculating flow depths. The model will not calculate flow depths when the discharge at a cell is below this value, avoiding CPU time spent calculating incredibly small flow amounts. Should be set to approximately 10% of grid cell size. e.g 0.5 for a 50m DEM.</p>
 </div>
 <div class="section" id="max-q-for-depth-calc">
 <h4><code class="docutils literal notranslate"><span class="pre">max_q_for_depth_calc</span></code><a class="headerlink" href="#max-q-for-depth-calc" title="Permalink to this headline">¶</a></h4>
+<p>An upper discharge threshold that will prevent water being added above the given discharge threshold. Typically 1000.0, but lowering the value will shift the balance of water being added to the headwaters, rather than lower down through the catchment.</p>
 </div>
 <div class="section" id="water-depth-erosion-threshold">
 <h4><code class="docutils literal notranslate"><span class="pre">water_depth_erosion_threshold</span></code><a class="headerlink" href="#water-depth-erosion-threshold" title="Permalink to this headline">¶</a></h4>
+<p>If water depths are below this threshold, the model will not calculate erosion for that cell in that timestep. Used to prevent CPU time being spent on incredibly small amounts of erosion calculations.</p>
 </div>
 <div class="section" id="slope-on-edge-cell">
 <h4><code class="docutils literal notranslate"><span class="pre">slope_on_edge_cell</span></code><a class="headerlink" href="#slope-on-edge-cell" title="Permalink to this headline">¶</a></h4>
+<p>The slope used to calculate water flow on the edge of the DEM (since there is no neighbouring cell to calculate the downstream gradient. You should set this to approximately the same as the average channel gradient near the outlet of your river.</p>
 </div>
 <div class="section" id="evaporation-rate">
 <h4><code class="docutils literal notranslate"><span class="pre">evaporation_rate</span></code><a class="headerlink" href="#evaporation-rate" title="Permalink to this headline">¶</a></h4>
+<p>Untested/unimplemented yet.</p>
 </div>
 <div class="section" id="courant-number">
 <h4><code class="docutils literal notranslate"><span class="pre">courant_number</span></code><a class="headerlink" href="#courant-number" title="Permalink to this headline">¶</a></h4>
+<p>Controls the numerical stability and execution speed of the flow model. See Bates et al (2009). Typical values should be between 0.3 and 0.7. Higher values will speed up the model, but are more unstable. Parameter is dependent on grid cell size. DEMs of 20-50m resolution can use values of 0.7, finer DEMs (e.g. &lt;2m) will need the lowest value of 0.3, but do not set it lower than 0.3.</p>
 </div>
 <div class="section" id="froude-num-limit">
 <h4><code class="docutils literal notranslate"><span class="pre">froude_num_limit</span></code><a class="headerlink" href="#froude-num-limit" title="Permalink to this headline">¶</a></h4>
+<p>Restricts flow between cells per time step, as too much can lead to checkerboarding effects. If this happens the froude number can be lowered. The default value of 0.8 results in subcritical flow - flow dominated by gravitational forces and behving in a slow or stable way. A value of 1 results in critical flow, which may be ok for shallow flows at coarse grid cell resolutions. Note that reducing flow with the Froude number will reduce the speed of a flood wave moving downstream.</p>
 </div>
 <div class="section" id="mannings-n">
 <h4><code class="docutils literal notranslate"><span class="pre">mannings_n</span></code><a class="headerlink" href="#mannings-n" title="Permalink to this headline">¶</a></h4>
+<p>A roughness coefficient used by the flow model. Values can be looked-up here. <a class="reference external" href="http://www.fsl.orst.edu/geowater/FX3/help/8_Hydraulic_Reference/Mannings_n_Tables.htm">http://www.fsl.orst.edu/geowater/FX3/help/8_Hydraulic_Reference/Mannings_n_Tables.htm</a></p>
 </div>
 <div class="section" id="hflow-threshold">
 <h4><code class="docutils literal notranslate"><span class="pre">hflow_threshold</span></code><a class="headerlink" href="#hflow-threshold" title="Permalink to this headline">¶</a></h4>
+<p>This threshold prevents water being routed between adjacent cells when the gradient is incredibly small. A good default value is 0.00001.</p>
 </div>
 </div>
 <div class="section" id="precipitation">
 <h3>Precipitation<a class="headerlink" href="#precipitation" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="rainfall-data-on">
 <h4><code class="docutils literal notranslate"><span class="pre">rainfall_data_on</span></code><a class="headerlink" href="#rainfall-data-on" title="Permalink to this headline">¶</a></h4>
+<p>Reads in rainfall data from a rainfall.txt file timeseries.</p>
 <p>(<strong>yes</strong> | <strong>no</strong>)</p>
 </div>
 <div class="section" id="rain-data-time-step">
 <h4><code class="docutils literal notranslate"><span class="pre">rain_data_time_step</span></code><a class="headerlink" href="#rain-data-time-step" title="Permalink to this headline">¶</a></h4>
+<p>The timestep of the rainfall inputs. Note: even if you set this to something other than <code class="docutils literal notranslate"><span class="pre">60</span></code> (for hourly rainfall), the units are always mm/hr. I.e. this is the instantaneous rainfall rate at each timestep.</p>
 </div>
 <div class="section" id="spatial-var-rain">
 <h4><code class="docutils literal notranslate"><span class="pre">spatial_var_rain</span></code><a class="headerlink" href="#spatial-var-rain" title="Permalink to this headline">¶</a></h4>
+<p>Use spatially variable rainfall inputs over the model domain. This requires a rainfall.txt file with multiple columns (for each region of the catchment receiving different rainfall rates.) and a hydroindex file to map rainfall columns in the timeseries file to the correct cells in the model domain.</p>
 </div>
 <div class="section" id="num-unique-rain-cells">
 <h4><code class="docutils literal notranslate"><span class="pre">num_unique_rain_cells</span></code><a class="headerlink" href="#num-unique-rain-cells" title="Permalink to this headline">¶</a></h4>
+<p>The number of rainfall regions/cells in your rainfall data and hydroindex file.</p>
 </div>
 <div class="section" id="spatially-complex-rainfall-on">
 <h4><code class="docutils literal notranslate"><span class="pre">spatially_complex_rainfall_on</span></code><a class="headerlink" href="#spatially-complex-rainfall-on" title="Permalink to this headline">¶</a></h4>
+<p>Not fully implemented yet.</p>
 <p>(<strong>yes</strong> | <strong>no</strong>)</p>
 </div>
 <div class="section" id="interpolation-method">
 <h4><code class="docutils literal notranslate"><span class="pre">interpolation_method</span></code><a class="headerlink" href="#interpolation-method" title="Permalink to this headline">¶</a></h4>
+<p>Not fully implemented yet.</p>
 </div>
 <div class="section" id="generate-artificial-rainfall">
 <h4><code class="docutils literal notranslate"><span class="pre">generate_artificial_rainfall</span></code><a class="headerlink" href="#generate-artificial-rainfall" title="Permalink to this headline">¶</a></h4>
+<p>Not implemented yet.</p>
 <p>(<strong>yes</strong> | <strong>no</strong>)</p>
 </div>
 </div>
@@ -381,7 +442,10 @@ Will be a plain text file.</p>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sediment-transport">Sediment Transport</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#transport-law"><code class="docutils literal notranslate"><span class="pre">transport_law</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#transport-law"><code class="docutils literal notranslate"><span class="pre">transport_law</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#id2">Options</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="#max-tau-velocity"><code class="docutils literal notranslate"><span class="pre">max_tau_velocity</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#active-layer-thickness"><code class="docutils literal notranslate"><span class="pre">active_layer_thickness</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#chann-lateral-erosion"><code class="docutils literal notranslate"><span class="pre">chann_lateral_erosion</span></code></a></li>
