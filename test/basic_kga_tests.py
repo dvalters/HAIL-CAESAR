@@ -13,12 +13,14 @@ of HAIL-CAESAR, comparing to Known Good Answers (KGA's)
 Based on Stuart Grieve's LSDTopoTools test framework.
 """
 
+
 def raster(filename):
     """
     Returns a numpy array from a filename for later diffing
     """
     out_data = rasterio.open(filename)
     return out_data.read(1)
+
 
 def timeseries(filename, col_number):
     """
@@ -27,7 +29,7 @@ def timeseries(filename, col_number):
     """
     out_data = loadtxt(filename, usecols=col_number)
     return out_data
-    
+
 
 @pytest.fixture
 def rasters_params():
@@ -45,6 +47,7 @@ def rasters_params():
                                    id=fix))
     return params
 
+
 def timeseries_params():
     """
     Fixture for the timeseries files
@@ -52,14 +55,13 @@ def timeseries_params():
     with open('known_good_answers/timeseries.json') as f:
         fixtures = json.loads(f.read())
     params = []
-    
+
     for ts in fixtures:
         params.append(pytest.param(timeseries(fixtures[ts]['result'], 1),
                                    timeseries(fixtures[ts]['expected'], 1),
                                    id=ts))
     return params
-        
-    
+
 
 class TestingHAILCAESAR():
     @pytest.mark.parametrize('result,expected', rasters_params())
