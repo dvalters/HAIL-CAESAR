@@ -64,12 +64,12 @@ def timeseries_params():
 
 
 class TestingHAILCAESAR():
-    @classmethod
+    @staticmethod
     @pytest.mark.parametrize('result,expected', rasters_params())
-    def test_water_depths(cls, result, expected):
+    def test_water_depths(result, expected):
         ntest.assert_allclose(result, expected, rtol=1e-03)
 
-    @classmethod
+    @staticmethod
     @pytest.mark.parametrize('result,expected', timeseries_params())
-    def test_hydrograph_lisflood(cls, result, expected):
+    def test_hydrograph_lisflood(result, expected):
         ntest.assert_allclose(result, expected, rtol=1e-03)
