@@ -2345,7 +2345,7 @@ void LSDCatchmentModel::flow_route()
                 (elev[x][y] + water_depth[x][y])) / DX;
 
             if (x == imax) tempslope = edgeslope;
-            if (x <= 2) tempslope = 0 - edgeslope;
+            if (x < 1) tempslope = 0 - edgeslope;
 
             //double oldqx = qx[x][y];
             qx[x][y] = ((qx[x][y] - (gravity * hflow \
@@ -2442,7 +2442,7 @@ void LSDCatchmentModel::flow_route()
             double tempslope = (((elev[x][y - 1] + water_depth[x][y - 1])) -
                 (elev[x][y] + water_depth[x][y])) / DX;
             if (y == jmax) tempslope = edgeslope;
-            if (y <= 2 ) tempslope = 0 - edgeslope;
+            if (y < 1 ) tempslope = 0 - edgeslope;
 
             //double oldqy = qy[x][y];
             qy[x][y] = ((qy[x][y] - (gravity * hflow * flow_timestep * tempslope)) /
