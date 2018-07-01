@@ -1,7 +1,0 @@
-{
-  "Final water depth": {
-    "expected": "known_good_answers\/boscastle_water_depth_XXX.asc",
-    "result": "results\/boscastle_water_depth_XXX.asc"
-  },
-}
-
