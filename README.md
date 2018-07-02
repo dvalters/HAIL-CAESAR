@@ -9,6 +9,8 @@
 
 This is the development version of the HAIL-CAESAR model. 
 
+_The **H**igh-performance **A**rchitecture **I**ndependent **L**ISFLOOD-**C**AESAR model_
+
 HAIL-CAESAR is a hydrodynamic, landscape evolution, cellular automaton model. In other words, it simulates hydrological and erosional processes in a river catchment, for the purposes of investigating flood-inundation, sediment transport and catchment evolution over a range of timescales from hours to thousands of years. (And potentially longer if you are really patient enough...)
 
 The model is derived from the [CAESAR-Lisflood model](https://sourceforge.net/projects/caesar-lisflood/), which is a C#/.NET Windows-based implementation of the model, with a very useful GUI. You may find much of the documentation and discussion for CAESAR-Lisflood relevant for using HAIL-CAESAR, but remember there are small differences at present, so treat the documentation [here](http://hail-caesar.readthedocs.io/en/latest) as the canonical source.
