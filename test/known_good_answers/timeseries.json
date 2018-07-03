@@ -5,6 +5,6 @@
   },
   "LISFLOOD hydrograph (catchmnent flip lr)": {
     "expected": "known_good_answers\/boscastle50m_72hr_u_flipped_lr/boscastle_50m_72hr_u_flipped_lr.dat",
-    "result": "results\/boscastle50m_72_u_catchment_flipped_lr/boscastle_50m_72hr_u_flipped_lr.dat"
+    "result": "results\/boscastle50m_72_u_flipped_lr/boscastle_50m_72hr_u_flipped_lr.dat"
   }
 }
