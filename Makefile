@@ -1,4 +1,4 @@
-CXX := g++-7 # This is the main compiler
+CXX := g++-8 # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 GITREV = -D'GIT_REVISION="$(shell git log --pretty=format:'%h' -n 1)"'
 SRCDIR := src

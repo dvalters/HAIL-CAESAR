@@ -16,7 +16,7 @@ using namespace LibGeoDecomp;
 #define YDIM 21
 #define outputFrequency 1
 #define edgeslope 0.005
-#define persistent_water_depth 1.0;
+#define persistent_water_depth 1.0
 
 // Define possible cell types to implement boundary conditions
 // Note: edges include neither corner cells nor corner+1 cells (where the latter are declared)
@@ -37,16 +37,16 @@ public:
   {};
 
   Cell(CellType celltype_in = INTERNAL,		\
-       double elev_in = 0.0,			\
+       double elevation_in = 0.0,			\
        double water_depth_in = 0.0,		\
        double qx_in = 0.0,			\
        double qy_in = 0.0,			\
        bool persistent_water_in = false)					\
-    : celltype(celltype_in), elev(elev_in), water_depth(water_depth_in), qx(qx_in), qy(qy_in), persistent_water(persistent_water_in)
+    : celltype(celltype_in), elevation(elevation_in), water_depth(water_depth_in), qx(qx_in), qy(qy_in), persistent_water(persistent_water_in)
   {}
   
   CellType celltype;
-  double elev, water_depth;
+  double elevation, water_depth;
   double qx, qy;
   TNT::Array1D<double> vel_dir = TNT::Array1D<double> (9, 0.0); // refactor (redefinition of declaration in include/catchmentmodel/LSDCatchmentModel.hpp
   static constexpr double waterinput = 0.0; // refactor (already declared in include/catchmentmodel/LSDCatchmentModel.hpp)
@@ -56,6 +56,7 @@ public:
   
   // refactor - Should replace these defines with type alias declarations (= C++11 template typedef)
   // refactor - check that grid orientation makes sense (write test)
+#define THIS_CELL neighborhood[Coord<2>( 0, 0)]
 #define WEST neighborhood[Coord<2>(-1, 0)]   
 #define EAST neighborhood[Coord<2>( 1, 0)]  
 #define NORTH neighborhood[Coord<2>( 0, -1)] 
@@ -89,7 +90,7 @@ public:
   {
     set_global_timefactor();
     set_local_timefactor();
-    water_flux_out();
+    water_flux_out(neighborhood);
     flow_route_x(neighborhood);
     flow_route_y(neighborhood);
     depth_update(neighborhood);
@@ -109,7 +110,8 @@ public:
   // up around the edges.
   //
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-  void water_flux_out()
+  template<typename COORD_MAP>
+  void water_flux_out(const COORD_MAP& neighborhood)
   {
     // must still figure out best way to accumulate total across cells during update executed by LibGeodecomp
     switch(celltype){
@@ -123,7 +125,7 @@ public:
     case CORNER_NE:
     case CORNER_SE:
     case CORNER_SW:
-      if (water_depth > water_depth_erosion_threshold) water_depth = water_depth_erosion_threshold;
+      if (THIS_CELL.water_depth > water_depth_erosion_threshold) water_depth = water_depth_erosion_threshold;
       break;
     default:
       std::cout << "\n\n WARNING: no water_flux_out rule specified for cell type " << celltype << "\n\n";
@@ -147,28 +149,28 @@ public:
   {
     double hflow;
     double tempslope;
-    double west_elev;
+    double west_elevation;
     double west_water_depth;
     
     switch (celltype){
     case INTERNAL:
     case EDGE_NORTH:
     case EDGE_SOUTH:
-      west_elev = WEST.elev;
+      west_elevation = WEST.elevation;
       west_water_depth = WEST.water_depth;
-      tempslope = ((west_elev + west_water_depth) - (elev + water_depth)) / DX;
+      tempslope = ((west_elevation + west_water_depth) - (THIS_CELL.elevation + THIS_CELL.water_depth)) / DX;
       break;
     case EDGE_WEST:
     case CORNER_NW:
     case CORNER_SW:
-      west_elev = -9999;
+      west_elevation = -9999;
       west_water_depth = 0.0;
       tempslope = edgeslope;
       break;
     case EDGE_EAST:
     case CORNER_NE:
     case CORNER_SE:
-      west_elev = WEST.elev;
+      west_elevation = WEST.elevation;
       west_water_depth = WEST.water_depth;
       tempslope = edgeslope;
       break;
@@ -176,16 +178,16 @@ public:
       std::cout << "\n\n WARNING: no x-direction flow route rule specified for cell type " << celltype << "\n\n";
       break;
     }
-
     
-    if (water_depth > 0 || west_water_depth > 0)
+    
+    if (THIS_CELL.water_depth > 0 || west_water_depth > 0)
       {
-	hflow = std::max(elev + water_depth, west_elev + west_water_depth) - std::max(elev, west_elev);
+	hflow = std::max(THIS_CELL.elevation + THIS_CELL.water_depth, west_elevation + west_water_depth) - std::max(THIS_CELL.elevation, west_elevation);
 	if (hflow > hflow_threshold)
 	  {
-	    update_q(qx, hflow, tempslope);
+	    update_qx(neighborhood, hflow, tempslope);
 	    froude_check(qx, hflow);
-	    discharge_check(qx, west_water_depth, DX);
+	    discharge_check(neighborhood, qx, west_water_depth, DX);
 	  }
 	else
 	  {
@@ -226,28 +228,28 @@ public:
   {
     double hflow;
     double tempslope;
-    double north_elev;
+    double north_elevation;
     double north_water_depth;
     
     switch (celltype){
     case INTERNAL:
     case EDGE_WEST:
     case EDGE_EAST:
-      north_elev = NORTH.elev;
+      north_elevation = NORTH.elevation;
       north_water_depth = NORTH.water_depth;
-      tempslope = ((north_elev + north_water_depth) - (elev + water_depth)) / DY;
+      tempslope = ((north_elevation + north_water_depth) - (THIS_CELL.elevation + THIS_CELL.water_depth)) / DY;
     break;
     case EDGE_NORTH:
     case CORNER_NW:
     case CORNER_NE:
-      north_elev = -9999;
+      north_elevation = -9999;
       north_water_depth = 0.0;
       tempslope = edgeslope;
       break;
     case EDGE_SOUTH:
     case CORNER_SW:
     case CORNER_SE:
-      north_elev = NORTH.elev;
+      north_elevation = NORTH.elevation;
       north_water_depth = NORTH.water_depth;
       tempslope = edgeslope;
       break;
@@ -257,14 +259,14 @@ public:
     }
 
   
-    if (water_depth > 0 || north_water_depth > 0)
+    if (THIS_CELL.water_depth > 0 || north_water_depth > 0)
       {
-	hflow = std::max(elev + water_depth, north_elev + north_water_depth) - std::max(elev, north_elev);
+	hflow = std::max(THIS_CELL.elevation + THIS_CELL.water_depth, north_elevation + north_water_depth) - std::max(THIS_CELL.elevation, north_elevation);
 	if (hflow > hflow_threshold)
 	  {
-	    update_q(qy, hflow, tempslope);
+	    update_qy(neighborhood, hflow, tempslope);
 	    froude_check(qy, hflow);
-	    discharge_check(qy, north_water_depth, DY);
+	    discharge_check(neighborhood, qy, north_water_depth, DY);
 	  }
 	else
 	  {
@@ -315,24 +317,24 @@ public:
     case CORNER_NW:
       east_qx = EAST.qx;
       south_qy = SOUTH.qy;
-      update_water_depth(east_qx, south_qy);
+      update_water_depth(neighborhood, east_qx, south_qy);
       break;
     case EDGE_EAST:
     case CORNER_NE:
       east_qx = 0.0;
       south_qy = SOUTH.qy;
-      update_water_depth(east_qx, south_qy);
+      update_water_depth(neighborhood, east_qx, south_qy);
       break;
     case EDGE_SOUTH:
     case CORNER_SW:
       east_qx = EAST.qx;
       south_qy = 0.0;
-      update_water_depth(east_qx, south_qy);
+      update_water_depth(neighborhood, east_qx, south_qy);
       break;
     case CORNER_SE:
       east_qx = 0.0;
       south_qy = 0.0;
-      update_water_depth(east_qx, south_qy);
+      update_water_depth(neighborhood, east_qx, south_qy);
       break;
     case NODATA:
       water_depth = 0.0;
@@ -349,10 +351,10 @@ public:
   
   
 
-  
-  void update_water_depth(double east_qx, double south_qy)
+  template<typename COORD_MAP>
+  void update_water_depth(const COORD_MAP& neighborhood, double east_qx, double south_qy)
   {
-    water_depth += local_time_factor * ( (east_qx - qx)/DX + (south_qy - qy)/DY );
+    water_depth = THIS_CELL.water_depth + local_time_factor * ( (east_qx - THIS_CELL.qx)/DX + (south_qy - THIS_CELL.qy)/DY );
   }
 
   
@@ -371,16 +373,30 @@ public:
     // zero_and_calc_drainage_area();
     // get_catchment_input_points();
   }
+
   
-  
-  void update_q(double &q, double hflow, double tempslope)
+  template<typename COORD_MAP>
+  void update_qx(const COORD_MAP& neighborhood, double hflow, double tempslope)
   {
-    q = ((q - (gravity * hflow * local_time_factor * tempslope))	\
-	  / (1 + gravity * hflow * local_time_factor * (mannings * mannings) \
-	     * std::abs(qy) / std::pow(hflow, (10.0 / 3.0))));
+    update_q(THIS_CELL.qx, qx, hflow, tempslope);
   }
 
+  
+  template<typename COORD_MAP>
+  void update_qy(const COORD_MAP& neighborhood, double hflow, double tempslope)
+  {
+    update_q(THIS_CELL.qy, qy, hflow, tempslope);
+  }
 
+  
+  void update_q(const double &q_old, double &q_new, double hflow, double tempslope)
+  {
+    q_new = ((q_old - (gravity * hflow * local_time_factor * tempslope)) \
+	     / (1.0 + gravity * hflow * local_time_factor * (mannings * mannings) \
+		* std::abs(q_old) / std::pow(hflow, (10.0 / 3.0))));
+  }
+   
+  
   // FROUDE NUMBER CHECK
   // need to have these lines to stop too much water moving from
   // one cell to another - resulting in negative discharges
@@ -388,30 +404,31 @@ public:
   // - only in steep catchments really
   void froude_check(double &q, double hflow)
   {
-    if ((std::abs(q / hflow) / std::sqrt(gravity * hflow)) > froude_limit)
+    if ((std::abs(q / hflow) / std::sqrt(gravity * hflow)) > froude_limit) // correctly reads newly calculated value of q, not THIS_CELL.q
       {
-	q = std::copysign(hflow * (std::sqrt(gravity*hflow) * froude_limit), q);
+	q = std::copysign(hflow * (std::sqrt(gravity*hflow) * froude_limit), q); 
       }
   }
   
   
   // DISCHARGE MAGNITUDE/TIMESTEP CHECKS
   // If the discharge is too high for this timestep, scale back...
-  void discharge_check(double &q, double neighbour_water_depth, double Delta)
+  template<typename COORD_MAP>
+  void discharge_check(const COORD_MAP& neighborhood, double &q, double neighbour_water_depth, double Delta)
   {
     double criterion_magnitude = std::abs(q * local_time_factor / Delta);
     
-    if (q > 0 && criterion_magnitude > (water_depth / 4))
+    if (q > 0 && criterion_magnitude > (THIS_CELL.water_depth / 4.0))
       {
-	q = ((water_depth * Delta) / 5) / local_time_factor;
+	q = ((THIS_CELL.water_depth * Delta) / 5.0) / local_time_factor;
       }
-    else if (q < 0 && criterion_magnitude > (neighbour_water_depth / 4))
+    else if (q < 0 && criterion_magnitude > (neighbour_water_depth / 4.0))
       {
-	q = -((neighbour_water_depth * Delta) / 5) / local_time_factor;
+	q = -((neighbour_water_depth * Delta) / 5.0) / local_time_factor;
       }
   }
 
-  
+
   void set_global_timefactor()
   {
     if (maxdepth <= 0.1)
@@ -509,62 +526,62 @@ public:
 	    
 	    // DEBUG TEST INITIALISATIONS
 	    
-	    // Uniform zero elevation, uniform zero water depth
+	    // Uniform zero elevationation, uniform zero water depth
 	    //subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));
 	    
-	    // Uniform zero elevation, uniform 0.5 water depth
+	    // Uniform zero elevationation, uniform 0.5 water depth
 	    //subdomain->set(coordinate, Cell(celltype, 0.0, 0.5, 0.0, 0.0, false));
 	    
-	    // Uniform zero elevation, initial water depth 1.0 in NW corner cell and zero elsewhere
+	    // Uniform zero elevationation, initial water depth 1.0 in NW corner cell and zero elsewhere
 	    //if (x==0 && y==0) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0));
 	    //else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0));
 	    
-	    // Uniform zero elevation, water depth always at 1.0 in NW corner cell and zero elsewhere
-	    /*if (x==0 && y==0) subdomain->set(coordinate, Cell(persistent, 0.0, 1.0, 0.0, 0.0)); 
+	    // Uniform zero elevationation, water depth always equal to persistent_water_depth in NW corner cell and zero elsewhere
+	    /*if (x==0 && y==0) subdomain->set(coordinate, Cell(persistent, 0.0, persistent_water_depth, 0.0, 0.0)); 
 	    else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0));*/
 	    
-	    // Uniform zero elevation, water depth always at 1.0 in NE corner cell and zero elsewhere
-	    //if (x==XDIM-1 && y==0) subdomain->set(coordinate, Cell(persistent, 0.0, 1.0, 0.0, 0.0)); 
+	    // Uniform zero elevationation, water depth always equal persistent_water_depth in NE corner cell and zero elsewhere
+	    //if (x==XDIM-1 && y==0) subdomain->set(coordinate, Cell(persistent, 0.0, persistent_water_depth, 0.0, 0.0)); 
 	    //else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0));
 	    
-	    // Uniform zero elevation, water depth always at 1.0 in SW corner cell and zero elsewhere
-	    /*	      if (x==0 && y==YDIM-1) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0, false)); 
+	    // Uniform zero elevationation, water depth always equal to persistent_water_depth in SW corner cell and zero elsewhere
+	    /*	      if (x==0 && y==YDIM-1) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, false)); 
 	      else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));*/
 	    
-	    // Uniform zero elevation, water depth always at 1.0 in SE corner cell and zero elsewhere
-	    /*if (x==XDIM-1 && y==YDIM-1)	subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0, false));
+	    // Uniform zero elevationation, water depth always equal to persistent_water_depth in SE corner cell and zero elsewhere
+	    /*if (x==XDIM-1 && y==YDIM-1)	subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, false));
 	    else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));*/
 	    
-	    // Uniform zero elevation, initial water depth 1.0 in central cell and zero elsewhere
+	    // Uniform zero elevationation, initial water depth 1.0 in central cell and zero elsewhere
 	    //if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0, false)); 
 	    //else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));
 
-	    // Uniform zero elevation, initial water depth 0.5 in a blob of central cells and zero elsewhere
-	    //if ( (std::abs(x - (int)(XDIM/2)) < 2) && (std::abs(y - (int)(YDIM/2)) < 2) ) subdomain->set(coordinate, Cell(celltype, 0.0, 0.5, 0.0, 0.0, false)); 
+	    // Uniform zero elevationation, initial water depth 0.5 in a blob of central cells and zero elsewhere
+	    //if ( (std::abs(x - (int)(XDIM/2)) < 2) && (std::abs(y - (int)(YDIM/2)) < 2) ) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, false)); 
 	    //else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));
 	    
-	    // Uniform zero elevation, water depth always at 1.0 in central cell, initial water depth zero elsewhere
-	    //if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0, true));
-	    //if (x == 5 && y == 5) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0, true)); 
+	    // Uniform zero elevationation, water depth always equal to persistent_water_depth in central cell, initial water depth zero elsewhere
+	    if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, true));
+	    //if (x == 10 && y == 10) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, true)); 
+	    else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));
+	    
+	    // Uniform zero elevationation, water depth always equal to persistent_water_depth in central cell and cells near all four corners, initial water depth zero elsewhere
+	    //if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, true)); // Central cell
+	    //else if ( (x==4 || x==XDIM-5) && (y==4 || y==YDIM-5)) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, true)); // cells near four corners }
 	    //else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));
 	    
-	    // Uniform zero elevation, water depth always at 1.0 in central cell and cells near all four corners, initial water depth zero elsewhere
-	    //if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0, true)); // Central cell
-	    //else if ( (x==4 || x==XDIM-5) && (y==4 || y==YDIM-5)) subdomain->set(coordinate, Cell(celltype, 0.0, 1.0, 0.0, 0.0, true)); // cells near four corners }
-	    //else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));
-
-	    // Constant ascending elevation in y direction, water depth always at 1.0 in central cell and cells near all four corners, initial water depth zero elsewhere
-	    /*if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, (double)y/(double)YDIM, 1.0, 0.0, 0.0, true)); // Central cell
-	    else if ( (x==4 || x==XDIM-5) && (y==4 || y==YDIM-5)) subdomain->set(coordinate, Cell(celltype, (double)y/(double)YDIM, 1.0, 0.0, 0.0, true)); // cells near four corners }
+	    // Constant ascending elevationation in y direction, water depth always at 1.0 in central cell and cells near all four corners, initial water depth zero elsewhere
+	    /*if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, (double)y/(double)YDIM, persistent_water_depth, 0.0, 0.0, true)); // Central cell
+	    else if ( (x==4 || x==XDIM-5) && (y==4 || y==YDIM-5)) subdomain->set(coordinate, Cell(celltype, (double)y/(double)YDIM, persistent_water_depth, 0.0, 0.0, true)); // cells near four corners }
 	    else subdomain->set(coordinate, Cell(celltype, (double)y/(double)YDIM, 0.0, 0.0, 0.0, false));*/
 	    
-	    // Constant ascending elevation in x direction, water depth always 1.0 in central cell and initial water depth zero elsewhere
-	    //if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, (double)x/(double)XDIM, 1.0, 0.0, 0.0, true)); 
+	    // Constant ascending elevationation in x direction, water depth always equal to persistent_water_depth in central cell and initial water depth zero elsewhere
+	    //if (x == (int)(XDIM/2) && y == (int)(YDIM/2)) subdomain->set(coordinate, Cell(celltype, (double)x/(double)XDIM, persistent_water_depth, 0.0, 0.0, true)); 
 	    //else subdomain->set(coordinate, Cell(celltype, (double)x/(double)XDIM, 0.0, 0.0, 0.0, false));
 	    
-	    // Constant descending elevation in x direction, water depth always nonzero for band at x=1 and initial water depth zero elsewhere
+	    // Constant descending elevationation in x direction, water depth always equal to persistent_water_depth for band at x=1 and initial water depth zero elsewhere
 	    // Should set persistent_water_depth to same nonzero value as initial value chosen below
-	    //if (x == 1 && y > 3 && y < YDIM-4) subdomain->set(coordinate, Cell(celltype, 1-(double)x/(double)XDIM, 0.2, 0.0, 0.0, true)); 
+	    //if (x == 1 && y > 3 && y < YDIM-4) subdomain->set(coordinate, Cell(celltype, 1-(double)x/(double)XDIM, persistent_water_depth, 0.0, 0.0, true)); 
 	    //else subdomain->set(coordinate, Cell(celltype, 1-(double)x/(double)XDIM, 0.0, 0.0, 0.0, false));
 
 	  }
@@ -583,7 +600,7 @@ void runSimulation()
   
   //DistributedSimulator<Cell> sim(new CellInitializer());
   
-  sim.addWriter(new PPMWriter<Cell>(&Cell::elev, 0.0, 1.0, "elevation", STEPS, Coord<2>(20,20)));
+  sim.addWriter(new PPMWriter<Cell>(&Cell::elevation, 0.0, 1.0, "elevation", STEPS, Coord<2>(20,20)));
   sim.addWriter(new PPMWriter<Cell>(&Cell::water_depth, 0.0, 1.0, "water_depth", outputFrequency, Coord<2>(20,20)));
   //  sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 1.0, "qx", outputFrequency, Coord<2>(100,100)));
   //  sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 1.0, "qy", outputFrequency, Coord<2>(100,100)));
