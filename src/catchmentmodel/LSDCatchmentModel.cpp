@@ -1,6 +1,7 @@
 #include <cmath>
 #include <boost/assign/std/vector.hpp>
 #include "libgeodecomp.h"
+#include <libgeodecomp/io/bovwriter.h>
 #include "catchmentmodel/LSDCatchmentModel.hpp"
 
 //
@@ -33,9 +34,12 @@ enum CellType {INTERNAL, \
 class Cell
 {
 public:
+  static MPI_Datatype MPIDataType;
+  
   class API :
-    public APITraits::HasPredefinedMPIDataType<char>,
-    public APITraits::HasStencil<Stencils::VonNeumann<2,1> >
+    public APITraits::HasStencil<Stencils::VonNeumann<2,1> >,
+    //    public APITraits::HasCubeTopology<2>,
+    public APITraits::HasCustomMPIDataType<Cell>
   {};
   
   Cell(CellType celltype_in = INTERNAL,		\
@@ -478,6 +482,13 @@ public:
 
 
 
+MPI_Datatype Cell::MPIDataType;
+
+
+
+
+
+
 
 class CellInitializer : public SimpleInitializer<Cell>
 {
@@ -598,18 +609,31 @@ public:
 
 void runSimulation()
 {
+  // SERIAL EXECUTION (ifdef to build separate serial executable?)
   //SerialSimulator<Cell> sim(new CellInitializer());
-  StripingSimulator<Cell> sim(new CellInitializer(), MPILayer().rank() ?0 : new TracingBalancer(new OozeBalancer()), 10);
-  //DistributedSimulator<Cell> sim(new CellInitializer());
-  
   //sim.addWriter(new PPMWriter<Cell>(&Cell::elevation, 0.0, 1.0, "elevation", STEPS, Coord<2>(20,20)));
   //sim.addWriter(new PPMWriter<Cell>(&Cell::water_depth, 0.0, 1.0, "water_depth", outputFrequency, Coord<2>(20,20)));
-  //  sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 1.0, "qx", outputFrequency, Coord<2>(100,100)));
-  //  sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 1.0, "qy", outputFrequency, Coord<2>(100,100)));
+  //sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 1.0, "qx", outputFrequency, Coord<2>(100,100)));
+  //sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 1.0, "qy", outputFrequency, Coord<2>(100,100)));
   
-  //sim.addWriter(new TracingWriter<Cell>(outputFrequency, STEPS));
+  // PARALLEL EXECUTION (ifded to build separate executable?)
+  //StripingSimulator<Cell> sim(new CellInitializer(), MPILayer().rank() ?0 : new TracingBalancer(new OozeBalancer()), 10);
+  StripingSimulator<Cell> sim(new CellInitializer(), MPILayer().rank() ?0 : new TracingBalancer(new NoOpBalancer()), 10);
 
-  //sim.addWriter(new ParallelWriter<Cell>("water_depth", outputFrequency));
+  MPI_Aint displacements[] = { 0 };
+  MPI_Datatype memberTypes[] = { MPI_CHAR };
+  int lengths[] = { sizeof(Cell) };
+  MPI_Type_create_struct(1, lengths, displacements, memberTypes, &Cell::MPIDataType);
+  MPI_Type_commit(&Cell::MPIDataType);
+  
+  
+  
+  sim.addWriter(new BOVWriter<Cell>(Selector<Cell>(&Cell::water_depth, "water_depth"), "water_depth", outputFrequency));
+
+  if (MPILayer().rank() == 0)
+    {
+      sim.addWriter(new TracingWriter<Cell>(outputFrequency, STEPS));
+    }
   
   sim.run();
 }
