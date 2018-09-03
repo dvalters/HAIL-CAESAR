@@ -1,4 +1,6 @@
-CXX := g++-8 # This is the main compiler
+#CXX := g++-8 # This is the main compiler
+CXX := mpic++
+
 # CC := clang --analyze # and comment out the linker last line for sanity
 GITREV = -D'GIT_REVISION="$(shell git log --pretty=format:'%h' -n 1)"'
 SRCDIR := src
@@ -9,7 +11,8 @@ SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS := -g -std=c++11 -DOMP_COMPILE_FOR_PARALLEL -fopenmp $(GITREV) -Wfatal-errors
-GEODECOMP_DIR := /Users/aproeme/libgeodecomp/0.4.0_mpic++-8
+#GEODECOMP_DIR := /Users/aproeme/libgeodecomp/0.4.0_mpic++-8
+GEODECOMP_DIR := /Users/aproeme/libgeodecomp/0.4.0_mymod
 BOOST_DIR := /usr/local/Cellar/boost/1.67.0_1
 MPI_DIR := /usr/local/Cellar/mpich/3.2.1_2
 INC := -I ./include -I $(GEODECOMP_DIR)/include -I $(BOOST_DIR)/include -I $(MPI_DIR)/include

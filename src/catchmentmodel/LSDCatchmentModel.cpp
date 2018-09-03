@@ -1,19 +1,25 @@
 #include <cmath>
+#include <sys/stat.h> // For errors
+
 #include <boost/assign/std/vector.hpp>
+
 #include "libgeodecomp.h"
 #include <libgeodecomp/io/bovwriter.h>
+#include <libgeodecomp/io/mpiiowriter.h>
+#include <libgeodecomp/io/mpiioinitializer.h>
 #include "catchmentmodel/LSDCatchmentModel.hpp"
+#include "catchmentmodel/LSDUtils.hpp"
 
 //
 // Using convention that the origin is at NW corner and South is positive in y direction, East positive in x direction
 //
 
 
-
 using namespace LibGeoDecomp;
+using namespace LSDUtils;
 
 
-#define STEPS 200
+#define STEPS 100
 #define XMAX 21
 #define YMAX 21
 #define outputFrequency 1
@@ -21,7 +27,6 @@ using namespace LibGeoDecomp;
 #define persistent_water_depth 1.0
 
 // Define possible cell types to implement boundary conditions
-// Note: edges include neither corner cells nor corner+1 cells (where the latter are declared)
 enum CellType {INTERNAL, \
 	       EDGE_WEST, EDGE_NORTH, EDGE_EAST, EDGE_SOUTH, \
 	       CORNER_NW, CORNER_NE, CORNER_SE, CORNER_SW, \
@@ -34,11 +39,12 @@ enum CellType {INTERNAL, \
 class Cell
 {
 public:
+  friend int main(int argc, char **argv);
   static MPI_Datatype MPIDataType;
   
   class API :
     public APITraits::HasStencil<Stencils::VonNeumann<2,1> >,
-    //    public APITraits::HasCubeTopology<2>,
+    public APITraits::HasCubeTopology<2>,
     public APITraits::HasCustomMPIDataType<Cell>
   {};
   
@@ -489,13 +495,12 @@ MPI_Datatype Cell::MPIDataType;
 
 
 
-
-class CellInitializer : public SimpleInitializer<Cell>
+class DebugCellInitializer : public SimpleInitializer<Cell>
 {
 public:
   using SimpleInitializer<Cell>::gridDimensions;  // gridDimensions = dimensions of subgrid (in parallel case), not of overall grid
   
-  CellInitializer() : SimpleInitializer<Cell>(Coord<2>(XMAX,YMAX), STEPS) // refactor - make dimensions variable. Second argument is the number of steps to run for
+  DebugCellInitializer() : SimpleInitializer<Cell>(Coord<2>(XMAX,YMAX), STEPS) // refactor - make dimensions variable. Second argument is the number of steps to run for
   {}
   
   /*   From libgeodecomp:
@@ -574,9 +579,9 @@ public:
 	    //else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));
 	    
 	    // Uniform zero elevationation, water depth always equal to persistent_water_depth in central cell, initial water depth zero elsewhere
-	    if (x == (int)(XMAX/2) && y == (int)(YMAX/2)) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, true));
+	    /*if (x == (int)(XMAX/2) && y == (int)(YMAX/2)) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, true));
 	    //if (x == 10 && y == 10) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, true)); 
-	    else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));
+	    else subdomain->set(coordinate, Cell(celltype, 0.0, 0.0, 0.0, 0.0, false));/*
 	    
 	    // Uniform zero elevationation, water depth always equal to persistent_water_depth in central cell and cells near all four corners, initial water depth zero elsewhere
 	    //if (x == (int)(XMAX/2) && y == (int)(YMAX/2)) subdomain->set(coordinate, Cell(celltype, 0.0, persistent_water_depth, 0.0, 0.0, true)); // Central cell
@@ -596,11 +601,178 @@ public:
 	    // Should set persistent_water_depth to same nonzero value as initial value chosen below
 	    //if (x == 1 && y > 3 && y < YMAX-4) subdomain->set(coordinate, Cell(celltype, 1-(double)x/(double)XMAX, persistent_water_depth, 0.0, 0.0, true)); 
 	    //else subdomain->set(coordinate, Cell(celltype, 1-(double)x/(double)XMAX, 0.0, 0.0, 0.0, false));
+	    
+	  }
+      }
+  } 
+};
 
+
+
+
+class CellInitializer : public SimpleInitializer<Cell>
+{
+public:
+  using SimpleInitializer<Cell>::gridDimensions;  // gridDimensions = dimensions of subgrid (in parallel case), not of overall grid
+  
+  CellInitializer()
+  {}
+  
+  
+  CellInitializer(TNT::Array2D<double> elevation_input_data, int nsteps) : SimpleInitializer<Cell>(Coord<2>(imax, jmax), nsteps) // refactor - make dimensions variable. Second argument is the number of steps to run for
+  {
+    elevation = elevation_input_data.copy();
+  }
+  
+  /*   From libgeodecomp:
+       "The initializer sets up the initial state of the grid. For this a
+       Simulator will invoke Initializer::grid(). Keep in mind that grid()
+       might be called multiple times and that for parallel runs each
+       Initializer will be responsible just for a sub-cuboid of the whole
+       grid." */
+  
+  
+  void grid(GridBase<Cell, 2> *subdomain)
+  {
+    CellType celltype;
+    
+    std::cout << "\n\n GridBase.boundingBox.dimensions = " << subdomain->dimensions() << std::endl;
+    
+    
+    for (int x=0; x<=imax-1; x++)
+      {      
+	for (int y=0; y<=jmax-1; y++)
+	  {
+	    if (y == 0)
+	      {
+		if (x == 0) celltype = CORNER_NW;
+		else if (x == imax-1) celltype = CORNER_NE;
+		else celltype = EDGE_NORTH; 
+	      }
+	    else if (y == jmax-1)
+	      {
+		if (x == 0) celltype = CORNER_SW; 
+		else if (x == imax-1) celltype = CORNER_SE; 
+		else celltype = EDGE_SOUTH; 
+	      }	      
+	    else  // i.e. for  2 <= y <= YMAX-2
+	      {
+		if (x == 0) celltype = EDGE_WEST; 
+		else if (x == imax-1) celltype = EDGE_EAST; 
+		else celltype = INTERNAL;
+	      }
+	    
+	    Coord<2> coordinate(x, y);
+	    
+	    subdomain->set(coordinate, Cell(celltype, elevation[x][y], 0.1, 0.0, 0.0, false));
+	    
 	  }
       }
   }
+
+private:
+  TNT::Array2D<double> elevation;
+
 };
+
+
+
+
+
+void initialise_model_domain_extents()
+{
+  std::string DEM_FILENAME = "./boscastle_square_5000cm.asc";
+    
+  if (!does_file_exist(DEM_FILENAME))
+    {
+      std::cout << "No terrain DEM found by name of: " << DEM_FILENAME
+		<< std::endl
+		<< "You must supply a correct path and filename "
+		<< "in the input parameter file" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  
+  try
+    {
+      std::cout << "\n\nLoading DEM header info, the filename is "
+		<< DEM_FILENAME << std::endl;
+
+      // open the data file
+      std::ifstream data_in(DEM_FILENAME.c_str());
+
+      //Read in raster data
+      std::string str;            // a temporary string for discarding text
+
+      // read the georeferencing data and metadata
+      data_in >> str >> jmax;
+      std::cout << "NCols: " << jmax << " str: " << std::endl;
+      data_in >> str >> imax;
+      std::cout << "NRows: " << imax << " str: " << std::endl;
+      data_in >> str >> xll
+	      >> str >> yll
+	      >> str >> DX // cell size or grid resolution
+	      >> str >> no_data_value;
+    }
+  catch(...)
+    {
+      std::cout << "Something is wrong with your initial elevation raster file."
+		<< std::endl
+		<< "Common causes are: " << std::endl
+		<< "1) Data type is not correct"
+		<< std::endl << "2) Non standard raster format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  std::cout << "The model domain has been set from "
+            << "reading the elevation DEM header." << std::endl;
+}
+
+
+
+
+TNT::Array2D<double> load_data()
+{
+  //std::string DEM_FILENAME = read_path + "/" + read_fname + "."	\
+  + dem_read_extension;
+
+  std::string DEM_FILENAME = "./boscastle_square_5000cm.asc";
+    
+  if (!does_file_exist(DEM_FILENAME))
+    {
+      std::cout << "No terrain DEM found by name of: " << DEM_FILENAME
+		<< std::endl
+		<< "You must supply a correct path and filename "
+		<< "in the input parameter file" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  
+  LSDRaster elevR;
+  
+  // Read in the elevation raster data from file, setting the elevation LSDRaster
+  // object, 'elevR'
+  try
+    {
+      elevR.read_ascii_raster(DEM_FILENAME);
+      // You have now read in all the headers and the raster data
+      // Headers are accessed by elevR.get_Ncols(), elevR.get_NRows() etc
+      // Raster is accessed by elevR.get_RasterData_dbl() (type: TNT::Array2D<double>)
+	
+	
+      // Load the raw ascii raster data
+      TNT::Array2D<double> raw_elev = elevR.get_RasterData_dbl();
+      return raw_elev.copy();
+    }
+  catch(...)
+    {
+      std::cout << "Something is wrong with your initial elevation raster file."
+		<< std::endl
+		<< "Common causes are: " << std::endl
+		<< "1) Data type is not correct" << std::endl
+		<< "2) Non standard raster format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+
 
 
 
@@ -616,26 +788,60 @@ void runSimulation()
   //sim.addWriter(new PPMWriter<Cell>(&Cell::qx, 0.0, 1.0, "qx", outputFrequency, Coord<2>(100,100)));
   //sim.addWriter(new PPMWriter<Cell>(&Cell::qy, 0.0, 1.0, "qy", outputFrequency, Coord<2>(100,100)));
   
-  // PARALLEL EXECUTION (ifded to build separate executable?)
+  // PARALLEL EXECUTION (ifdef to build separate executable?)
   //StripingSimulator<Cell> sim(new CellInitializer(), MPILayer().rank() ?0 : new TracingBalancer(new OozeBalancer()), 10);
-  StripingSimulator<Cell> sim(new CellInitializer(), MPILayer().rank() ?0 : new TracingBalancer(new NoOpBalancer()), 10);
 
   MPI_Aint displacements[] = { 0 };
   MPI_Datatype memberTypes[] = { MPI_CHAR };
   int lengths[] = { sizeof(Cell) };
   MPI_Type_create_struct(1, lengths, displacements, memberTypes, &Cell::MPIDataType);
   MPI_Type_commit(&Cell::MPIDataType);
-  
-  
-  
-  sim.addWriter(new BOVWriter<Cell>(Selector<Cell>(&Cell::water_depth, "water_depth"), "water_depth", outputFrequency));
 
+  std::string initial_snapshot_name = "initial_snapshot";
+  std::string initial_snapshot_file = initial_snapshot_name + "00000.mpiio";
+  
+  // Run serial simulator on rank 0 for one timestep to load data and initialise, then write MPI IO snapshot
+  if(MPILayer().rank() == 0)
+    {
+      initialise_model_domain_extents();
+      CellInitializer *dem_initialiser = new CellInitializer(load_data(), 0);
+      SerialSimulator<Cell> initialisation_stage(dem_initialiser);
+      initialisation_stage.addWriter(new MPIIOWriter<Cell>(initial_snapshot_name, 1, 0, MPI_COMM_SELF, Cell::MPIDataType));
+      initialisation_stage.run();
+      std::cout << "\n\n Rank 0 has loaded data and written MPIIO snapshot \n\n";
+    }
+  
+  MPILayer().barrier();  // Make sure rank 0 has finished loading elevation data and writing MPI IO snapshot
+
+  // DEBUG: Reinitialise simulator on rank 0 using MPI IO snapshot
+  if(MPILayer().rank() == 0)
+    {
+      std::cout << "\n Rank 0 is at A \n";
+      MPIIOInitializer<Cell> *mpiio_initialiser = new MPIIOInitializer<Cell>(initial_snapshot_file, Cell::MPIDataType, MPI_COMM_WORLD);
+      std::cout << "\n Rank 0 is at B \n";
+      SerialSimulator<Cell> sim(mpiio_initialiser);
+      std::cout << "\n Rank 0 is at C \n";
+      sim.run();
+    }
+  
+  /*MPIIOInitializer<Cell> *mpiio_initialiser = new MPIIOInitializer<Cell>(initial_snapshot_file, Cell::MPIDataType);
+  StripingSimulator<Cell> sim(mpiio_initialiser, MPILayer().rank()? 0 : new TracingBalancer(new NoOpBalancer()), 10);
+  sim.addWriter(new TracingWriter<Cell>(1, 10));
+  sim.run();
+  MPILayer().barrier();
+  
+  /*
+  //sim.addWriter(new BOVWriter<Cell>(Selector<Cell>(&Cell::elevation, "elevation"), "initial_elevation", 1));
+  
+  sim.addWriter(new BOVWriter<Cell>(Selector<Cell>(&Cell::elevation, "elevation"), "elevation", STEPS));
+  sim.addWriter(new BOVWriter<Cell>(Selector<Cell>(&Cell::water_depth, "water_depth"), "water_depth", outputFrequency));
+  
+  
   if (MPILayer().rank() == 0)
     {
       sim.addWriter(new TracingWriter<Cell>(outputFrequency, STEPS));
     }
   
-  sim.run();
+    sim.run();*/
 }
-
 
