@@ -816,11 +816,11 @@ void runSimulation()
   // DEBUG: Reinitialise simulator on rank 0 using MPI IO snapshot
   if(MPILayer().rank() == 0)
     {
-      std::cout << "\n Rank 0 is at A \n";
+      std::cout << "\n Rank 0 creating MPIIOInitialiser \n";
       MPIIOInitializer<Cell> *mpiio_initialiser = new MPIIOInitializer<Cell>(initial_snapshot_file, Cell::MPIDataType, MPI_COMM_WORLD);
-      std::cout << "\n Rank 0 is at B \n";
+      std::cout << "\n Rank 0 creating SerialSimulator \n";
       SerialSimulator<Cell> sim(mpiio_initialiser);
-      std::cout << "\n Rank 0 is at C \n";
+      std::cout << "\n Rank 0 launching SerialSimulator \n";
       sim.run();
     }
   

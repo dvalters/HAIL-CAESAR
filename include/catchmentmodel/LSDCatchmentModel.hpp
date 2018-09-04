@@ -11,12 +11,12 @@ public:*/
 
 
 /// set by ncols and nrows
-unsigned int jmax, imax;
-double xll, yll;
-double no_data_value;
+extern unsigned int jmax, imax;
+extern double xll, yll;
+extern double no_data_value;
 
-double DX;
-double DY;
+extern double DX;
+extern double DY;
 
 void runSimulation();
 
