@@ -21,7 +21,7 @@ LIBS := -lgeodecomp -lboost_date_time -lmpi
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."
-	@echo " $(CXX) $(LDFLAGS) $(LIBS) $^ -o $(TARGET)"; $(CXX) $(LDFLAGS) $(LIBS) $^ -o $(TARGET) 
+	@echo " $(CXX) $(LDFLAGS) $(INC) $(LIBS) $^ -o $(TARGET)"; $(CXX) $(LDFLAGS) $(INC) $(LIBS) $^ -o $(TARGET) 
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p bin

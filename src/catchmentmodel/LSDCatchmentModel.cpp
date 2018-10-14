@@ -41,14 +41,19 @@ class Cell
 public:
   friend int main(int argc, char **argv);
   static MPI_Datatype MPIDataType;
-  
+  static unsigned int jmax, imax;
+  static double xll, yll;
+  static double no_data_value;
+  static double DX;
+  static double DY;
+      
   class API :
     public APITraits::HasStencil<Stencils::VonNeumann<2,1> >,
     public APITraits::HasCubeTopology<2>,
     public APITraits::HasCustomMPIDataType<Cell>
   {};
   
-  Cell(CellType celltype_in = INTERNAL,		\
+  Cell(CellType celltype_in = INTERNAL,			\
        double elevation_in = 0.0,			\
        double water_depth_in = 0.0,		\
        double qx_in = 0.0,			\
@@ -79,8 +84,6 @@ public:
   // ***********************************************************************
   // default values taken from Boscastle_test_paramfile_March2018.params and LSDCatchmentModel.cpp in master branch
   double hflow_threshold = 0.00001;
-  double DX = 1.0; 
-  double DY = 1.0;
   double courant_number = 0.5;
   double maxdepth = 0.01;
   double time_factor = 1.0;
@@ -362,7 +365,7 @@ public:
   }
   
   
-
+  
   template<typename COORD_MAP>
   void update_water_depth(const COORD_MAP& neighborhood, double east_qx, double south_qy)
   {
@@ -484,14 +487,11 @@ public:
 
 
 
-
-
-
-
 MPI_Datatype Cell::MPIDataType;
-
-
-
+unsigned int Cell::jmax, Cell::imax;
+double Cell::xll, Cell::yll;
+double Cell::no_data_value;
+double Cell::DX, Cell::DY;
 
 
 
@@ -619,7 +619,7 @@ public:
   {}
   
   
-  CellInitializer(TNT::Array2D<double> elevation_input_data, int nsteps) : SimpleInitializer<Cell>(Coord<2>(imax, jmax), nsteps) // refactor - make dimensions variable. Second argument is the number of steps to run for
+  CellInitializer(TNT::Array2D<double> elevation_input_data, int nsteps) : SimpleInitializer<Cell>(Coord<2>(Cell::imax, Cell::jmax), nsteps) // refactor - make dimensions variable. Second argument is the number of steps to run for
   {
     elevation = elevation_input_data.copy();
   }
