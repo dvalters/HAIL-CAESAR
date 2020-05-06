@@ -338,7 +338,7 @@ public:
   void catchment_water_input_and_hydrology( double flow_timestep, runoffGrid& runoff);
 
   /// @brief Calculates the hydrological inputs using just reach mode
-  void reach_water_and_sediment_output();
+  void reach_water_and_sediment_input();
 
   /// @brief Gets the number of catchment cells that have water input to them
   /// @detail Calculates which cells contain a discharge greater than MIN_Q
@@ -601,7 +601,14 @@ private:
   TNT::Array2D<int> down_scan;
   TNT::Array2D<int> rfarea;
 
+  // Arrays for reach mode input points
+  TNT::Array2D<int> inpoints;
   TNT::Array2D<bool> inputpointsarray;
+
+  TNT::Array3D<double> inputfile;
+  std::vector<double> stage_inputfile;
+
+  double stage_input_time_step = 1;
 
   std::vector<int> catchment_input_x_coord;
   std::vector<int> catchment_input_y_coord;

@@ -1057,8 +1057,21 @@ void LSDCatchmentModel::initialise_arrays()
   init_elevs = TNT::Array2D<double> (imax+2,jmax+2, -9999);
 
   vel_dir = TNT::Array3D<double> (imax+2, jmax+2, 9, 0.0);
-
   Vsusptot = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
+
+  //inpoints=new int[10,2];
+  //inputpointsarray = new bool[xmax + 2, ymax + 2];
+
+  // REACH MODE
+  inpoints = TNT::Array2D<int> (10, 2, 0);  // input point location coords 
+  inputpointsarray = TNT::Array2D<bool> (imax + 2, jmax + 2, false); // Array that maps to masked points for reach inputs
+
+  //inputfile = new double[number_of_points,(int)((maxcycle*60)/input_time_step)+10,16];
+  //stage_inputfile = new double[(int)((maxcycle * 60) / stage_input_time_step) + 10];
+
+  inputfile = TNT::Array3D<double> (number_of_points,(int)((maxcycle*60)/input_time_step)+10,16);
+  stage_inputfile = std::vector<double> ((int)((maxcycle * 60) / stage_input_time_step) + 10);
+
 
   // Will come back to this later - DAV
   //if (vegetation_on)
@@ -2540,138 +2553,126 @@ void LSDCatchmentModel::depth_update()
 
 void LSDCatchmentModel::reach_water_and_sediment_input()
 {
-  double[] remove_from_temp_grain;
+  double flow_timestep = get_flow_timestep();
+  //double[] remove_from_temp_grain;
+  //remove_from_temp_grain = new Double[G_MAX + 2];
+  std::vector<double> remove_from_temp_grain;
+  remove_from_temp_grain = std::vector<double> (G_MAX + 2);
 
-  remove_from_temp_grain = new Double[G_MAX + 2];
-
-  
-
-  if (reach_mode_box.Checked == true)
+  if (reach_mode_opt == true)
   {
-      for (int n = 0; n <= number_of_points - 1; n++)
-      {
-          int tempn;
-
-          int x = inpoints[n, 0];
-          int y = inpoints[n, 1];
-
-
-
-          double adding_factor = 1;
-          // tot up total to be added - and if its greater than number of cells and erode_limit
-          // then reduce what can be added via a factor. 
-          double added_tot = 0;
-
-          if (water_depth[x, y] > water_depth_erosion_threshold)
-          {
-              for (tempn = 5; tempn <= G_MAX+3; tempn++)
-              {
-                  added_tot += (Math.Abs(inputfile[n, (int)(cycle / input_time_step), tempn])) / div_inputs / (DX * DX) / (input_time_step * 60) * time_factor;
-              }
-
-              // then multiply by the recirculation factor..
-              if (added_tot / number_of_points > ERODEFACTOR * 0.75) adding_factor = (ERODEFACTOR * 0.75) / (added_tot / number_of_points);
-
-              if (index[x, y] == -9999) addGS(x, y);
-              for (tempn = 5; tempn <= G_MAX+3; tempn++)
-              {
-                  double amount_to_add = adding_factor * (Math.Abs(inputfile[n, (int)(cycle / input_time_step), tempn])) / div_inputs / (DX * DX) / (input_time_step * 60) * time_factor;
-                  if (isSuspended[tempn - 4])
-                  {
-                      Vsusptot[x, y] += amount_to_add;
-                  }
-                  else
-                  {
-                      grain[index[x, y], tempn - 4] += amount_to_add;
-                      elev[x, y] += amount_to_add;
-                  }
-
-              }
-          }
-      }
-  }
-
-  // add in recirculating sediment.
-  if (recirculatebox.Checked == true && reach_mode_box.Checked == true)
-  {
+    for (int n = 0; n <= number_of_points - 1; n++)
+    {
       int tempn;
+      int x = inpoints[n][0];
+      int y = inpoints[n][1];
       double adding_factor = 1;
       // tot up total to be added - and if its greater than number of cells and erode_limit
       // then reduce what can be added via a factor. 
       double added_tot = 0;
 
-      for (tempn = 5; tempn <= G_MAX+3 ; tempn++)
+      if (water_depth[x][y] > water_depth_erosion_threshold)
       {
-          added_tot += temp_grain[tempn - 4];
-          remove_from_temp_grain[tempn - 4] = 0; // quick way of emptying this variable
-      }
+        for (tempn = 5; tempn <= G_MAX+3; tempn++)
+        {
+          added_tot += (std::abs(inputfile[n][(int)(cycle / input_time_step)][tempn])) / div_inputs / (DX * DX) / (input_time_step * 60) * time_step;
+        }
+        // then multiply by the recirculation factor..
+        if (added_tot / number_of_points > ERODEFACTOR * 0.75) adding_factor = (ERODEFACTOR * 0.75) / (added_tot / number_of_points);
 
-      // then multiply by the recirculation factor..
-      if (added_tot / number_of_points > ERODEFACTOR * 0.75) adding_factor = (ERODEFACTOR * 0.75) / (added_tot / number_of_points);
-
-
-          for (int n = 0; n <= number_of_points - 1; n++)
+        if (index[x][y] == -9999) addGS(x, y);
+        for (tempn = 5; tempn <= G_MAX+3; tempn++)
+        {
+          double amount_to_add = adding_factor * (std::abs(inputfile[n][(int)(cycle / input_time_step)][tempn])) / div_inputs / (DX * DX) / (input_time_step * 60) * time_step;
+          if (isSuspended[tempn - 4])
           {
-              int x = inpoints[n, 0];
-              int y = inpoints[n, 1];
-
-              if (water_depth[x, y] > water_depth_erosion_threshold)
-              {
-
-              for (tempn = 5; tempn <= G_MAX+3 ; tempn++)
-              {
-                  if (index[x, y] == -9999) addGS(x, y);
-                  if (isSuspended[tempn - 4])
-                  {
-                      Vsusptot[x, y] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
-                      remove_from_temp_grain[tempn - 4] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
-                  }
-                  else
-                  {
-                      grain[index[x, y], tempn - 4] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
-                      elev[x, y] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
-                      remove_from_temp_grain[tempn - 4] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
-                  }
-
-              }
+            Vsusptot[x][y] += amount_to_add;
           }
+          else
+          {
+            grain[index[x][y]][tempn - 4] += amount_to_add;
+            elev[x][y] += amount_to_add;
+          }
+        }
       }
-
+    }
   }
+
+  // TODO
+  // add in recirculating sediment.
+  // if (recirculatebox.Checked == true && reach_mode_box.Checked == true)
+  // {
+  //     int tempn;
+  //     double adding_factor = 1;
+  //     // tot up total to be added - and if its greater than number of cells and erode_limit
+  //     // then reduce what can be added via a factor. 
+  //     double added_tot = 0;
+
+  //     for (tempn = 5; tempn <= G_MAX+3 ; tempn++)
+  //     {
+  //         added_tot += temp_grain[tempn - 4];
+  //         remove_from_temp_grain[tempn - 4] = 0; // quick way of emptying this variable
+  //     }
+
+  //     // then multiply by the recirculation factor..
+  //     if (added_tot / number_of_points > ERODEFACTOR * 0.75) adding_factor = (ERODEFACTOR * 0.75) / (added_tot / number_of_points);
+
+
+  //         for (int n = 0; n <= number_of_points - 1; n++)
+  //         {
+  //             int x = inpoints[n, 0];
+  //             int y = inpoints[n, 1];
+
+  //             if (water_depth[x, y] > water_depth_erosion_threshold)
+  //             {
+
+  //             for (tempn = 5; tempn <= G_MAX+3 ; tempn++)
+  //             {
+  //                 if (index[x, y] == -9999) addGS(x, y);
+  //                 if (isSuspended[tempn - 4])
+  //                 {
+  //                     Vsusptot[x, y] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
+  //                     remove_from_temp_grain[tempn - 4] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
+  //                 }
+  //                 else
+  //                 {
+  //                     grain[index[x, y], tempn - 4] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
+  //                     elev[x, y] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
+  //                     remove_from_temp_grain[tempn - 4] += ((temp_grain[tempn - 4] * adding_factor) / number_of_points);
+  //                 }
+
+  //             }
+  //         }
+  //     }
+
+  // }
 
   for (int n = 1; n <= G_MAX; n++)
   {
-      temp_grain[n] -= remove_from_temp_grain[n];
+    temp_grain[n] -= remove_from_temp_grain[n];
   }
-  
-
 
   for (int n = 0; n <= number_of_points - 1; n++)
   {
-      int x = inpoints[n, 0];
-      int y = inpoints[n, 1];
-      double interpolated_input1 = inputfile[n, (int)(cycle / input_time_step), 1];
-      double interpolated_input2 = inputfile[n, (int)(cycle / input_time_step) + 1, 1];
-      double proportion_between_time1and2 = ((((int)(cycle / input_time_step)+ 1 ) * input_time_step) - cycle)
-          / input_time_step;
+    int x = inpoints[n][0];
+    int y = inpoints[n][1];
+    double interpolated_input1 = inputfile[n][(int)(cycle / input_time_step)][1];
+    double interpolated_input2 = inputfile[n][(int)(cycle / input_time_step) + 1][1];
+    double proportion_between_time1and2 = ((((int)(cycle / input_time_step)+ 1 ) * input_time_step) - cycle)
+        / input_time_step;
 
+    double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1-proportion_between_time1and2));
 
-      double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1-proportion_between_time1and2));
+    //j_mean = old_j_mean + (((new_j_mean - old_j_mean) / 2) * (2 - time));
+    
+    waterinput += (input / div_inputs);
 
-      //j_mean = old_j_mean + (((new_j_mean - old_j_mean) / 2) * (2 - time));
-      
-      waterinput += (input / div_inputs);
-
-      // trial adding SS line
-      // if(counter<500)Vsusptot[x+5, y] = 0.1;
-      water_depth[x, y] += (input / div_inputs) / (DX * DX) * local_time_factor;
-      // also have to add suspended sediment here..
-      // from file
-
+    // trial adding SS line
+    // if(counter<500)Vsusptot[x+5, y] = 0.1;
+    water_depth[x][y] += (input / div_inputs) / (DX * DX) * flow_timestep;
+    // also have to add suspended sediment here..
+    // from file
   }
-
-
-
 }
 
 // DAV - This can be split into subfunctions
