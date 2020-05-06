@@ -337,6 +337,9 @@ public:
   /// object.
   void catchment_water_input_and_hydrology( double flow_timestep, runoffGrid& runoff);
 
+  /// @brief Calculates the hydrological inputs using just reach mode
+  void reach_water_and_sediment_output();
+
   /// @brief Gets the number of catchment cells that have water input to them
   /// @detail Calculates which cells contain a discharge greater than MIN_Q
   /// and lower than MIN_Q_MAXVAL multiplies by a parameter related to the

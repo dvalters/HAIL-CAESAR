@@ -139,6 +139,9 @@ int main(int argc, char *argv[])
     simulation.increment_counters();
 
     // Hydrological and flow routing processes
+
+    // In reach mode, add the reach inputs and hydrology
+    simulation.reach_water_and_sediment_input();
     // Add water to the catchment from rainfall input file
     simulation.catchment_waterinputs(runoff);
     // Distribute the water with the LISFLOOD Cellular Automaton algorithm
