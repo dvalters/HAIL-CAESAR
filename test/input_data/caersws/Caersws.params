@@ -6,7 +6,7 @@ Caersws, reach mode test
 # FILE INFORMATION
 #==================
 dem_read_extension:	       asc
-dem_write_extension:           asc
+dem_write_extension:       asc
 read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/ 
 write_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/
 read_fname:	               caersws
@@ -67,7 +67,7 @@ hflow_threshold:               0.0001      # IN METRES, DETERMINES IF HORIZ. FLO
 #=====================
 reach_mode:                    yes         # Run in reach mode with input discharge data
 divide_inputs_by:              3
-input_data_timestep:           60
+reach_input_data_timestep:     60
 
 # REACH INPUTS
 #==============     
@@ -80,7 +80,12 @@ reach1_y:                       89
 reach2_input_file:              input_discharge.txt
 reach2_input_on:                yes
 reach2_x:                       3
-reach2_y:                       89
+reach2_y:                       88
+
+reach3_input_file:              input_discharge.txt
+reach3_input_on:                yes
+reach3_x:                       3
+reach3_y:                       87
 
 
 

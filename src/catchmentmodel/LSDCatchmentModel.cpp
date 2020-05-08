@@ -37,9 +37,11 @@
  *
  *
  * @author Declan Valters
- * @date  2014-2017
- * @comment 4 years (and counting) of my life developing this model...
+ * @date  2014-2020
+ * @comment 6 years (and counting) of my life developing this model...
  * University of Manchester
+ * University of Edinburgh
+ * British Geological Survey
  * @contact declan.valters@gmail.com
  * @version 1.0
  *
@@ -320,7 +322,7 @@ void LSDCatchmentModel::load_data()
 // Reads in grain data from the grain data file,
 // and initialises the grain_array_tot variable,
 // the index, grain, and strata arrays
-void LSDCatchmentModel::ingest_graindata_from_file(
+void LSDCatchmentModel::ingest_graindata_from_file( 
   std::string GRAINDATA_FILENAME)
 {
   std::cout << "\n Loading graindata from the the graindata file: "
@@ -426,6 +428,35 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(
     ++i;
   }
   return raingrid;
+}
+
+std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
+   string REACHINPUTFILENAME)
+{
+  std::vector< std::vector<float> > cur_inputfile_slice;
+  std::cout << "\n\n Loading REACH DISCHARGE File, \
+                the filename is: "
+            << REACHINPUTFILENAME << std::endl;
+  // open the data file
+  std::ifstream infile(REACHINPUTFILENAME.c_str());
+
+  std::string line;
+  int i = 0;
+
+  while (std::getline(infile, line))
+  {
+    float value;
+    std::stringstream ss(line);
+
+    cur_inputfile_slice.push_back(std::vector<float>());
+
+    while (ss >> value)
+    {
+      cur_inputfile_slice[i].push_back(value);
+    }
+    ++i;
+  }
+  return cur_inputfile_slice;
 }
 
 // This is just for sanity checking the rainfall input really
@@ -953,6 +984,82 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Reach Mode
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+    // Set the input cell flags (i.e. you can switch off/on cells as input points)
+    else if (lower == "reach1_input_on")
+    {
+      reach1_input_on = (value == "yes") ? true : false;
+    }
+    else if (lower == "reach1_input_file")
+    {
+      reach1_input_file = value;
+    }
+    else if (lower == "reach1_x")
+    {
+      reach1_x = atoi(value.c_str());
+    }
+    else if (lower == "reach1_y")
+    {
+      reach1_y = atoi(value.c_str());
+    }
+
+
+    else if (lower == "reach2_input_on")
+    {
+      reach2_input_on = (value == "yes") ? true : false;
+    }
+    else if (lower == "reach2_input_file")
+    {
+      reach2_input_file = value;
+    }
+    else if (lower == "reach2_x")
+    {
+      reach2_x = atoi(value.c_str());
+    }
+    else if (lower == "reach2_y")
+    {
+      reach2_y = atoi(value.c_str());
+    }
+
+
+    else if (lower == "reach3_input_on")
+    {
+      reach3_input_on = (value == "yes") ? true : false;
+    }
+    else if (lower == "reach3_input_file")
+    {
+      reach3_input_file = value;
+    }
+    else if (lower == "reach3_x")
+    {
+      reach3_x = atoi(value.c_str());
+    }
+    else if (lower == "reach3_y")
+    {
+      reach3_y = atoi(value.c_str());
+    }
+    // The array vaues have to be initialised in initialise_arrays()
+
+
+    else if (lower == "reach_mode")
+    {
+      reach_mode_opt = true;
+      std::cout << "Reach mode on/off: " << reach_mode_opt << std::endl;
+    }
+    else if (lower == "divide_inputs_by")
+    {
+      div_inputs = atof(value.c_str());
+      std::cout << "Divide Reach inputs by factor of " << div_inputs << std::endl;
+    }
+    else if (lower == "reach_input_data_timestep")
+    {
+      reach_input_data_timestep == atof(value.c_str());
+      std::cout << "reach input data timestep: " << reach_input_data_timestep << std::endl;
+    }
+
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Hillslope
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     else if (lower == "creep_rate")
@@ -1036,9 +1143,9 @@ void LSDCatchmentModel::initialise_arrays()
   water_depth = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
 
   // Cast to int and then double, what?
-  //old_j_mean_store = new double[(int)((maxcycle*60)/input_time_step)+10];
+  //old_j_mean_store = new double[(int)((maxcycle*60)/reach_input_data_timestep)+10];
   old_j_mean_store = std::vector<double>
-    (static_cast<int>((maxcycle*60)/input_time_step)+10);
+    (static_cast<int>((maxcycle*60)/reach_input_data_timestep)+10);  // TODO what does this have to do with reach mode?!
 
   qx = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
   qy = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
@@ -1066,17 +1173,18 @@ void LSDCatchmentModel::initialise_arrays()
   inpoints = TNT::Array2D<int> (10, 2, 0);  // input point location coords 
   inputpointsarray = TNT::Array2D<bool> (imax + 2, jmax + 2, false); // Array that maps to masked points for reach inputs
 
-  //inputfile = new double[number_of_points,(int)((maxcycle*60)/input_time_step)+10,16];
-  //stage_inputfile = new double[(int)((maxcycle * 60) / stage_input_time_step) + 10];
+  //inputfile = new double[number_of_points,(int)((maxcycle*60)/reach_input_data_timestep)+10,16];
+  //stage_inputfile = new double[(int)((maxcycle * 60) / stage_reach_input_data_timestep) + 10];
 
-  inputfile = TNT::Array3D<double> (number_of_points,(int)((maxcycle*60)/input_time_step)+10,16);
-  stage_inputfile = std::vector<double> ((int)((maxcycle * 60) / stage_input_time_step) + 10);
+  // TODO use vector isntead
+  //inputfile = TNT::Array3D<double> (number_of_points,(int)((maxcycle*60)/reach_input_data_timestep)+10,16);
+  stage_inputfile = std::vector<double> ((int)((maxcycle * 60) / stage_reach_input_data_timestep) + 10);
 
 
   // Will come back to this later - DAV
   //if (vegetation_on)
   //{
-    veg = TNT::Array3D<double> (imax+1, jmax+1, 4, 0.0);
+  veg = TNT::Array3D<double> (imax+1, jmax+1, 4, 0.0);
   //}
 
 
@@ -1166,6 +1274,40 @@ void LSDCatchmentModel::initialise_arrays()
   isSuspended = std::vector<bool>(G_MAX+1, false);
   fallVelocity = std::vector<double>(G_MAX+1, 0.0);
   set_fall_velocities();
+
+  // Reach mode
+  if (reach_mode_opt)
+  {
+    std::cout << "SETTING THE REACH INPUT ARRAYS" << std::endl;
+    if(reach1_input_on)
+    {
+      std::cout << "FOR INPUT POINT 1" << std::endl;
+      number_of_points++;
+      inpoints[0][0] = reach1_x;   // this has to come from the input file
+      inpoints[0][1] = reach1_y;
+      inputpointsarray[reach1_x][reach1_y] = true;
+    }
+    if(reach2_input_on)
+    {
+      std::cout << "FOR INPUT POINT 2" << std::endl;
+      number_of_points++;
+      inpoints[1][0] = reach2_x;
+      inpoints[1][1] = reach2_y;
+      inputpointsarray[reach2_x][reach2_y] = true;
+    }
+    if(reach3_input_on)
+    {
+      std::cout << "FOR INPUT POINT 3" << std::endl;
+      number_of_points++;
+      inpoints[2][0] = reach3_x;
+      inpoints[2][1] = reach3_y;
+      inputpointsarray[reach3_x][reach3_y] = true;
+    }
+  }
+
+
+
+
   // Not entirely sure this is necessary? - TODO DAV
   zero_values();
 }
@@ -2575,7 +2717,7 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
       {
         for (tempn = 5; tempn <= G_MAX+3; tempn++)
         {
-          added_tot += (std::abs(inputfile[n][(int)(cycle / input_time_step)][tempn])) / div_inputs / (DX * DX) / (input_time_step * 60) * time_step;
+          added_tot += (std::abs(inputfile[n][(int)(cycle / reach_input_data_timestep)][tempn])) / div_inputs / (DX * DX) / (reach_input_data_timestep * 60) * time_step;
         }
         // then multiply by the recirculation factor..
         if (added_tot / number_of_points > ERODEFACTOR * 0.75) adding_factor = (ERODEFACTOR * 0.75) / (added_tot / number_of_points);
@@ -2583,7 +2725,7 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
         if (index[x][y] == -9999) addGS(x, y);
         for (tempn = 5; tempn <= G_MAX+3; tempn++)
         {
-          double amount_to_add = adding_factor * (std::abs(inputfile[n][(int)(cycle / input_time_step)][tempn])) / div_inputs / (DX * DX) / (input_time_step * 60) * time_step;
+          double amount_to_add = adding_factor * (std::abs(inputfile[n][(int)(cycle / reach_input_data_timestep)][tempn])) / div_inputs / (DX * DX) / (reach_input_data_timestep * 60) * time_step;
           if (isSuspended[tempn - 4])
           {
             Vsusptot[x][y] += amount_to_add;
@@ -2656,10 +2798,10 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
   {
     int x = inpoints[n][0];
     int y = inpoints[n][1];
-    double interpolated_input1 = inputfile[n][(int)(cycle / input_time_step)][1];
-    double interpolated_input2 = inputfile[n][(int)(cycle / input_time_step) + 1][1];
-    double proportion_between_time1and2 = ((((int)(cycle / input_time_step)+ 1 ) * input_time_step) - cycle)
-        / input_time_step;
+    double interpolated_input1 = inputfile[n][(int)(cycle / reach_input_data_timestep)][1];
+    double interpolated_input2 = inputfile[n][(int)(cycle / reach_input_data_timestep) + 1][1];
+    double proportion_between_time1and2 = ((((int)(cycle / reach_input_data_timestep)+ 1 ) * reach_input_data_timestep) - cycle)
+        / reach_input_data_timestep;
 
     double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1-proportion_between_time1and2));
 

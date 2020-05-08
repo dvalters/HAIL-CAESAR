@@ -340,6 +340,8 @@ public:
   /// @brief Calculates the hydrological inputs using just reach mode
   void reach_water_and_sediment_input();
 
+  std::vector<std::vector<float> > read_reachfile(std::string REACHINPUTFILE);
+
   /// @brief Gets the number of catchment cells that have water input to them
   /// @detail Calculates which cells contain a discharge greater than MIN_Q
   /// and lower than MIN_Q_MAXVAL multiplies by a parameter related to the
@@ -431,7 +433,8 @@ private:
   const std::array<int, 9> deltaY = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
 
   double water_depth_erosion_threshold = 0.01;
-  int input_time_step = 60;
+  int reach_input_data_timestep = 60;
+  int stage_reach_input_data_timestep = 60;
   int number_of_points = 0;
   double globalsediq = 0;
   double time_1 = 1;
@@ -601,12 +604,30 @@ private:
   TNT::Array2D<int> down_scan;
   TNT::Array2D<int> rfarea;
 
+  // Reach input cell flag switches
+  bool reach1_input_on = false;
+  bool reach2_input_on = false;
+  bool reach3_input_on = false;
+
+  std::string reach1_input_file;
+  std::string reach2_input_file;
+  std::string reach3_input_file;
+
+  int reach1_x;
+  int reach1_y;
+  int reach2_x;
+  int reach2_y;
+  int reach3_x;
+  int reach3_y;
+
   // Arrays for reach mode input points
   TNT::Array2D<int> inpoints;
   TNT::Array2D<bool> inputpointsarray;
 
-  TNT::Array3D<double> inputfile;
+  std::vector < std::vector< std::vector<float> > > inputfile;
+  //TNT::Array3D<double> inputfile;
   std::vector<double> stage_inputfile;
+  // TODO above these all need initialising from read ins.
 
   double stage_input_time_step = 1;
 
