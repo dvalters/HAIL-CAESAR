@@ -9,18 +9,13 @@ dem_read_extension:	       asc
 dem_write_extension:       asc
 read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/ 
 write_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/
-read_fname:	               caersws
+read_fname:	               caerswsmeanders3
 write_fname:	               caersws_reach.dat
 timeseries_save_interval:      60
 
 # SUPPLEMENTARY FILES
 #====================
-hydroindex_file:               #ryedale_hydroindex_test_5m_uncropped.asc
-rainfall_data_file:            #rain10year.txt
-grain_data_file:               #ryedale_grain_spunup_4day.txt 
-bedrock_data_file:             #ryedale5m_20mwide_streams_toplayer.asc
-
-bedrock_layer_on:              no          # REMEMBER TO SPECIFY A BEDROCK DEM FILE IF YOU TURN THIS ON
+# REMEMBER TO SPECIFY A BEDROCK DEM FILE IF YOU TURN THIS ON
 
 # NUMERICAL
 #===========
@@ -51,47 +46,47 @@ lateral_cross_chan_smoothing:  0.0001       # MAX DIFFERENCE IN CROSS CHANNEL SM
 # HYDROLOGY
 #===========
 hydro_model_only:              yes          # SWITCHES OFF THE EROSION
-topmodel_m_value:              0.01        # SEE LITERATURE FOR GUIDANCE
+topmodel_m_value:              0.015        # SEE LITERATURE FOR GUIDANCE
 in_out_difference:             5           # CUMECS, UNTESTED
-min_q_for_depth_calc:          0.5         # CUMECS
-max_q_for_depth_calc:          5           # CUMECS
+min_q_for_depth_calc:          0.1         # CUMECS
+max_q_for_depth_calc:          1000           # CUMECS
 water_depth_erosion_threshold: 0.01        # METRES
-slope_on_edge_cell:            0.002       # SHOULD BE APPROX EQUAL TO CHAN SLOPE NEAR OUTLET
+slope_on_edge_cell:            0.001       # SHOULD BE APPROX EQUAL TO CHAN SLOPE NEAR OUTLET
 evaporation_rate:              0.0         # NOT YET IMPLEMENTED
 courant_number:                0.7         # NO LOWER THAN 3 PLEASE, MAX AROUND 0.7 - NUMERICAL STABILITY CONTROL
 froude_num_limit:              0.8         # CONTROLS FLOW BETWEEN CELLS PER TIME STEP (SEE DOCS)
 mannings_n:                    0.04        # SEE LITERATURE FOR GUIDANCE
-hflow_threshold:               0.0001      # IN METRES, DETERMINES IF HORIZ. FLOW CALCULATED
+hflow_threshold:               0.001      # IN METRES, DETERMINES IF HORIZ. FLOW CALCULATED
 
 # REACH MODE HYDROLOGY
 #=====================
 reach_mode:                    yes         # Run in reach mode with input discharge data
 divide_inputs_by:              3
-reach_input_data_timestep:     60
+reach_input_data_timestep:     6000000
 
 # REACH INPUTS
 #==============     
 
-reach1_input_file:              input_discharge.txt
+reach1_input_file:              input2.txt
 reach1_input_on:                yes
 reach1_x:                       3
 reach1_y:                       89
 
-reach2_input_file:              input_discharge.txt
+reach2_input_file:              input2.txt
 reach2_input_on:                yes
 reach2_x:                       3
 reach2_y:                       88
 
-reach3_input_file:              input_discharge.txt
+reach3_input_file:              input2.txt
 reach3_input_on:                yes
 reach3_x:                       3
-reach3_y:                       87
+reach3_y:                       90
 
 
 
 # PRECIPITATION
 #==============
-rainfall_data_on:              yes         # IF YES, HAVE YOU SET A RAINFALL FILE? 
+rainfall_data_on:              no         # IF YES, HAVE YOU SET A RAINFALL FILE? 
                                            # VALUES IN MM/HR, REGARDLESS OF TIMESTEP
 rain_data_time_step:           60           # MINUTES, MUST MATCH RAINFALL FILE
 spatial_var_rain:              no         # IF YES, HAVE YOU SET A HYDROINDEX FILE?

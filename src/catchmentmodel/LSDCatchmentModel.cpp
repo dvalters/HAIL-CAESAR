@@ -475,6 +475,21 @@ void LSDCatchmentModel::print_rainfall_data()
   }
 }
 
+// void LSDCatchmentModel::print_reach_data()
+// {
+//   std::vector< std::vector< std::vector<float> > > vector3d = inputfile;
+//   auto itr = vector3d.begin();
+//   auto end = vector3d.end();
+
+//   while (itr!=end)
+//   {
+//     auto it1=itr->begin(),end1=itr->end();
+//     std::copy(it1,end1,std::ostream_iterator<float>(std::cout, " "));
+//     std::cout << std::endl;
+//     ++itr;
+//   }  
+// }
+
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This function gets all the data from a parameter file
 //
@@ -565,21 +580,26 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     else if (lower == "hydroindex_file")
     {
       hydroindex_fname = value;
+      RemoveControlCharactersFromEndOfString(hydroindex_fname);
       std::cout << "hydroindex_file: " << hydroindex_fname << std::endl;
     }
     else if (lower == "rainfall_data_file")
     {
       rainfall_data_file = value;
+      RemoveControlCharactersFromEndOfString(rainfall_data_file);
       std::cout << "rainfall_data_file: " << rainfall_data_file << std::endl;
     }
     else if (lower == "grain_data_file")
     {
       grain_data_file = value;
+      RemoveControlCharactersFromEndOfString(grain_data_file);
       std::cout << "grain data file: " << grain_data_file << std::endl;
     }
     else if (lower == "bedrock_data_file")
     {
+      std::cout << value << "VALUE " << lower << "LOWER";
       bedrock_data_file = value;
+      RemoveControlCharactersFromEndOfString(bedrock_data_file);
       std::cout << "bedrock data file: " << bedrock_data_file << std::endl;
     }
 
@@ -1055,7 +1075,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     }
     else if (lower == "reach_input_data_timestep")
     {
-      reach_input_data_timestep == atof(value.c_str());
+      reach_input_data_timestep = atoi(value.c_str());
       std::cout << "reach input data timestep: " << reach_input_data_timestep << std::endl;
     }
 
@@ -1215,6 +1235,13 @@ void LSDCatchmentModel::initialise_arrays()
     ( (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100),
                         vector<float>(rfnum+1) );
 
+//vector<vector<vector<int> > > vec (5,vector<vector<int> >(3,vector <int>(2,4)));
+
+  // Initialise the reach data which is in inputfile
+
+
+  inputfile = std::vector< std::vector< std::vector<float> > > (3, std::vector<std::vector<float> >( ((int)((maxcycle*60)/reach_input_data_timestep)+10) , std::vector<float> (16)));
+
   hourly_m_value = std::vector<double>
     (static_cast<int>(maxcycle * (60 / rain_data_time_step)) + 100);
 
@@ -1286,6 +1313,8 @@ void LSDCatchmentModel::initialise_arrays()
       inpoints[0][0] = reach1_x;   // this has to come from the input file
       inpoints[0][1] = reach1_y;
       inputpointsarray[reach1_x][reach1_y] = true;
+      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(reach1_input_file);
+      inputfile.push_back(cur_inputfile_slice);
     }
     if(reach2_input_on)
     {
@@ -1294,6 +1323,8 @@ void LSDCatchmentModel::initialise_arrays()
       inpoints[1][0] = reach2_x;
       inpoints[1][1] = reach2_y;
       inputpointsarray[reach2_x][reach2_y] = true;
+      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(reach2_input_file);
+      inputfile.push_back(cur_inputfile_slice);
     }
     if(reach3_input_on)
     {
@@ -1302,12 +1333,12 @@ void LSDCatchmentModel::initialise_arrays()
       inpoints[2][0] = reach3_x;
       inpoints[2][1] = reach3_y;
       inputpointsarray[reach3_x][reach3_y] = true;
+      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(reach3_input_file);
+      inputfile.push_back(cur_inputfile_slice);
     }
+    // Create the 3D array for the inputfile
+
   }
-
-
-
-
   // Not entirely sure this is necessary? - TODO DAV
   zero_values();
 }
@@ -2789,9 +2820,12 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
 
   // }
 
-  for (int n = 1; n <= G_MAX; n++)
+  if (!hydro_only)
   {
-    temp_grain[n] -= remove_from_temp_grain[n];
+    for (int n = 1; n <= G_MAX; n++)
+    {
+      temp_grain[n] -= remove_from_temp_grain[n];
+    }
   }
 
   for (int n = 0; n <= number_of_points - 1; n++)
