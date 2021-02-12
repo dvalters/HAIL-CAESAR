@@ -8,7 +8,7 @@ Caersws, reach mode test
 dem_read_extension:	       asc
 dem_write_extension:       asc
 read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/ 
-write_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/
+write_path:	               /home/decval/dev/HAIL-CAESAR/test/results/caersws_reach/ 
 read_fname:	               caerswsmeanders3
 write_fname:	               caersws_reach.dat
 timeseries_save_interval:      60
