@@ -301,12 +301,7 @@ void LSDCatchmentModel::load_data()
     std::cout << "======== FINISHED RAINFALL DATA INPUTS =========="  << std::endl;
     #endif
 
-        // debug
-    #ifdef DEBUG
-    std::cout << "======== PRINTING REACH DATA INPUTS =========="  << std::endl;
-    print_reach_data();
-    std::cout << "======== FINISHED REACH DATA INPUTS =========="  << std::endl;
-    #endif
+
 
   }
   // Read grainsize data for restart runs
@@ -503,8 +498,10 @@ void LSDCatchmentModel::print_reach_data()
 {
   for( std::vector<std::vector<std::vector<float>>>::const_iterator i = inputfile.begin(); i != inputfile.end(); ++i)
   {
+     std::cout << "~~~~~~~~ X DIMENSION ~~~~~~~~~~" << &*i << std::endl;
      for( std::vector<std::vector<float>>::const_iterator j = i->begin(); j != i->end(); ++j)
      {
+          std::cout << "~~~~~~~~ Y DIMENSION ~~~~~~~~~~" << &*j << std::endl;
           for( std::vector<float>::const_iterator k = j->begin(); k != j->end(); ++k)
           { 
                    cout<<*k<<' ';
@@ -1360,7 +1357,12 @@ void LSDCatchmentModel::initialise_arrays()
       inputfile.push_back(cur_inputfile_slice);
     }
     // Create the 3D array for the inputfile
-
+            // debug
+    #ifdef DEBUG
+    std::cout << "======== PRINTING REACH DATA INPUTS =========="  << std::endl;
+    print_reach_data();
+    std::cout << "======== FINISHED REACH DATA INPUTS =========="  << std::endl;
+    #endif
   }
   // Not entirely sure this is necessary? - TODO DAV
   zero_values();
