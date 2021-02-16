@@ -8,7 +8,7 @@ TARGET := bin/HAIL-CAESAR.exe
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -std=c++11 -Wall #-DOMP_COMPILE_FOR_PARALLEL -fopenmp $(GITREV)# -Wall
+CFLAGS := -g -std=c++11 -Wall -DDEBUG #-DOMP_COMPILE_FOR_PARALLEL -fopenmp $(GITREV)# -Wall 
 LIB := -fopenmp
 INC := -I include
 

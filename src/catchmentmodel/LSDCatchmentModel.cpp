@@ -296,7 +296,16 @@ void LSDCatchmentModel::load_data()
 
     // debug
     #ifdef DEBUG
+    std::cout << "======== PRINTING RAINFALL DATA INPUTS =========="  << std::endl;
     print_rainfall_data();
+    std::cout << "======== FINISHED RAINFALL DATA INPUTS =========="  << std::endl;
+    #endif
+
+        // debug
+    #ifdef DEBUG
+    std::cout << "======== PRINTING REACH DATA INPUTS =========="  << std::endl;
+    print_reach_data();
+    std::cout << "======== FINISHED REACH DATA INPUTS =========="  << std::endl;
     #endif
 
   }
@@ -475,7 +484,7 @@ void LSDCatchmentModel::print_rainfall_data()
   }
 }
 
-// void LSDCatchmentModel::print_reach_data()
+// void LSDCatchmentModel::OLD_print_reach_data()
 // {
 //   std::vector< std::vector< std::vector<float> > > vector3d = inputfile;
 //   auto itr = vector3d.begin();
@@ -489,6 +498,20 @@ void LSDCatchmentModel::print_rainfall_data()
 //     ++itr;
 //   }  
 // }
+
+void LSDCatchmentModel::print_reach_data()
+{
+  for( std::vector<std::vector<std::vector<float>>>::const_iterator i = inputfile.begin(); i != inputfile.end(); ++i)
+  {
+     for( std::vector<std::vector<float>>::const_iterator j = i->begin(); j != i->end(); ++j)
+     {
+          for( std::vector<float>::const_iterator k = j->begin(); k != j->end(); ++k)
+          { 
+                   cout<<*k<<' ';
+          }
+     }
+  }
+}
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This function gets all the data from a parameter file

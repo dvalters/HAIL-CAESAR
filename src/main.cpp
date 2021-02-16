@@ -48,6 +48,11 @@ using namespace LSDUtils;
 
 int main(int argc, char *argv[])
 {
+  #ifdef DEBUG
+  std::cout << "===================================" << std::endl;
+  std::cout << "||    Running in DEBUG mode      ||" << std::endl;
+  std::cout << "===================================" << std::endl;
+  #endif
 
   std::cout << "##################################" << std::endl;
   std::cout << "#  CATCHMENT HYDROGEOMORPHOLOGY  #" << std::endl;
