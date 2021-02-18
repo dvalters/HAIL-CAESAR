@@ -43,11 +43,10 @@ namespace LSDUtils
   }
 
   // Wee function to check if file exists
-  // Not sure if this works in Windows...must test sometime
   inline bool does_file_exist(const std::string &filename)
   {
     struct stat buffer;
-    return (stat(filename.c_str(), &buffer) ==0);
+    return (stat(filename.c_str(), &buffer) == 0);
   }
 
   // A simple function to test OpenMP in the LSDTopoTools environment

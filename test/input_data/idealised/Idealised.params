@@ -115,7 +115,7 @@ call_muddpile_model:           yes          # NOT YET IMPLEMENTED
 # WRITE OUTPUT RASTERS
 #======================
 raster_output_interval:        100000          # IN MODEL MINUTES
-write_waterdepth_file:         no
+write_waterdepth_file:         yes
 waterdepth_outfile_name:       WaterDepths
 write_elev_file:               no
 write_elevation_file:          Elevations

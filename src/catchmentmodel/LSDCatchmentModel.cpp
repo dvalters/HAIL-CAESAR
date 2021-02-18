@@ -437,6 +437,7 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(
 std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
    string REACHINPUTFILENAME)
 {
+
   std::vector< std::vector<float> > cur_inputfile_slice;
   std::cout << "\n\n Loading REACH DISCHARGE File, \
                 the filename is: "
@@ -444,24 +445,52 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
   // open the data file
   std::ifstream infile(REACHINPUTFILENAME.c_str());
 
+  //std::cout << "READING FROM: " << infile << std::endl;
+
   std::string line;
+
   int i = 0;
 
+  std::cout << "ENTERING THE READ WHILE LOOP FOR REACH FILE: >>>\n";
   while (std::getline(infile, line))
   {
+    std::cout << "==== WE ARE IN THE REACHFILE READ WHILE LOOP. WOOP! =====\n";
     float value;
     std::stringstream ss(line);
+
+    #ifdef DEBUG
+    std::cout << "LINE: " << i << ": " << line << "\n";
+    //std::cout << "SS: "  << i << ": " << ss << "\n";
+    #endif
 
     cur_inputfile_slice.push_back(std::vector<float>());
 
     while (ss >> value)
     {
+      #ifdef DEBUG
+      std::cout << "SS: "  << i << ": " << value << "\n";
+      #endif
       cur_inputfile_slice[i].push_back(value);
     }
     ++i;
   }
+  #ifdef DEBUG
+  // Print the current inputfile slice
+  std::cout << "PRINTING THE CURRENT REACH INPUTFILE SLICE....\n";
+  auto itr = cur_inputfile_slice.begin();
+  auto end = cur_inputfile_slice.end();
+
+  while (itr!=end)
+  {
+    auto it1=itr->begin(),end1=itr->end();
+    std::copy(it1,end1,std::ostream_iterator<float>(std::cout, " "));
+    std::cout << std::endl;
+    ++itr;
+  }
+  #endif
   return cur_inputfile_slice;
 }
+
 
 // This is just for sanity checking the rainfall input really
 void LSDCatchmentModel::print_rainfall_data()
@@ -1328,32 +1357,62 @@ void LSDCatchmentModel::initialise_arrays()
     std::cout << "SETTING THE REACH INPUT ARRAYS" << std::endl;
     if(reach1_input_on)
     {
+    std::string REACH_FULLFILENAME1 = read_path + "/" + reach1_input_file;
+      // Check for the file first of all
+      if (!does_file_exist(REACH_FULLFILENAME1))
+      {
+        std::cout << "No reach input data file found by name of: "
+                  << REACH_FULLFILENAME1 << std::endl
+                  << "You specified to use a reach mode input file, \
+                     \n but no matching file was found. Try again." << std::endl;
+                     exit(EXIT_FAILURE);
+      }
       std::cout << "FOR INPUT POINT 1" << std::endl;
       number_of_points++;
       inpoints[0][0] = reach1_x;   // this has to come from the input file
       inpoints[0][1] = reach1_y;
       inputpointsarray[reach1_x][reach1_y] = true;
-      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(reach1_input_file);
+      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(REACH_FULLFILENAME1);
       inputfile.push_back(cur_inputfile_slice);
     }
     if(reach2_input_on)
     {
+      std::string REACH_FULLFILENAME2 = read_path + "/" + reach2_input_file;
+      // Check for the file first of all
+      if (!does_file_exist(REACH_FULLFILENAME2))
+      {
+        std::cout << "No reach input data file found by name of: "
+                  << REACH_FULLFILENAME2 << std::endl
+                  << "You specified to use a reach mode input file, \
+                     \n but no matching file was found. Try again." << std::endl;
+                     exit(EXIT_FAILURE);
+      }
       std::cout << "FOR INPUT POINT 2" << std::endl;
       number_of_points++;
       inpoints[1][0] = reach2_x;
       inpoints[1][1] = reach2_y;
       inputpointsarray[reach2_x][reach2_y] = true;
-      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(reach2_input_file);
+      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(REACH_FULLFILENAME2);
       inputfile.push_back(cur_inputfile_slice);
     }
     if(reach3_input_on)
     {
+      std::string REACH_FULLFILENAME3 = read_path + "/" + reach3_input_file;
+      // Check for the file first of all
+      if (!does_file_exist(REACH_FULLFILENAME3))
+      {
+        std::cout << "No reach input data file found by name of: "
+                  << REACH_FULLFILENAME3 << std::endl
+                  << "You specified to use a reach mode input file, \
+                     \n but no matching file was found. Try again." << std::endl;
+                     exit(EXIT_FAILURE);
+      }
       std::cout << "FOR INPUT POINT 3" << std::endl;
       number_of_points++;
       inpoints[2][0] = reach3_x;
       inpoints[2][1] = reach3_y;
       inputpointsarray[reach3_x][reach3_y] = true;
-      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(reach3_input_file);
+      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(REACH_FULLFILENAME3);
       inputfile.push_back(cur_inputfile_slice);
     }
     // Create the 3D array for the inputfile
