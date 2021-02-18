@@ -451,14 +451,18 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
 
   int i = 0;
 
+  #ifdef DEBUG_LVL_3
   std::cout << "ENTERING THE READ WHILE LOOP FOR REACH FILE: >>>\n";
+  #endif
   while (std::getline(infile, line))
   {
+    #ifdef DEBUG_LVL_3
     std::cout << "==== WE ARE IN THE REACHFILE READ WHILE LOOP. WOOP! =====\n";
+    #endif
     float value;
     std::stringstream ss(line);
 
-    #ifdef DEBUG
+    #ifdef DEBUG_LVL_3
     std::cout << "LINE: " << i << ": " << line << "\n";
     //std::cout << "SS: "  << i << ": " << ss << "\n";
     #endif
@@ -467,7 +471,7 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
 
     while (ss >> value)
     {
-      #ifdef DEBUG
+      #ifdef DEBUG_LVL_3
       std::cout << "SS: "  << i << ": " << value << "\n";
       #endif
       cur_inputfile_slice[i].push_back(value);
@@ -1418,9 +1422,9 @@ void LSDCatchmentModel::initialise_arrays()
     // Create the 3D array for the inputfile
             // debug
     #ifdef DEBUG
-    std::cout << "======== PRINTING REACH DATA INPUTS =========="  << std::endl;
+    std::cout << "\n======== PRINTING REACH DATA INPUTS =========="  << std::endl;
     print_reach_data();
-    std::cout << "======== FINISHED REACH DATA INPUTS =========="  << std::endl;
+    std::cout << "\n======== FINISHED REACH DATA INPUTS =========="  << std::endl;
     #endif
   }
   // Not entirely sure this is necessary? - TODO DAV
@@ -2818,6 +2822,7 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
 
   if (reach_mode_opt == true)
   {
+
     for (int n = 0; n <= number_of_points - 1; n++)
     {
       int tempn;
@@ -2914,6 +2919,8 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
 
   for (int n = 0; n <= number_of_points - 1; n++)
   {
+    //std::cout << "n, number of points, : " << n << ":-" << number_of_points << std::endl;
+
     int x = inpoints[n][0];
     int y = inpoints[n][1];
     double interpolated_input1 = inputfile[n][(int)(cycle / reach_input_data_timestep)][1];
@@ -2922,14 +2929,30 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
         / reach_input_data_timestep;
 
     double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1-proportion_between_time1and2));
+    #ifdef DEBUG
+    if (input > 0.0) { std::cout << "input is: " << input << std::endl; }
+    if (interpolated_input1 > 0.0) { std::cout << "interpolated_input1 is: " << interpolated_input1 << std::endl; }
+    if (interpolated_input2 > 0.0) { std::cout << "interpolated_input2 is: " << interpolated_input2 << std::endl; }
+    //std::cout << "reach_input_data_timestep: " << reach_input_data_timestep << std::endl;
+    //std::cout << "proportion_between_time1and2: " << proportion_between_time1and2 << std::endl;
+    #endif
 
     //j_mean = old_j_mean + (((new_j_mean - old_j_mean) / 2) * (2 - time));
     
     waterinput += (input / div_inputs);
 
+    #ifdef DEBUG
+    //std::cout << "waterinput is: " << waterinput << std::endl;
+    #endif
     // trial adding SS line
     // if(counter<500)Vsusptot[x+5, y] = 0.1;
     water_depth[x][y] += (input / div_inputs) / (DX * DX) * flow_timestep;
+    #ifdef DEBUG
+    if (water_depth[x][y] > 0.0)
+    {
+    std::cout << "water_depth here is: " << water_depth[x][y] << std::endl;
+    }
+    #endif
     // also have to add suspended sediment here..
     // from file
   }
