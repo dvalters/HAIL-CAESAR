@@ -2958,7 +2958,7 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
     // trial adding SS line
     // if(counter<500)Vsusptot[x+5, y] = 0.1;
     water_depth[x][y] += (input / div_inputs) / (DX * DX) * flow_timestep;
-    #ifdef DEBUG
+    #ifdef DEBUG_LVL_3
     if (water_depth[x][y] > 0.0)
     {
     std::cout << "water_depth here is: " << water_depth[x][y] << std::endl;
@@ -5491,21 +5491,24 @@ void LSDCatchmentModel::print_parameters()
   std::cout << "HORIZ FLOW THRESHOLD:          " << hflow_threshold << std::endl;
 
   // Grain distribution
-  std::cout << "~~~~~~GRAIN SIZE DETAILS~~~~~~~" << std::endl;
-  std::cout << "| PROP |" << " SIZE |" << "| FALL VELOCITY   |" << std::endl;
-  std::cout << dprop[1] << " | " << d1 << " | " << fallVelocity[1] << std::endl;
-  std::cout << dprop[2] << " | " << d2 << " | " << fallVelocity[2] << std::endl;
-  std::cout << dprop[3] << " | " << d3 << " | " << fallVelocity[3] << std::endl;
-  std::cout << dprop[4] << " | " << d4 << " | " << fallVelocity[4] << std::endl;
-  std::cout << dprop[5] << " | " << d5 << " | " << fallVelocity[5] << std::endl;
-  std::cout << dprop[6] << " | " << d6 << " | " << fallVelocity[6] << std::endl;
-  std::cout << dprop[7] << " | " << d7 << " | " << fallVelocity[7] << std::endl;
-  std::cout << dprop[8] << " | " << d8 << " | " << fallVelocity[8] << std::endl;
-  std::cout << dprop[9] << " | " << d9 << " | " << fallVelocity[9] << std::endl;
+  if (!hydro_only)
+  {
+    std::cout << "~~~~~~GRAIN SIZE DETAILS~~~~~~~" << std::endl;
+    std::cout << "| PROP |" << " SIZE |" << "| FALL VELOCITY   |" << std::endl;
+    std::cout << dprop[1] << " | " << d1 << " | " << fallVelocity[1] << std::endl;
+    std::cout << dprop[2] << " | " << d2 << " | " << fallVelocity[2] << std::endl;
+    std::cout << dprop[3] << " | " << d3 << " | " << fallVelocity[3] << std::endl;
+    std::cout << dprop[4] << " | " << d4 << " | " << fallVelocity[4] << std::endl;
+    std::cout << dprop[5] << " | " << d5 << " | " << fallVelocity[5] << std::endl;
+    std::cout << dprop[6] << " | " << d6 << " | " << fallVelocity[6] << std::endl;
+    std::cout << dprop[7] << " | " << d7 << " | " << fallVelocity[7] << std::endl;
+    std::cout << dprop[8] << " | " << d8 << " | " << fallVelocity[8] << std::endl;
+    std::cout << dprop[9] << " | " << d9 << " | " << fallVelocity[9] << std::endl;
 
-  std::cout << "SEDIMENT LAW:                  ";
-    if (einstein) std::cout << "Einstein" << std::endl;
-    if (wilcock) std::cout  << "Wilcock and Crowe" << std::endl;
+    std::cout << "SEDIMENT LAW:                  ";
+      if (einstein) std::cout << "Einstein" << std::endl;
+      if (wilcock) std::cout  << "Wilcock and Crowe" << std::endl;
+  }
 
 }
 #endif
