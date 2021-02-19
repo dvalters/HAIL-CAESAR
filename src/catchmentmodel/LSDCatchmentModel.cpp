@@ -1381,7 +1381,7 @@ void LSDCatchmentModel::initialise_arrays()
       inpoints[0][1] = reach1_y;
       inputpointsarray[reach1_x][reach1_y] = true;
       std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(REACH_FULLFILENAME1);
-      inputfile.push_back(cur_inputfile_slice);
+      inputfile[0] = cur_inputfile_slice;
     }
     if(reach2_input_on)
     {
@@ -1401,7 +1401,7 @@ void LSDCatchmentModel::initialise_arrays()
       inpoints[1][1] = reach2_y;
       inputpointsarray[reach2_x][reach2_y] = true;
       std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(REACH_FULLFILENAME2);
-      inputfile.push_back(cur_inputfile_slice);
+      inputfile[1] = cur_inputfile_slice;
     }
     if(reach3_input_on)
     {
@@ -1421,7 +1421,7 @@ void LSDCatchmentModel::initialise_arrays()
       inpoints[2][1] = reach3_y;
       inputpointsarray[reach3_x][reach3_y] = true;
       std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(REACH_FULLFILENAME3);
-      inputfile.push_back(cur_inputfile_slice);
+      inputfile[2] = cur_inputfile_slice;
     }
     // Create the 3D array for the inputfile
             // debug
@@ -2824,7 +2824,9 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
   std::vector<double> remove_from_temp_grain;
   remove_from_temp_grain = std::vector<double> (G_MAX + 2);
 
-  if (reach_mode_opt == true)
+  // TODO: This segfaults if sediment is turned on, maybe just a dodgy input file tho?
+  // Not needed for hydro only
+  if (reach_mode_opt == true && !hydro_only)
   {
 
     for (int n = 0; n <= number_of_points - 1; n++)
@@ -2921,9 +2923,14 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
     }
   }
 
+  #ifdef DEBUG_LVL_3
+  std::cout << "number of points, : " << number_of_points << std::endl;
+  #endif
   for (int n = 0; n <= number_of_points - 1; n++)
   {
-    //std::cout << "n, number of points, : " << n << ":-" << number_of_points << std::endl;
+    #ifdef DEBUG_LVL_3
+    std::cout << "n, number of points, : " << n << ":-" << number_of_points << std::endl;
+    #endif
 
     int x = inpoints[n][0];
     int y = inpoints[n][1];
@@ -2933,7 +2940,7 @@ void LSDCatchmentModel::reach_water_and_sediment_input()
         / reach_input_data_timestep;
 
     double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1-proportion_between_time1and2));
-    #ifdef DEBUG
+    #ifdef DEBUG_LVL_3
     if (input > 0.0) { std::cout << "input is: " << input << std::endl; }
     if (interpolated_input1 > 0.0) { std::cout << "interpolated_input1 is: " << interpolated_input1 << std::endl; }
     if (interpolated_input2 > 0.0) { std::cout << "interpolated_input2 is: " << interpolated_input2 << std::endl; }
