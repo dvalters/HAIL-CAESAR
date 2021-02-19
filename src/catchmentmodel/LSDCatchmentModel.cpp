@@ -531,16 +531,20 @@ void LSDCatchmentModel::print_reach_data()
 {
   for( std::vector<std::vector<std::vector<float>>>::const_iterator i = inputfile.begin(); i != inputfile.end(); ++i)
   {
-     std::cout << "~~~~~~~~ X DIMENSION ~~~~~~~~~~" << &*i << std::endl;
+     int index_num_i = i - inputfile.begin();
+     std::cout << "~~~~~~~~ Z/i DIMENSION ~~~~~~~~~~" << "[ " << index_num_i << " ]"  << std::endl;
      for( std::vector<std::vector<float>>::const_iterator j = i->begin(); j != i->end(); ++j)
      {
-          std::cout << "~~~~~~~~ Y DIMENSION ~~~~~~~~~~" << &*j << std::endl;
+          int index_num_j = j - i->begin();
+          std::cout << "~~~~~~~~ Y/j DIMENSION ~~~~~~~~~~" << "[ " << index_num_j << " ]" << std::endl;
           for( std::vector<float>::const_iterator k = j->begin(); k != j->end(); ++k)
           { 
                    cout<<*k<<' ';
           }
      }
+     std::cout << "\n";
   }
+  std::cout << "\n";
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
