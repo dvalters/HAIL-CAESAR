@@ -48,6 +48,11 @@ using namespace LSDUtils;
 
 int main(int argc, char *argv[])
 {
+  #ifdef DEBUG
+  std::cout << "===================================" << std::endl;
+  std::cout << "||    Running in DEBUG mode      ||" << std::endl;
+  std::cout << "===================================" << std::endl;
+  #endif
 
   std::cout << "##################################" << std::endl;
   std::cout << "#  CATCHMENT HYDROGEOMORPHOLOGY  #" << std::endl;
@@ -139,6 +144,9 @@ int main(int argc, char *argv[])
     simulation.increment_counters();
 
     // Hydrological and flow routing processes
+
+    // In reach mode, add the reach inputs and hydrology
+    simulation.reach_water_and_sediment_input();
     // Add water to the catchment from rainfall input file
     simulation.catchment_waterinputs(runoff);
     // Distribute the water with the LISFLOOD Cellular Automaton algorithm

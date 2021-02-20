@@ -135,6 +135,8 @@ public:
   /// @details Actually, this is a generic function for printing a 2D vector
   void print_rainfall_data();
 
+  void print_reach_data();
+
   /// @brief Calls the various save functions depending on the data types to be saved (Raster Output)
   /// @author DAV
   /// @details dependent on the LSDRaster class calling the overloaded write_raster func. If you are looking
@@ -337,6 +339,11 @@ public:
   /// object.
   void catchment_water_input_and_hydrology( double flow_timestep, runoffGrid& runoff);
 
+  /// @brief Calculates the hydrological inputs using just reach mode
+  void reach_water_and_sediment_input();
+
+  std::vector<std::vector<float> > read_reachfile(std::string REACHINPUTFILE);
+
   /// @brief Gets the number of catchment cells that have water input to them
   /// @detail Calculates which cells contain a discharge greater than MIN_Q
   /// and lower than MIN_Q_MAXVAL multiplies by a parameter related to the
@@ -428,7 +435,8 @@ private:
   const std::array<int, 9> deltaY = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
 
   double water_depth_erosion_threshold = 0.01;
-  int input_time_step = 60;
+  int reach_input_data_timestep = 60;
+  int stage_reach_input_data_timestep = 60;
   int number_of_points = 0;
   double globalsediq = 0;
   double time_1 = 1;
@@ -462,9 +470,11 @@ private:
   unsigned rfnum = 1;
 
   /// set by ncols and nrows
-  unsigned int jmax, imax;
-  double xll, yll;
-  double no_data_value;
+  unsigned int jmax = 0;
+  unsigned int imax = 0;
+  double xll = 0;
+  double yll = 0;
+  double no_data_value = -9999.9;
 
   int maxcycle = 1000;
 
@@ -478,7 +488,7 @@ private:
   double CREEP_RATE=0.0025;
   double SOIL_RATE = 0.0025;
   double active=0.2;
-  int grain_array_tot =1 ;
+  int grain_array_tot =1;
 
   /// Number of passes for edge smoothing filter
   double edge_smoothing_passes = 100.0;
@@ -598,7 +608,33 @@ private:
   TNT::Array2D<int> down_scan;
   TNT::Array2D<int> rfarea;
 
+  // Reach input cell flag switches
+  bool reach1_input_on = false;
+  bool reach2_input_on = false;
+  bool reach3_input_on = false;
+
+  std::string reach1_input_file;
+  std::string reach2_input_file;
+  std::string reach3_input_file;
+
+  int reach1_x;
+  int reach1_y;
+  int reach2_x;
+  int reach2_y;
+  int reach3_x;
+  int reach3_y;
+
+  // Arrays for reach mode input points
+  TNT::Array2D<int> inpoints;
   TNT::Array2D<bool> inputpointsarray;
+
+  std::vector< std::vector<float> > hourly_rain_data;
+  std::vector<std::vector<std::vector<float> > > inputfile;
+  //TNT::Array3D<double> inputfile;
+  std::vector<double> stage_inputfile;
+  // TODO above these all need initialising from read ins.
+
+  double stage_input_time_step = 1;
 
   std::vector<int> catchment_input_x_coord;
   std::vector<int> catchment_input_y_coord;
@@ -608,7 +644,7 @@ private:
 
   std::vector<double> hourly_m_value;
   std::vector<double> temp_grain;
-  std::vector< std::vector<float> > hourly_rain_data;
+  
   TNT::Array3D<double> veg;
   TNT::Array2D<double> edge, edge2; //TJC 27/1/05 array for edges
   std::vector<double> old_j_mean_store;
@@ -681,21 +717,21 @@ private:
   bool write_elevdiff_file = false;
 
   /// input file names
-  std::string rainfall_data_file;
-  std::string grain_data_file;
-  std::string bedrock_data_file;
+  std::string rainfall_data_file = "";
+  std::string grain_data_file = "";
+  std::string bedrock_data_file = "";
 
   /// output file names
-  std::string elev_fname;
-  std::string grainsize_fname;
-  std::string params_fname;
-  std::string waterdepth_fname;
-  std::string flowvel_fname;
-  std::string hydroindex_fname;
-  std::string timeseries_fname;
-  std::string elevdiff_fname;
-  std::string raingrid_fname;
-  std::string runoffgrid_fname;
+  std::string elev_fname = "";
+  std::string grainsize_fname = "";
+  std::string params_fname = "";
+  std::string waterdepth_fname = "";
+  std::string flowvel_fname = "";
+  std::string hydroindex_fname = "";
+  std::string timeseries_fname = "";
+  std::string elevdiff_fname = "";
+  std::string raingrid_fname = "";
+  std::string runoffgrid_fname = "";
 
   bool DEBUG_print_cycle_on = false;
   bool DEBUG_write_raingrid = false;

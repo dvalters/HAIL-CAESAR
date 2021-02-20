@@ -8,7 +8,7 @@ TARGET := bin/HAIL-CAESAR.exe
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -std=c++11 -DOMP_COMPILE_FOR_PARALLEL -fopenmp $(GITREV)# -Wall
+CFLAGS := -g -std=c++11 -Wall -DDEBUG #-DOMP_COMPILE_FOR_PARALLEL -fopenmp $(GITREV)# -Wall 
 LIB := -fopenmp
 INC := -I include
 
@@ -24,7 +24,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 
 clean:
 	@echo " Cleaning...";
-	@echo " $(RM) -r $(BUILDDIR)/catchmentmodel/ $(BUILDDIR)/topotools/ $(TARGET)"; $(RM) -r $(BUILDDIR)/catchmentmodel/ $(BUILDDIR)/topotools/ $(TARGET)
+	@echo " $(RM) -r $(BUILDDIR)/main.o $(BUILDDIR)/catchmentmodel/ $(BUILDDIR)/topotools/ $(TARGET)"; $(RM) -r $(BUILDDIR)/main.o $(BUILDDIR)/catchmentmodel/ $(BUILDDIR)/topotools/ $(TARGET)
 
 # Tests
 tester:

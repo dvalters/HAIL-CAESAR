@@ -1,0 +1,133 @@
+# LSDCatchmentModel (DAV Version) Parameter File
+# 04/04/2020
+
+Caersws, reach mode test
+
+# FILE INFORMATION
+#==================
+dem_read_extension:	       asc
+dem_write_extension:       asc
+read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/ 
+write_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/
+read_fname:	               caerswsmeanders3
+write_fname:	               caersws_reach.dat
+timeseries_save_interval:      60
+
+# SUPPLEMENTARY FILES
+#====================
+# REMEMBER TO SPECIFY A BEDROCK DEM FILE IF YOU TURN THIS ON
+
+# NUMERICAL
+#===========
+min_time_step:                 0           # IN SECONDS
+max_time_step:                 3600        # IN SECONDS
+run_time_start:                0           # ZERO UNLESS RESTARTING RUN
+max_run_duration:              87656       # IN MODEL HOURS, MUST BE T-1, I.E. '71' FOR 72HR SIMULATION - SORRY!
+memory_limit:                  1           # IGNORE
+
+# SEDIMENT
+#==========
+transport_law:                 wilcock     # CHOICES ARE wilcock OR einstein
+max_tau_velocity:              5           # METRES/SECOND
+active_layer_thickness:        0.1         # METRES
+chann_lateral_erosion:         10          # IN CHANNEL LATERAL EROSION RATE, PREVENTS OVERDEEPENING FEEDBACK
+erosion_limit:                 0.02        # LIMITS THE MOUNT OF EROSION PER TIMESTEP
+suspended_sediment_on:         yes         # 1ST FRACTION ONLY, AT PRESENT
+read_in_graindata_from_file:   no          # MUST SPECIFY GRAINDATA FILE ABOVE IF YES
+
+# LATERAL EROSION
+#=================
+lateral_erosion_on:            no          # UNTESTED! - LATERAL EROSION NOT FULLY IMPLEMENTED YET
+lateral_erosion_const:         0.001       # LATERAL EROSION CONSTANT
+edge_smoothing_passes:         30          # NUMBER OF PASSES FOR EDGE SMOOTHING FILTER
+downstream_cell_shift:         3           # CELLS TO SHIFT LATERAL EROSION DOWNSTREAM
+lateral_cross_chan_smoothing:  0.0001       # MAX DIFFERENCE IN CROSS CHANNEL SMOOTHING OF EDGE VALUES
+
+# HYDROLOGY
+#===========
+hydro_model_only:              yes          # SWITCHES OFF THE EROSION
+topmodel_m_value:              0.015        # SEE LITERATURE FOR GUIDANCE
+in_out_difference:             5           # CUMECS, UNTESTED
+min_q_for_depth_calc:          0.1         # CUMECS
+max_q_for_depth_calc:          1000           # CUMECS
+water_depth_erosion_threshold: 0.01        # METRES
+slope_on_edge_cell:            0.001       # SHOULD BE APPROX EQUAL TO CHAN SLOPE NEAR OUTLET
+evaporation_rate:              0.0         # NOT YET IMPLEMENTED
+courant_number:                0.7         # NO LOWER THAN 3 PLEASE, MAX AROUND 0.7 - NUMERICAL STABILITY CONTROL
+froude_num_limit:              0.8         # CONTROLS FLOW BETWEEN CELLS PER TIME STEP (SEE DOCS)
+mannings_n:                    0.04        # SEE LITERATURE FOR GUIDANCE
+hflow_threshold:               0.001      # IN METRES, DETERMINES IF HORIZ. FLOW CALCULATED
+
+# REACH MODE HYDROLOGY
+#=====================
+reach_mode:                    yes         # Run in reach mode with input discharge data
+divide_inputs_by:              3
+reach_input_data_timestep:     6000000
+
+# REACH INPUTS
+#==============     
+
+reach1_input_file:              input2.txt
+reach1_input_on:                yes
+reach1_x:                       3
+reach1_y:                       89
+
+reach2_input_file:              input2.txt
+reach2_input_on:                yes
+reach2_x:                       3
+reach2_y:                       88
+
+reach3_input_file:              input2.txt
+reach3_input_on:                yes
+reach3_x:                       3
+reach3_y:                       90
+
+
+
+# PRECIPITATION
+#==============
+rainfall_data_on:              no         # IF YES, HAVE YOU SET A RAINFALL FILE? 
+                                           # VALUES IN MM/HR, REGARDLESS OF TIMESTEP
+rain_data_time_step:           60           # MINUTES, MUST MATCH RAINFALL FILE
+spatial_var_rain:              no         # IF YES, HAVE YOU SET A HYDROINDEX FILE?
+num_unique_rain_cells:         1           # SHOULD MATCH NO. OF HYDROINDEX ZONES, COUNT THEM
+spatially_complex_rainfall_on: no          # UNTESTED...
+interpolation_method:          cubic       # CAREFUL NOW.
+generate_artificial_rainfall:   no          # PIPE DREAM.
+
+
+# VEGETATION
+#===========
+vegetation_on:                 yes          # VEGETATION NOT IMPLEMENTED/TESTED YET
+grass_grow_rate:               0.0          # TIME IN WHICH VEGETATION REACHES MATURITY IN YEARS
+vegetation_crit_shear:         5.0          # VALUE ABOVE WHICH VEGETATION REMOVED BY EROSION
+veg_erosion_prop:              0.1          # PROPORTION OF EROSION ALLOWED TO OCCUR WHEN VEG IS FULLY GROWN
+
+# HILLSLOPE
+#==========
+creep_rate:                    0.0025       # METRES/YEAR (?UNTESTED)
+slope_failure_thresh:          45           # CRITICAL ANGLE OF FAILURE
+soil_erosion_rate:             0.0
+soil_j_mean_depends:           yes          # UNTESTED
+call_muddpile_model:           yes          # NOT YET IMPLEMENTED
+
+# WRITE OUTPUT RASTERS
+#======================
+raster_output_interval:        1000          # IN MODEL MINUTES
+write_waterdepth_file:         no
+waterdepth_outfile_name:       WaterDepths
+write_elev_file:               no
+write_elevation_file:          Elevations
+write_grainsize_file:          no
+grainsize_file:                Grainz
+
+write_elevdiff_file:           no
+elevdiff_outfile_name:         ElevationDiff
+
+raingrid_fname_out:            raindata_grid    # MAINLY FOR DEBUG PURPOSES, 
+                                                # YOU DON'T REALLY NEED TO PRINT THIS OUT
+
+# DEBUG OPTIONS
+#================
+debug_print_cycle:              yes          # PRINTS THE CURRENT CYCLE ITERATION TO CONSOLE
+debug_write_raingrid:           no          # WRITES RAINGRID RASTER EVERY CALC_J() CALLED (WARNING: LOTS OF DATA!)
