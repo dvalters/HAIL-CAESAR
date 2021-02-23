@@ -31,7 +31,7 @@ def timeseries(filename, col_number):
     return out_data
 
 
-@pytest.fixture
+# @pytest.fixture
 def rasters_params():
     """
     Pytest fixture that reads in paths containing results/KGAs
