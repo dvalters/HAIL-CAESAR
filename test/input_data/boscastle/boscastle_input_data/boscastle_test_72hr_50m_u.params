@@ -11,7 +11,7 @@
 read_fname:                    boscastle_square_50m      # TOP-LAYER DEM NAME, NO EXTENSION PLEASE
 dem_read_extension:            asc                    # OPTIONS ARE asc (ASCII) ONLY, OTHER FORMATS NOT YET SUPPORTED - SORRY!
 dem_write_extension:           asc                    # OPTIONS ARE asc, flt, OR bil (BIL EXPERIMENTAL)
-read_path:                     ./input_data/boscastle_input_data/  
+read_path:                     ./input_data/boscastle/boscastle_input_data/  
 write_path:                    ./results/boscastle50m_72_u/
 write_fname:                   boscastle_50m_72hr_u.dat         # CATCHMENT HYDROGRAPH AND SEDS OUTPUT TIMESERIES FILE (NOT RASTERS)
 timeseries_save_interval:      5                      # IN MODEL MINUTES
