@@ -143,6 +143,8 @@ void LSDCatchmentModel::load_data()
   LSDRaster elevR;
   /// Hydroindex LSDRaster: tells rainfall input where to be distributed
   LSDRaster hydroindexR;
+  /// Holds the initial water depths if oading from file
+  LSDRaster waterinitR;
   /// Bedrock LSDRaster object
   LSDRaster bedrockR;
   std::string DEM_FILENAME = read_path + "/" + read_fname + "." \
@@ -275,6 +277,52 @@ void LSDCatchmentModel::load_data()
       exit(EXIT_FAILURE);
     }
   }
+
+  // LOAD THE WATERDEPTHS FILE
+  if (water_init_from_raster==true)
+  {
+    std::string WATER_INIT_RASTER_FILENAME = read_path + "/" + water_init_raster_file;
+    // Check for the file first of all
+    if (!does_file_exist(WATER_INIT_RASTER_FILENAME))
+    {
+      std::cout << "No surface water level initialisation DEM found by name of: " 
+                << WATER_INIT_RASTER_FILENAME
+                << std::endl
+                << "You specified to intialise the model with initial water depths, \
+                   \n but no matching water DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      waterinitR.read_ascii_raster(WATER_INIT_RASTER_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> waterinit_raw = waterinitR.get_RasterData_dbl();
+      std::cout << "The water depth initialisation file: " << WATER_INIT_RASTER_FILENAME
+                << " was successfully read." << std::endl;
+
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          water_depth[i+1][j+1] = waterinit_raw[i][j];
+        }
+      }
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your water initialisation file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
 
   // Load the RAINDATA file
   // Remember the format is not the same as a standard ASCII DEM...
@@ -659,6 +707,15 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
       RemoveControlCharactersFromEndOfString(bedrock_data_file);
       std::cout << "bedrock data file: " << bedrock_data_file << std::endl;
     }
+    else if (lower == "water_init_raster_file")
+    {
+      std::cout << value << "VALUE " << lower << "LOWER";
+      water_init_raster_file = value;
+      RemoveControlCharactersFromEndOfString(water_init_raster_file);
+      std::cout << "water depth initialistion file: " << water_init_raster_file << std::endl;      
+    }
+
+
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Numerical
@@ -933,6 +990,12 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     {
       rainfall_data_on = (value == "yes") ? true : false;
       std::cout << "rainfall_data_on: " << rainfall_data_on << std::endl;
+    }
+
+    else if (lower == "water_init_from_raster_on")
+    {
+      water_init_from_raster = (value == "yes") ? true : false;
+      std::cout << "Initialise the water depths from raster file: " << water_init_from_raster << std::endl;
     }
 
     else if (lower == "topmodel_m_value")

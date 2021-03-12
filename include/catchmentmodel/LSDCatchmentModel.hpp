@@ -696,6 +696,7 @@ private:
 
   bool soil_j_mean_depends_on = false;
   bool rainfall_data_on = false;
+  bool water_init_from_raster = false;
   bool hydro_only = false;
   bool vegetation_on = false;
   bool bedrock_layer_on = false;
@@ -720,6 +721,7 @@ private:
   std::string rainfall_data_file = "";
   std::string grain_data_file = "";
   std::string bedrock_data_file = "";
+  std::string water_init_raster_file = "";
 
   /// output file names
   std::string elev_fname = "";
