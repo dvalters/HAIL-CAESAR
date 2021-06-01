@@ -2671,6 +2671,11 @@ void LSDCatchmentModel::flow_route()
       inc++;
       if (elev[x][y] > -9999) // to stop moving water in to -9999's on elev
       {
+        // SPATIAL MANNINGS
+        if spatial_mannings_opt 
+        {
+            mannings = spat_var_mannings[x][y];
+        }
         // routing in x direction
         if ((water_depth[x][y] > 0 || water_depth[x - 1][y] > 0) \
           && elev[x - 1][y] > -9999)
