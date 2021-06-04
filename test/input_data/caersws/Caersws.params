@@ -16,6 +16,9 @@ timeseries_save_interval:      60
 # SUPPLEMENTARY FILES
 #====================
 # REMEMBER TO SPECIFY A BEDROCK DEM FILE IF YOU TURN THIS ON
+# ditto for Mannings Spatial, Spatial rainfall, Hyrdoindex file etc.
+
+# spatial_mannings_dem_file:         caersws_mannings.asc
 
 # NUMERICAL
 #===========
@@ -56,6 +59,7 @@ evaporation_rate:              0.0         # NOT YET IMPLEMENTED
 courant_number:                0.7         # NO LOWER THAN 3 PLEASE, MAX AROUND 0.7 - NUMERICAL STABILITY CONTROL
 froude_num_limit:              0.8         # CONTROLS FLOW BETWEEN CELLS PER TIME STEP (SEE DOCS)
 mannings_n:                    0.04        # SEE LITERATURE FOR GUIDANCE
+spatially_variable_mannings_on:     no          # REQUIRES DEM FILE ABOVE IF YES
 hflow_threshold:               0.001      # IN METRES, DETERMINES IF HORIZ. FLOW CALCULATED
 
 # REACH MODE HYDROLOGY

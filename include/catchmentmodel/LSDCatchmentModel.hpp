@@ -603,6 +603,7 @@ private:
   TNT::Array2D<double> sand2;
   TNT::Array2D<double> grain;
   TNT::Array2D<double> elev_diff;
+  TNT::Array2D<double> spat_var_mannings;
 
   TNT::Array2D<int> index;
   TNT::Array2D<int> down_scan;
@@ -702,6 +703,7 @@ private:
   bool bedrock_layer_on = false;
   bool lateral_erosion_on = false;
   bool spatially_var_rainfall = false;
+  bool spatially_var_mannings = false;
   bool graindata_from_file = false;
 
   bool spatially_complex_rainfall = false;
@@ -734,6 +736,7 @@ private:
   std::string elevdiff_fname = "";
   std::string raingrid_fname = "";
   std::string runoffgrid_fname = "";
+  std::string mannings_fname = "";
 
   bool DEBUG_print_cycle_on = false;
   bool DEBUG_write_raingrid = false;
