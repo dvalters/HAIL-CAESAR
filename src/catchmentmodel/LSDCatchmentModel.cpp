@@ -1362,6 +1362,8 @@ void LSDCatchmentModel::initialise_arrays()
   vel_dir = TNT::Array3D<double> (imax+2, jmax+2, 9, 0.0);
   Vsusptot = TNT::Array2D<double> (imax+2,jmax+2, 0.0);
 
+  spat_var_mannings = TNT::Array2D<double> (imax+2, jmax+2, 0.0);
+
   //inpoints=new int[10,2];
   //inputpointsarray = new bool[xmax + 2, ymax + 2];
 
