@@ -143,6 +143,8 @@ void LSDCatchmentModel::load_data()
   LSDRaster elevR;
   /// Hydroindex LSDRaster: tells rainfall input where to be distributed
   LSDRaster hydroindexR;
+  // Spatial mannings n
+  LSDRaster manningsR;
   /// Holds the initial water depths if oading from file
   LSDRaster waterinitR;
   /// Bedrock LSDRaster object
@@ -236,6 +238,45 @@ void LSDCatchmentModel::load_data()
       std::cout << "Something is wrong with your hydroindex file." << std::endl
                 << "Common causes are: " << std::endl
                 << "1) Data type is not integer" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // Load the SPATIAL MANNINGS DEM
+  if (spatially_var_mannings == true)
+  {
+    std::string MANNINGS_FILENAME = read_path + "/" + mannings_fname;
+    // Check for the file first of all
+    if (!does_file_exist(MANNINGS_FILENAME))
+    {
+      std::cout << "No spatial mannings DEM found by name of: " << MANNINGS_FILENAME
+                << std::endl
+                << "You specified the spatially variable mannings option, \
+                   \n but no matching file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE);
+    }
+    try
+    {
+      hydroindexR.read_ascii_raster_integers(MANNINGS_FILENAME);
+      TNT::Array2D<int> raw_rfarea = manningsR.get_RasterData_int();
+      // Solves padding issues
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          rfarea[i+1][j+1] = raw_rfarea[i][j];
+        }
+      }
+
+      std::cout << "The spatial mannings n file: " << MANNINGS_FILENAME
+                << " was successfully read." << std::endl;
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your mannings n spatial DEM file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not float" <<
                    std::endl << "2) Non standard ASCII data format" << std::endl;
       exit(EXIT_FAILURE);
     }
@@ -714,6 +755,14 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
       RemoveControlCharactersFromEndOfString(water_init_raster_file);
       std::cout << "water depth initialistion file: " << water_init_raster_file << std::endl;      
     }
+    else if (lower == "spatial_mannings_dem_file")
+    {
+      std::cout << value << "VALUE " << lower << "LOWER";
+      mannings_fname = value;
+      RemoveControlCharactersFromEndOfString(mannings_fname);
+      std::cout << "spatial mannings file: " << mannings_fname << std::endl;      
+    }
+
 
 
 
@@ -1095,6 +1144,13 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
       std::cout << "Spatially complex rainfall option: "
                 << spatially_complex_rainfall << std::endl;
     }
+    else if (lower == "spatially_variable_mannings_on")
+    {
+      spatially_var_mannings = (value == "yes") ? true : false;
+      std::cout << "Spatially variable mannings option: "
+                << spatially_var_mannings << std::endl;
+    }
+
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Vegetation
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -2497,6 +2553,8 @@ void LSDCatchmentModel::zero_values()
       qxs[i][j] = 0;
       qys[i][j] = 0;
 
+      spat_var_mannings[i][j] = 0.0;
+
       for(int n=0; n<=8; n++)
       {
         vel_dir[i][j][n]=0;
@@ -2672,7 +2730,7 @@ void LSDCatchmentModel::flow_route()
       if (elev[x][y] > -9999) // to stop moving water in to -9999's on elev
       {
         // SPATIAL MANNINGS
-        if spatial_mannings_opt 
+        if (spatially_var_mannings)
         {
             mannings = spat_var_mannings[x][y];
         }
@@ -3867,7 +3925,10 @@ double LSDCatchmentModel::erode(double mult_factor)
 //          }
 
           // add spatial mannings here
-          //if (SpatVarMannings == true) mannings = spat_var_mannings[x][y];
+          if (spatially_var_mannings)
+          {
+             mannings = spat_var_mannings[x][y];
+          }
 
           // check to see if index for that cell...
           if (index[x][y] == -9999) addGS(x, y);
