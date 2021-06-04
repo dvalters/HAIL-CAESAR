@@ -16,7 +16,9 @@ timeseries_save_interval:      60
 # SUPPLEMENTARY FILES
 #====================
 # REMEMBER TO SPECIFY A BEDROCK DEM FILE IF YOU TURN THIS ON
-spatial_mannings_dem_file:         caersws_mannings.asc
+# ditto for Mannings Spatial, Spatial rainfall, Hyrdoindex file etc.
+
+# spatial_mannings_dem_file:         caersws_mannings.asc
 
 # NUMERICAL
 #===========
