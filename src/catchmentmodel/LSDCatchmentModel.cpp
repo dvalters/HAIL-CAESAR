@@ -258,8 +258,8 @@ void LSDCatchmentModel::load_data()
     }
     try
     {
-      hydroindexR.read_ascii_raster_integers(MANNINGS_FILENAME);
-      TNT::Array2D<int> raw_rfarea = manningsR.get_RasterData_int();
+      hydroindexR.read_ascii_raster(MANNINGS_FILENAME);
+      TNT::Array2D<double> raw_rfarea = manningsR.get_RasterData_dbl();
       // Solves padding issues
       for (unsigned i=0; i<imax; i++)
       {
