@@ -410,6 +410,12 @@ public:
   /// @brief Routine to grow grass for vegetation enabled simulations.
   void grow_grass(double amount3);
 
+  // =-=-=-=-=-=-=-=-=-=-=-=-=
+  // GROUNDWATER
+  // =-=-=-=-=-=-=-=-=-=-=-=-=
+  void groundwater_input();  // wpgw_water_input
+  void groundwater_flow();   // Groundwater_Flow
+  void clear_Water_partitioning();
 
 private:
 
@@ -686,7 +692,7 @@ private:
   bool suspended_opt = false;
   bool jmeaninputfile_opt = false;
   // This is for reading discharge direct from input file - DAV 2/2016
-  // (Dear god I've been working on this code for 2.5 years nearly...)
+  // (Dear god I've been working on this code for 9 years nearly...)
   bool recirculate_opt = false;
   bool reach_mode_opt = false;
   bool dunes_opt = false;
@@ -707,6 +713,9 @@ private:
   bool graindata_from_file = false;
 
   bool spatially_complex_rainfall = false;
+
+  bool groundwater_basic = false;
+  bool groundwater_SLiM;
 
   int erode_timestep_type = 0;  // 0 for default based on erosion amount, 1 for basedon hydro timestep
   int hydro_timestep_type = 0;  // 0 for default
