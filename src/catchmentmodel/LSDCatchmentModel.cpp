@@ -37,12 +37,12 @@
  *
  *
  * @author Declan Valters
- * @date  2014-2020
- * @comment 6 years (and counting) of my life developing this model...
+ * @date  2014-2022
+ * @comment 
  * University of Manchester
  * University of Edinburgh
  * British Geological Survey
- * @contact declan.valters@gmail.com
+ * @contact decval@bgs.ac.uk
  * @version 1.0
  *
  * Released under the GNU v3 Public License

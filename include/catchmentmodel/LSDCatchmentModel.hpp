@@ -410,12 +410,7 @@ public:
   /// @brief Routine to grow grass for vegetation enabled simulations.
   void grow_grass(double amount3);
 
-  // =-=-=-=-=-=-=-=-=-=-=-=-=
-  // GROUNDWATER
-  // =-=-=-=-=-=-=-=-=-=-=-=-=
-  void groundwater_input();  // wpgw_water_input
-  void groundwater_flow();   // Groundwater_Flow
-  void clear_Water_partitioning();
+
 
 private:
 
