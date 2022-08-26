@@ -21,6 +21,7 @@
 
 #include "LSDGrainMatrix.hpp"
 #include "LSDRainfallRunoff.hpp"
+#include "LSDGroundwaterModel.hpp"
 
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
@@ -709,8 +710,7 @@ private:
 
   bool spatially_complex_rainfall = false;
 
-  bool groundwater_basic = false;
-  bool groundwater_SLiM;
+  bool groundwater_on = false;   // Basic switch, does not set which option to use
 
   int erode_timestep_type = 0;  // 0 for default based on erosion amount, 1 for basedon hydro timestep
   int hydro_timestep_type = 0;  // 0 for default
@@ -753,6 +753,40 @@ private:
   int tempcycle = 0;
 
   std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
+
+  void wpgw_water_input(double local_time_factor); //
+  void groundwater_flow(double time);
+  void clear_water_partitioning();
+  void water_partitioning(rain_data_time_step);
+
+  // Groundwater Option Flags
+  bool groundwater_on = false;
+  // Chose the specific model
+  bool groundwater_basic = false;
+  bool groundwater_SLiM = false;
+
+
+  // #BGS global groundwater global vars
+  double creep_time_SLiM = 1; //#BGS
+  TNT::Array2D<double> boundary;
+  TNT::Array2D<double> SY;
+  TNT::Array2D<double> dailyRech;
+  TNT::Array2D<double> dRech;
+  TNT::Array2D<double> WP_added_water_daily;
+  TNT::Array2D<double> HydroCond;
+  TNT::Array2D<double> dailyBF;
+  TNT::Array2D<double> test_var;
+  TNT::Array2D<double> GWHeadsOrig;
+  TNT::Array2D<double> GWHeads;      //GW depth (m)
+  TNT::Array2D<int> HOST;
+  TNT::Array2D<int> Landuse;
+  TNT::Array2D<double> PE_location;
+  std::vector<int> PEnum;    // int[]
+  TNT::Array2D<double> PEtab;
+  TNT::Array2D<double> dNSSS;
+  TNT::Array2D<double> dSMD;
+  double set_rech;
+  string start_date;
 
   // Mainly just the definitions of the create() functions go here:
   // The implementations are in the .cpp file.

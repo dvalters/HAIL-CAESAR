@@ -66,7 +66,6 @@
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
 
-
 using namespace LSDUtils;
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
