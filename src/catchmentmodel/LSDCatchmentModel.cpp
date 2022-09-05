@@ -5690,7 +5690,7 @@ void LSDCatchmentModel::clear_water_partitioning()
     std::cout << "Clearing water partitioning..." << "\n";
 }
 
-void LSDCatchmentModel::water_partitioning(rain_data_time_step);
+void LSDCatchmentModel::water_partitioning(double rain_data_time_step);
 {
     std::cout << "Calculating WATER PARTITIONING..." << "\n";
 }

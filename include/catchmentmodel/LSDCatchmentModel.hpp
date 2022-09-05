@@ -419,6 +419,7 @@ public:
   void groundwater_flow(double time);
   void clear_water_partitioning();
   void water_partitioning(double rain_data_time_step);
+  void initialise_groundwater();
 
 private:
 
