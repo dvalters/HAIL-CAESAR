@@ -1240,7 +1240,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
 
     else if (lower == "reach_mode")
     {
-      reach_mode_opt = true;
+      reach_mode_opt = (value == "yes") ? true : false;
       std::cout << "Reach mode on/off: " << reach_mode_opt << std::endl;
     }
     else if (lower == "divide_inputs_by")
@@ -1252,6 +1252,78 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     {
       reach_input_data_timestep = atoi(value.c_str());
       std::cout << "reach input data timestep: " << reach_input_data_timestep << std::endl;
+    }
+
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Groundwater
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "groundwater_on")
+    {
+      groundwater_on = (value == "yes") ? true : false;
+      std::cout << "Groundwater model turned on: " << groundwater_on << std::endl;
+    }
+    else if (lower == "groundwater_basic")
+    {
+      groundwater_basic = (value == "yes") ? true : false;
+      std::cout << "Using basic groundwater scheme (GW): " << groundwater_basic << std::endl;
+    }
+    else if (lower == "groundwater_SLiM")
+    {
+      groundwater_SLiM = (value == "yes") ? true : false;
+      std::cout << "Using SLiM groundwater scheme (SLiM): " << groundwater_SLiM << std::endl;
+    }
+
+    else if (lower == "recharge_rate")
+    {
+      recharge_rate = atof(value.c_str());
+      std::cout << "Recharge Rate (% rainfall 0 - 1): " << recharge_rate << std::endl;
+    }
+    else if (lower == "start_date")
+    {
+      start_date = value;
+      std::cout << "Start date: " << start_date << std::endl;
+    }
+    
+    // #BGS Groundwater
+    else if (lower == "initial_groundwater_file")
+    {
+      initial_groundwater_file = value;
+    }
+    else if (lower == "groundwater_boundary_file")
+    {
+      groundwater_boundary_file = value;
+    }
+    else if (lower == "hydraulic_conductivity_file")
+    {
+      hydraulic_conductivity_file = value;
+    }
+    else if (lower == "specific_yield_file")
+    {
+      specific_yield_file = value;
+    }
+    else if (lower == "host_file")
+    {
+      host_file = value;
+    }
+    else if (lower == "landuse_file")
+    {
+      landuse_file = value;
+    }
+    else if (lower == "potential_evaporation_location_file")
+    {
+      potential_evaporation_location_file = value;
+    }
+    else if (lower == "potential_evaporation_table_file")
+    {
+      potential_evaporation_table_file = value;
+    }
+    else if (lower == "initial_soil_moisture_deficit_file")
+    {
+      initial_soil_moisture_deficit_file = value;
+    }
+    else if (lower == "initial_soil_storage_file")
+    {
+      initial_soil_storage_file = value;
     }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -5597,6 +5669,50 @@ void LSDCatchmentModel::grow_grass(double amount3)
       }
     }
   }
+}
+
+// =-=-=-=-=-=-=-=-=-=-=-=-=
+// GROUNDWATER
+// =-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::wpgw_water_input()
+// needs time step from func call? // double local_time_factor
+{
+    std::cout << "Calculating water inputs for GROUNDWATER..." << "\n";
+}
+
+void LSDCatchmentModel::groundwater_flow(double time)
+{
+    std::cout << "Calculating GROUNDWATER FLOW..." << "\n";
+}
+
+void LSDCatchmentModel::clear_water_partitioning()
+{
+    std::cout << "Clearing water partitioning..." << "\n";
+}
+
+void LSDCatchmentModel::water_partitioning(rain_data_time_step);
+{
+    std::cout << "Calculating WATER PARTITIONING..." << "\n";
+}
+
+void LSDCatchmentModel::initialise_groundwater() 
+{
+    //#BGS groundwater
+    boundary = new double[xmax + 2, ymax + 2];
+    SY = new double[xmax + 2, ymax + 2];
+    HydroCond = new double[xmax + 2, ymax + 2];
+    dailyRech = new double[xmax + 2, ymax + 2];
+    WP_added_water_daily = new double[xmax + 2, ymax + 2];
+    dRech = new double[xmax + 2, ymax + 2];
+    dailyBF = new double[xmax + 2, ymax + 2];
+    test_var = new double[xmax + 2, ymax + 2];
+    GWHeadsOrig = new double[xmax + 2, ymax + 2];
+    GWHeads = new double[xmax + 2, ymax + 2];     //GW depth (m)
+    HOST = new int[xmax + 2, ymax + 2];
+    dNSSS = new double[xmax + 2, ymax + 2];
+    dSMD = new double[xmax + 2, ymax + 2];
+    Landuse = new int[xmax + 2, ymax + 2];
+    PE_location = new double[xmax + 2, ymax + 2];
 }
 
 // PRINTS ALL PARAMETERS TO SCREEN FOR CHECKING

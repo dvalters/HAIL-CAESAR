@@ -152,9 +152,9 @@ int main(int argc, char *argv[])
     // Distribute the water with the LISFLOOD Cellular Automaton algorithm
     simulation.flow_route();
     // Groundwater updates
-    if (simulation.groundwater_basic || simulation.groundwater_SLiM )
+    if (simulation.groundwater_mode())
     {
-      simulation.groundwater_input();
+      simulation.wpgw_water_input(); // Is this the right arg?;
     }
     // Calculate the new water depths in the catchment
     simulation.depth_update();
