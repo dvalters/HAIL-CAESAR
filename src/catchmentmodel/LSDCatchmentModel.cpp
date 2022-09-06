@@ -1780,6 +1780,17 @@ void LSDCatchmentModel::call_global_landsliding(
   }
 }
 
+void LSDCatchmentModel::call_groundwater_routines()
+{
+  if (cycle > creep_time2)
+  {
+    groundwater_flow(1440);
+    clear_water_partitioning();
+    creep_time2 += 1440;   // Need a better way of doing this
+    // What if you are running model with landsliding? Double increase...
+  }
+}
+
 void LSDCatchmentModel::grow_vegetation(int vegetation_growth_interval_hours)
 {
   if (!hydro_only && vegetation_on && (cycle > grass_grow_interval))
@@ -5677,7 +5688,21 @@ void LSDCatchmentModel::grow_grass(double amount3)
 void LSDCatchmentModel::wpgw_water_input()
 // needs time step from func call? // double local_time_factor
 {
-    std::cout << "Calculating water inputs for GROUNDWATER..." << "\n";
+  std::cout << "Calculating water inputs for GROUNDWATER..." << "\n";
+  double flow_timestep = get_flow_timestep();
+  for (unsigned i = 1; i <= imax; i++)
+      for (unsigned j = 1; j <= jmax; j++)
+          if (elev[i][j] > -9999) // ensure it is not a no-data point
+          {   
+              // add baseflow if GW switched on #BGS
+              if (groundwater_basic)
+                  water_depth[i][j] += flow_timestep * (dailyBF[i][j] / 86400); //#BGS add baseflow (scale to timestep) 
+              // poss restrict water input if numerical instablity. // tom investigate why its time factor not local_time_factor
+
+              // add surface water partitioning inputs if SLiM is switched on #BGS 
+              if (groundwater_SLiM)
+                  water_depth[i][j] += flow_timestep * (WP_added_water_daily[i][j] / 86400); //#BGS add or remove from water partition  (scale to timestep) 
+          }
 }
 
 void LSDCatchmentModel::groundwater_flow(double time)

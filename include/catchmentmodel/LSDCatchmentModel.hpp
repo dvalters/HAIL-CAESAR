@@ -416,6 +416,7 @@ public:
   // VEGETATION
   // =-=-=-=-=-=-=-=-=-=-=
   void wpgw_water_input(); // double local_time_factor
+  void call_groundwater_routines();
   void groundwater_flow(double time);
   void clear_water_partitioning();
   void water_partitioning(double rain_data_time_step);

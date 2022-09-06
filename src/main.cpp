@@ -182,6 +182,12 @@ int main(int argc, char *argv[])
     simulation.call_global_landsliding(global_landsliding_interval_hours);
     simulation.grow_vegetation(vegetation_growth_interval_hours);
 
+    // Groundwater movements
+    if (simulation.groundwater_mode())
+    {
+      simulation.call_groundwater_routines();
+    }
+
     // Outputs
     simulation.write_output_timeseries(runoff);
     // Prints current timestep/cycle to STDOUT
