@@ -7,10 +7,10 @@ Caersws, reach mode test
 #==================
 dem_read_extension:	       asc
 dem_write_extension:       asc
-read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/caersws/ 
-write_path:	               /home/decval/dev/HAIL-CAESAR/test/results/caersws_reach/ 
-read_fname:	               caerswsmeanders3
-write_fname:	               caersws_reach.dat
+read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/groundwater_GW/ 
+write_path:	               /home/decval/dev/HAIL-CAESAR/test/results/GW_reach/ 
+read_fname:	               idealised
+write_fname:	               GW_reach_test.dat
 timeseries_save_interval:      60
 
 # SUPPLEMENTARY FILES
