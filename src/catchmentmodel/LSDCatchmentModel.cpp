@@ -5690,29 +5690,30 @@ void LSDCatchmentModel::clear_water_partitioning()
     std::cout << "Clearing water partitioning..." << "\n";
 }
 
-void LSDCatchmentModel::water_partitioning(double rain_data_time_step);
+void LSDCatchmentModel::water_partitioning(double rain_data_time_step)
 {
     std::cout << "Calculating WATER PARTITIONING..." << "\n";
 }
 
 void LSDCatchmentModel::initialise_groundwater() 
 {
+    // TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
     //#BGS groundwater
-    boundary = new double[xmax + 2, ymax + 2];
-    SY = new double[xmax + 2, ymax + 2];
-    HydroCond = new double[xmax + 2, ymax + 2];
-    dailyRech = new double[xmax + 2, ymax + 2];
-    WP_added_water_daily = new double[xmax + 2, ymax + 2];
-    dRech = new double[xmax + 2, ymax + 2];
-    dailyBF = new double[xmax + 2, ymax + 2];
-    test_var = new double[xmax + 2, ymax + 2];
-    GWHeadsOrig = new double[xmax + 2, ymax + 2];
-    GWHeads = new double[xmax + 2, ymax + 2];     //GW depth (m)
-    HOST = new int[xmax + 2, ymax + 2];
-    dNSSS = new double[xmax + 2, ymax + 2];
-    dSMD = new double[xmax + 2, ymax + 2];
-    Landuse = new int[xmax + 2, ymax + 2];
-    PE_location = new double[xmax + 2, ymax + 2];
+    boundary = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    SY = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    HydroCond = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    dailyRech = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    WP_added_water_daily = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    dRech = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    dailyBF = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    test_var = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    GWHeadsOrig = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    GWHeads = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);     //GW depth (m)
+    HOST = TNT::Array2D<int> (imax + 2, jmax + 2, 0.0);
+    dNSSS = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    dSMD = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    Landuse = TNT::Array2D<int> (imax + 2, jmax + 2, 0.0);
+    PE_location = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
 }
 
 // PRINTS ALL PARAMETERS TO SCREEN FOR CHECKING
