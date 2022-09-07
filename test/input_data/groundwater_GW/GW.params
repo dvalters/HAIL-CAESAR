@@ -70,7 +70,7 @@ reach_input_data_timestep:     6000000
 
 # GROUNDWATER
 #=============
-grounwater_on:                 yes
+groundwater_on:                 yes
 groundwater_basic:             yes
 groundwater_SLiM:              no
 recharge_rate:                 1.0

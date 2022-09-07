@@ -1436,7 +1436,7 @@ void LSDCatchmentModel::initialise_arrays()
   spat_var_mannings = TNT::Array2D<double> (imax+2, jmax+2, 0.0);
 
   //inpoints=new int[10,2];
-  //inputpointsarray = new bool[xmax + 2, ymax + 2];
+  //inputpointsarray = new bool[xmax + 2, jmax + 2];
 
   // REACH MODE
   inpoints = TNT::Array2D<int> (10, 2, 0);  // input point location coords 
@@ -5708,6 +5708,180 @@ void LSDCatchmentModel::wpgw_water_input()
 void LSDCatchmentModel::groundwater_flow(double time)
 {
     std::cout << "Calculating GROUNDWATER FLOW..." << "\n";
+    double HydroCond_mt;
+    double v;               //hydro diffusivity
+    double D = 0;           //cell reynolds number
+    double Q;               //cell water flux
+    TNT::Array2D<double> Qin(imax + 2, jmax + 2, 0.0);     //water into cell (m)
+    TNT::Array2D<double> Qout(imax + 2, jmax + 2, 0.0);    //water out of cell (m)
+    double dmax = 1;        //min stability
+    double GW_SW_diff;
+    double Baseflow_resis = 0;    //Baseflow resistance = riverslit_thickness/riverslit_hydraulic conductivity (Haitjema, 1995 - p236)
+    int stabcount = 0, dtime=0;
+    int NA = -9999;
+    int input_GW_timestep = time * 60; //GW timestep (seconds) - input time is in mins
+    int GW_timestep = input_GW_timestep;
+
+    double GWOut = 0;//reset total GW outflow
+    double GWIn = 0;//reset total GW inflow
+    
+    //Reset anything that needs resetting
+    //Array.Clear(Qin, 0, Qin.Length);   // Already done above?
+    //Array.Clear(Qout, 0, Qout.Length);
+    //Array.Clear(dailyBF, 0, dailyBF.Length);//zero Baseflow - may be best doing this somewhere elsewhere or maybe never and use this as a store with BF being removed at surface?? 
+    for(unsigned i=0; i <= imax+2; i++)
+    {
+      for(unsigned j=0; j <= jmax+2; j++)
+      {
+        dailyBF[i][j] = 0.0;
+      }
+    }
+    
+    //Assess stability
+    while (dmax > 0.9)
+    {
+        dmax = 0;
+        for (int x = 1; x <= imax; x++)
+        {
+            for (int y = 1; y <= jmax; y++)
+            {
+                if (boundary[x][y] != NA) //for nodes within boundary
+                {
+                    HydroCond_mt = (HydroCond[x][y] * GW_timestep) / 86400; //distributed  hydro cond (m/day --> m/t)
+                    
+                    //Stability Calculation
+                    v = (HydroCond_mt * GWHeads[x][y]) / SY[x][y];
+                    D = 4 * v * (GW_timestep / (DX * DX));
+                    if (D > dmax) dmax = D;   //find maximum D (lowest stability)
+                }
+            }
+        }
+        stabcount += 2; //this halves the timestep if dmax remains above 0.9
+        if (dmax >= 0.9) GW_timestep = input_GW_timestep / (stabcount);
+    }
+    dtime = (86400 / GW_timestep); //calulate itterations per day
+    for (int t = 1; t <= dtime; t++)//start of time loop
+    {
+
+        //**********Add recharge to GWLs***********
+
+        for (int x = 1; x <= imax; x++)
+        {
+            for (int y = 1; y <= jmax; y++)
+            {
+                if (boundary[x][y] != NA) //for nodes within boundary
+                {
+                    //if SLiM isn't run set recharge to a % rainfall mm/d
+                    if (!groundwater_SLiM) dailyRech[x][y] = ((hourly_rain_data[(int)(cycle / rain_data_time_step)][rfarea[x][y]]) * 24) * recharge_rate; /** mm/h to mm/d */
+                    // NEED TO REMOVE RECHARGE FROM RAINFALL IN CAESAR CODE
+
+                    GWHeads[x][y] += (dailyRech[x][y]*0.001) / (dtime * SY[x][y]); //recharge added to GWL (m)
+
+                }
+            }
+        }
+
+        //MessageBox.Show("finished rech to GWLs " + t);
+        //**********CALCULATE HOW MUCH WATER TO MOVE**************
+        //Flow high to low
+
+        for (int x = 1; x <= imax; x++)
+        {
+            for (int y = 1; y <= jmax; y++)
+            {
+                //Reset Q
+                Q = NA;
+
+                if (boundary[x][y] != NA) //for nodes within boundary
+                {
+                    HydroCond_mt = (HydroCond[x][y]*GW_timestep) / 86400; //distributed  hydro cond (m/day --> m per gwtimestep)
+
+                    //Calculation of Cell Flux (m3/timestep)
+                    if ((GWHeads[x][y] > GWHeads[x][(y - 1)]) && (boundary[x][(y - 1)] != NA)) //North (if the scanned node is lower than central node)
+                    {
+                        Q = ((2 * (HydroCond_mt * GWHeads[x][y]) * (HydroCond_mt * GWHeads[x][(y - 1)])) / ((HydroCond_mt * GWHeads[x][y]) + (HydroCond_mt * GWHeads[x][(y - 1)]))) * (GWHeads[x][y] - GWHeads[x][(y - 1)]); //(surface m - ie independent of SY)
+                        Qout[x][y] -= Q; //take water out of central node 
+                        Qin[x][(y - 1)] += Q; //pass water to scanned node
+                    }
+
+                    if ((GWHeads[x][y] > GWHeads[(x + 1)][y]) && (boundary[(x + 1)][y] != NA))//East
+                    {
+                        Q = ((2 * (HydroCond_mt * GWHeads[x][y]) * (HydroCond_mt * GWHeads[(x + 1)][y])) / ((HydroCond_mt * GWHeads[x][y]) + (HydroCond_mt * GWHeads[(x + 1)][y]))) * (GWHeads[x][y] - GWHeads[(x + 1)][y]);
+                        Qout[x][y] -= Q;
+                        Qin[(x + 1)][y] += Q;
+                    }
+
+                    if ((GWHeads[x][y] > GWHeads[(x)][(y + 1)]) && (boundary[(x)][(y + 1)] != NA))//South
+                    {
+                        Q = ((2 * HydroCond_mt * GWHeads[x][y] * HydroCond_mt * GWHeads[(x)][(y + 1)]) / ((HydroCond_mt * GWHeads[x][y]) + (HydroCond_mt * GWHeads[(x)][(y + 1)]))) * (GWHeads[x][y] - GWHeads[(x)][(y + 1)]);
+                        Qout[x][y] -= Q;
+                        Qin[x][(y + 1)] += Q;
+                    }
+
+                    if ((GWHeads[x][y] > GWHeads[(x - 1)][y]) && (boundary[(x - 1)][(y)] != NA))//West
+                    {
+                        Q = ((2 * HydroCond_mt * GWHeads[x][y] * HydroCond_mt * GWHeads[(x - 1)][y]) / ((HydroCond_mt * GWHeads[x][y]) + (HydroCond_mt * GWHeads[(x - 1)][y]))) * (GWHeads[x][y] - GWHeads[(x - 1)][y]);
+                        Qout[x][y] -= Q;
+                        Qin[(x - 1)][y] += Q;
+                    }
+
+                }
+            }
+        }//---------------------------------------------------------------------------
+
+
+        //**********Internally MOVE WATER AND IMPLEMENT BOUNDARY CONDITIONS**************
+        //MessageBox.Show("finsihed GW calc " + t);
+        for (int x = 1; x <= imax; x++)
+        {
+            for (int y = 1; y <= jmax; y++)
+            {
+                if (boundary[x][y] != NA)
+                {
+                    //no flow condition and internal condition
+                    if (boundary[x][y] >= 10 && boundary[x][y] <= 19)
+                        GWHeads[x][y] += (Qin[x][y] + Qout[x][y]) / (SY[x][y] * DX * DX);  //(GW m) calculate new water level (surface m3 --> GW m)
+
+                    //Fixed GW head (set in initial_GW.txt file)
+                    if (boundary[x][y] >= 20 && boundary[x][y] <= 29)
+                    {
+                        GWHeads[x][y] += (Qin[x][y] + Qout[x][y]) / (SY[x][y] * DX * DX);  //(GW m) calculate new water level (surface m3 --> GW m)
+
+                        //Calculate how much is lost or made
+                        if ((GWHeads[x][y] - GWHeadsOrig[x][y]) > 0) GWOut += GWHeads[x][y] - GWHeadsOrig[x][y];
+                        else GWIn += GWHeads[x][y] - GWHeadsOrig[x][y];
+
+                        //Reset heads to initial value
+                        GWHeads[x][y] = GWHeadsOrig[x][y];
+                    }
+                    //Reset
+                    Qin[x][y] = 0;
+                    Qout[x][y] = 0;
+                }
+            }
+        }
+    }//---------------------------------------------------------------------------end of iterations
+    
+    //MessageBox.Show("finsihed internal water ");
+    //Externally Move Water (daily)
+    //GW levels interact directly with the surface levels
+
+    for (int x = 1; x <= imax; x++)
+    {
+        for (int y = 1; y <= jmax; y++)
+        {
+            if (boundary[x][y] != NA)
+            {
+                if (GWHeads[x][y] > (elev[x][y] + water_depth[x][y])) //if groundwater level is above surface water level....
+                {
+                    GW_SW_diff = (GWHeads[x][y] - (elev[x][y] + water_depth[x][y]));// / Baseflow_resis; //(GW m)calculate diff between GW heads and surface water level, not taking resistance into account
+                    GWHeads[x][y] -= GW_SW_diff; //(GW m) reset GW head to new level 
+                    dailyBF[x][y] += GW_SW_diff * SY[x][y]; // water moved to the surface as BF and converted (surface water m)
+                }
+            }
+        }
+    }
+    
 }
 
 void LSDCatchmentModel::clear_water_partitioning()
