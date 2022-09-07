@@ -105,6 +105,11 @@ int main(int argc, char *argv[])
   LSDCatchmentModel simulation(pname, pfname);
   simulation.initialise_model_domain_extents();
   simulation.initialise_arrays();
+  if (simulation.groundwater_mode())
+  {
+    simulation.initialise_groundwater(); // Is this the right arg?;
+  }
+
   simulation.load_data();
   simulation.set_time_counters();
 

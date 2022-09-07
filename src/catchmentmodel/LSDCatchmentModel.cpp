@@ -5688,26 +5688,34 @@ void LSDCatchmentModel::grow_grass(double amount3)
 void LSDCatchmentModel::wpgw_water_input()
 // needs time step from func call? // double local_time_factor
 {
-  std::cout << "Calculating water inputs for GROUNDWATER..." << "\n";
+  // std::cout << "Calculating water inputs for GROUNDWATER..." << "\n";
   double flow_timestep = get_flow_timestep();
   for (unsigned i = 1; i <= imax; i++)
+  {
       for (unsigned j = 1; j <= jmax; j++)
+      {
           if (elev[i][j] > -9999) // ensure it is not a no-data point
           {   
               // add baseflow if GW switched on #BGS
               if (groundwater_basic)
+              {
                   water_depth[i][j] += flow_timestep * (dailyBF[i][j] / 86400); //#BGS add baseflow (scale to timestep) 
+              }
               // poss restrict water input if numerical instablity. // tom investigate why its time factor not local_time_factor
 
               // add surface water partitioning inputs if SLiM is switched on #BGS 
               if (groundwater_SLiM)
+              {
                   water_depth[i][j] += flow_timestep * (WP_added_water_daily[i][j] / 86400); //#BGS add or remove from water partition  (scale to timestep) 
+              }    
           }
+      }
+  }
 }
 
 void LSDCatchmentModel::groundwater_flow(double time)
 {
-    std::cout << "Calculating GROUNDWATER FLOW..." << "\n";
+    // std::cout << "Calculating GROUNDWATER FLOW..." << "\n";
     double HydroCond_mt;
     double v;               //hydro diffusivity
     double D = 0;           //cell reynolds number
@@ -5729,9 +5737,9 @@ void LSDCatchmentModel::groundwater_flow(double time)
     //Array.Clear(Qin, 0, Qin.Length);   // Already done above?
     //Array.Clear(Qout, 0, Qout.Length);
     //Array.Clear(dailyBF, 0, dailyBF.Length);//zero Baseflow - may be best doing this somewhere elsewhere or maybe never and use this as a store with BF being removed at surface?? 
-    for(unsigned i=0; i <= imax+2; i++)
+    for(unsigned i=0; i < imax+2; i++)
     {
-      for(unsigned j=0; j <= jmax+2; j++)
+      for(unsigned j=0; j < jmax+2; j++)
       {
         dailyBF[i][j] = 0.0;
       }
@@ -5896,6 +5904,8 @@ void LSDCatchmentModel::water_partitioning(double rain_data_time_step)
 
 void LSDCatchmentModel::initialise_groundwater() 
 {
+    std::cout << "GW Cartesian imax (no. of rows): " << imax << \
+               " GW Cartesian jmax (no. of cols): " << jmax << std::endl;
     // TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
     //#BGS groundwater
     boundary = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
