@@ -736,7 +736,8 @@ private:
   std::string bedrock_data_file = "";
   std::string water_init_raster_file = "";
 
-
+  // input file names #BGS groundwater
+  std::string groundwater_boundary_raster_file = "";
 
 
   /// output file names

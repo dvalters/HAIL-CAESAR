@@ -363,7 +363,51 @@ void LSDCatchmentModel::load_data()
     }
   }
 
+  // LOAD THE GROUNDWATER_BOUNDARY FILE
+  if (groundwater_on)
+  {
+    std::string GROUNDWATER_BOUNDARY_FILENAME = read_path + "/" + groundwater_boundary_raster_file;
+    // Check for the file first of all
+    if (!does_file_exist(GROUNDWATER_BOUNDARY_FILENAME))
+    {
+      std::cout << "No groundwater boundary initialisation DEM found by name of: " 
+                << GROUNDWATER_BOUNDARY_FILENAME
+                << std::endl
+                << "The parameter file sppecified running the model with GROUNDWATER, \
+                   \n but no matching groundwater boundary DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      groundwaterboundaryR.read_ascii_raster(GROUNDWATER_BOUNDARY_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> groundwaterboundary_raw = groundwaterboundaryR.get_RasterData_dbl();
+      std::cout << "The groundwater boundary file: " << GROUNDWATER_BOUNDARY_FILENAME
+                << " was successfully read." << std::endl;
 
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          boundary[i+1][j+1] = groundwaterboundary_raw[i][j];
+        }
+      }
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your groundwater initialisation file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+  
   // Load the RAINDATA file
   // Remember the format is not the same as a standard ASCII DEM...
   if (rainfall_data_on==true)
