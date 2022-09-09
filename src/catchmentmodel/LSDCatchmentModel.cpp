@@ -148,6 +148,15 @@ void LSDCatchmentModel::load_data()
   LSDRaster waterinitR;
   /// Bedrock LSDRaster object
   LSDRaster bedrockR;
+  /// Groundwater boundary
+  LSDRaster groundwaterboundaryR;
+  /// Groundwater initial level
+  LSDRaster initialgroundwaterR;
+  /// Hydraulic conductivity
+  LSDRaster hydraulicconductivityR;
+  /// Specific Yield
+  LSDRaster specificyieldR;
+
   std::string DEM_FILENAME = read_path + "/" + read_fname + "." \
                               + dem_read_extension;
 
@@ -366,7 +375,7 @@ void LSDCatchmentModel::load_data()
   // LOAD THE GROUNDWATER_BOUNDARY FILE
   if (groundwater_on)
   {
-    std::string GROUNDWATER_BOUNDARY_FILENAME = read_path + "/" + groundwater_boundary_raster_file;
+    std::string GROUNDWATER_BOUNDARY_FILENAME = read_path + "/" + groundwater_boundary_file;
     // Check for the file first of all
     if (!does_file_exist(GROUNDWATER_BOUNDARY_FILENAME))
     {
@@ -400,7 +409,149 @@ void LSDCatchmentModel::load_data()
     }
     catch (...)
     {
+      std::cout << "Something is wrong with your groundwater boundary file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+   // LOAD THE INITIAL GROUNDWATER FILE
+  if (groundwater_on)
+  {
+    std::string INITIAL_GROUNDWATER_FILENAME = read_path + "/" + initial_groundwater_file;
+    // Check for the file first of all
+    if (!does_file_exist(INITIAL_GROUNDWATER_FILENAME))
+    {
+      std::cout << "No groundwater boundary initialisation DEM found by name of: " 
+                << INITIAL_GROUNDWATER_FILENAME
+                << std::endl
+                << "The parameter file sppecified running the model with GROUNDWATER, \
+                   \n but no matching groundwater boundary DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      initialgroundwaterR.read_ascii_raster(INITIAL_GROUNDWATER_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> initialgroundwater_raw = initialgroundwaterR.get_RasterData_dbl();
+      std::cout << "The initial groundwater file: " << INITIAL_GROUNDWATER_FILENAME
+                << " was successfully read." << std::endl;
+
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          GWHeads[i+1][j+1] = initialgroundwater_raw[i][j];
+          GWHeadsOrig[i+1][j+1] = initialgroundwater_raw[i][j];
+
+        }
+      }
+    }
+    catch (...)
+    {
       std::cout << "Something is wrong with your groundwater initialisation file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+
+  // LOAD THE HYDRAULIC CONDUCTIVITY (K) FILE
+  if (groundwater_on)
+  {
+    std::string HYDRAULIC_CONDUCTIVITY_FILENAME = read_path + "/" + hydraulic_conductivity_file;
+    // Check for the file first of all
+    if (!does_file_exist(HYDRAULIC_CONDUCTIVITY_FILENAME))
+    {
+      std::cout << "No hydraulic conductivity DEM found by name of: " 
+                << HYDRAULIC_CONDUCTIVITY_FILENAME
+                << std::endl
+                << "The parameter file sppecified running the model with GROUNDWATER, \
+                   \n but no matching groundwater boundary DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      hydraulicconductivityR.read_ascii_raster(HYDRAULIC_CONDUCTIVITY_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> hydraulicconductivity_raw = hydraulicconductivityR.get_RasterData_dbl();
+      std::cout << "The hydraulic conductivity file: " << HYDRAULIC_CONDUCTIVITY_FILENAME
+                << " was successfully read." << std::endl;
+
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          HydroCond[i+1][j+1] = hydraulicconductivity_raw[i][j];
+        }
+      }
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your hydraulic conductivity file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // LOAD THE Specific Yield FILE
+  if (groundwater_on)
+  {
+    std::string SPECIFIC_YIELD_FILENAME = read_path + "/" + specific_yield_file;
+    // Check for the file first of all
+    if (!does_file_exist(SPECIFIC_YIELD_FILENAME))
+    {
+      std::cout << "No specific yield DEM found by name of: " 
+                << SPECIFIC_YIELD_FILENAME
+                << std::endl
+                << "The parameter file sppecified running the model with GROUNDWATER, \
+                   \n but no matching groundwater boundary DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      specificyieldR.read_ascii_raster(SPECIFIC_YIELD_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> specificyield_raw = specificyieldR.get_RasterData_dbl();
+      std::cout << "The specific yield file: " << SPECIFIC_YIELD_FILENAME
+                << " was successfully read." << std::endl;
+
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          SY[i+1][j+1] = specificyield_raw[i][j];
+          if (SY[i+1][j+1] > 1)
+          {
+             SY[i+1][i+j] = 1.0;   // Cannot be greater than 1
+          }
+        }
+      }
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your specific yield file." << std::endl
                 << "Common causes are: " << std::endl
                 << "1) Data type is not correct" <<
                    std::endl << "2) Non standard ASCII data format" << std::endl;
@@ -805,9 +956,30 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
       RemoveControlCharactersFromEndOfString(mannings_fname);
       std::cout << "spatial mannings file: " << mannings_fname << std::endl;      
     }
-
-
-
+    else if (lower == "groundwater_boundary_file")
+    {
+      groundwater_boundary_file = value;
+      RemoveControlCharactersFromEndOfString(groundwater_boundary_file);
+      std::cout << "groundwater_bounary_file: " << groundwater_boundary_file << std::endl;
+    }
+    else if (lower == "hydraulic_conductivity_file")
+    {
+      hydraulic_conductivity_file = value;
+      RemoveControlCharactersFromEndOfString(hydraulic_conductivity_file);
+      std::cout << "hydraulic_conductivity_file: " << hydraulic_conductivity_file << std::endl;
+    }
+    else if (lower == "initial_groundwater_file")
+    {
+      initial_groundwater_file = value;
+      RemoveControlCharactersFromEndOfString(initial_groundwater_file);
+      std::cout << "initial_groundwater_file: " << initial_groundwater_file << std::endl;
+    }
+    else if (lower == "specific_yield_file")
+    {
+      specific_yield_file = value;
+      RemoveControlCharactersFromEndOfString(specific_yield_file);
+      std::cout << "specific_yield_file: " << specific_yield_file << std::endl;
+    }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Numerical
