@@ -450,7 +450,6 @@ void LSDCatchmentModel::load_data()
         {
           GWHeads[i+1][j+1] = initialgroundwater_raw[i][j];
           GWHeadsOrig[i+1][j+1] = initialgroundwater_raw[i][j];
-
         }
       }
     }
@@ -2001,7 +2000,7 @@ void LSDCatchmentModel::call_groundwater_routines()
   if (cycle > creep_time2)
   {
     groundwater_flow(1440);
-    clear_water_partitioning();
+    clear_water_partitioning();   // This is always called in either model (SLIM vs GW)
     creep_time2 += 1440;   // Need a better way of doing this
     // What if you are running model with landsliding? Double increase...
   }
@@ -2738,6 +2737,25 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     elevdiff_outR.write_double_raster(OUTPUT_ELEVDIFF_FILE,
                                       dem_write_extension);
   }
+
+  
+  // #BGS write groundwater outputs
+  if (groundwater_basic)
+  {
+    LSDRaster GWHeads_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, GWHeads);
+    // Get rid of the zeros padding the edges of the domain
+    GWHeads_outR.strip_raster_padding();
+
+    std::string OUTPUT_GWHEADS_FILE = write_path + "/" + "GW_Heads_out_" + \
+      std::to_string((int)tempcycle);
+
+    GWHeads_outR.write_double_raster(OUTPUT_GWHEADS_FILE, dem_write_extension);
+  }
+  // GWHeads
+  // dRech
+  // dailyBF
+  // dSMD
+  // test_var??
 
   // TODO
   // Make separate methods in future...
@@ -6111,6 +6129,24 @@ void LSDCatchmentModel::groundwater_flow(double time)
 void LSDCatchmentModel::clear_water_partitioning()
 {
     std::cout << "Clearing water partitioning..." << "\n";
+    for (int j = 1; j <= jmax; j++)
+    {
+        for (int i = 1; i <= imax; i++)
+        {
+            if (elev[i][j] != -9999)//valid cell for modelling
+            {
+                dRech[i][j] = dailyRech[i][j];//keep value for saving/graphics 
+            }
+        }
+    }
+    // Clear the Daly Recharge array
+    for(unsigned i=0; i < imax+2; i++)
+    {
+      for(unsigned j=0; j < jmax+2; j++)
+      {
+        dailyRech[i][j] = 0.0;
+      }
+    }
 }
 
 void LSDCatchmentModel::water_partitioning(double rain_data_time_step)
