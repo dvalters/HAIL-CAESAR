@@ -2740,6 +2740,7 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
 
   
   // #BGS write groundwater outputs
+  // GROUNDWATER HEADS RASTER
   if (groundwater_basic)
   {
     LSDRaster GWHeads_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, GWHeads);
@@ -2751,10 +2752,47 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
 
     GWHeads_outR.write_double_raster(OUTPUT_GWHEADS_FILE, dem_write_extension);
   }
-  // GWHeads
-  // dRech
-  // dailyBF
-  // dSMD
+
+  // #BGS DAILY RECHARGE OUTPUT
+  if (groundwater_basic)
+  {
+    LSDRaster dRech_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, dRech);
+    // Get rid of the zeros padding the edges of the domain
+    dRech_outR.strip_raster_padding();
+
+    std::string OUTPUT_DAILY_RECHARGE_FILE = write_path + "/" + "Daily_Recharge_out_" + \
+      std::to_string((int)tempcycle);
+
+    dRech_outR.write_double_raster(OUTPUT_DAILY_RECHARGE_FILE, dem_write_extension);
+  }
+
+  // #BGS DAILY BF OUTPUT
+  if (groundwater_basic)
+  {
+    LSDRaster dailyBF_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, dailyBF);
+    // Get rid of the zeros padding the edges of the domain
+    dailyBF_outR.strip_raster_padding();
+
+    std::string OUTPUT_DAILY_BF_FILE = write_path + "/" + "Daily_BF_out_" + \
+      std::to_string((int)tempcycle);
+
+    dailyBF_outR.write_double_raster(OUTPUT_DAILY_BF_FILE, dem_write_extension);
+  }
+
+  // #BGS DAILY SOIL MOISTURE DEFICIT OUTPUT
+  if (groundwater_basic)
+  {
+    LSDRaster dSMD_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, dSMD);
+    // Get rid of the zeros padding the edges of the domain
+    dSMD_outR.strip_raster_padding();
+
+    std::string OUTPUT_DAILY_SMD_FILE = write_path + "/" + "Daily_SMD_out_" + \
+      std::to_string((int)tempcycle);
+
+    dSMD_outR.write_double_raster(OUTPUT_DAILY_SMD_FILE, dem_write_extension);
+  }
+
+
   // test_var??
 
   // TODO
