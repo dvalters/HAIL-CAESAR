@@ -21,7 +21,6 @@
 
 #include "LSDGrainMatrix.hpp"
 #include "LSDRainfallRunoff.hpp"
-
 #include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
 
 #ifndef LSDCatchmentModel_H
@@ -96,6 +95,9 @@ public:
   /// @brief Is this a hydrology only simulation?
   /// I.e. no erosion methods.
   bool is_hydro_only() const { return hydro_only; }
+  bool groundwater_mode() const { return groundwater_on; }
+  bool groundwater_basic_model() const { return groundwater_basic; }
+  bool groundwater_SLiM_model() const { return groundwater_SLiM; }
 
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   // INPUT/OUTPUT
@@ -410,6 +412,15 @@ public:
   /// @brief Routine to grow grass for vegetation enabled simulations.
   void grow_grass(double amount3);
 
+  // =-=-=-=-=-=-=-=-=-=-=
+  // VEGETATION
+  // =-=-=-=-=-=-=-=-=-=-=
+  void wpgw_water_input(); // double local_time_factor
+  void call_groundwater_routines();
+  void groundwater_flow(double time);
+  void clear_water_partitioning();
+  void water_partitioning(double rain_data_time_step);
+  void initialise_groundwater();
 
 private:
 
@@ -686,7 +697,7 @@ private:
   bool suspended_opt = false;
   bool jmeaninputfile_opt = false;
   // This is for reading discharge direct from input file - DAV 2/2016
-  // (Dear god I've been working on this code for 2.5 years nearly...)
+  // (Dear god I've been working on this code for 9 years nearly...)
   bool recirculate_opt = false;
   bool reach_mode_opt = false;
   bool dunes_opt = false;
@@ -725,6 +736,10 @@ private:
   std::string bedrock_data_file = "";
   std::string water_init_raster_file = "";
 
+  // input file names #BGS groundwater
+  std::string groundwater_boundary_raster_file = "";
+
+
   /// output file names
   std::string elev_fname = "";
   std::string grainsize_fname = "";
@@ -749,6 +764,50 @@ private:
   int tempcycle = 0;
 
   std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
+
+
+
+  // Groundwater Option Flags
+  bool groundwater_on = false;
+  // Chose the specific model
+  bool groundwater_basic = false;
+  bool groundwater_SLiM = false;
+
+
+  // #BGS global groundwater global vars
+  double creep_time_SLiM = 1; //#BGS
+  TNT::Array2D<double> boundary;
+  TNT::Array2D<double> SY;
+  TNT::Array2D<double> dailyRech;
+  TNT::Array2D<double> dRech;
+  TNT::Array2D<double> WP_added_water_daily;
+  TNT::Array2D<double> HydroCond;
+  TNT::Array2D<double> dailyBF;
+  TNT::Array2D<double> test_var;
+  TNT::Array2D<double> GWHeadsOrig;
+  TNT::Array2D<double> GWHeads;      //GW depth (m)
+  TNT::Array2D<int> HOST;
+  TNT::Array2D<int> Landuse;
+  TNT::Array2D<double> PE_location;
+  std::vector<int> PEnum;    // int[]
+  TNT::Array2D<double> PEtab;
+  TNT::Array2D<double> dNSSS;
+  TNT::Array2D<double> dSMD;
+  double recharge_rate;
+  std::string start_date;
+
+  // #BGS Groundwater inputs
+  std::string initial_groundwater_file = "";
+  std::string groundwater_boundary_file = "";
+  std::string hydraulic_conductivity_file = "";
+  std::string specific_yield_file = "";
+  std::string host_file = "";
+  std::string landuse_file = "";
+  std::string potential_evaporation_location_file = "";
+  std::string potential_evaporation_table_file = "";
+  std::string initial_soil_moisture_deficit_file = "";
+  std::string initial_soil_storage_file = "";
+
 
   // Mainly just the definitions of the create() functions go here:
   // The implementations are in the .cpp file.

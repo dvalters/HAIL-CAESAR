@@ -37,12 +37,12 @@
  *
  *
  * @author Declan Valters
- * @date  2014-2020
- * @comment 6 years (and counting) of my life developing this model...
+ * @date  2014-2022
+ * @comment 
  * University of Manchester
  * University of Edinburgh
  * British Geological Survey
- * @contact declan.valters@gmail.com
+ * @contact decval@bgs.ac.uk
  * @version 1.0
  *
  * Released under the GNU v3 Public License
@@ -65,7 +65,6 @@
 
 #ifndef LSDCatchmentModel_CPP
 #define LSDCatchmentModel_CPP
-
 
 using namespace LSDUtils;
 
@@ -149,6 +148,15 @@ void LSDCatchmentModel::load_data()
   LSDRaster waterinitR;
   /// Bedrock LSDRaster object
   LSDRaster bedrockR;
+  /// Groundwater boundary
+  LSDRaster groundwaterboundaryR;
+  /// Groundwater initial level
+  LSDRaster initialgroundwaterR;
+  /// Hydraulic conductivity
+  LSDRaster hydraulicconductivityR;
+  /// Specific Yield
+  LSDRaster specificyieldR;
+
   std::string DEM_FILENAME = read_path + "/" + read_fname + "." \
                               + dem_read_extension;
 
@@ -364,7 +372,192 @@ void LSDCatchmentModel::load_data()
     }
   }
 
+  // LOAD THE GROUNDWATER_BOUNDARY FILE
+  if (groundwater_on)
+  {
+    std::string GROUNDWATER_BOUNDARY_FILENAME = read_path + "/" + groundwater_boundary_file;
+    // Check for the file first of all
+    if (!does_file_exist(GROUNDWATER_BOUNDARY_FILENAME))
+    {
+      std::cout << "No groundwater boundary initialisation DEM found by name of: " 
+                << GROUNDWATER_BOUNDARY_FILENAME
+                << std::endl
+                << "The parameter file sppecified running the model with GROUNDWATER, \
+                   \n but no matching groundwater boundary DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      groundwaterboundaryR.read_ascii_raster(GROUNDWATER_BOUNDARY_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> groundwaterboundary_raw = groundwaterboundaryR.get_RasterData_dbl();
+      std::cout << "The groundwater boundary file: " << GROUNDWATER_BOUNDARY_FILENAME
+                << " was successfully read." << std::endl;
 
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          boundary[i+1][j+1] = groundwaterboundary_raw[i][j];
+        }
+      }
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your groundwater boundary file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+   // LOAD THE INITIAL GROUNDWATER FILE
+  if (groundwater_on)
+  {
+    std::string INITIAL_GROUNDWATER_FILENAME = read_path + "/" + initial_groundwater_file;
+    // Check for the file first of all
+    if (!does_file_exist(INITIAL_GROUNDWATER_FILENAME))
+    {
+      std::cout << "No groundwater boundary initialisation DEM found by name of: " 
+                << INITIAL_GROUNDWATER_FILENAME
+                << std::endl
+                << "The parameter file sppecified running the model with GROUNDWATER, \
+                   \n but no matching groundwater boundary DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      initialgroundwaterR.read_ascii_raster(INITIAL_GROUNDWATER_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> initialgroundwater_raw = initialgroundwaterR.get_RasterData_dbl();
+      std::cout << "The initial groundwater file: " << INITIAL_GROUNDWATER_FILENAME
+                << " was successfully read." << std::endl;
+
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          GWHeads[i+1][j+1] = initialgroundwater_raw[i][j];
+          GWHeadsOrig[i+1][j+1] = initialgroundwater_raw[i][j];
+        }
+      }
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your groundwater initialisation file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+
+  // LOAD THE HYDRAULIC CONDUCTIVITY (K) FILE
+  if (groundwater_on)
+  {
+    std::string HYDRAULIC_CONDUCTIVITY_FILENAME = read_path + "/" + hydraulic_conductivity_file;
+    // Check for the file first of all
+    if (!does_file_exist(HYDRAULIC_CONDUCTIVITY_FILENAME))
+    {
+      std::cout << "No hydraulic conductivity DEM found by name of: " 
+                << HYDRAULIC_CONDUCTIVITY_FILENAME
+                << std::endl
+                << "The parameter file sppecified running the model with GROUNDWATER, \
+                   \n but no matching groundwater boundary DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      hydraulicconductivityR.read_ascii_raster(HYDRAULIC_CONDUCTIVITY_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> hydraulicconductivity_raw = hydraulicconductivityR.get_RasterData_dbl();
+      std::cout << "The hydraulic conductivity file: " << HYDRAULIC_CONDUCTIVITY_FILENAME
+                << " was successfully read." << std::endl;
+
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          HydroCond[i+1][j+1] = hydraulicconductivity_raw[i][j];
+        }
+      }
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your hydraulic conductivity file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // LOAD THE Specific Yield FILE
+  if (groundwater_on)
+  {
+    std::string SPECIFIC_YIELD_FILENAME = read_path + "/" + specific_yield_file;
+    // Check for the file first of all
+    if (!does_file_exist(SPECIFIC_YIELD_FILENAME))
+    {
+      std::cout << "No specific yield DEM found by name of: " 
+                << SPECIFIC_YIELD_FILENAME
+                << std::endl
+                << "The parameter file sppecified running the model with GROUNDWATER, \
+                   \n but no matching groundwater boundary DEM file was found. Try again." << std::endl;
+                   exit(EXIT_FAILURE); 
+    }
+    try
+    {
+      specificyieldR.read_ascii_raster(SPECIFIC_YIELD_FILENAME);
+      // Load the raw ascii raster data
+      TNT::Array2D<double> specificyield_raw = specificyieldR.get_RasterData_dbl();
+      std::cout << "The specific yield file: " << SPECIFIC_YIELD_FILENAME
+                << " was successfully read." << std::endl;
+
+      // We want an edge pixel of zeros surrounding the raster data
+      // So start the counters at one, rather than zero, this
+      // will ensure that elev[0][n] is not written to and left set to zero.
+      // remember this data member is set with dim size equal to jmax + 2 to
+      // allow the border of zeros
+      for (unsigned i=0; i<imax; i++)
+      {
+        for (unsigned j=0; j<jmax; j++)
+        {
+          SY[i+1][j+1] = specificyield_raw[i][j];
+          if (SY[i+1][j+1] > 1)
+          {
+             SY[i+1][i+j] = 1.0;   // Cannot be greater than 1
+          }
+        }
+      }
+    }
+    catch (...)
+    {
+      std::cout << "Something is wrong with your specific yield file." << std::endl
+                << "Common causes are: " << std::endl
+                << "1) Data type is not correct" <<
+                   std::endl << "2) Non standard ASCII data format" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+  
   // Load the RAINDATA file
   // Remember the format is not the same as a standard ASCII DEM...
   if (rainfall_data_on==true)
@@ -762,9 +955,30 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
       RemoveControlCharactersFromEndOfString(mannings_fname);
       std::cout << "spatial mannings file: " << mannings_fname << std::endl;      
     }
-
-
-
+    else if (lower == "groundwater_boundary_file")
+    {
+      groundwater_boundary_file = value;
+      RemoveControlCharactersFromEndOfString(groundwater_boundary_file);
+      std::cout << "groundwater_bounary_file: " << groundwater_boundary_file << std::endl;
+    }
+    else if (lower == "hydraulic_conductivity_file")
+    {
+      hydraulic_conductivity_file = value;
+      RemoveControlCharactersFromEndOfString(hydraulic_conductivity_file);
+      std::cout << "hydraulic_conductivity_file: " << hydraulic_conductivity_file << std::endl;
+    }
+    else if (lower == "initial_groundwater_file")
+    {
+      initial_groundwater_file = value;
+      RemoveControlCharactersFromEndOfString(initial_groundwater_file);
+      std::cout << "initial_groundwater_file: " << initial_groundwater_file << std::endl;
+    }
+    else if (lower == "specific_yield_file")
+    {
+      specific_yield_file = value;
+      RemoveControlCharactersFromEndOfString(specific_yield_file);
+      std::cout << "specific_yield_file: " << specific_yield_file << std::endl;
+    }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Numerical
@@ -1241,7 +1455,7 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
 
     else if (lower == "reach_mode")
     {
-      reach_mode_opt = true;
+      reach_mode_opt = (value == "yes") ? true : false;
       std::cout << "Reach mode on/off: " << reach_mode_opt << std::endl;
     }
     else if (lower == "divide_inputs_by")
@@ -1253,6 +1467,78 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     {
       reach_input_data_timestep = atoi(value.c_str());
       std::cout << "reach input data timestep: " << reach_input_data_timestep << std::endl;
+    }
+
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Groundwater
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "groundwater_on")
+    {
+      groundwater_on = (value == "yes") ? true : false;
+      std::cout << "Groundwater model turned on: " << groundwater_on << std::endl;
+    }
+    else if (lower == "groundwater_basic")
+    {
+      groundwater_basic = (value == "yes") ? true : false;
+      std::cout << "Using basic groundwater scheme (GW): " << groundwater_basic << std::endl;
+    }
+    else if (lower == "groundwater_SLiM")
+    {
+      groundwater_SLiM = (value == "yes") ? true : false;
+      std::cout << "Using SLiM groundwater scheme (SLiM): " << groundwater_SLiM << std::endl;
+    }
+
+    else if (lower == "recharge_rate")
+    {
+      recharge_rate = atof(value.c_str());
+      std::cout << "Recharge Rate (% rainfall 0 - 1): " << recharge_rate << std::endl;
+    }
+    else if (lower == "start_date")
+    {
+      start_date = value;
+      std::cout << "Start date: " << start_date << std::endl;
+    }
+    
+    // #BGS Groundwater
+    else if (lower == "initial_groundwater_file")
+    {
+      initial_groundwater_file = value;
+    }
+    else if (lower == "groundwater_boundary_file")
+    {
+      groundwater_boundary_file = value;
+    }
+    else if (lower == "hydraulic_conductivity_file")
+    {
+      hydraulic_conductivity_file = value;
+    }
+    else if (lower == "specific_yield_file")
+    {
+      specific_yield_file = value;
+    }
+    else if (lower == "host_file")
+    {
+      host_file = value;
+    }
+    else if (lower == "landuse_file")
+    {
+      landuse_file = value;
+    }
+    else if (lower == "potential_evaporation_location_file")
+    {
+      potential_evaporation_location_file = value;
+    }
+    else if (lower == "potential_evaporation_table_file")
+    {
+      potential_evaporation_table_file = value;
+    }
+    else if (lower == "initial_soil_moisture_deficit_file")
+    {
+      initial_soil_moisture_deficit_file = value;
+    }
+    else if (lower == "initial_soil_storage_file")
+    {
+      initial_soil_storage_file = value;
     }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1365,7 +1651,7 @@ void LSDCatchmentModel::initialise_arrays()
   spat_var_mannings = TNT::Array2D<double> (imax+2, jmax+2, 0.0);
 
   //inpoints=new int[10,2];
-  //inputpointsarray = new bool[xmax + 2, ymax + 2];
+  //inputpointsarray = new bool[xmax + 2, jmax + 2];
 
   // REACH MODE
   inpoints = TNT::Array2D<int> (10, 2, 0);  // input point location coords 
@@ -1706,6 +1992,17 @@ void LSDCatchmentModel::call_global_landsliding(
     creep_time2 += global_landsliding_interval_hours; // Add 1 day in hours
     // TODO DAV - This is a stupid name:
     global_landsliding();
+  }
+}
+
+void LSDCatchmentModel::call_groundwater_routines()
+{
+  if (cycle > creep_time2)
+  {
+    groundwater_flow(1440);
+    clear_water_partitioning();   // This is always called in either model (SLIM vs GW)
+    creep_time2 += 1440;   // Need a better way of doing this
+    // What if you are running model with landsliding? Double increase...
   }
 }
 
@@ -2440,6 +2737,63 @@ void LSDCatchmentModel::save_raster_data(double tempcycle)
     elevdiff_outR.write_double_raster(OUTPUT_ELEVDIFF_FILE,
                                       dem_write_extension);
   }
+
+  
+  // #BGS write groundwater outputs
+  // GROUNDWATER HEADS RASTER
+  if (groundwater_basic)
+  {
+    LSDRaster GWHeads_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, GWHeads);
+    // Get rid of the zeros padding the edges of the domain
+    GWHeads_outR.strip_raster_padding();
+
+    std::string OUTPUT_GWHEADS_FILE = write_path + "/" + "GW_Heads_out_" + \
+      std::to_string((int)tempcycle);
+
+    GWHeads_outR.write_double_raster(OUTPUT_GWHEADS_FILE, dem_write_extension);
+  }
+
+  // #BGS DAILY RECHARGE OUTPUT
+  if (groundwater_basic)
+  {
+    LSDRaster dRech_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, dRech);
+    // Get rid of the zeros padding the edges of the domain
+    dRech_outR.strip_raster_padding();
+
+    std::string OUTPUT_DAILY_RECHARGE_FILE = write_path + "/" + "Daily_Recharge_out_" + \
+      std::to_string((int)tempcycle);
+
+    dRech_outR.write_double_raster(OUTPUT_DAILY_RECHARGE_FILE, dem_write_extension);
+  }
+
+  // #BGS DAILY BF OUTPUT
+  if (groundwater_basic)
+  {
+    LSDRaster dailyBF_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, dailyBF);
+    // Get rid of the zeros padding the edges of the domain
+    dailyBF_outR.strip_raster_padding();
+
+    std::string OUTPUT_DAILY_BF_FILE = write_path + "/" + "Daily_BF_out_" + \
+      std::to_string((int)tempcycle);
+
+    dailyBF_outR.write_double_raster(OUTPUT_DAILY_BF_FILE, dem_write_extension);
+  }
+
+  // #BGS DAILY SOIL MOISTURE DEFICIT OUTPUT
+  if (groundwater_basic)
+  {
+    LSDRaster dSMD_outR(imax+2, jmax+2, xll, yll, DX, no_data_value, dSMD);
+    // Get rid of the zeros padding the edges of the domain
+    dSMD_outR.strip_raster_padding();
+
+    std::string OUTPUT_DAILY_SMD_FILE = write_path + "/" + "Daily_SMD_out_" + \
+      std::to_string((int)tempcycle);
+
+    dSMD_outR.write_double_raster(OUTPUT_DAILY_SMD_FILE, dem_write_extension);
+  }
+
+
+  // test_var??
 
   // TODO
   // Make separate methods in future...
@@ -5598,6 +5952,267 @@ void LSDCatchmentModel::grow_grass(double amount3)
       }
     }
   }
+}
+
+// =-=-=-=-=-=-=-=-=-=-=-=-=
+// GROUNDWATER
+// =-=-=-=-=-=-=-=-=-=-=-=-=
+void LSDCatchmentModel::wpgw_water_input()
+// needs time step from func call? // double local_time_factor
+{
+  // std::cout << "Calculating water inputs for GROUNDWATER..." << "\n";
+  double flow_timestep = get_flow_timestep();
+  for (unsigned i = 1; i <= imax; i++)
+  {
+      for (unsigned j = 1; j <= jmax; j++)
+      {
+          if (elev[i][j] > -9999) // ensure it is not a no-data point
+          {   
+              // add baseflow if GW switched on #BGS
+              if (groundwater_basic)
+              {
+                  water_depth[i][j] += flow_timestep * (dailyBF[i][j] / 86400); //#BGS add baseflow (scale to timestep) 
+              }
+              // poss restrict water input if numerical instablity. // tom investigate why its time factor not local_time_factor
+
+              // add surface water partitioning inputs if SLiM is switched on #BGS 
+              if (groundwater_SLiM)
+              {
+                  water_depth[i][j] += flow_timestep * (WP_added_water_daily[i][j] / 86400); //#BGS add or remove from water partition  (scale to timestep) 
+              }    
+          }
+      }
+  }
+}
+
+void LSDCatchmentModel::groundwater_flow(double time)
+{
+    // std::cout << "Calculating GROUNDWATER FLOW..." << "\n";
+    double HydroCond_mt;
+    double v;               //hydro diffusivity
+    double D = 0;           //cell reynolds number
+    double Q;               //cell water flux
+    TNT::Array2D<double> Qin(imax + 2, jmax + 2, 0.0);     //water into cell (m)
+    TNT::Array2D<double> Qout(imax + 2, jmax + 2, 0.0);    //water out of cell (m)
+    double dmax = 1;        //min stability
+    double GW_SW_diff;
+    double Baseflow_resis = 0;    //Baseflow resistance = riverslit_thickness/riverslit_hydraulic conductivity (Haitjema, 1995 - p236)
+    int stabcount = 0, dtime=0;
+    int NA = -9999;
+    int input_GW_timestep = time * 60; //GW timestep (seconds) - input time is in mins
+    int GW_timestep = input_GW_timestep;
+
+    double GWOut = 0;//reset total GW outflow
+    double GWIn = 0;//reset total GW inflow
+    
+    //Reset anything that needs resetting
+    //Array.Clear(Qin, 0, Qin.Length);   // Already done above?
+    //Array.Clear(Qout, 0, Qout.Length);
+    //Array.Clear(dailyBF, 0, dailyBF.Length);//zero Baseflow - may be best doing this somewhere elsewhere or maybe never and use this as a store with BF being removed at surface?? 
+    for(unsigned i=0; i < imax+2; i++)
+    {
+      for(unsigned j=0; j < jmax+2; j++)
+      {
+        dailyBF[i][j] = 0.0;
+      }
+    }
+    
+    //Assess stability
+    while (dmax > 0.9)
+    {
+        dmax = 0;
+        for (int x = 1; x <= imax; x++)
+        {
+            for (int y = 1; y <= jmax; y++)
+            {
+                if (boundary[x][y] != NA) //for nodes within boundary
+                {
+                    HydroCond_mt = (HydroCond[x][y] * GW_timestep) / 86400; //distributed  hydro cond (m/day --> m/t)
+                    
+                    //Stability Calculation
+                    v = (HydroCond_mt * GWHeads[x][y]) / SY[x][y];
+                    D = 4 * v * (GW_timestep / (DX * DX));
+                    if (D > dmax) dmax = D;   //find maximum D (lowest stability)
+                }
+            }
+        }
+        stabcount += 2; //this halves the timestep if dmax remains above 0.9
+        if (dmax >= 0.9) GW_timestep = input_GW_timestep / (stabcount);
+    }
+    dtime = (86400 / GW_timestep); //calulate itterations per day
+    for (int t = 1; t <= dtime; t++)//start of time loop
+    {
+
+        //**********Add recharge to GWLs***********
+
+        for (int x = 1; x <= imax; x++)
+        {
+            for (int y = 1; y <= jmax; y++)
+            {
+                if (boundary[x][y] != NA) //for nodes within boundary
+                {
+                    //if SLiM isn't run set recharge to a % rainfall mm/d
+                    if (!groundwater_SLiM) dailyRech[x][y] = ((hourly_rain_data[(int)(cycle / rain_data_time_step)][rfarea[x][y]]) * 24) * recharge_rate; /** mm/h to mm/d */
+                    // NEED TO REMOVE RECHARGE FROM RAINFALL IN CAESAR CODE
+
+                    GWHeads[x][y] += (dailyRech[x][y]*0.001) / (dtime * SY[x][y]); //recharge added to GWL (m)
+
+                }
+            }
+        }
+
+        //MessageBox.Show("finished rech to GWLs " + t);
+        //**********CALCULATE HOW MUCH WATER TO MOVE**************
+        //Flow high to low
+
+        for (int x = 1; x <= imax; x++)
+        {
+            for (int y = 1; y <= jmax; y++)
+            {
+                //Reset Q
+                Q = NA;
+
+                if (boundary[x][y] != NA) //for nodes within boundary
+                {
+                    HydroCond_mt = (HydroCond[x][y]*GW_timestep) / 86400; //distributed  hydro cond (m/day --> m per gwtimestep)
+
+                    //Calculation of Cell Flux (m3/timestep)
+                    if ((GWHeads[x][y] > GWHeads[x][(y - 1)]) && (boundary[x][(y - 1)] != NA)) //North (if the scanned node is lower than central node)
+                    {
+                        Q = ((2 * (HydroCond_mt * GWHeads[x][y]) * (HydroCond_mt * GWHeads[x][(y - 1)])) / ((HydroCond_mt * GWHeads[x][y]) + (HydroCond_mt * GWHeads[x][(y - 1)]))) * (GWHeads[x][y] - GWHeads[x][(y - 1)]); //(surface m - ie independent of SY)
+                        Qout[x][y] -= Q; //take water out of central node 
+                        Qin[x][(y - 1)] += Q; //pass water to scanned node
+                    }
+
+                    if ((GWHeads[x][y] > GWHeads[(x + 1)][y]) && (boundary[(x + 1)][y] != NA))//East
+                    {
+                        Q = ((2 * (HydroCond_mt * GWHeads[x][y]) * (HydroCond_mt * GWHeads[(x + 1)][y])) / ((HydroCond_mt * GWHeads[x][y]) + (HydroCond_mt * GWHeads[(x + 1)][y]))) * (GWHeads[x][y] - GWHeads[(x + 1)][y]);
+                        Qout[x][y] -= Q;
+                        Qin[(x + 1)][y] += Q;
+                    }
+
+                    if ((GWHeads[x][y] > GWHeads[(x)][(y + 1)]) && (boundary[(x)][(y + 1)] != NA))//South
+                    {
+                        Q = ((2 * HydroCond_mt * GWHeads[x][y] * HydroCond_mt * GWHeads[(x)][(y + 1)]) / ((HydroCond_mt * GWHeads[x][y]) + (HydroCond_mt * GWHeads[(x)][(y + 1)]))) * (GWHeads[x][y] - GWHeads[(x)][(y + 1)]);
+                        Qout[x][y] -= Q;
+                        Qin[x][(y + 1)] += Q;
+                    }
+
+                    if ((GWHeads[x][y] > GWHeads[(x - 1)][y]) && (boundary[(x - 1)][(y)] != NA))//West
+                    {
+                        Q = ((2 * HydroCond_mt * GWHeads[x][y] * HydroCond_mt * GWHeads[(x - 1)][y]) / ((HydroCond_mt * GWHeads[x][y]) + (HydroCond_mt * GWHeads[(x - 1)][y]))) * (GWHeads[x][y] - GWHeads[(x - 1)][y]);
+                        Qout[x][y] -= Q;
+                        Qin[(x - 1)][y] += Q;
+                    }
+
+                }
+            }
+        }//---------------------------------------------------------------------------
+
+
+        //**********Internally MOVE WATER AND IMPLEMENT BOUNDARY CONDITIONS**************
+        //MessageBox.Show("finsihed GW calc " + t);
+        for (int x = 1; x <= imax; x++)
+        {
+            for (int y = 1; y <= jmax; y++)
+            {
+                if (boundary[x][y] != NA)
+                {
+                    //no flow condition and internal condition
+                    if (boundary[x][y] >= 10 && boundary[x][y] <= 19)
+                        GWHeads[x][y] += (Qin[x][y] + Qout[x][y]) / (SY[x][y] * DX * DX);  //(GW m) calculate new water level (surface m3 --> GW m)
+
+                    //Fixed GW head (set in initial_GW.txt file)
+                    if (boundary[x][y] >= 20 && boundary[x][y] <= 29)
+                    {
+                        GWHeads[x][y] += (Qin[x][y] + Qout[x][y]) / (SY[x][y] * DX * DX);  //(GW m) calculate new water level (surface m3 --> GW m)
+
+                        //Calculate how much is lost or made
+                        if ((GWHeads[x][y] - GWHeadsOrig[x][y]) > 0) GWOut += GWHeads[x][y] - GWHeadsOrig[x][y];
+                        else GWIn += GWHeads[x][y] - GWHeadsOrig[x][y];
+
+                        //Reset heads to initial value
+                        GWHeads[x][y] = GWHeadsOrig[x][y];
+                    }
+                    //Reset
+                    Qin[x][y] = 0;
+                    Qout[x][y] = 0;
+                }
+            }
+        }
+    }//---------------------------------------------------------------------------end of iterations
+    
+    //MessageBox.Show("finsihed internal water ");
+    //Externally Move Water (daily)
+    //GW levels interact directly with the surface levels
+
+    for (int x = 1; x <= imax; x++)
+    {
+        for (int y = 1; y <= jmax; y++)
+        {
+            if (boundary[x][y] != NA)
+            {
+                if (GWHeads[x][y] > (elev[x][y] + water_depth[x][y])) //if groundwater level is above surface water level....
+                {
+                    GW_SW_diff = (GWHeads[x][y] - (elev[x][y] + water_depth[x][y]));// / Baseflow_resis; //(GW m)calculate diff between GW heads and surface water level, not taking resistance into account
+                    GWHeads[x][y] -= GW_SW_diff; //(GW m) reset GW head to new level 
+                    dailyBF[x][y] += GW_SW_diff * SY[x][y]; // water moved to the surface as BF and converted (surface water m)
+                }
+            }
+        }
+    }
+    
+}
+
+void LSDCatchmentModel::clear_water_partitioning()
+{
+    std::cout << "Clearing water partitioning..." << "\n";
+    for (int j = 1; j <= jmax; j++)
+    {
+        for (int i = 1; i <= imax; i++)
+        {
+            if (elev[i][j] != -9999)//valid cell for modelling
+            {
+                dRech[i][j] = dailyRech[i][j];//keep value for saving/graphics 
+            }
+        }
+    }
+    // Clear the Daly Recharge array
+    for(unsigned i=0; i < imax+2; i++)
+    {
+      for(unsigned j=0; j < jmax+2; j++)
+      {
+        dailyRech[i][j] = 0.0;
+      }
+    }
+}
+
+void LSDCatchmentModel::water_partitioning(double rain_data_time_step)
+{
+    std::cout << "Calculating WATER PARTITIONING..." << "\n";
+}
+
+void LSDCatchmentModel::initialise_groundwater() 
+{
+    std::cout << "GW Cartesian imax (no. of rows): " << imax << \
+               " GW Cartesian jmax (no. of cols): " << jmax << std::endl;
+    // TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    //#BGS groundwater
+    boundary = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    SY = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    HydroCond = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    dailyRech = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    WP_added_water_daily = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    dRech = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    dailyBF = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    test_var = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    GWHeadsOrig = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    GWHeads = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);     //GW depth (m)
+    HOST = TNT::Array2D<int> (imax + 2, jmax + 2, 0.0);
+    dNSSS = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    dSMD = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
+    Landuse = TNT::Array2D<int> (imax + 2, jmax + 2, 0.0);
+    PE_location = TNT::Array2D<double> (imax + 2, jmax + 2, 0.0);
 }
 
 // PRINTS ALL PARAMETERS TO SCREEN FOR CHECKING

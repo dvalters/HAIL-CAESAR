@@ -105,6 +105,11 @@ int main(int argc, char *argv[])
   LSDCatchmentModel simulation(pname, pfname);
   simulation.initialise_model_domain_extents();
   simulation.initialise_arrays();
+  if (simulation.groundwater_mode())
+  {
+    simulation.initialise_groundwater(); // Is this the right arg?;
+  }
+
   simulation.load_data();
   simulation.set_time_counters();
 
@@ -151,6 +156,11 @@ int main(int argc, char *argv[])
     simulation.catchment_waterinputs(runoff);
     // Distribute the water with the LISFLOOD Cellular Automaton algorithm
     simulation.flow_route();
+    // Groundwater updates
+    if (simulation.groundwater_mode())
+    {
+      simulation.wpgw_water_input(); // Is this the right arg?;
+    }
     // Calculate the new water depths in the catchment
     simulation.depth_update();
 
@@ -176,6 +186,12 @@ int main(int argc, char *argv[])
     simulation.slope_creep(creep_time_interval_days, creep_coeff);
     simulation.call_global_landsliding(global_landsliding_interval_hours);
     simulation.grow_vegetation(vegetation_growth_interval_hours);
+
+    // Groundwater movements
+    if (simulation.groundwater_mode())
+    {
+      simulation.call_groundwater_routines();
+    }
 
     // Outputs
     simulation.write_output_timeseries(runoff);
