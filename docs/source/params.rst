@@ -416,5 +416,72 @@ Output Rasters
 
 
 
+Groundwater
+--------------
+
+``groundwater_on``
+~~~~~~~~~~~~~~~~~~~~
+
+Activates the groundwater components of the model.
+
+(**yes** | **no**)
+
+
+``groundwater_basic``
+~~~~~~~~~~~~~~~~~~~~
+
+Sets the groundwater component to the basic model.
+
+(**yes** | **no**)
+
+
+``groundwater_SLiM``
+~~~~~~~~~~~~~~~~~~~~
+
+Sets the groundwater component to the SLiM model.
+
+(**yes** | **no**)
+
+
+``recharge_rate``
+~~~~~~~~~~~~~~~~~~~~
+
+Replenishment rate of groundwater by rainfall. (% rainfall 0-1)
+
+e.g. 1.0 
+
+``initial_groundwater_file``
+~~~~~~~~~~~~~~~~~~~~
+
+ASCII grid file that sets the height in metres of the initial groundwater level. Should be same size as model DEM.
+
+e.g. ``GW_analytical_comp.dat``
+
+
+``groundwater_boundary_file``
+~~~~~~~~~~~~~~~~~~~~
+
+ASCII grid file that sets the groundwater boundary conditions. Using specified head boundaries, the head remains constant. Fluid is simulated as moving in or out of the groundwater at a rate sufficient to maintain the specified head.
+
+e.g. ``Boundary_analytical_comp.dat``
+
+
+
+``hydraulic_conductivity_file``
+~~~~~~~~~~~~~~~~~~~~
+
+ASCII grid file that sets the rate at which water can move through an aquifer (m/s). Usually given as **K** in equations. Should be same size as model DEM.
+
+e.g. ``K.dat``
+
+
+``specific_yield_file``
+~~~~~~~~~~~~~~~~~~~~
+
+ASCII grid file that the amount of water that is actually available for groundwater pumping, when sediments or rocks are drained due to lowering of the water table. Dimensionles ratio. Should be same size as model DEM.
+
+e.g. ``K.dat``
+
+
 Debug Options
 ---------------
