@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Installation &#8212; HAIL-CAESAR 1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Running the Model" href="running.html" />
@@ -30,22 +28,24 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <ol class="arabic simple">
-<li>Download the software, either as a zip/tar file, or by cloning the latest version from github.</li>
-<li>The makefile is currently set up to use the gcc compiler, edit Makefile if you wish to change this, otherwise:</li>
-<li>Run make in the same folder as <cite>Makefile</cite>.</li>
-<li>Wait for the code to compile, when finished it will have produced an executable called <cite>HAIL-CAESAR.exe</cite>.</li>
-<li>You are now ready to run the model!</li>
+<li><p>Download the software, either as a zip/tar file, or by cloning the latest version from github.</p></li>
+<li><p>The makefile is currently set up to use the gcc compiler, edit Makefile if you wish to change this, otherwise:</p></li>
+<li><p>Run make in the same folder as <cite>Makefile</cite>.</p></li>
+<li><p>Wait for the code to compile, when finished it will have produced an executable called <cite>HAIL-CAESAR.exe</cite>.</p></li>
+<li><p>You are now ready to run the model!</p></li>
 </ol>
 <div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><em>Your compiler must support the C++11 standard.</em> Almost all compilers do as of 2016, as long as you are running a fairly recent version. (GCC version 4.7 onwards should be fine, preferrably GCC 4.8+) Currently, support is not usually enabled by default. (UPDATE 2016: It is in GCC 6.1) The C++11 flag to turn on support for the standard is included in the makefile. The code uses some features of the C++11 language standard not supported by older standards. You don’t need to know anything about it further to use the model.</p>
+<p class="admonition-title">Note</p>
+<p><em>Your compiler must support the C++11 standard.</em> Almost all compilers do as of 2016, as long as you are running a fairly recent version. (GCC version 4.7 onwards should be fine, preferrably GCC 4.8+) Currently, support is not usually enabled by default. (UPDATE 2016: It is in GCC 6.1) The C++11 flag to turn on support for the standard is included in the makefile. The code uses some features of the C++11 language standard not supported by older standards. You don’t need to know anything about it further to use the model.</p>
 </div>
 <p>The parallel version of the code uses the OpenMP libraries, which are powerful (and somewhat magical…) libraries for compiling the code to run in parallel. These are widely supported libraries and many systems will come with them pre-installed. <em>But you may need to install the `gcc-devel` package on linux, if using gcc</em>. Again, the compiler flag is taken care of in the makefile. The code has been tested on the <cite>gcc</cite> (versions 4.8 and above) Cray compiler, and <cite>icc</cite> (Intel) compiler v12. The code has not been extensively tested on Windows, but a recent enough Microsoft C++ compiler (such as comes with Visual Studio), should be sufficient to compile the code. You may need to modify the <cite>Makefile</cite> when using other compilers.</p>
 <p>All other libraries are supplied with the source code (The TNT, <em>Template Numerical Toolkit</em> library, which provides array/matrix structures for the model data). You do not need to install them separately.</p>
@@ -54,12 +54,34 @@
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul class="current">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/images/flood_depth_fig_crop.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=dvalters&repo=HAIL-CAESAR&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
@@ -69,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="running.html">Running the Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Parameters</a></li>
 </ul>
+
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
@@ -78,25 +101,24 @@
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/installation.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -105,8 +127,8 @@
       &copy;2017, Declan Valters.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/installation.rst.txt"

@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Running the Model &#8212; HAIL-CAESAR 1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Parameters" href="params.html" />
@@ -30,6 +28,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="running-the-model">
@@ -43,18 +43,18 @@ must be present in the same folder as your parameter file and must be
 correctly formatted.</p>
 <p>You need a minimum of three input files:</p>
 <ol class="arabic simple">
-<li>Parameter file</li>
-<li>DEM file of your catchment (currently only ASCII format is supported,
-sorry <code class="docutils literal notranslate"><span class="pre">.bil/flt</span></code> fans!)</li>
-<li>Rainfall time series text file (There is currently no option to
-generate rainfall within the model, but this is coming soon)</li>
+<li><p>Parameter file</p></li>
+<li><p>DEM file of your catchment (currently only ASCII format is supported,
+sorry <code class="docutils literal notranslate"><span class="pre">.bil/flt</span></code> fans!)</p></li>
+<li><p>Rainfall time series text file (There is currently no option to
+generate rainfall within the model, but this is coming soon)</p></li>
 </ol>
 <p>Your input files (DEM etc, parameter file) can be in any folder you
 like, as the path to the input files is specified in the parameter file.
 This means the executable file can be kept separate, once it has been
 compiled.</p>
 <p>The model is run like so:</p>
-<div class="code console highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">HAIL</span><span class="o">-</span><span class="n">CAESAR</span><span class="o">.</span><span class="n">exe</span> <span class="p">[</span><span class="n">PATH</span><span class="o">-</span><span class="n">TO</span><span class="o">-</span><span class="n">FOLDER</span><span class="o">-</span><span class="n">WITH</span><span class="o">-</span><span class="n">INPUT</span><span class="o">-</span><span class="n">FILES</span><span class="p">]</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">./HAIL-CAESAR.exe [PATH-TO-FOLDER-WITH-INPUT-FILES] ParameterFile.txt</span>
 </pre></div>
 </div>
 <p>As you can see, the executable takes two arguments, the first is the
@@ -141,12 +141,34 @@ the parameter file guide for advice.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul class="current">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/images/flood_depth_fig_crop.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=dvalters&repo=HAIL-CAESAR&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
@@ -158,6 +180,7 @@ the parameter file guide for advice.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Parameters</a></li>
 </ul>
+
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
@@ -167,25 +190,24 @@ the parameter file guide for advice.</p>
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/running.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -194,8 +216,8 @@ the parameter file guide for advice.</p>
       &copy;2017, Declan Valters.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/running.rst.txt"
