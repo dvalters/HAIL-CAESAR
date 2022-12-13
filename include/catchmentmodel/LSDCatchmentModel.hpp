@@ -401,6 +401,8 @@ public:
   /// during periods of low water flow. (e.g. inter-storm periods.)
   void set_inputoutput_diff();
 
+  void stage_tidal_input(double local_time_factor);
+
   // =-=-=-=-=-=-=-=-=-=-=
   // VEGETATION
   // =-=-=-=-=-=-=-=-=-=-=
@@ -446,8 +448,15 @@ private:
   const std::array<int, 9> deltaY = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
 
   double water_depth_erosion_threshold = 0.01;
+
+  // Reach inputs
   int reach_input_data_timestep = 60;
-  int stage_reach_input_data_timestep = 60;
+
+
+
+
+
+
   int number_of_points = 0;
   double globalsediq = 0;
   double time_1 = 1;
@@ -629,6 +638,21 @@ private:
   std::string reach2_input_file;
   std::string reach3_input_file;
 
+  
+  // Stage and tide inputs
+  std::string stage_inputfile;
+  int stage_reach_input_data_timestep = 60;
+  int fromx = 0, tox = 0, fromy = 0, toy = 0;   // Bounding box to set stage and tide inputs
+
+  // Stage / tide inputfile
+  std::vector<double> stage_inputfile;
+  double stage_input_time_step = 1;
+
+  // Arrays for stage/tidal mode input points
+  TNT::Array2D<int> stagepoints;
+  TNT::Array2D<bool> stagepointsarray;
+
+  // TODO, careful these are actually row cols and need clarifying in the docs or chaning internally.
   int reach1_x;
   int reach1_y;
   int reach2_x;
@@ -643,11 +667,8 @@ private:
   std::vector< std::vector<float> > hourly_rain_data;
   std::vector<std::vector<std::vector<float> > > inputfile;
   //TNT::Array3D<double> inputfile;
-  std::vector<double> stage_inputfile;
+
   // TODO above these all need initialising from read ins.
-
-  double stage_input_time_step = 1;
-
   std::vector<int> catchment_input_x_coord;
   std::vector<int> catchment_input_y_coord;
 
@@ -700,6 +721,7 @@ private:
   // (Dear god I've been working on this code for 9 years nearly...)
   bool recirculate_opt = false;
   bool reach_mode_opt = false;
+  bool stage_mode_input = false;
   bool dunes_opt = false;
   bool bedrock_lower_opt = false;
   bool physical_weather_opt = false;

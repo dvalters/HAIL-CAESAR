@@ -777,6 +777,69 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
   return cur_inputfile_slice;
 }
 
+std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
+   string REACHINPUTFILENAME)
+{
+
+  std::vector< std::vector<float> > cur_inputfile_slice;
+  std::cout << "\n\n Loading REACH DISCHARGE File, \
+                the filename is: "
+            << REACHINPUTFILENAME << std::endl;
+  // open the data file
+  std::ifstream infile(REACHINPUTFILENAME.c_str());
+
+  //std::cout << "READING FROM: " << infile << std::endl;
+
+  std::string line;
+
+  int i = 0;
+
+  #ifdef DEBUG_LVL_3
+  std::cout << "ENTERING THE READ WHILE LOOP FOR REACH FILE: >>>\n";
+  #endif
+  while (std::getline(infile, line))
+  {
+    #ifdef DEBUG_LVL_3
+    std::cout << "==== WE ARE IN THE REACHFILE READ WHILE LOOP. WOOP! =====\n";
+    #endif
+    float value;
+    std::stringstream ss(line);
+
+    #ifdef DEBUG_LVL_3
+    std::cout << "LINE: " << i << ": " << line << "\n";
+    //std::cout << "SS: "  << i << ": " << ss << "\n";
+    #endif
+
+    cur_inputfile_slice.push_back(std::vector<float>());
+
+    while (ss >> value)
+    {
+      #ifdef DEBUG_LVL_3
+      std::cout << "SS: "  << i << ": " << value << "\n";
+      #endif
+      cur_inputfile_slice[i].push_back(value);
+    }
+    ++i;
+  }
+  #ifdef DEBUG
+  // Print the current inputfile slice
+  std::cout << "PRINTING THE CURRENT REACH INPUTFILE SLICE....\n";
+  auto itr = cur_inputfile_slice.begin();
+  auto end = cur_inputfile_slice.end();
+
+  while (itr!=end)
+  {
+    auto it1=itr->begin(),end1=itr->end();
+    std::copy(it1,end1,std::ostream_iterator<float>(std::cout, " "));
+    std::cout << std::endl;
+    ++itr;
+  }
+  #endif
+  return cur_inputfile_slice;
+}
+
+
+
 
 // This is just for sanity checking the rainfall input really
 void LSDCatchmentModel::print_rainfall_data()
@@ -1765,6 +1828,29 @@ void LSDCatchmentModel::initialise_arrays()
   isSuspended = std::vector<bool>(G_MAX+1, false);
   fallVelocity = std::vector<double>(G_MAX+1, 0.0);
   set_fall_velocities();
+
+  // Stage/Tide Mode
+  if (stage_mode_input)
+  {
+      std::string STAGE_FULLFILENAME = read_path + "/" + stage_inputfile;
+      if (!does_file_exist(REACH_FULLFILENAME1))
+      {
+        std::cout << "No reach input data file found by name of: "
+                  << REACH_FULLFILENAME1 << std::endl
+                  << "You specified to use a reach mode input file, \
+                     \n but no matching file was found. Try again." << std::endl;
+                     exit(EXIT_FAILURE);
+      }
+    
+      std::cout << "FOR STAGE FILE ZONE 1" << std::endl;
+      //number_of_points++;
+      inpoints[0][0] = reach1_x;   // this has to come from the input file
+      inpoints[0][1] = reach1_y;
+      inputpointsarray[reach1_x][reach1_y] = true;
+      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(REACH_FULLFILENAME1);
+      inputfile[0] = cur_inputfile_slice;
+
+  }
 
   // Reach mode
   if (reach_mode_opt)
@@ -3846,6 +3932,37 @@ void LSDCatchmentModel::scan_area()
       }
     }
   }
+}
+
+
+void LSDCatchmentModel::stage_tidal_input()  // local_time_factor now a function call within function.
+{
+
+    double flow_timestep = get_flow_timestep();
+
+
+    for (int x = std::min(fromx, tox); x <= std::max(fromx, tox); x++)
+    {
+        for (int y = std::min(fromy, toy); y <= std::max(fromy, toy); y++)
+        {
+            double interpolated_input1 = stage_inputfile[(int)(cycle / stage_input_time_step)];
+            double interpolated_input2 = stage_inputfile[(int)(cycle / stage_input_time_step)][1];
+            double proportion_between_time1and2 = (((static_cast<int>(cycle / stage_input_time_step) + 1) * stage_input_time_step) - cycle)
+                / stage_input_time_step;
+
+
+            double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1 - proportion_between_time1and2));
+
+            if (elev[x][y] > -9999 && input > elev[x][y])
+            {
+                water_depth[x][y] = input - elev[x][y];
+                if (water_depth[x][y] > 0) 
+                {
+                    Vsusptot[x][y] = water_depth[x][y] * 0.001; //0.0005 is 500mg l.. approx.
+                }
+            }
+        }
+    }
 }
 
 

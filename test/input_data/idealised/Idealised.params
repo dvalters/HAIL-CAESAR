@@ -9,7 +9,7 @@ Plane with E->W sloping gradient 11x11
 dem_read_extension:	       asc
 dem_write_extension:       asc
 read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/idealised/
-write_path:	               /home/decval/dev/HAIL-CAESAR/test/results/idealised_reach_spat_manning/
+write_path:	               /home/decval/dev/HAIL-CAESAR/test/results/idealised_reach_basic//
 read_fname:	               idealised
 write_fname:	               idealised_reach.dat
 timeseries_save_interval:      60
@@ -18,7 +18,7 @@ timeseries_save_interval:      60
 #====================
 # REMEMBER TO SPECIFY A BEDROCK DEM FILE IF YOU TURN THIS ON
 spatial_mannings_dem_file:	spatial_mannings.asc  
-spatially_variable_mannings_on:     yes 
+spatially_variable_mannings_on:     no 
 
 # NUMERICAL
 #===========
