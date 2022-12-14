@@ -95,6 +95,7 @@ public:
   /// @brief Is this a hydrology only simulation?
   /// I.e. no erosion methods.
   bool is_hydro_only() const { return hydro_only; }
+  bool is_stage_mode() const { return stage_mode_input; }
   bool groundwater_mode() const { return groundwater_on; }
   bool groundwater_basic_model() const { return groundwater_basic; }
   bool groundwater_SLiM_model() const { return groundwater_SLiM; }
@@ -113,6 +114,8 @@ public:
   /// as well as those default initial values in the code.
   void print_parameters();
 
+  void print_stage_data();
+
   /// @brief Loads the rainfall data file which is in a special format (headerless text file)
   /// @author DAV
   /// @details Rainfall data file is not too big, so think it's okay to use the vector<vector>
@@ -121,6 +124,9 @@ public:
   /// in the rainfall data file specified in the parameter list file as floats.
   /// @return Returns a vector of vector<float>. (A 2D-like vector).
   std::vector< std::vector<float> > read_rainfalldata(std::string FILENAME);
+
+  /// Reads the stage date directly into the stage_inputs_vector
+  void read_stagedata(std::string FILENAME);
 
   /// @brief Reads in the grain data file, note, that this is not a raster and in
   /// a special format like the rainfall file.
@@ -343,6 +349,8 @@ public:
 
   /// @brief Calculates the hydrological inputs using just reach mode
   void reach_water_and_sediment_input();
+
+  void stage_tidal_input();
 
   std::vector<std::vector<float> > read_reachfile(std::string REACHINPUTFILE);
 
@@ -645,7 +653,7 @@ private:
   int fromx = 0, tox = 0, fromy = 0, toy = 0;   // Bounding box to set stage and tide inputs
 
   // Stage / tide inputfile
-  std::vector<double> stage_inputfile;
+  std::vector<double> stage_inputs_vector;
   double stage_input_time_step = 1;
 
   // Arrays for stage/tidal mode input points

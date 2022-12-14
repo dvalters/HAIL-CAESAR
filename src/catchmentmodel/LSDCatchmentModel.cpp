@@ -716,6 +716,47 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_rainfalldata(
   return raingrid;
 }
 
+
+void LSDCatchmentModel::read_stagedata(
+  string FILENAME)
+{
+  std::cout << "\n\n Loading Stage/Tide/Levels File, \
+                the filename is: "
+            << FILENAME << std::endl;
+
+  // open the data file
+  std::ifstream infile(FILENAME.c_str());
+
+  std::string line;
+  //int i = 0;
+
+  while (std::getline(infile, line))
+  {
+    double value;
+    value = std::stod(line);   // Assumption in this simplified reader is one value per line
+    //std::stringstream ss(line);
+
+    stage_inputs_vector.push_back(value);
+
+    
+    //stage_inputs_vector.push_back(std::vector<float>());
+
+    // Stage file is only a single column of values, no  nested inner vector/loop needed
+    /*
+    while (ss >> value)
+    {
+      stage_inputs_vector[i].push_back(value);
+    }
+    */
+    //++i;
+  }
+  //return stage_inputs_vector;
+  #ifdef DEBUG
+  print_stage_data();
+  #endif
+}
+
+
 std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
    string REACHINPUTFILENAME)
 {
@@ -776,69 +817,6 @@ std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
   #endif
   return cur_inputfile_slice;
 }
-
-std::vector< std::vector<float> > LSDCatchmentModel::read_reachfile(
-   string REACHINPUTFILENAME)
-{
-
-  std::vector< std::vector<float> > cur_inputfile_slice;
-  std::cout << "\n\n Loading REACH DISCHARGE File, \
-                the filename is: "
-            << REACHINPUTFILENAME << std::endl;
-  // open the data file
-  std::ifstream infile(REACHINPUTFILENAME.c_str());
-
-  //std::cout << "READING FROM: " << infile << std::endl;
-
-  std::string line;
-
-  int i = 0;
-
-  #ifdef DEBUG_LVL_3
-  std::cout << "ENTERING THE READ WHILE LOOP FOR REACH FILE: >>>\n";
-  #endif
-  while (std::getline(infile, line))
-  {
-    #ifdef DEBUG_LVL_3
-    std::cout << "==== WE ARE IN THE REACHFILE READ WHILE LOOP. WOOP! =====\n";
-    #endif
-    float value;
-    std::stringstream ss(line);
-
-    #ifdef DEBUG_LVL_3
-    std::cout << "LINE: " << i << ": " << line << "\n";
-    //std::cout << "SS: "  << i << ": " << ss << "\n";
-    #endif
-
-    cur_inputfile_slice.push_back(std::vector<float>());
-
-    while (ss >> value)
-    {
-      #ifdef DEBUG_LVL_3
-      std::cout << "SS: "  << i << ": " << value << "\n";
-      #endif
-      cur_inputfile_slice[i].push_back(value);
-    }
-    ++i;
-  }
-  #ifdef DEBUG
-  // Print the current inputfile slice
-  std::cout << "PRINTING THE CURRENT REACH INPUTFILE SLICE....\n";
-  auto itr = cur_inputfile_slice.begin();
-  auto end = cur_inputfile_slice.end();
-
-  while (itr!=end)
-  {
-    auto it1=itr->begin(),end1=itr->end();
-    std::copy(it1,end1,std::ostream_iterator<float>(std::cout, " "));
-    std::cout << std::endl;
-    ++itr;
-  }
-  #endif
-  return cur_inputfile_slice;
-}
-
-
 
 
 // This is just for sanity checking the rainfall input really
@@ -856,6 +834,7 @@ void LSDCatchmentModel::print_rainfall_data()
     ++itr;
   }
 }
+
 
 // void LSDCatchmentModel::OLD_print_reach_data()
 // {
@@ -888,6 +867,17 @@ void LSDCatchmentModel::print_reach_data()
           }
      }
      std::cout << "\n";
+  }
+  std::cout << "\n";
+}
+
+void LSDCatchmentModel::print_stage_data()
+{
+  for( std::vector<double>::const_iterator i = stage_inputs_vector.begin(); i != stage_inputs_vector.end(); ++i)
+  {
+     int index_num_i = i - stage_inputs_vector.begin();
+     std::cout << "~~~~~~~~ STAGE AT TIME INDEX: ~~~~~~~~~~" << "[ " << index_num_i << " ]"  << std::endl;
+     cout<<*i<<' ';
   }
   std::cout << "\n";
 }
@@ -1533,6 +1523,38 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    // Stage Mode
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    else if (lower == "stage_mode_input_on")
+    {
+      stage_mode_input = (value == "yes") ? true : false;
+    }
+    else if (lower == "stage_inputfile")
+    {
+      stage_inputfile = value;
+    }
+    else if (lower == "stage_input_timestep")
+    {
+      stage_reach_input_data_timestep = atoi(value.c_str());
+    }
+    else if (lower == "fromx")
+    {
+      fromx = atoi(value.c_str());
+    }
+    else if (lower == "tox")
+    {
+      tox = atoi(value.c_str());
+    }
+    else if (lower == "fromy")
+    {
+      fromy = atoi(value.c_str());
+    }
+    else if (lower == "toy")
+    {
+      toy = atoi(value.c_str());
+    }
+
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Groundwater
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
     else if (lower == "groundwater_on")
@@ -1725,7 +1747,7 @@ void LSDCatchmentModel::initialise_arrays()
 
   // TODO use vector isntead
   //inputfile = TNT::Array3D<double> (number_of_points,(int)((maxcycle*60)/reach_input_data_timestep)+10,16);
-  stage_inputfile = std::vector<double> ((int)((maxcycle * 60) / stage_reach_input_data_timestep) + 10);
+  stage_inputs_vector = std::vector<double> ((int)((maxcycle * 60) / stage_reach_input_data_timestep) + 10, 0.0);  // Initialise zeros
 
 
   // Will come back to this later - DAV
@@ -1829,26 +1851,24 @@ void LSDCatchmentModel::initialise_arrays()
   fallVelocity = std::vector<double>(G_MAX+1, 0.0);
   set_fall_velocities();
 
+
   // Stage/Tide Mode
   if (stage_mode_input)
   {
       std::string STAGE_FULLFILENAME = read_path + "/" + stage_inputfile;
-      if (!does_file_exist(REACH_FULLFILENAME1))
+      if (!does_file_exist(STAGE_FULLFILENAME))
       {
-        std::cout << "No reach input data file found by name of: "
-                  << REACH_FULLFILENAME1 << std::endl
-                  << "You specified to use a reach mode input file, \
+        std::cout << "No stage input data file found by name of: "
+                  << STAGE_FULLFILENAME << std::endl
+                  << "You specified to use a stage/levels mode input file, \
                      \n but no matching file was found. Try again." << std::endl;
                      exit(EXIT_FAILURE);
       }
     
       std::cout << "FOR STAGE FILE ZONE 1" << std::endl;
-      //number_of_points++;
-      inpoints[0][0] = reach1_x;   // this has to come from the input file
-      inpoints[0][1] = reach1_y;
-      inputpointsarray[reach1_x][reach1_y] = true;
-      std::vector< std::vector<float> > cur_inputfile_slice = read_reachfile(REACH_FULLFILENAME1);
-      inputfile[0] = cur_inputfile_slice;
+
+      // Could use simpler logic than the reach file? No multiple files?
+      read_stagedata(STAGE_FULLFILENAME);
 
   }
 
@@ -3938,15 +3958,15 @@ void LSDCatchmentModel::scan_area()
 void LSDCatchmentModel::stage_tidal_input()  // local_time_factor now a function call within function.
 {
 
-    double flow_timestep = get_flow_timestep();
+    //double flow_timestep = get_flow_timestep();
 
 
     for (int x = std::min(fromx, tox); x <= std::max(fromx, tox); x++)
     {
         for (int y = std::min(fromy, toy); y <= std::max(fromy, toy); y++)
         {
-            double interpolated_input1 = stage_inputfile[(int)(cycle / stage_input_time_step)];
-            double interpolated_input2 = stage_inputfile[(int)(cycle / stage_input_time_step)][1];
+            double interpolated_input1 = stage_inputs_vector[(int)(cycle / stage_input_time_step)];
+            double interpolated_input2 = stage_inputs_vector[(int)(cycle / stage_input_time_step) + 1];
             double proportion_between_time1and2 = (((static_cast<int>(cycle / stage_input_time_step) + 1) * stage_input_time_step) - cycle)
                 / stage_input_time_step;
 
