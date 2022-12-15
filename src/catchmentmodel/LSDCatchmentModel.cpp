@@ -728,7 +728,7 @@ void LSDCatchmentModel::read_stagedata(
   std::ifstream infile(FILENAME.c_str());
 
   std::string line;
-  //int i = 0;
+  int i = 0;
 
   while (std::getline(infile, line))
   {
@@ -736,7 +736,7 @@ void LSDCatchmentModel::read_stagedata(
     value = std::stod(line);   // Assumption in this simplified reader is one value per line
     //std::stringstream ss(line);
 
-    stage_inputs_vector.push_back(value);
+    stage_inputs_vector[i] = value;
 
     
     //stage_inputs_vector.push_back(std::vector<float>());
@@ -748,7 +748,7 @@ void LSDCatchmentModel::read_stagedata(
       stage_inputs_vector[i].push_back(value);
     }
     */
-    //++i;
+    ++i;
   }
   //return stage_inputs_vector;
   #ifdef DEBUG
@@ -1747,7 +1747,14 @@ void LSDCatchmentModel::initialise_arrays()
 
   // TODO use vector isntead
   //inputfile = TNT::Array3D<double> (number_of_points,(int)((maxcycle*60)/reach_input_data_timestep)+10,16);
-  stage_inputs_vector = std::vector<double> ((int)((maxcycle * 60) / stage_reach_input_data_timestep) + 10, 0.0);  // Initialise zeros
+  int vector_len_stage = static_cast<int>((maxcycle * 60) / stage_reach_input_data_timestep);
+  #ifdef DEBUG
+  std::cout << "DEBUG Maxcycle is: " << maxcycle << "\n";
+  std::cout << "DEBUG stage timestep is: " << stage_reach_input_data_timestep << "\n";
+  std::cout << "DEBUG Vector size allocation will be (no of elements): " << vector_len_stage << "\n";
+  #endif
+  stage_inputs_vector = std::vector<double> (vector_len_stage + 10, 0.0);  // Initialise zeros
+  // Vector needs to be length of maximum cycle (Model hours -> Model minutes, then divide by stage timestep to get no of timesteps in vector for stage data)
 
 
   // Will come back to this later - DAV
@@ -3960,26 +3967,41 @@ void LSDCatchmentModel::stage_tidal_input()  // local_time_factor now a function
 
     //double flow_timestep = get_flow_timestep();
 
+/*     #ifdef DEBUG
+    std::cout << "ENTERING STAGE INPUTS UPDATE\n";
+    #endif */
+
+    #ifdef DEBUG_LVL_3
+    std::cout << "From x: " << fromx << " To x: " << tox << "\n";
+    std::cout << "From y: " << fromy << " To y: " << toy << "\n";
+    #endif
 
     for (int x = std::min(fromx, tox); x <= std::max(fromx, tox); x++)
     {
         for (int y = std::min(fromy, toy); y <= std::max(fromy, toy); y++)
         {
-            double interpolated_input1 = stage_inputs_vector[(int)(cycle / stage_input_time_step)];
-            double interpolated_input2 = stage_inputs_vector[(int)(cycle / stage_input_time_step) + 1];
-            double proportion_between_time1and2 = (((static_cast<int>(cycle / stage_input_time_step) + 1) * stage_input_time_step) - cycle)
-                / stage_input_time_step;
+            double interpolated_input1 = stage_inputs_vector[static_cast<int>(cycle / stage_reach_input_data_timestep)];
+            double interpolated_input2 = stage_inputs_vector[static_cast<int>(cycle / stage_reach_input_data_timestep) + 1];
+            double proportion_between_time1and2 = (((static_cast<int>(cycle / stage_reach_input_data_timestep) + 1) * stage_reach_input_data_timestep) - cycle)
+                / stage_reach_input_data_timestep;
 
 
             double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1 - proportion_between_time1and2));
 
-            if (elev[x][y] > -9999 && input > elev[x][y])
+
+            if ((elev[x][y] > no_data_value) && (input > elev[x][y]))
             {
+/*                 #ifdef DEBUG
+                std::cout << "CALCULATING WATER INPUTS FOR STAGE INPUT\n";
+                #endif */
                 water_depth[x][y] = input - elev[x][y];
-                if (water_depth[x][y] > 0) 
+/*                 if (suspended_opt)
                 {
-                    Vsusptot[x][y] = water_depth[x][y] * 0.001; //0.0005 is 500mg l.. approx.
-                }
+                  if (water_depth[x][y] > 0) 
+                  {
+                      Vsusptot[x][y] = water_depth[x][y] * 0.001; //0.0005 is 500mg l.. approx.
+                  }
+                } */
             }
         }
     }

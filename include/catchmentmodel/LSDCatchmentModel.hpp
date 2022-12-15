@@ -624,6 +624,7 @@ private:
   TNT::Array2D<double> qy;
   TNT::Array2D<double> qxs;
   TNT::Array2D<double> qys;
+
   // TODO - these are for the dune model which is as of yet unimplemented
   TNT::Array2D<double> area_depth;
   TNT::Array2D<double> sand;
@@ -646,7 +647,6 @@ private:
   std::string reach2_input_file;
   std::string reach3_input_file;
 
-  
   // Stage and tide inputs
   std::string stage_inputfile;
   int stage_reach_input_data_timestep = 60;
@@ -654,7 +654,6 @@ private:
 
   // Stage / tide inputfile
   std::vector<double> stage_inputs_vector;
-  double stage_input_time_step = 1;
 
   // Arrays for stage/tidal mode input points
   TNT::Array2D<int> stagepoints;
