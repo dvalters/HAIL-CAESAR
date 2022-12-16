@@ -156,7 +156,13 @@ int main(int argc, char *argv[])
     // Stage mode
     if (simulation.is_stage_mode())
     {
-      simulation.stage_tidal_input();
+      int num_stage_inputs = simulation.get_number_stage_inputs();
+      simulation.stage_input();
+    }
+     // Tide mode
+    if (simulation.is_tide_mode())
+    {
+      simulation.tide_input();
     }
     // Add water to the catchment from rainfall input file
     simulation.catchment_waterinputs(runoff);

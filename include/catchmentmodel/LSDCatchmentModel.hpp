@@ -96,9 +96,13 @@ public:
   /// I.e. no erosion methods.
   bool is_hydro_only() const { return hydro_only; }
   bool is_stage_mode() const { return stage_mode_input; }
+  bool is_tide_mode() const { return tide_mode_input; }
   bool groundwater_mode() const { return groundwater_on; }
   bool groundwater_basic_model() const { return groundwater_basic; }
   bool groundwater_SLiM_model() const { return groundwater_SLiM; }
+
+  // Number of stage input stations (or tidal inputs)
+  int get_number_stage_inputs() const { return number_of_stage_points; }
 
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   // INPUT/OUTPUT
@@ -114,7 +118,7 @@ public:
   /// as well as those default initial values in the code.
   void print_parameters();
 
-  void print_stage_data();
+  void print_stage_data(std::vector<double>);
 
   /// @brief Loads the rainfall data file which is in a special format (headerless text file)
   /// @author DAV
@@ -127,6 +131,8 @@ public:
 
   /// Reads the stage date directly into the stage_inputs_vector
   void read_stagedata(std::string FILENAME);
+  void read_tide_data(std::string FILENAME);
+
 
   /// @brief Reads in the grain data file, note, that this is not a raster and in
   /// a special format like the rainfall file.
@@ -350,8 +356,10 @@ public:
   /// @brief Calculates the hydrological inputs using just reach mode
   void reach_water_and_sediment_input();
 
-  void stage_tidal_input();
+  void stage_input();
+  void tide_input();
 
+  void read_tide_data();
   std::vector<std::vector<float> > read_reachfile(std::string REACHINPUTFILE);
 
   /// @brief Gets the number of catchment cells that have water input to them
@@ -648,12 +656,40 @@ private:
   std::string reach3_input_file;
 
   // Stage and tide inputs
+
+  // OLD - singular file vars for stage
+  //std::string stage_inputfile;
+  //int stage_reach_input_data_timestep = 60;
+  //int fromx = 0, tox = 0, fromy = 0, toy = 0;
+  //std::vector<double> stage_inputs_vector;
+
+  // Vars for the multiple stage inputs
+  // NOT USED YET - USE THE OLD METHOD VARS BELOW
+  int number_of_stage_points = 1;
+
+  // TODO - Implement more generic multi-stage options
+  std::vector< std::vector<double> > stage_inputs_vectors;   // 2D "Table" of all the input stages for each stage.
+  std::vector<string> stage_input_filenames;
+  std::vector<int> stage_input_timesteps;
+  std::vector<int> fromxs;
+  std::vector<int> toxs;
+  std::vector<int> fromys;
+  std::vector<int> toys;
+
+  // Multiple stage and tide inputs  - you could do it this way but its not very scalable.
   std::string stage_inputfile;
+  std::string stage_datum_type;
   int stage_reach_input_data_timestep = 60;
-  int fromx = 0, tox = 0, fromy = 0, toy = 0;   // Bounding box to set stage and tide inputs
+  int stage_fromx = 0, stage_tox = 0, stage_fromy = 0, stage_toy = 0;   // Bounding box to set stage and tide inputs
+
+  std::string tide_inputfile;
+  std::string tide_datum_type;
+  int tide_input_data_timestep = 60;
+  int tide_fromx = 0, tide_tox = 0, tide_fromy = 0, tide_toy = 0;   // Bounding box to set stage and tide inputs
 
   // Stage / tide inputfile
   std::vector<double> stage_inputs_vector;
+  std::vector<double> tide_inputs_vector;
 
   // Arrays for stage/tidal mode input points
   TNT::Array2D<int> stagepoints;
@@ -729,6 +765,7 @@ private:
   bool recirculate_opt = false;
   bool reach_mode_opt = false;
   bool stage_mode_input = false;
+  bool tide_mode_input = false;
   bool dunes_opt = false;
   bool bedrock_lower_opt = false;
   bool physical_weather_opt = false;

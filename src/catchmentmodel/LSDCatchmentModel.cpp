@@ -730,6 +730,7 @@ void LSDCatchmentModel::read_stagedata(
   std::string line;
   int i = 0;
 
+
   while (std::getline(infile, line))
   {
     double value;
@@ -752,7 +753,48 @@ void LSDCatchmentModel::read_stagedata(
   }
   //return stage_inputs_vector;
   #ifdef DEBUG
-  print_stage_data();
+  print_stage_data(stage_inputs_vector);
+  #endif
+}
+
+
+void LSDCatchmentModel::read_tide_data(
+  string FILENAME)
+{
+  std::cout << "\n\n Loading Stage/Tide/Levels File, \
+                the filename is: "
+            << FILENAME << std::endl;
+
+  // open the data file
+  std::ifstream infile(FILENAME.c_str());
+
+  std::string line;
+  int i = 0;
+
+
+  while (std::getline(infile, line))
+  {
+    double value;
+    value = std::stod(line);   // Assumption in this simplified reader is one value per line
+    //std::stringstream ss(line);
+
+    tide_inputs_vector[i] = value;
+
+    
+    //stage_inputs_vector.push_back(std::vector<float>());
+
+    // Stage file is only a single column of values, no  nested inner vector/loop needed
+    /*
+    while (ss >> value)
+    {
+      stage_inputs_vector[i].push_back(value);
+    }
+    */
+    ++i;
+  }
+  //return stage_inputs_vector;
+  #ifdef DEBUG
+  print_stage_data(tide_inputs_vector);
   #endif
 }
 
@@ -871,12 +913,12 @@ void LSDCatchmentModel::print_reach_data()
   std::cout << "\n";
 }
 
-void LSDCatchmentModel::print_stage_data()
+void LSDCatchmentModel::print_stage_data(std::vector<double> vector)
 {
-  for( std::vector<double>::const_iterator i = stage_inputs_vector.begin(); i != stage_inputs_vector.end(); ++i)
+  for( std::vector<double>::const_iterator i = vector.begin(); i != vector.end(); ++i)
   {
-     int index_num_i = i - stage_inputs_vector.begin();
-     std::cout << "~~~~~~~~ STAGE AT TIME INDEX: ~~~~~~~~~~" << "[ " << index_num_i << " ]"  << std::endl;
+     int index_num_i = i - vector.begin();
+     std::cout << "~~~~~~~~ TIDE/STAGE AT TIME INDEX: ~~~~~~~~~~" << "[ " << index_num_i << " ]"  << std::endl;
      cout<<*i<<' ';
   }
   std::cout << "\n";
@@ -1529,6 +1571,18 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     {
       stage_mode_input = (value == "yes") ? true : false;
     }
+    else if (lower == "number_of_stage_points")
+    {
+      number_of_stage_points = atoi(value.c_str());
+    }
+    else if (lower == "tide_mode_input_on")
+    {
+      tide_mode_input = (value == "yes") ? true : false;
+    }
+
+
+    // OLD SINGLE VARS, use these for now, but ideally need a more scalable solution.
+    // Backwards compatible with the old function
     else if (lower == "stage_inputfile")
     {
       stage_inputfile = value;
@@ -1537,21 +1591,55 @@ void LSDCatchmentModel::initialise_variables(std::string pname,
     {
       stage_reach_input_data_timestep = atoi(value.c_str());
     }
-    else if (lower == "fromx")
+    else if (lower == "stage_fromx")
     {
-      fromx = atoi(value.c_str());
+      stage_fromx = atoi(value.c_str());
     }
-    else if (lower == "tox")
+    else if (lower == "stage_tox")
     {
-      tox = atoi(value.c_str());
+      stage_tox = atoi(value.c_str());
     }
-    else if (lower == "fromy")
+    else if (lower == "stage_fromy")
     {
-      fromy = atoi(value.c_str());
+      stage_fromy = atoi(value.c_str());
     }
-    else if (lower == "toy")
+    else if (lower == "stage_toy")
     {
-      toy = atoi(value.c_str());
+      stage_toy = atoi(value.c_str());
+    }
+    else if (lower == "stage_datum_type")
+    {
+      stage_datum_type = value;
+    }
+  
+    // TIDE
+    else if (lower == "tide_inputfile")
+    {
+      tide_inputfile = value;
+    }
+    else if (lower == "tide_input_timestep")
+    {
+      tide_input_data_timestep = atoi(value.c_str());
+    }
+    else if (lower == "tide_fromx")
+    {
+      tide_fromx = atoi(value.c_str());
+    }
+    else if (lower == "tide_tox")
+    {
+      tide_tox = atoi(value.c_str());
+    }
+    else if (lower == "tide_fromy")
+    {
+      tide_fromy = atoi(value.c_str());
+    }
+    else if (lower == "tide_toy")
+    {
+      tide_toy = atoi(value.c_str());
+    }
+    else if (lower == "tide_datum_type")
+    {
+      tide_datum_type = value;
     }
 
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1748,12 +1836,15 @@ void LSDCatchmentModel::initialise_arrays()
   // TODO use vector isntead
   //inputfile = TNT::Array3D<double> (number_of_points,(int)((maxcycle*60)/reach_input_data_timestep)+10,16);
   int vector_len_stage = static_cast<int>((maxcycle * 60) / stage_reach_input_data_timestep);
+  int vector_len_tide = static_cast<int>((maxcycle * 60) / tide_input_data_timestep);
   #ifdef DEBUG
   std::cout << "DEBUG Maxcycle is: " << maxcycle << "\n";
   std::cout << "DEBUG stage timestep is: " << stage_reach_input_data_timestep << "\n";
   std::cout << "DEBUG Vector size allocation will be (no of elements): " << vector_len_stage << "\n";
   #endif
   stage_inputs_vector = std::vector<double> (vector_len_stage + 10, 0.0);  // Initialise zeros
+  tide_inputs_vector = std::vector<double> (vector_len_tide + 10, 0.0);  // Initialise zeros
+
   // Vector needs to be length of maximum cycle (Model hours -> Model minutes, then divide by stage timestep to get no of timesteps in vector for stage data)
 
 
@@ -1862,22 +1953,39 @@ void LSDCatchmentModel::initialise_arrays()
   // Stage/Tide Mode
   if (stage_mode_input)
   {
-      std::string STAGE_FULLFILENAME = read_path + "/" + stage_inputfile;
-      if (!does_file_exist(STAGE_FULLFILENAME))
-      {
-        std::cout << "No stage input data file found by name of: "
-                  << STAGE_FULLFILENAME << std::endl
-                  << "You specified to use a stage/levels mode input file, \
-                     \n but no matching file was found. Try again." << std::endl;
-                     exit(EXIT_FAILURE);
-      }
-    
-      std::cout << "FOR STAGE FILE ZONE 1" << std::endl;
+        std::string STAGE_FULLFILENAME = read_path + "/" + stage_inputfile;
 
-      // Could use simpler logic than the reach file? No multiple files?
-      read_stagedata(STAGE_FULLFILENAME);
+        if (!does_file_exist(STAGE_FULLFILENAME))
+        {
+          std::cout << "No stage input data file found by name of: "
+                    << STAGE_FULLFILENAME << std::endl
+                    << "You specified to use a stage/levels mode input file, \
+                      \n but no matching file was found. Try again." << std::endl;
+                      exit(EXIT_FAILURE);
+        }
+        std::cout << "FOR STAGE FILE ZONE 1" << std::endl;
+        read_stagedata(STAGE_FULLFILENAME);
+   }
 
+  
+
+  // Stage/Tide Mode
+  if (tide_mode_input)
+  {
+        std::string TIDE_FULLFILENAME = read_path + "/" + tide_inputfile;
+
+        if (!does_file_exist(TIDE_FULLFILENAME))
+        {
+          std::cout << "No tide input data file found by name of: "
+                    << TIDE_FULLFILENAME << std::endl
+                    << "You specified to use a tide mode input file, \
+                      \n but no matching file was found. Try again." << std::endl;
+                      exit(EXIT_FAILURE);
+        }
+        std::cout << "FOR TIDE FILE ZONE 1" << std::endl;
+        read_tide_data(TIDE_FULLFILENAME);
   }
+  
 
   // Reach mode
   if (reach_mode_opt)
@@ -3962,7 +4070,7 @@ void LSDCatchmentModel::scan_area()
 }
 
 
-void LSDCatchmentModel::stage_tidal_input()  // local_time_factor now a function call within function.
+void LSDCatchmentModel::stage_input()  // local_time_factor now a function call within function.
 {
 
     //double flow_timestep = get_flow_timestep();
@@ -3972,41 +4080,91 @@ void LSDCatchmentModel::stage_tidal_input()  // local_time_factor now a function
     #endif */
 
     #ifdef DEBUG_LVL_3
-    std::cout << "From x: " << fromx << " To x: " << tox << "\n";
-    std::cout << "From y: " << fromy << " To y: " << toy << "\n";
+    std::cout << "From x: " << stage_fromx << " To x: " << stage_tox << "\n";
+    std::cout << "From y: " << stage_fromy << " To y: " << stage_toy << "\n";
     #endif
 
-    for (int x = std::min(fromx, tox); x <= std::max(fromx, tox); x++)
-    {
-        for (int y = std::min(fromy, toy); y <= std::max(fromy, toy); y++)
-        {
-            double interpolated_input1 = stage_inputs_vector[static_cast<int>(cycle / stage_reach_input_data_timestep)];
-            double interpolated_input2 = stage_inputs_vector[static_cast<int>(cycle / stage_reach_input_data_timestep) + 1];
-            double proportion_between_time1and2 = (((static_cast<int>(cycle / stage_reach_input_data_timestep) + 1) * stage_reach_input_data_timestep) - cycle)
-                / stage_reach_input_data_timestep;
 
+    //for (int i : number_of_stage_points)
+    //{
+      // For each stage file, add the water to the catchment, getting the current extent and inputs from said file.
+      // You will still need to have read in the files in the initialisation section.
+      //int fromx = fromxs[i];    // fromys = [34, 53, 12] etc... vector of the x points
+      //int tox = toxs[i];        // etc
+      //int fromy = fromys[i];
+      //int toy = toys[i];
+      
+      //int stage_reach_input_data_timestep = stage_input_timesteps[i];   // vector of all the input timesteps
+    
+      for (int x = std::min(stage_fromx, stage_tox); x <= std::max(stage_fromx, stage_tox); x++)
+      {
+          for (int y = std::min(stage_fromy, stage_toy); y <= std::max(stage_fromy, stage_toy); y++)
+          {
+              double interpolated_input1 = stage_inputs_vector[static_cast<int>(cycle / stage_reach_input_data_timestep)];
+              double interpolated_input2 = stage_inputs_vector[static_cast<int>(cycle / stage_reach_input_data_timestep) + 1];
+              double proportion_between_time1and2 = (((static_cast<int>(cycle / stage_reach_input_data_timestep) + 1) * stage_reach_input_data_timestep) - cycle)
+                  / stage_reach_input_data_timestep;
 
-            double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1 - proportion_between_time1and2));
+              double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1 - proportion_between_time1and2));
 
-
-            if ((elev[x][y] > no_data_value) && (input > elev[x][y]))
-            {
-/*                 #ifdef DEBUG
-                std::cout << "CALCULATING WATER INPUTS FOR STAGE INPUT\n";
-                #endif */
-                water_depth[x][y] = input - elev[x][y];
-/*                 if (suspended_opt)
-                {
-                  if (water_depth[x][y] > 0) 
+              if ((elev[x][y] > no_data_value) && (input > elev[x][y]))
+              {
+                  /* #ifdef DEBUG
+                  std::cout << "CALCULATING WATER INPUTS FOR STAGE INPUT\n";
+                  #endif */
+                  water_depth[x][y] = input - elev[x][y];
+                  /*  if (suspended_opt)
                   {
-                      Vsusptot[x][y] = water_depth[x][y] * 0.001; //0.0005 is 500mg l.. approx.
-                  }
-                } */
-            }
-        }
-    }
+                    if (water_depth[x][y] > 0) 
+                    {
+                        Vsusptot[x][y] = water_depth[x][y] * 0.001; //0.0005 is 500mg l.. approx.
+                    }
+                  } */
+              }
+          }
+      }
+    //}
 }
 
+
+
+
+void LSDCatchmentModel::tide_input()  // local_time_factor now a function call within function.
+{
+    #ifdef DEBUG_LVL_3
+    std::cout << "From x: " << tide_fromx << " To x: " << tide_tox << "\n";
+    std::cout << "From y: " << tide_fromy << " To y: " << tide_toy << "\n";
+    #endif
+    
+      for (int x = std::min(tide_fromx, tide_tox); x <= std::max(tide_fromx, tide_tox); x++)
+      {
+          for (int y = std::min(tide_fromy, tide_toy); y <= std::max(tide_fromy, tide_toy); y++)
+          {
+              double interpolated_input1 = tide_inputs_vector[static_cast<int>(cycle / tide_input_data_timestep)];
+              double interpolated_input2 = tide_inputs_vector[static_cast<int>(cycle / tide_input_data_timestep) + 1];
+              double proportion_between_time1and2 = (((static_cast<int>(cycle / tide_input_data_timestep) + 1) * tide_input_data_timestep) - cycle)
+                  / tide_input_data_timestep;
+
+              double input = interpolated_input1 + ((interpolated_input2 - interpolated_input1) * (1 - proportion_between_time1and2));
+
+              if ((elev[x][y] > no_data_value) && (input > elev[x][y]))
+              {
+                  /* #ifdef DEBUG
+                  std::cout << "CALCULATING WATER INPUTS FOR STAGE INPUT\n";
+                  #endif */
+                  water_depth[x][y] = input - elev[x][y];
+                  /*  if (suspended_opt)
+                  {
+                    if (water_depth[x][y] > 0) 
+                    {
+                        Vsusptot[x][y] = water_depth[x][y] * 0.001; //0.0005 is 500mg l.. approx.
+                    }
+                  } */
+              }
+          }
+      }
+
+}
 
 // __________________________________________
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
