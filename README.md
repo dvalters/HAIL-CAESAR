@@ -1,13 +1,12 @@
 [![Build Status](https://travis-ci.org/dvalters/HAIL-CAESAR.svg?branch=master)](https://travis-ci.org/dvalters/HAIL-CAESAR) 
 [![Documentation Status](https://readthedocs.org/projects/hail-caesar/badge/?version=latest)](http://hail-caesar.readthedocs.io/en/latest/?badge=latest)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/11f4e6d1de1e4c5a9e1de7acbd3b6246)](https://www.codacy.com/app/dvalters/HAIL-CAESAR?utm_source=github.com&utm_medium=referral&utm_content=dvalters/HAIL-CAESAR&utm_campaign=badger)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![DOI](https://zenodo.org/badge/87577150.svg)](https://zenodo.org/badge/latestdoi/87577150)
 
 
 # HAIL-CAESAR
 
-This is the development version of the HAIL-CAESAR surface flooding model. 
+This is the development version of the HAIL-CAESAR surface flooding model. (now including a basic Groundwater component)
 
 _The **H**igh-performance **A**rchitecture **I**ndependent **L**ISFLOOD-**C**AESAR model_
 
