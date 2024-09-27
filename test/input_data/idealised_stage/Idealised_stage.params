@@ -1,17 +1,17 @@
 # LSDCatchmentModel (DAV Version) Parameter File
 # 04/04/2020
 
-Idealised, reach mode test
+Idealised, stage mode test
 Plane with E->W sloping gradient 11x11
 
 # FILE INFORMATION
 #==================
 dem_read_extension:	       asc
 dem_write_extension:       asc
-read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/idealised/
-write_path:	               /home/decval/dev/HAIL-CAESAR/test/results/idealised_reach_basic//
+read_path:	               /home/decval/dev/HAIL-CAESAR/test/input_data/idealised_stage/
+write_path:	               /home/decval/dev/HAIL-CAESAR/test/results/idealised_stage/
 read_fname:	               idealised
-write_fname:	               idealised_reach.dat
+write_fname:	               idealised_stage.dat
 timeseries_save_interval:      60
 
 # SUPPLEMENTARY FILES
@@ -25,7 +25,7 @@ spatially_variable_mannings_on:     no
 min_time_step:                 0           # IN SECONDS
 max_time_step:                 3600        # IN SECONDS
 run_time_start:                0           # ZERO UNLESS RESTARTING RUN
-max_run_duration:              131400       # IN MODEL HOURS, MUST BE T-1, I.E. '71' FOR 72HR SIMULATION - SORRY!
+max_run_duration:              2824       # IN MODEL HOURS, MUST BE T-1, I.E. '71' FOR 72HR SIMULATION - SORRY!
 memory_limit:                  1           # IGNORE
 
 # SEDIMENT
@@ -63,7 +63,7 @@ hflow_threshold:               0.001      # IN METRES, DETERMINES IF HORIZ. FLOW
 
 # REACH MODE HYDROLOGY
 #=====================
-reach_mode:                    yes         # Run in reach mode with input discharge data
+reach_mode:                    no         # Run in reach mode with input discharge data
 divide_inputs_by:              3
 reach_input_data_timestep:     6000000
 
@@ -71,21 +71,30 @@ reach_input_data_timestep:     6000000
 #==============     
 
 reach1_input_file:              input2.txt
-reach1_input_on:                yes
+reach1_input_on:                no
 reach1_x:                       10
 reach1_y:                       4
 
 reach2_input_file:              input2.txt
-reach2_input_on:                yes
+reach2_input_on:                no
 reach2_x:                       10
 reach2_y:                       5
 
 reach3_input_file:              input2.txt
-reach3_input_on:                yes
+reach3_input_on:                no
 reach3_x:                       10
 reach3_y:                       6
 
+# STAGE INPUTS
+#==============
 
+stage_mode_input_on:           yes
+stage_input_timestep:          60
+fromx:                         5
+tox:                           6
+fromy:                         5
+toy:                           6
+stage_inputfile:               stage_mode_input.csv
 
 # PRECIPITATION
 #==============

@@ -85,6 +85,15 @@ reach3_input_on:                yes
 reach3_x:                       10
 reach3_y:                       6
 
+# STAGE INPUTS
+#==============
+
+stage_mode_input_on:           yes
+stage_input_timestep:          60
+fromx:                         9
+tox:                           10
+fromy:                         3
+toy:                           6
 
 
 # PRECIPITATION
