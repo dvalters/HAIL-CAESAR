@@ -31,7 +31,7 @@ The model is also developed to run on parallel computing architectures (Multi-co
   1. Prepare your DEM so it has an outlet point touching the side of the DEM bounds. (You may need to rotate it or draw on a channel outlet)
   2. Make sure the DEM is in ascii (.asc) format. 
   3. Prepare a rainfall input file (A list of rain rates per time step, e.g. hourly rainfall). Just a plain text file will do.
-  4. Put all your input files and the paramter file in the same folder. Make sure you specify this path in the parameter file as well.
+  4. Put all your input files and the parameter file in the same folder. Make sure you specify this path in the parameter file as well.
   5. If not already done so, compile the code with the makefile: `make` in the top level directory of the project. Double check that all your parameters are set correctly in the parameter file.
   6. Run the program with `./HAIL-CAESAR.exe /path_to_data/ parameter_file.params`
   7. View the timeseries data and output rasters with a scripting language or GIS of your choice. I recommend QGIS or the excellent LSDMappingTools.
