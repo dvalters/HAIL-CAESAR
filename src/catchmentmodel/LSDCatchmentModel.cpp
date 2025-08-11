@@ -836,14 +836,14 @@ void LSDCatchmentModel::print_reach_data()
 // Some functions have been taken out of mainloop()
 //
 // DAV - this is a bit of a clunky method - perhaps replace it with the
-//   paramter ingestion method used in CHILD one day?
+//   parameter ingestion method used in CHILD one day?
 //
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void LSDCatchmentModel::initialise_variables(std::string pname,
                                              std::string pfname)
 {
   std::cout << "Initialising the model parameters..." << std::endl;
-  // Concatenate the path and paramter file name to get the full file address
+  // Concatenate the path and parameter file name to get the full file address
   string full_name = pname+pfname;
 
   std::ifstream infile;
