@@ -48,25 +48,23 @@
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //-----------------------------------------------------------------
-//DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
+// DOCUMENTATION URL: http://www.geos.ed.ac.uk/~s0675405/LSD_Docs/
 //-----------------------------------------------------------------
 
-
+#include "topotools/LSDShapeTools.hpp"
+#include "topotools/LSDStatsTools.hpp"
+#include <cmath>
 #include <cstdlib>
+#include <cstring>
+#include <fstream>
 #include <iostream>
 #include <stdio.h>
 #include <string>
-#include <cstring>
 #include <vector>
-#include <fstream>
-#include <cmath>
-#include "topotools/LSDStatsTools.hpp"
-#include "topotools/LSDShapeTools.hpp"
 using namespace std;
 
 #ifndef ShapeTools_CPP
 #define ShapeTools_CPP
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to test the Byte order of the system.
@@ -74,13 +72,14 @@ using namespace std;
 //
 // SWDG 11/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-bool SystemEndiannessTest(){
+bool SystemEndiannessTest() {
 
-  int TestInt = 1;  //this is stored as 4 bytes in memory
+  int TestInt = 1; // this is stored as 4 bytes in memory
   int ReconstructedTestInt;
   int ReconstructedTestIntSwapped;
 
-  char * TestBytes = (char *) &TestInt;  //convert each byte of the int into a char
+  char *TestBytes = (char *)&TestInt; // convert each byte of the int into a
+                                      // char
 
   memcpy(&ReconstructedTestInt, TestBytes, 4);
 
@@ -94,49 +93,45 @@ bool SystemEndiannessTest(){
 
   memcpy(&ReconstructedTestIntSwapped, TestBytes, 4);
 
-  if (ReconstructedTestInt == 1){
-    //cout << "Little Endian" << endl;
+  if (ReconstructedTestInt == 1) {
+    // cout << "Little Endian" << endl;
     return true;
-  }
-  else if (ReconstructedTestIntSwapped == 1){
-    //cout << "Big Endian" << endl;
+  } else if (ReconstructedTestIntSwapped == 1) {
+    // cout << "Big Endian" << endl;
     return false;
-  }
-  else{
+  } else {
     cout << "Unable to determine endianness of system." << endl;
     exit(EXIT_FAILURE);
   }
-
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// Method to swap the byte order of a word in memory. Used if the system's byte order
-// does not match the data in the shapefile.
+// Method to swap the byte order of a word in memory. Used if the system's byte
+// order does not match the data in the shapefile.
 //
 // SWDG 11/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void ByteSwap(int length, void * ByteData){
+void ByteSwap(int length, void *ByteData) {
 
-    BYTE temp;
+  BYTE temp;
 
-    for (int i = 0; i< length/2; ++i){
+  for (int i = 0; i < length / 2; ++i) {
 
-      temp = ((BYTE *) ByteData)[i];
-      ((BYTE *) ByteData)[i] = ((BYTE *) ByteData)[length-i-1];
-      ((BYTE *) ByteData)[length-i-1] = temp;
-
-    }
-
+    temp = ((BYTE *)ByteData)[i];
+    ((BYTE *)ByteData)[i] = ((BYTE *)ByteData)[length - i - 1];
+    ((BYTE *)ByteData)[length - i - 1] = temp;
+  }
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to get the size of the binary file being loaded.
 //
-// Taken from http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/
+// Taken from
+// http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/
 //
 // SWDG 10/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-long getFileSize(FILE *file){
+long getFileSize(FILE *file) {
   long lCurPos, lEndPos;
   lCurPos = ftell(file);
   fseek(file, 0, 2);
@@ -145,33 +140,32 @@ long getFileSize(FILE *file){
   return lEndPos;
 }
 
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to load an ESRI ShapeFile.
 //
-// Only works for X,Y point shapefiles at present and it's behaviour is totally undefined
-// if you pass in any other type of file.
+// Only works for X,Y point shapefiles at present and it's behaviour is totally
+// undefined if you pass in any other type of file.
 //
-// In future this will be rebuilt into a full class that can support shapefiles of
-// different types.
+// In future this will be rebuilt into a full class that can support shapefiles
+// of different types.
 //
 // Built in part from:
 // http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/
 //
 // SWDG 13/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-PointData LoadShapefile(string Filename){
+PointData LoadShapefile(string Filename) {
 
-  BYTE *ByteData;      // Pointer to our buffered data
-  FILE *file = NULL;    // File pointer
+  BYTE *ByteData;    // Pointer to our buffered data
+  FILE *file = NULL; // File pointer
 
   // Open the file in binary mode using the "rb" format string
-  // This also checks if the file exists and/or can be opened for reading correctly
-  if ((file = fopen(Filename.c_str(), "rb")) == NULL){
+  // This also checks if the file exists and/or can be opened for reading
+  // correctly
+  if ((file = fopen(Filename.c_str(), "rb")) == NULL) {
     cout << "Could not open specified file" << endl;
     exit(EXIT_FAILURE);
-  }
-  else{
+  } else {
     cout << "File opened successfully" << endl;
   }
 
@@ -184,7 +178,7 @@ PointData LoadShapefile(string Filename){
   // Read the file in to the buffer
   fread(ByteData, fileSize, 1, file);
 
-  //Declare variables used in the method
+  // Declare variables used in the method
   int FileLength;
   int ShapeType;
   double Xmin;
@@ -204,139 +198,146 @@ PointData LoadShapefile(string Filename){
   bool LittleEndian = SystemEndiannessTest(); // Get byteorder of the system
 
   // If system byte order is Little Endian
-  if (LittleEndian == true){
+  if (LittleEndian == true) {
 
     // Get the length of the file
-    ByteSwap(4, ByteData+24);
-    memcpy(&FileLength, ByteData+24, 4);
+    ByteSwap(4, ByteData + 24);
+    memcpy(&FileLength, ByteData + 24, 4);
 
     // Get type of shape in file (not currently used) see
-    memcpy(&ShapeType, ByteData+32, 4);
+    memcpy(&ShapeType, ByteData + 32, 4);
 
     // Get Georeferencing data (not currently used)
-    memcpy(&Xmin, ByteData+36, 8);
-    memcpy(&Ymin, ByteData+44, 8);
-    memcpy(&Xmax, ByteData+52, 8);
-    memcpy(&Ymax, ByteData+60, 8);
-    memcpy(&Zmin, ByteData+68, 8);
-    memcpy(&Zmax, ByteData+76, 8);
-    memcpy(&Mmin, ByteData+84, 8);
-    memcpy(&Mmax, ByteData+92, 8);
+    memcpy(&Xmin, ByteData + 36, 8);
+    memcpy(&Ymin, ByteData + 44, 8);
+    memcpy(&Xmax, ByteData + 52, 8);
+    memcpy(&Ymax, ByteData + 60, 8);
+    memcpy(&Zmin, ByteData + 68, 8);
+    memcpy(&Zmax, ByteData + 76, 8);
+    memcpy(&Mmin, ByteData + 84, 8);
+    memcpy(&Mmax, ByteData + 92, 8);
 
-    // Get the length of the first record (All records are the same length for points)
-    ByteSwap(4, ByteData+104);
-    memcpy(&RecordLength, ByteData+104, 4);
+    // Get the length of the first record (All records are the same length for
+    // points)
+    ByteSwap(4, ByteData + 104);
+    memcpy(&RecordLength, ByteData + 104, 4);
 
-    //Calculate the number of records in the file
-    NoOfRecords = (FileLength-50)/(RecordLength+4);  // FileLength - 50(the length in words of the header)
-                                                     // divided by RecordLength+4 (4 is the length in words of the record header)
+    // Calculate the number of records in the file
+    NoOfRecords =
+        (FileLength - 50) /
+        (RecordLength + 4); // FileLength - 50(the length in words of the
+                            // header) divided by RecordLength+4 (4 is the
+                            // length in words of the record header)
 
-    if (NoOfRecords == 0){
+    if (NoOfRecords == 0) {
       cout << "Empty Shapefile. No Data to read!\n" << endl;
       exit(EXIT_FAILURE);
     }
 
-    //Read all of the records into the Points structure
-    for (int q = 0; q < NoOfRecords; ++q){
+    // Read all of the records into the Points structure
+    for (int q = 0; q < NoOfRecords; ++q) {
 
-      memcpy(&TempX, ByteData+112+(q * ((RecordLength+4)*2)), 8); // RecordLength+4*2 == 28 (The total length of a record)
-      memcpy(&TempY, ByteData+120+(q * ((RecordLength+4)*2)), 8);
+      memcpy(&TempX, ByteData + 112 + (q * ((RecordLength + 4) * 2)),
+             8); // RecordLength+4*2 == 28 (The total length of a record)
+      memcpy(&TempY, ByteData + 120 + (q * ((RecordLength + 4) * 2)), 8);
 
       Points.X.push_back(TempX);
       Points.Y.push_back(TempY);
-
     }
 
   }
   // If system byte order is Big Endian
-  else{
+  else {
 
     // Get the length of the file
-    memcpy(&FileLength, ByteData+24, 4);
+    memcpy(&FileLength, ByteData + 24, 4);
 
     // Get type of shape in file (not currently used) see
-    ByteSwap(4, ByteData+32);
-    memcpy(&ShapeType, ByteData+32, 4);
+    ByteSwap(4, ByteData + 32);
+    memcpy(&ShapeType, ByteData + 32, 4);
 
     // Get Georeferencing data (not currently used)
-    ByteSwap(8, ByteData+36);
-    memcpy(&Xmin, ByteData+36, 8);
-    ByteSwap(8, ByteData+44);
-    memcpy(&Ymin, ByteData+44, 8);
-    ByteSwap(8, ByteData+52);
-    memcpy(&Xmax, ByteData+52, 8);
-    ByteSwap(8, ByteData+60);
-    memcpy(&Ymax, ByteData+60, 8);
-    ByteSwap(8, ByteData+68);
-    memcpy(&Zmin, ByteData+68, 8);
-    ByteSwap(8, ByteData+76);
-    memcpy(&Zmax, ByteData+76, 8);
-    ByteSwap(8, ByteData+84);
-    memcpy(&Mmin, ByteData+84, 8);
-    ByteSwap(8, ByteData+92);
-    memcpy(&Mmax, ByteData+92, 8);
+    ByteSwap(8, ByteData + 36);
+    memcpy(&Xmin, ByteData + 36, 8);
+    ByteSwap(8, ByteData + 44);
+    memcpy(&Ymin, ByteData + 44, 8);
+    ByteSwap(8, ByteData + 52);
+    memcpy(&Xmax, ByteData + 52, 8);
+    ByteSwap(8, ByteData + 60);
+    memcpy(&Ymax, ByteData + 60, 8);
+    ByteSwap(8, ByteData + 68);
+    memcpy(&Zmin, ByteData + 68, 8);
+    ByteSwap(8, ByteData + 76);
+    memcpy(&Zmax, ByteData + 76, 8);
+    ByteSwap(8, ByteData + 84);
+    memcpy(&Mmin, ByteData + 84, 8);
+    ByteSwap(8, ByteData + 92);
+    memcpy(&Mmax, ByteData + 92, 8);
 
-    // Get the length of the first record (All records are the same length for points)
-    memcpy(&RecordLength, ByteData+104, 4);
+    // Get the length of the first record (All records are the same length for
+    // points)
+    memcpy(&RecordLength, ByteData + 104, 4);
 
-    //Calculate the number of records in the file
-    NoOfRecords = (FileLength-50)/(RecordLength+4);  // FileLength - 50(the length in words of the header)
-                                                     // divided by RecordLength+4 (4 is the length in words of the record header)
+    // Calculate the number of records in the file
+    NoOfRecords =
+        (FileLength - 50) /
+        (RecordLength + 4); // FileLength - 50(the length in words of the
+                            // header) divided by RecordLength+4 (4 is the
+                            // length in words of the record header)
 
-    if (NoOfRecords == 0){
+    if (NoOfRecords == 0) {
       cout << "Empty Shapefile. No Data to read!\n" << endl;
       exit(EXIT_FAILURE);
     }
 
-    //Read all of the records into the Points structure
-    for (int q = 0; q < NoOfRecords; ++q){
+    // Read all of the records into the Points structure
+    for (int q = 0; q < NoOfRecords; ++q) {
 
-      ByteSwap(8, ByteData+112+(q * ((RecordLength+4)*2)));
-      memcpy(&TempX, ByteData+112+(q * ((RecordLength+4)*2)), 8); // RecordLength+4*2 == 28 (The total length of a record)
-      ByteSwap(8, ByteData+120+(q * ((RecordLength+4)*2)));
-      memcpy(&TempY, ByteData+120+(q * ((RecordLength+4)*2)), 8);
+      ByteSwap(8, ByteData + 112 + (q * ((RecordLength + 4) * 2)));
+      memcpy(&TempX, ByteData + 112 + (q * ((RecordLength + 4) * 2)),
+             8); // RecordLength+4*2 == 28 (The total length of a record)
+      ByteSwap(8, ByteData + 120 + (q * ((RecordLength + 4) * 2)));
+      memcpy(&TempY, ByteData + 120 + (q * ((RecordLength + 4) * 2)), 8);
 
       Points.X.push_back(TempX);
       Points.Y.push_back(TempY);
-
     }
-
   }
 
   // Close the file and return the point data
   fclose(file);
   return Points;
-
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Method to load an ESRI polyline Shapefile.
 //
-// Only works for polyline shapefiles at present and it's behaviour is totally undefined
-// if you pass in any other type of file.
+// Only works for polyline shapefiles at present and it's behaviour is totally
+// undefined if you pass in any other type of file.
 //
-// In future this will be rebuilt into a full class that can support shapefiles of
-// different types.
+// In future this will be rebuilt into a full class that can support shapefiles
+// of different types.
 //
-// Returns a vector of points. So that each item in the vector represents a single polyline.
+// Returns a vector of points. So that each item in the vector represents a
+// single polyline.
 //
 // Built in part from:
 // http://www.dreamincode.net/forums/topic/170054-understanding-and-reading-binary-files-in-c/
 //
 // SWDG 17/3/14
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-vector<PointData> LoadPolyline(string Filename){
+vector<PointData> LoadPolyline(string Filename) {
 
-  BYTE *ByteData;      // Pointer to our buffered data
-  FILE *file = NULL;    // File pointer
+  BYTE *ByteData;    // Pointer to our buffered data
+  FILE *file = NULL; // File pointer
 
   // Open the file in binary mode using the "rb" format string
-  // This also checks if the file exists and/or can be opened for reading correctly
-  if ((file = fopen(Filename.c_str(), "rb")) == NULL){
+  // This also checks if the file exists and/or can be opened for reading
+  // correctly
+  if ((file = fopen(Filename.c_str(), "rb")) == NULL) {
     cout << "Could not open specified file" << endl;
     exit(EXIT_FAILURE);
-  }
-  else{
+  } else {
     cout << "File opened successfully" << endl;
   }
 
@@ -349,7 +350,7 @@ vector<PointData> LoadPolyline(string Filename){
   // Read the file in to the buffer
   fread(ByteData, fileSize, 1, file);
 
-  //Declare variables used in the method
+  // Declare variables used in the method
   int FileLength;
   int ShapeType;
   double Xmin;
@@ -373,177 +374,173 @@ vector<PointData> LoadPolyline(string Filename){
   bool LittleEndian = SystemEndiannessTest(); // Get byteorder of the system
 
   // If system byte order is Little Endian
-  if (LittleEndian == true){
+  if (LittleEndian == true) {
 
     // Get the length of the file
-    ByteSwap(4, ByteData+24);
-    memcpy(&FileLength, ByteData+24, 4);
+    ByteSwap(4, ByteData + 24);
+    memcpy(&FileLength, ByteData + 24, 4);
 
-    if (FileLength == 50){
+    if (FileLength == 50) {
       cout << "Empty Shapefile. No Data to read!\n" << endl;
       exit(EXIT_FAILURE);
     }
 
     // Get type of shape in file (not currently used) see
-    memcpy(&ShapeType, ByteData+32, 4);
+    memcpy(&ShapeType, ByteData + 32, 4);
 
     // Get Georeferencing data (not currently used)
-    memcpy(&Xmin, ByteData+36, 8);
-    memcpy(&Ymin, ByteData+44, 8);
-    memcpy(&Xmax, ByteData+52, 8);
-    memcpy(&Ymax, ByteData+60, 8);
-    memcpy(&Zmin, ByteData+68, 8);
-    memcpy(&Zmax, ByteData+76, 8);
-    memcpy(&Mmin, ByteData+84, 8);
-    memcpy(&Mmax, ByteData+92, 8);
+    memcpy(&Xmin, ByteData + 36, 8);
+    memcpy(&Ymin, ByteData + 44, 8);
+    memcpy(&Xmax, ByteData + 52, 8);
+    memcpy(&Ymax, ByteData + 60, 8);
+    memcpy(&Zmin, ByteData + 68, 8);
+    memcpy(&Zmax, ByteData + 76, 8);
+    memcpy(&Mmin, ByteData + 84, 8);
+    memcpy(&Mmax, ByteData + 92, 8);
 
     // Get the length of the first record
-    ByteSwap(4, ByteData+104);
-    memcpy(&RecordLength, ByteData+104, 4);
-    Skip = RecordLength*2 + 8 + 100;
+    ByteSwap(4, ByteData + 104);
+    memcpy(&RecordLength, ByteData + 104, 4);
+    Skip = RecordLength * 2 + 8 + 100;
 
-    memcpy(&shapetype, ByteData+108, 4);
-    memcpy(&numparts, ByteData+144, 4);
-    memcpy(&numpoints, ByteData+148, 4);  // number of XY pairs in the first polyline
+    memcpy(&shapetype, ByteData + 108, 4);
+    memcpy(&numparts, ByteData + 144, 4);
+    memcpy(&numpoints, ByteData + 148,
+           4); // number of XY pairs in the first polyline
 
-    for (int q = 0; q < numpoints; ++q){
+    for (int q = 0; q < numpoints; ++q) {
 
-      memcpy(&TempX, ByteData+156+(q*16), 8);
-      memcpy(&TempY, ByteData+164+(q*16), 8);
+      memcpy(&TempX, ByteData + 156 + (q * 16), 8);
+      memcpy(&TempY, ByteData + 164 + (q * 16), 8);
 
       Points.X.push_back(TempX);
       Points.Y.push_back(TempY);
-
     }
 
     Polylines.push_back(Points);
 
-    while (Skip < (FileLength*2)){
+    while (Skip < (FileLength * 2)) {
 
-      ByteSwap(4, ByteData+Skip+4);
-      memcpy(&RecordLength, ByteData+Skip+4, 4);
-      memcpy(&shapetype, ByteData+Skip+8, 4);
-      memcpy(&numparts, ByteData+Skip+44, 4);
-      memcpy(&numpoints, ByteData+Skip+48, 4);  // number of XY pairs in the polyline
+      ByteSwap(4, ByteData + Skip + 4);
+      memcpy(&RecordLength, ByteData + Skip + 4, 4);
+      memcpy(&shapetype, ByteData + Skip + 8, 4);
+      memcpy(&numparts, ByteData + Skip + 44, 4);
+      memcpy(&numpoints, ByteData + Skip + 48,
+             4); // number of XY pairs in the polyline
 
       PointData Points;
-      for (int w = 0; w < numpoints; ++w){
+      for (int w = 0; w < numpoints; ++w) {
 
-        memcpy(&TempX, ByteData+Skip+56+(w*16), 8);
-        memcpy(&TempY, ByteData+Skip+64+(w*16), 8);
+        memcpy(&TempX, ByteData + Skip + 56 + (w * 16), 8);
+        memcpy(&TempY, ByteData + Skip + 64 + (w * 16), 8);
 
         Points.X.push_back(TempX);
         Points.Y.push_back(TempY);
-
       }
 
       Polylines.push_back(Points);
-      Skip += (RecordLength*2) +8;
-
+      Skip += (RecordLength * 2) + 8;
     }
 
   }
   // If system byte order is Big Endian
-  else{
+  else {
 
     // Get the length of the file
-    memcpy(&FileLength, ByteData+24, 4);
+    memcpy(&FileLength, ByteData + 24, 4);
 
-    if (FileLength == 50){
+    if (FileLength == 50) {
       cout << "Empty Shapefile. No Data to read!\n" << endl;
       exit(EXIT_FAILURE);
     }
 
     // Get type of shape in file (not currently used) see
-    ByteSwap(4, ByteData+32);
-    memcpy(&ShapeType, ByteData+32, 4);
+    ByteSwap(4, ByteData + 32);
+    memcpy(&ShapeType, ByteData + 32, 4);
 
     // Get Georeferencing data (not currently used)
 
-    ByteSwap(8, ByteData+36);
-    memcpy(&Xmin, ByteData+36, 8);
-    ByteSwap(8, ByteData+44);
-    memcpy(&Ymin, ByteData+44, 8);
-    ByteSwap(8, ByteData+52);
-    memcpy(&Xmax, ByteData+52, 8);
-    ByteSwap(8, ByteData+60);
-    memcpy(&Ymax, ByteData+60, 8);
-    ByteSwap(8, ByteData+68);
-    memcpy(&Zmin, ByteData+68, 8);
-    ByteSwap(8, ByteData+76);
-    memcpy(&Zmax, ByteData+76, 8);
-    ByteSwap(8, ByteData+84);
-    memcpy(&Mmin, ByteData+84, 8);
-    ByteSwap(8, ByteData+92);
-    memcpy(&Mmax, ByteData+92, 8);
+    ByteSwap(8, ByteData + 36);
+    memcpy(&Xmin, ByteData + 36, 8);
+    ByteSwap(8, ByteData + 44);
+    memcpy(&Ymin, ByteData + 44, 8);
+    ByteSwap(8, ByteData + 52);
+    memcpy(&Xmax, ByteData + 52, 8);
+    ByteSwap(8, ByteData + 60);
+    memcpy(&Ymax, ByteData + 60, 8);
+    ByteSwap(8, ByteData + 68);
+    memcpy(&Zmin, ByteData + 68, 8);
+    ByteSwap(8, ByteData + 76);
+    memcpy(&Zmax, ByteData + 76, 8);
+    ByteSwap(8, ByteData + 84);
+    memcpy(&Mmin, ByteData + 84, 8);
+    ByteSwap(8, ByteData + 92);
+    memcpy(&Mmax, ByteData + 92, 8);
 
     // Get the length of the first record
 
-    memcpy(&RecordLength, ByteData+104, 4);
-    Skip = RecordLength*2 + 8 + 100;
+    memcpy(&RecordLength, ByteData + 104, 4);
+    Skip = RecordLength * 2 + 8 + 100;
 
-    ByteSwap(8, ByteData+108);
-    memcpy(&shapetype, ByteData+108, 4);
-    ByteSwap(8, ByteData+144);
-    memcpy(&numparts, ByteData+144, 4);
-    ByteSwap(8, ByteData+148);
-    memcpy(&numpoints, ByteData+148, 4);  // number of XY pairs in the first polyline
+    ByteSwap(8, ByteData + 108);
+    memcpy(&shapetype, ByteData + 108, 4);
+    ByteSwap(8, ByteData + 144);
+    memcpy(&numparts, ByteData + 144, 4);
+    ByteSwap(8, ByteData + 148);
+    memcpy(&numpoints, ByteData + 148,
+           4); // number of XY pairs in the first polyline
 
-    for (int q = 0; q < numpoints; ++q){
+    for (int q = 0; q < numpoints; ++q) {
 
-      ByteSwap(8, ByteData+156+(q*16));
-      memcpy(&TempX, ByteData+156+(q*16), 8);
-      ByteSwap(8, ByteData+164+(q*16));
-      memcpy(&TempY, ByteData+164+(q*16), 8);
+      ByteSwap(8, ByteData + 156 + (q * 16));
+      memcpy(&TempX, ByteData + 156 + (q * 16), 8);
+      ByteSwap(8, ByteData + 164 + (q * 16));
+      memcpy(&TempY, ByteData + 164 + (q * 16), 8);
 
       cout << TempX << " " << TempY << endl;
       Points.X.push_back(TempX);
       Points.Y.push_back(TempY);
-
     }
 
     Polylines.push_back(Points);
 
     cout << "---------" << endl;
 
-    while (Skip < (FileLength*2)){
+    while (Skip < (FileLength * 2)) {
 
-      ByteSwap(8, ByteData+Skip+4);
-      memcpy(&RecordLength, ByteData+Skip+4, 4);
-      ByteSwap(8, ByteData+Skip+8);
-      memcpy(&shapetype, ByteData+Skip+8, 4);
-      ByteSwap(8, ByteData+Skip+44);
-      memcpy(&numparts, ByteData+Skip+44, 4);
-      ByteSwap(8, ByteData+Skip+48);
-      memcpy(&numpoints, ByteData+Skip+48, 4);  // number of XY pairs in the polyline
+      ByteSwap(8, ByteData + Skip + 4);
+      memcpy(&RecordLength, ByteData + Skip + 4, 4);
+      ByteSwap(8, ByteData + Skip + 8);
+      memcpy(&shapetype, ByteData + Skip + 8, 4);
+      ByteSwap(8, ByteData + Skip + 44);
+      memcpy(&numparts, ByteData + Skip + 44, 4);
+      ByteSwap(8, ByteData + Skip + 48);
+      memcpy(&numpoints, ByteData + Skip + 48,
+             4); // number of XY pairs in the polyline
 
       PointData Points;
-      for (int w = 0; w < numpoints; ++w){
+      for (int w = 0; w < numpoints; ++w) {
 
-        ByteSwap(8, ByteData+Skip+56+(w*16));
-        memcpy(&TempX, ByteData+Skip+56+(w*16), 8);
-        ByteSwap(8, ByteData+Skip+64+(w*16));
-        memcpy(&TempY, ByteData+Skip+64+(w*16), 8);
+        ByteSwap(8, ByteData + Skip + 56 + (w * 16));
+        memcpy(&TempX, ByteData + Skip + 56 + (w * 16), 8);
+        ByteSwap(8, ByteData + Skip + 64 + (w * 16));
+        memcpy(&TempY, ByteData + Skip + 64 + (w * 16), 8);
 
         cout << TempX << " " << TempY << endl;
         Points.X.push_back(TempX);
         Points.Y.push_back(TempY);
-
       }
 
       Polylines.push_back(Points);
-      Skip += (RecordLength*2) +8;
+      Skip += (RecordLength * 2) + 8;
 
       cout << "------" << endl;
-
     }
-
   }
 
   // Close the file and return the point data
   fclose(file);
   return Polylines;
-
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -552,20 +549,22 @@ vector<PointData> LoadPolyline(string Filename){
 // Returns a vector of points.
 // DTM 11/07/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-PointData LoadChannelTree(string Filename, int multistem_option, int trib_number)
-{
-  if((multistem_option != 0) && (multistem_option != 1) && (multistem_option !=2))
-  {
-    cout << "multistem_option must be 0 (mainstem only), 1 (all tributaries) or 2 (specify channel number).  Setting mainstem only default" << endl;
+PointData LoadChannelTree(string Filename, int multistem_option,
+                          int trib_number) {
+  if ((multistem_option != 0) && (multistem_option != 1) &&
+      (multistem_option != 2)) {
+    cout << "multistem_option must be 0 (mainstem only), 1 (all tributaries) "
+            "or 2 (specify channel number).  Setting mainstem only default"
+         << endl;
     multistem_option = 0;
   }
 
   ifstream channel_data_in;
   channel_data_in.open(Filename.c_str());
 
-  if( channel_data_in.fail() )
-  {
-    cout << "\nFATAL ERROR: the channel network file \"" << Filename << "\" doesn't exist" << endl;
+  if (channel_data_in.fail()) {
+    cout << "\nFATAL ERROR: the channel network file \"" << Filename
+         << "\" doesn't exist" << endl;
     exit(EXIT_FAILURE);
   }
 
@@ -583,59 +582,53 @@ PointData LoadChannelTree(string Filename, int multistem_option, int trib_number
   float elev;
   float drain_area;
 
-  //int last_cn = 0;    // this is 1 if this is the first node in a channel
+  // int last_cn = 0;    // this is 1 if this is the first node in a channel
   int last_receiver_node = -1;
-  //int last_receiver_channel;
+  // int last_receiver_channel;
 
-  float XMinimum,YMinimum,DataResolution,NoDataValue;
-  int NRows,NCols;
+  float XMinimum, YMinimum, DataResolution, NoDataValue;
+  int NRows, NCols;
 
-  channel_data_in >> NRows >> NCols >> XMinimum >> YMinimum >> DataResolution >> NoDataValue;
-  float x,y;
-  while( channel_data_in >> channel_number >> receiver_cnumber >> recevier_cnode
-                         >> node >> row >> col >> flow_dist >> elev >> drain_area)
-  {
-    // get the receiver_channel and receiver node for the first channel (these will be recursive)
-    if (last_receiver_node == -1)
-    {
+  channel_data_in >> NRows >> NCols >> XMinimum >> YMinimum >> DataResolution >>
+      NoDataValue;
+  float x, y;
+  while (channel_data_in >> channel_number >> receiver_cnumber >>
+         recevier_cnode >> node >> row >> col >> flow_dist >> elev >>
+         drain_area) {
+    // get the receiver_channel and receiver node for the first channel (these
+    // will be recursive)
+    if (last_receiver_node == -1) {
       last_receiver_node = recevier_cnode;
-      //last_receiver_channel = receiver_cnumber;
+      // last_receiver_channel = receiver_cnumber;
     }
     // now load everything into the PointData object :-)
 
-    if(multistem_option == 0)
-    {
-      if(channel_number == 0)
-      {
-        x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
-        y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution;
+    if (multistem_option == 0) {
+      if (channel_number == 0) {
+        x = XMinimum + float(col) * DataResolution + 0.5 * DataResolution;
+        y = YMinimum + float(NRows - row) * DataResolution -
+            0.5 * DataResolution;
         Points.X.push_back(x);
         Points.Y.push_back(y);
       }
-    }
-    else if(multistem_option == 1)
-    {
-      x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
-      y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution;
+    } else if (multistem_option == 1) {
+      x = XMinimum + float(col) * DataResolution + 0.5 * DataResolution;
+      y = YMinimum + float(NRows - row) * DataResolution - 0.5 * DataResolution;
       Points.X.push_back(x);
       Points.Y.push_back(y);
-    }
-    else if(multistem_option == 2)
-    {
-      if(channel_number == trib_number)
-      {
-        x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
-        y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution;
+    } else if (multistem_option == 2) {
+      if (channel_number == trib_number) {
+        x = XMinimum + float(col) * DataResolution + 0.5 * DataResolution;
+        y = YMinimum + float(NRows - row) * DataResolution -
+            0.5 * DataResolution;
         Points.X.push_back(x);
         Points.Y.push_back(y);
       }
-    }
-    else
-    {
-      if(channel_number == 0)
-      {
-        x = XMinimum + float(col)*DataResolution + 0.5*DataResolution;
-        y = YMinimum + float(NRows-row)*DataResolution - 0.5*DataResolution;
+    } else {
+      if (channel_number == 0) {
+        x = XMinimum + float(col) * DataResolution + 0.5 * DataResolution;
+        y = YMinimum + float(NRows - row) * DataResolution -
+            0.5 * DataResolution;
         Points.X.push_back(x);
         Points.Y.push_back(y);
       }
@@ -648,8 +641,8 @@ PointData LoadChannelTree(string Filename, int multistem_option, int trib_number
 // Get point data from vectors of X and Y coordinates
 // FJC 17/02/17
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-PointData get_point_data_from_coordinates(vector<double>& X_coordinates, vector<double>& Y_coordinates)
-{
+PointData get_point_data_from_coordinates(vector<double> &X_coordinates,
+                                          vector<double> &Y_coordinates) {
   PointData Points;
   Points.X = X_coordinates;
   Points.Y = Y_coordinates;
@@ -661,8 +654,7 @@ PointData get_point_data_from_coordinates(vector<double>& X_coordinates, vector<
 // The create function, sets up some vectors for holding
 // ellipses and datums
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDCoordinateConverterLLandUTM::create()
-{
+void LSDCoordinateConverterLLandUTM::create() {
   // this sets up the ellipsoid and datum vectors
   vector<LSDEllipsoid> Ellipse_data_temp;
 
@@ -692,29 +684,31 @@ void LSDCoordinateConverterLLandUTM::create()
   char t22[] = "WGS84";
 
   // add the ellipsoids to the vector
-  LSDEllipsoid E00( 0, t00,    6377563.396,  299.3249646);
-  LSDEllipsoid E01( 1, t01,    6377340.189,  299.3249646);
-  LSDEllipsoid E02( 2, t02,  6378160,  298.25);
-  LSDEllipsoid E03( 3, t03,  6377483.865,  299.1528128);
-  LSDEllipsoid E04( 4, t04,    6377397.155,  299.1528128);
-  LSDEllipsoid E05( 5, t05,    6378206.4,  294.9786982);
-  LSDEllipsoid E06( 6, t06,    6378249.145,  293.465);
-  LSDEllipsoid E07( 7, t07,  6377276.345,  300.8017);
-  LSDEllipsoid E08( 8, t08,  6377298.556,  300.8017);
-  LSDEllipsoid E09( 9, t09,  6377301.243,  300.8017);
-  LSDEllipsoid E10(10, t10,  6377295.664,  300.8017);  //Dana has no datum that uses this LSDEllipsoid E00!
-  LSDEllipsoid E11(11, t11,  6377304.063,  300.8017);
-  LSDEllipsoid E12(12, t12,  6377309.613,  300.8017);
-  LSDEllipsoid E13(13, t13,  6378155,  298.3);
-  LSDEllipsoid E14(14, t14,    6378200,  298.3);
-  LSDEllipsoid E15(15, t15,    6378270,  297);
-  LSDEllipsoid E16(16, t16,    6378160,  298.247);
-  LSDEllipsoid E17(17, t17,  6378388,  297);
-  LSDEllipsoid E18(18, t18,    6378245,  298.3);
-  LSDEllipsoid E19(19, t19,      6378137,  298.257222101);
-  LSDEllipsoid E20(20, t20,  6378160,  298.25);
-  LSDEllipsoid E21(21, t21,      6378135,  298.26);
-  LSDEllipsoid E22(22, t22,      6378137,  298.257223563);
+  LSDEllipsoid E00(0, t00, 6377563.396, 299.3249646);
+  LSDEllipsoid E01(1, t01, 6377340.189, 299.3249646);
+  LSDEllipsoid E02(2, t02, 6378160, 298.25);
+  LSDEllipsoid E03(3, t03, 6377483.865, 299.1528128);
+  LSDEllipsoid E04(4, t04, 6377397.155, 299.1528128);
+  LSDEllipsoid E05(5, t05, 6378206.4, 294.9786982);
+  LSDEllipsoid E06(6, t06, 6378249.145, 293.465);
+  LSDEllipsoid E07(7, t07, 6377276.345, 300.8017);
+  LSDEllipsoid E08(8, t08, 6377298.556, 300.8017);
+  LSDEllipsoid E09(9, t09, 6377301.243, 300.8017);
+  LSDEllipsoid E10(
+      10, t10, 6377295.664,
+      300.8017); // Dana has no datum that uses this LSDEllipsoid E00!
+  LSDEllipsoid E11(11, t11, 6377304.063, 300.8017);
+  LSDEllipsoid E12(12, t12, 6377309.613, 300.8017);
+  LSDEllipsoid E13(13, t13, 6378155, 298.3);
+  LSDEllipsoid E14(14, t14, 6378200, 298.3);
+  LSDEllipsoid E15(15, t15, 6378270, 297);
+  LSDEllipsoid E16(16, t16, 6378160, 298.247);
+  LSDEllipsoid E17(17, t17, 6378388, 297);
+  LSDEllipsoid E18(18, t18, 6378245, 298.3);
+  LSDEllipsoid E19(19, t19, 6378137, 298.257222101);
+  LSDEllipsoid E20(20, t20, 6378160, 298.25);
+  LSDEllipsoid E21(21, t21, 6378135, 298.26);
+  LSDEllipsoid E22(22, t22, 6378137, 298.257223563);
 
   Ellipse_data_temp.push_back(E00);
   Ellipse_data_temp.push_back(E01);
@@ -740,12 +734,11 @@ void LSDCoordinateConverterLLandUTM::create()
   Ellipse_data_temp.push_back(E21);
   Ellipse_data_temp.push_back(E22);
 
-  //names for ellipsoidId's
+  // names for ellipsoidId's
   int eClarke1866 = 5;
   int eGRS80 = 19;
   int eWGS72 = 21;
   int eWGS84 = 22;
-
 
   // now for the datum
   vector<LSDDatum> Datum_data_temp;
@@ -780,34 +773,55 @@ void LSDCoordinateConverterLLandUTM::create()
   char T26[] = "WGS72";
   char T27[] = "WGS84";
 
-  LSDDatum D00(0, T00,      eClarke1866,  -5,  135,  172); //NAD27 for Alaska Excluding Aleutians
-  LSDDatum D01( 1, T01,  eClarke1866,  -2,  152,  149); //NAD27 for Aleutians East of 180W
-  LSDDatum D02( 2, T02,  eClarke1866,  2,  204,  105); //NAD27 for Aleutians West of 180W
-  LSDDatum D03( 3, T03,    eClarke1866,  -4,  154,  178); //NAD27 for Bahamas Except SanSalvadorIsland
-  LSDDatum D04( 4, T04,  eClarke1866,  1,  140,  165); //NAD27 for Bahamas SanSalvadorIsland
-  LSDDatum D05( 5, T05,    eClarke1866,  -7,  162,  188); //NAD27 for Canada Alberta BritishColumbia
-  LSDDatum D06( 6, T06,    eClarke1866,  -9,  157,  184); //NAD27 for Canada Manitoba Ontario
-  LSDDatum D07( 7, T07,    eClarke1866,  -22,  160,  190); //NAD27 for Canada NewBrunswick Newfoundland NovaScotia Quebec
-  LSDDatum D08( 8, T08,    eClarke1866,  4,  159,  188); //NAD27 for Canada NorthwestTerritories Saskatchewan
-  LSDDatum D09( 9, T09,      eClarke1866,  -7,  139,  181); //NAD27 for Canada Yukon
-  LSDDatum D10(10, T10,    eClarke1866,  0,  125,  201); //NAD27 for CanalZone (ER: is that Panama??)
-  LSDDatum D11(11, T11,      eClarke1866,  -9,  152,  178); //NAD27 for Cuba
-  LSDDatum D12(12, T12,    eClarke1866,  11,  114,  195); //NAD27 for Greenland (HayesPeninsula)
-  LSDDatum D13(13, T13,    eClarke1866,  -3,  142,  183); //NAD27 for Antigua Barbados Barbuda Caicos Cuba DominicanRep GrandCayman Jamaica Turks
-  LSDDatum D14(14, T14,    eClarke1866,  0,  125,  194); //NAD27 for Belize CostaRica ElSalvador Guatemala Honduras Nicaragua
-  LSDDatum D15(15, T15,    eClarke1866,  -10,  158,  187); //NAD27 for Canada
-  LSDDatum D16(16, T16,    eClarke1866,  -8,  160,  176); //NAD27 for CONUS
-  LSDDatum D17(17, T17,    eClarke1866,  -9,  161,  179); //NAD27 for CONUS East of Mississippi Including Louisiana Missouri Minnesota
-  LSDDatum D18(18, T18,    eClarke1866,  -8,  159,  175); //NAD27 for CONUS West of Mississippi Excluding Louisiana Missouri Minnesota
-  LSDDatum D19(19, T19,    eClarke1866,  -12,  130,  190); //NAD27 for Mexico
-  LSDDatum D20(20, T20,      eGRS80,    0,  0,  0); //NAD83 for Alaska Excluding Aleutians
-  LSDDatum D21(21, T21,    eGRS80,    -2,  0,  4); //NAD83 for Aleutians
-  LSDDatum D22(22, T22,    eGRS80,    0,  0,  0); //NAD83 for Canada
-  LSDDatum D23(23, T23,    eGRS80,    0,  0,  0); //NAD83 for CONUS
-  LSDDatum D24(24, T24,    eGRS80,    1,  1,  -1); //NAD83 for Hawaii
-  LSDDatum D25(25, T25,  eGRS80,    0,  0,  0); //NAD83 for Mexico CentralAmerica
-  LSDDatum D26(26, T26,      eWGS72,    0,  0,  0); //WGS72 for world
-  LSDDatum D27(27, T27,      eWGS84,    0,  0,  0); //WGS84 for world
+  LSDDatum D00(0, T00, eClarke1866, -5, 135,
+               172); // NAD27 for Alaska Excluding Aleutians
+  LSDDatum D01(1, T01, eClarke1866, -2, 152,
+               149); // NAD27 for Aleutians East of 180W
+  LSDDatum D02(2, T02, eClarke1866, 2, 204,
+               105); // NAD27 for Aleutians West of 180W
+  LSDDatum D03(3, T03, eClarke1866, -4, 154,
+               178); // NAD27 for Bahamas Except SanSalvadorIsland
+  LSDDatum D04(4, T04, eClarke1866, 1, 140,
+               165); // NAD27 for Bahamas SanSalvadorIsland
+  LSDDatum D05(5, T05, eClarke1866, -7, 162,
+               188); // NAD27 for Canada Alberta BritishColumbia
+  LSDDatum D06(6, T06, eClarke1866, -9, 157,
+               184); // NAD27 for Canada Manitoba Ontario
+  LSDDatum D07(
+      7, T07, eClarke1866, -22, 160,
+      190); // NAD27 for Canada NewBrunswick Newfoundland NovaScotia Quebec
+  LSDDatum D08(8, T08, eClarke1866, 4, 159,
+               188); // NAD27 for Canada NorthwestTerritories Saskatchewan
+  LSDDatum D09(9, T09, eClarke1866, -7, 139, 181); // NAD27 for Canada Yukon
+  LSDDatum D10(10, T10, eClarke1866, 0, 125,
+               201); // NAD27 for CanalZone (ER: is that Panama??)
+  LSDDatum D11(11, T11, eClarke1866, -9, 152, 178); // NAD27 for Cuba
+  LSDDatum D12(12, T12, eClarke1866, 11, 114,
+               195); // NAD27 for Greenland (HayesPeninsula)
+  LSDDatum D13(13, T13, eClarke1866, -3, 142,
+               183); // NAD27 for Antigua Barbados Barbuda Caicos Cuba
+                     // DominicanRep GrandCayman Jamaica Turks
+  LSDDatum D14(14, T14, eClarke1866, 0, 125,
+               194); // NAD27 for Belize CostaRica ElSalvador Guatemala Honduras
+                     // Nicaragua
+  LSDDatum D15(15, T15, eClarke1866, -10, 158, 187); // NAD27 for Canada
+  LSDDatum D16(16, T16, eClarke1866, -8, 160, 176);  // NAD27 for CONUS
+  LSDDatum D17(17, T17, eClarke1866, -9, 161,
+               179); // NAD27 for CONUS East of Mississippi Including Louisiana
+                     // Missouri Minnesota
+  LSDDatum D18(18, T18, eClarke1866, -8, 159,
+               175); // NAD27 for CONUS West of Mississippi Excluding Louisiana
+                     // Missouri Minnesota
+  LSDDatum D19(19, T19, eClarke1866, -12, 130, 190); // NAD27 for Mexico
+  LSDDatum D20(20, T20, eGRS80, 0, 0, 0); // NAD83 for Alaska Excluding
+                                          // Aleutians
+  LSDDatum D21(21, T21, eGRS80, -2, 0, 4); // NAD83 for Aleutians
+  LSDDatum D22(22, T22, eGRS80, 0, 0, 0);  // NAD83 for Canada
+  LSDDatum D23(23, T23, eGRS80, 0, 0, 0);  // NAD83 for CONUS
+  LSDDatum D24(24, T24, eGRS80, 1, 1, -1); // NAD83 for Hawaii
+  LSDDatum D25(25, T25, eGRS80, 0, 0, 0);  // NAD83 for Mexico CentralAmerica
+  LSDDatum D26(26, T26, eWGS72, 0, 0, 0);  // WGS72 for world
+  LSDDatum D27(27, T27, eWGS84, 0, 0, 0);  // WGS84 for world
 
   Datum_data_temp.push_back(D00);
   Datum_data_temp.push_back(D01);
@@ -841,36 +855,34 @@ void LSDCoordinateConverterLLandUTM::create()
   Ellipsoids = Ellipse_data_temp;
   Datums = Datum_data_temp;
 
-  RADIANS_PER_DEGREE = M_PI/180.0;
-  DEGREES_PER_RADIAN = 180.0/M_PI;
+  RADIANS_PER_DEGREE = M_PI / 180.0;
+  DEGREES_PER_RADIAN = 180.0 / M_PI;
 
   /** Useful constants **/
   TWOPI = 2.0 * M_PI;
   HALFPI = M_PI / 2.0;
 
   // Grid granularity for rounding UTM coordinates to generate MapXY.
-  grid_size = 100000.0;    // 100 km grid
+  grid_size = 100000.0; // 100 km grid
 
   // WGS84 Parameters
-  WGS84_A=6378137.0;    // major axis
-  WGS84_B=6356752.31424518;  // minor axis
-  WGS84_F=0.0033528107;    // ellipsoid flattening
-  WGS84_E=0.0818191908;    // first eccentricity
-  WGS84_EP=0.0820944379;    // second eccentricity
+  WGS84_A = 6378137.0;        // major axis
+  WGS84_B = 6356752.31424518; // minor axis
+  WGS84_F = 0.0033528107;     // ellipsoid flattening
+  WGS84_E = 0.0818191908;     // first eccentricity
+  WGS84_EP = 0.0820944379;    // second eccentricity
 
   // UTM Parameters
-  UTM_K0=0.9996;      // scale factor
-  UTM_FE=500000.0;    // false easting
-  UTM_FN_N=0.0;           // false northing, northern hemisphere
-  UTM_FN_S=10000000.0;    // false northing, southern hemisphere
-  UTM_E2=(WGS84_E*WGS84_E);  // e^2
-  UTM_E4=(UTM_E2*UTM_E2);    // e^4
-  UTM_E6=(UTM_E4*UTM_E2);    // e^6
-  UTM_EP2=(UTM_E2/(1-UTM_E2));  // e'^2
-
+  UTM_K0 = 0.9996;                   // scale factor
+  UTM_FE = 500000.0;                 // false easting
+  UTM_FN_N = 0.0;                    // false northing, northern hemisphere
+  UTM_FN_S = 10000000.0;             // false northing, southern hemisphere
+  UTM_E2 = (WGS84_E * WGS84_E);      // e^2
+  UTM_E4 = (UTM_E2 * UTM_E2);        // e^4
+  UTM_E6 = (UTM_E4 * UTM_E2);        // e^6
+  UTM_EP2 = (UTM_E2 / (1 - UTM_E2)); // e'^2
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // converts LatLong to UTM coords
@@ -881,8 +893,8 @@ void LSDCoordinateConverterLLandUTM::create()
 // Minor modifications for our objects by SMM, 07/12/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,
-             double& Northing, double& Easting, int& Zone)
-{
+                                             double &Northing, double &Easting,
+                                             int &Zone) {
 
   double UTMEasting, UTMNorthing;
 
@@ -894,70 +906,79 @@ void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,
   double eccPrimeSquared;
   double N, T, C, A, M;
 
-        //Make sure the longitude is between -180.00 .. 179.9
-  double LongTemp = (Long+180)-int((Long+180)/360)*360-180;
+  // Make sure the longitude is between -180.00 .. 179.9
+  double LongTemp = (Long + 180) - int((Long + 180) / 360) * 360 - 180;
 
-  double LatRad = Lat*RADIANS_PER_DEGREE;
-  double LongRad = LongTemp*RADIANS_PER_DEGREE;
+  double LatRad = Lat * RADIANS_PER_DEGREE;
+  double LongRad = LongTemp * RADIANS_PER_DEGREE;
   double LongOriginRad;
-  int    ZoneNumber;
+  int ZoneNumber;
 
-  ZoneNumber = int((LongTemp + 180)/6) + 1;
+  ZoneNumber = int((LongTemp + 180) / 6) + 1;
 
-  if( Lat >= 56.0 && Lat < 64.0 && LongTemp >= 3.0 && LongTemp < 12.0 )
-  {
+  if (Lat >= 56.0 && Lat < 64.0 && LongTemp >= 3.0 && LongTemp < 12.0) {
     ZoneNumber = 32;
   }
-        // Special zones for Svalbard
-  if( Lat >= 72.0 && Lat < 84.0 )
-  {
-    if(      LongTemp >= 0.0  && LongTemp <  9.0 ) ZoneNumber = 31;
-    else if( LongTemp >= 9.0  && LongTemp < 21.0 ) ZoneNumber = 33;
-    else if( LongTemp >= 21.0 && LongTemp < 33.0 ) ZoneNumber = 35;
-    else if( LongTemp >= 33.0 && LongTemp < 42.0 ) ZoneNumber = 37;
-   }
-        // +3 puts origin in middle of zone
-  LongOrigin = (ZoneNumber - 1)*6 - 180 + 3;
+  // Special zones for Svalbard
+  if (Lat >= 72.0 && Lat < 84.0) {
+    if (LongTemp >= 0.0 && LongTemp < 9.0)
+      ZoneNumber = 31;
+    else if (LongTemp >= 9.0 && LongTemp < 21.0)
+      ZoneNumber = 33;
+    else if (LongTemp >= 21.0 && LongTemp < 33.0)
+      ZoneNumber = 35;
+    else if (LongTemp >= 33.0 && LongTemp < 42.0)
+      ZoneNumber = 37;
+  }
+  // +3 puts origin in middle of zone
+  LongOrigin = (ZoneNumber - 1) * 6 - 180 + 3;
   LongOriginRad = LongOrigin * RADIANS_PER_DEGREE;
 
-  //compute the UTM Zone from the latitude and longitude
+  // compute the UTM Zone from the latitude and longitude
   cout << "Zone is  " << ZoneNumber << endl;
   Zone = ZoneNumber;
 
-  eccPrimeSquared = (eccSquared)/(1-eccSquared);
+  eccPrimeSquared = (eccSquared) / (1 - eccSquared);
 
-  N = a/sqrt(1-eccSquared*sin(LatRad)*sin(LatRad));
-  T = tan(LatRad)*tan(LatRad);
-  C = eccPrimeSquared*cos(LatRad)*cos(LatRad);
-  A = cos(LatRad)*(LongRad-LongOriginRad);
+  N = a / sqrt(1 - eccSquared * sin(LatRad) * sin(LatRad));
+  T = tan(LatRad) * tan(LatRad);
+  C = eccPrimeSquared * cos(LatRad) * cos(LatRad);
+  A = cos(LatRad) * (LongRad - LongOriginRad);
 
-  M = a*((1 - eccSquared/4 - 3*eccSquared*eccSquared/64
-                - 5*eccSquared*eccSquared*eccSquared/256) * LatRad
-               - (3*eccSquared/8 + 3*eccSquared*eccSquared/32
-                  + 45*eccSquared*eccSquared*eccSquared/1024)*sin(2*LatRad)
-               + (15*eccSquared*eccSquared/256
-                  + 45*eccSquared*eccSquared*eccSquared/1024)*sin(4*LatRad)
-               - (35*eccSquared*eccSquared*eccSquared/3072)*sin(6*LatRad));
+  M = a *
+      ((1 - eccSquared / 4 - 3 * eccSquared * eccSquared / 64 -
+        5 * eccSquared * eccSquared * eccSquared / 256) *
+           LatRad -
+       (3 * eccSquared / 8 + 3 * eccSquared * eccSquared / 32 +
+        45 * eccSquared * eccSquared * eccSquared / 1024) *
+           sin(2 * LatRad) +
+       (15 * eccSquared * eccSquared / 256 +
+        45 * eccSquared * eccSquared * eccSquared / 1024) *
+           sin(4 * LatRad) -
+       (35 * eccSquared * eccSquared * eccSquared / 3072) * sin(6 * LatRad));
 
-  UTMEasting = (double)
-          (k0*N*(A+(1-T+C)*A*A*A/6
-                 + (5-18*T+T*T+72*C-58*eccPrimeSquared)*A*A*A*A*A/120)
-           + 500000.0);
+  UTMEasting =
+      (double)(k0 * N *
+                   (A + (1 - T + C) * A * A * A / 6 +
+                    (5 - 18 * T + T * T + 72 * C - 58 * eccPrimeSquared) * A *
+                        A * A * A * A / 120) +
+               500000.0);
 
-  UTMNorthing = (double)
-          (k0*(M+N*tan(LatRad)
-               *(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24
-                 + (61-58*T+T*T+600*C-330*eccPrimeSquared)*A*A*A*A*A*A/720)));
+  UTMNorthing =
+      (double)(k0 * (M + N * tan(LatRad) *
+                             (A * A / 2 +
+                              (5 - T + 9 * C + 4 * C * C) * A * A * A * A / 24 +
+                              (61 - 58 * T + T * T + 600 * C -
+                               330 * eccPrimeSquared) *
+                                  A * A * A * A * A * A / 720)));
 
-  if(Lat < 0)
-  {
-    //10000000 meter offset for southern hemisphere
+  if (Lat < 0) {
+    // 10000000 meter offset for southern hemisphere
     UTMNorthing += 10000000.0;
   }
 
   Northing = UTMNorthing;
   Easting = UTMEasting;
-
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -969,9 +990,11 @@ void LSDCoordinateConverterLLandUTM::LLtoUTM(int eId, double Lat, double Long,
 //
 // Minor modifications for our objects by SMM, 07/12/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDCoordinateConverterLLandUTM::LLtoUTM_ForceZone(int eId, double Lat, double Long,
-             double& Northing, double& Easting, int Zone)
-{
+void LSDCoordinateConverterLLandUTM::LLtoUTM_ForceZone(int eId, double Lat,
+                                                       double Long,
+                                                       double &Northing,
+                                                       double &Easting,
+                                                       int Zone) {
 
   double UTMEasting, UTMNorthing;
 
@@ -983,145 +1006,155 @@ void LSDCoordinateConverterLLandUTM::LLtoUTM_ForceZone(int eId, double Lat, doub
   double eccPrimeSquared;
   double N, T, C, A, M;
 
-        //Make sure the longitude is between -180.00 .. 179.9
-  double LongTemp = (Long+180)-int((Long+180)/360)*360-180;
+  // Make sure the longitude is between -180.00 .. 179.9
+  double LongTemp = (Long + 180) - int((Long + 180) / 360) * 360 - 180;
 
-  double LatRad = Lat*RADIANS_PER_DEGREE;
-  double LongRad = LongTemp*RADIANS_PER_DEGREE;
+  double LatRad = Lat * RADIANS_PER_DEGREE;
+  double LongRad = LongTemp * RADIANS_PER_DEGREE;
   double LongOriginRad;
   int ZoneNumber;
 
-  ZoneNumber = int((LongTemp + 180)/6) + 1;
+  ZoneNumber = int((LongTemp + 180) / 6) + 1;
 
-  if( Lat >= 56.0 && Lat < 64.0 && LongTemp >= 3.0 && LongTemp < 12.0 )
-  {
+  if (Lat >= 56.0 && Lat < 64.0 && LongTemp >= 3.0 && LongTemp < 12.0) {
     ZoneNumber = 32;
   }
-        // Special zones for Svalbard
-  if( Lat >= 72.0 && Lat < 84.0 )
-  {
-    if(      LongTemp >= 0.0  && LongTemp <  9.0 ) ZoneNumber = 31;
-    else if( LongTemp >= 9.0  && LongTemp < 21.0 ) ZoneNumber = 33;
-    else if( LongTemp >= 21.0 && LongTemp < 33.0 ) ZoneNumber = 35;
-    else if( LongTemp >= 33.0 && LongTemp < 42.0 ) ZoneNumber = 37;
+  // Special zones for Svalbard
+  if (Lat >= 72.0 && Lat < 84.0) {
+    if (LongTemp >= 0.0 && LongTemp < 9.0)
+      ZoneNumber = 31;
+    else if (LongTemp >= 9.0 && LongTemp < 21.0)
+      ZoneNumber = 33;
+    else if (LongTemp >= 21.0 && LongTemp < 33.0)
+      ZoneNumber = 35;
+    else if (LongTemp >= 33.0 && LongTemp < 42.0)
+      ZoneNumber = 37;
   }
 
-  if (ZoneNumber != Zone)
-  {
+  if (ZoneNumber != Zone) {
     cout << "WARNING: the point is located in zone " << ZoneNumber << endl
          << "but you are forcing the points into Zone " << Zone << endl;
-   }
+  }
 
   // +3 puts origin in middle of zone
-  LongOrigin = (Zone - 1)*6 - 180 + 3;
+  LongOrigin = (Zone - 1) * 6 - 180 + 3;
   LongOriginRad = LongOrigin * RADIANS_PER_DEGREE;
 
-  eccPrimeSquared = (eccSquared)/(1-eccSquared);
+  eccPrimeSquared = (eccSquared) / (1 - eccSquared);
 
-  N = a/sqrt(1-eccSquared*sin(LatRad)*sin(LatRad));
-  T = tan(LatRad)*tan(LatRad);
-  C = eccPrimeSquared*cos(LatRad)*cos(LatRad);
-  A = cos(LatRad)*(LongRad-LongOriginRad);
+  N = a / sqrt(1 - eccSquared * sin(LatRad) * sin(LatRad));
+  T = tan(LatRad) * tan(LatRad);
+  C = eccPrimeSquared * cos(LatRad) * cos(LatRad);
+  A = cos(LatRad) * (LongRad - LongOriginRad);
 
-  M = a*((1 - eccSquared/4 - 3*eccSquared*eccSquared/64
-                - 5*eccSquared*eccSquared*eccSquared/256) * LatRad
-               - (3*eccSquared/8 + 3*eccSquared*eccSquared/32
-                  + 45*eccSquared*eccSquared*eccSquared/1024)*sin(2*LatRad)
-               + (15*eccSquared*eccSquared/256
-                  + 45*eccSquared*eccSquared*eccSquared/1024)*sin(4*LatRad)
-               - (35*eccSquared*eccSquared*eccSquared/3072)*sin(6*LatRad));
+  M = a *
+      ((1 - eccSquared / 4 - 3 * eccSquared * eccSquared / 64 -
+        5 * eccSquared * eccSquared * eccSquared / 256) *
+           LatRad -
+       (3 * eccSquared / 8 + 3 * eccSquared * eccSquared / 32 +
+        45 * eccSquared * eccSquared * eccSquared / 1024) *
+           sin(2 * LatRad) +
+       (15 * eccSquared * eccSquared / 256 +
+        45 * eccSquared * eccSquared * eccSquared / 1024) *
+           sin(4 * LatRad) -
+       (35 * eccSquared * eccSquared * eccSquared / 3072) * sin(6 * LatRad));
 
-  UTMEasting = (double)
-          (k0*N*(A+(1-T+C)*A*A*A/6
-                 + (5-18*T+T*T+72*C-58*eccPrimeSquared)*A*A*A*A*A/120)
-           + 500000.0);
+  UTMEasting =
+      (double)(k0 * N *
+                   (A + (1 - T + C) * A * A * A / 6 +
+                    (5 - 18 * T + T * T + 72 * C - 58 * eccPrimeSquared) * A *
+                        A * A * A * A / 120) +
+               500000.0);
 
-  UTMNorthing = (double)
-          (k0*(M+N*tan(LatRad)
-               *(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24
-                 + (61-58*T+T*T+600*C-330*eccPrimeSquared)*A*A*A*A*A*A/720)));
+  UTMNorthing =
+      (double)(k0 * (M + N * tan(LatRad) *
+                             (A * A / 2 +
+                              (5 - T + 9 * C + 4 * C * C) * A * A * A * A / 24 +
+                              (61 - 58 * T + T * T + 600 * C -
+                               330 * eccPrimeSquared) *
+                                  A * A * A * A * A * A / 720)));
 
-  if(Lat < 0)
-  {
-    //10000000 meter offset for southern hemisphere
+  if (Lat < 0) {
+    // 10000000 meter offset for southern hemisphere
     UTMNorthing += 10000000.0;
   }
 
   Northing = UTMNorthing;
   Easting = UTMEasting;
-
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// converts UTM coords to LatLong;  3/22/95: by ChuckGantz chuck.gantz@globalstar.com, from USGS Bulletin 1532.
-// Lat and Long are in degrees;  North latitudes and East Longitudes are positive.
+// converts UTM coords to LatLong;  3/22/95: by ChuckGantz
+// chuck.gantz@globalstar.com, from USGS Bulletin 1532. Lat and Long are in
+// degrees;  North latitudes and East Longitudes are positive.
 //
 // Minor modifications for our objects by SMM, 07/12/2014
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDCoordinateConverterLLandUTM::UTMtoLL(int eId, double UTMNorthing, double UTMEasting,
-                                             int UTMZone, bool isNorth,
-                                             double& Lat, double& Long)
-{
+void LSDCoordinateConverterLLandUTM::UTMtoLL(int eId, double UTMNorthing,
+                                             double UTMEasting, int UTMZone,
+                                             bool isNorth, double &Lat,
+                                             double &Long) {
 
   double k0 = UTM_K0;
   double a = WGS84_A;
   double eccSquared = UTM_E2;
   double eccPrimeSquared;
-  double e1 = (1-sqrt(1-eccSquared))/(1+sqrt(1-eccSquared));
+  double e1 = (1 - sqrt(1 - eccSquared)) / (1 + sqrt(1 - eccSquared));
   double N1, T1, C1, R1, D, M;
   double LongOrigin;
   double mu, phi1Rad;
   double x, y;
   int ZoneNumber;
 
-  x = UTMEasting - 500000.0; //remove 500,000 meter offset for longitude
+  x = UTMEasting - 500000.0; // remove 500,000 meter offset for longitude
   y = UTMNorthing;
 
   ZoneNumber = UTMZone;
-  if(not isNorth)
-  {
-    //cout << "Line 1010, you are in the Southern hemisphere!"<< endl;
-    //remove 10,000,000 meter offset used for southern hemisphere
+  if (not isNorth) {
+    // cout << "Line 1010, you are in the Southern hemisphere!"<< endl;
+    // remove 10,000,000 meter offset used for southern hemisphere
     y -= 10000000.0;
   }
 
-        //+3 puts origin in middle of zone
-  LongOrigin = (ZoneNumber - 1)*6 - 180 + 3;
-  eccPrimeSquared = (eccSquared)/(1-eccSquared);
+  //+3 puts origin in middle of zone
+  LongOrigin = (ZoneNumber - 1) * 6 - 180 + 3;
+  eccPrimeSquared = (eccSquared) / (1 - eccSquared);
 
   M = y / k0;
-  mu = M/(a*(1-eccSquared/4-3*eccSquared*eccSquared/64
-                   -5*eccSquared*eccSquared*eccSquared/256));
+  mu = M / (a * (1 - eccSquared / 4 - 3 * eccSquared * eccSquared / 64 -
+                 5 * eccSquared * eccSquared * eccSquared / 256));
 
-  phi1Rad = mu + ((3*e1/2-27*e1*e1*e1/32)*sin(2*mu)
-                        + (21*e1*e1/16-55*e1*e1*e1*e1/32)*sin(4*mu)
-                        + (151*e1*e1*e1/96)*sin(6*mu));
+  phi1Rad =
+      mu + ((3 * e1 / 2 - 27 * e1 * e1 * e1 / 32) * sin(2 * mu) +
+            (21 * e1 * e1 / 16 - 55 * e1 * e1 * e1 * e1 / 32) * sin(4 * mu) +
+            (151 * e1 * e1 * e1 / 96) * sin(6 * mu));
 
-  N1 = a/sqrt(1-eccSquared*sin(phi1Rad)*sin(phi1Rad));
-  T1 = tan(phi1Rad)*tan(phi1Rad);
-  C1 = eccPrimeSquared*cos(phi1Rad)*cos(phi1Rad);
-  R1 = a*(1-eccSquared)/pow(1-eccSquared*sin(phi1Rad)*sin(phi1Rad), 1.5);
-  D = x/(N1*k0);
+  N1 = a / sqrt(1 - eccSquared * sin(phi1Rad) * sin(phi1Rad));
+  T1 = tan(phi1Rad) * tan(phi1Rad);
+  C1 = eccPrimeSquared * cos(phi1Rad) * cos(phi1Rad);
+  R1 = a * (1 - eccSquared) /
+       pow(1 - eccSquared * sin(phi1Rad) * sin(phi1Rad), 1.5);
+  D = x / (N1 * k0);
 
-  Lat = phi1Rad - ((N1*tan(phi1Rad)/R1)
-                         *(D*D/2
-                           -(5+3*T1+10*C1-4*C1*C1-9*eccPrimeSquared)*D*D*D*D/24
-                           +(61+90*T1+298*C1+45*T1*T1-252*eccPrimeSquared
-                             -3*C1*C1)*D*D*D*D*D*D/720));
+  Lat = phi1Rad - ((N1 * tan(phi1Rad) / R1) *
+                   (D * D / 2 -
+                    (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * eccPrimeSquared) *
+                        D * D * D * D / 24 +
+                    (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 -
+                     252 * eccPrimeSquared - 3 * C1 * C1) *
+                        D * D * D * D * D * D / 720));
 
   Lat = Lat * DEGREES_PER_RADIAN;
 
-  Long = ((D-(1+2*T1+C1)*D*D*D/6
-                 +(5-2*C1+28*T1-3*C1*C1+8*eccPrimeSquared+24*T1*T1)
-                 *D*D*D*D*D/120)
-                / cos(phi1Rad));
+  Long = ((D - (1 + 2 * T1 + C1) * D * D * D / 6 +
+           (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * eccPrimeSquared +
+            24 * T1 * T1) *
+               D * D * D * D * D / 120) /
+          cos(phi1Rad));
   Long = LongOrigin + Long * DEGREES_PER_RADIAN;
-
 }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Converts from british national grid to lat long
@@ -1131,76 +1164,80 @@ void LSDCoordinateConverterLLandUTM::UTMtoLL(int eId, double UTMNorthing, double
 // see also
 // https://github.com/chrisveness/geodesy/blob/master/osgridref.js
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void LSDCoordinateConverterLLandUTM::BNGtoLL(double Northing, double Easting, double& Lat, double& Long)
-{
+void LSDCoordinateConverterLLandUTM::BNGtoLL(double Northing, double Easting,
+                                             double &Lat, double &Long) {
   // The Airy 180 semi-major and semi-minor axes used for OSGB36 (m)
   double a = 6377563.396;
-  double b =  6356256.909;
+  double b = 6356256.909;
 
-  double F0 = 0.9996012717;    // scale factor on the central meridian
-  double lat0 = 49*M_PI/180;   // Latitude of true origin (radians)
-  double lon0 = -2*M_PI/180;      // Longtitude of true origin and central meridian (radians)
+  double F0 = 0.9996012717;      // scale factor on the central meridian
+  double lat0 = 49 * M_PI / 180; // Latitude of true origin (radians)
+  double lon0 = -2 * M_PI /
+                180; // Longtitude of true origin and central meridian (radians)
 
   // Northing & easting of true origin (m)
   double N0 = -100000;
   double E0 = 400000;
 
-  double e2 = 1 - (b*b)/(a*a);  // eccentricity squared
-  double n = (a-b)/(a+b);
+  double e2 = 1 - (b * b) / (a * a); // eccentricity squared
+  double n = (a - b) / (a + b);
 
   // Initialise the iterative variables
   double lat = lat0;
   double M = 0;
-  double M1,M2,M3,M4;
+  double M1, M2, M3, M4;
 
   // Loop until you get the right latitude
-  while(  (Northing - N0 - M) > 0.00001)
-  {
-    lat = (Northing-N0-M)/(a*F0) + lat;
-    M1 = (1 + n + (5/4)*n*n + (5/4)*n*n*n) * (lat-lat0);
-    M2 = (3*n + 3*n*n + (21/8)*n*n*n) * sin(lat-lat0) * cos(lat+lat0);
-    M3 = ((15/8)*n*n + (15/8)*n*n*n) * sin(2*(lat-lat0)) * cos(2*(lat+lat0));
-    M4 = (35/24)*n*n*n * sin(3*(lat-lat0)) * cos(3*(lat+lat0));
+  while ((Northing - N0 - M) > 0.00001) {
+    lat = (Northing - N0 - M) / (a * F0) + lat;
+    M1 = (1 + n + (5 / 4) * n * n + (5 / 4) * n * n * n) * (lat - lat0);
+    M2 = (3 * n + 3 * n * n + (21 / 8) * n * n * n) * sin(lat - lat0) *
+         cos(lat + lat0);
+    M3 = ((15 / 8) * n * n + (15 / 8) * n * n * n) * sin(2 * (lat - lat0)) *
+         cos(2 * (lat + lat0));
+    M4 = (35 / 24) * n * n * n * sin(3 * (lat - lat0)) * cos(3 * (lat + lat0));
 
     // calculate the meridional arc
     M = b * F0 * (M1 - M2 + M3 - M4);
   }
 
   // transverse radius of curvature
-  double nu = a*F0/sqrt(1-e2*sin(lat)*sin(lat));
+  double nu = a * F0 / sqrt(1 - e2 * sin(lat) * sin(lat));
 
   // meridional radius of curvature
-  double rho = a*F0*(1-e2)*pow((1-e2*sin(lat)*sin(lat)),-1.5);
-  double eta2 = nu/rho-1;
-  double nu3 = nu*nu*nu;
-  double nu5 = nu*nu*nu*nu*nu;
-  double nu7 = nu*nu*nu*nu*nu*nu*nu;    // BATMAN!!
-  double tanlat2 = tan(lat)*tan(lat);
-  double tanlat4 = tanlat2*tanlat2;
+  double rho = a * F0 * (1 - e2) * pow((1 - e2 * sin(lat) * sin(lat)), -1.5);
+  double eta2 = nu / rho - 1;
+  double nu3 = nu * nu * nu;
+  double nu5 = nu * nu * nu * nu * nu;
+  double nu7 = nu * nu * nu * nu * nu * nu * nu; // BATMAN!!
+  double tanlat2 = tan(lat) * tan(lat);
+  double tanlat4 = tanlat2 * tanlat2;
 
-  double secLat = 1./cos(lat);
-  double VII = tan(lat)/(2*rho*nu);
-  double VIII = tan(lat)/(24*rho*nu3)*(5+3*tanlat2+eta2-9*tanlat2*eta2);
-  double IX = tan(lat)/(720*rho*nu5)*(61+90*tanlat2+45*tanlat4);
-  double X = secLat/nu;
-  double XI = secLat/(6*nu3)*(nu/rho+2*tanlat2);
-  double XII = secLat/(120*nu5)*(5+28*tanlat2+24*tanlat4);
-  double XIIA = secLat/(5040*nu7)*(61+662*tanlat2+1320*tanlat4+720*tanlat2*tanlat4);
-  double dE = Easting-E0;
+  double secLat = 1. / cos(lat);
+  double VII = tan(lat) / (2 * rho * nu);
+  double VIII = tan(lat) / (24 * rho * nu3) *
+                (5 + 3 * tanlat2 + eta2 - 9 * tanlat2 * eta2);
+  double IX = tan(lat) / (720 * rho * nu5) * (61 + 90 * tanlat2 + 45 * tanlat4);
+  double X = secLat / nu;
+  double XI = secLat / (6 * nu3) * (nu / rho + 2 * tanlat2);
+  double XII = secLat / (120 * nu5) * (5 + 28 * tanlat2 + 24 * tanlat4);
+  double XIIA = secLat / (5040 * nu7) *
+                (61 + 662 * tanlat2 + 1320 * tanlat4 + 720 * tanlat2 * tanlat4);
+  double dE = Easting - E0;
 
-  lat = lat - VII*dE*dE + VIII*dE*dE*dE*dE - IX*dE*dE*dE*dE*dE*dE;
-  double lon = lon0 + X*dE - XI*dE*dE*dE + XII*dE*dE*dE*dE*dE - XIIA*dE*dE*dE*dE*dE*dE*dE;
+  lat = lat - VII * dE * dE + VIII * dE * dE * dE * dE -
+        IX * dE * dE * dE * dE * dE * dE;
+  double lon = lon0 + X * dE - XI * dE * dE * dE +
+               XII * dE * dE * dE * dE * dE -
+               XIIA * dE * dE * dE * dE * dE * dE * dE;
 
   // convert to degrees
-  lat = lat*180/M_PI;
-  lon = lon*180/M_PI;
+  lat = lat * 180 / M_PI;
+  lon = lon * 180 / M_PI;
 
   Lat = lat;
   Long = lon;
-
-
 }
-
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // converts LatLongHt in datum dIn, to LatLongHt in datum dTo;
@@ -1211,41 +1248,42 @@ void LSDCoordinateConverterLLandUTM::BNGtoLL(double Northing, double Easting, do
 // to get acceptable accuracy a large table is needed -- see NADCON, NTv2...
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void LSDCoordinateConverterLLandUTM::DatumConvert(int dIn, double LatIn,
-                  double LongIn, double HtIn,
-                  int dTo,  double& LatTo, double& LongTo, double& HtTo)
-{
-  double a,ee,N,X,Y,Z,EE,p,b,t;
+                                                  double LongIn, double HtIn,
+                                                  int dTo, double &LatTo,
+                                                  double &LongTo,
+                                                  double &HtTo) {
+  double a, ee, N, X, Y, Z, EE, p, b, t;
 
   //--transform to XYZ, using the "In" ellipsoid
-  //LongIn += 180;
+  // LongIn += 180;
   a = Ellipsoids[Datums[dIn].eId].EquatorialRadius;
-  ee= Ellipsoids[Datums[dIn].eId].eccSquared;
-  N = a / sqrt(1 - ee*sin(rad(LatIn))*sin(rad(LatIn)));
+  ee = Ellipsoids[Datums[dIn].eId].eccSquared;
+  N = a / sqrt(1 - ee * sin(rad(LatIn)) * sin(rad(LatIn)));
   X = (N + HtIn) * cos(rad(LatIn)) * cos(rad(LongIn));
   Y = (N + HtIn) * cos(rad(LatIn)) * sin(rad(LongIn));
-  Z = (N*(1-ee) + HtIn) * sin(rad(LatIn));
+  Z = (N * (1 - ee) + HtIn) * sin(rad(LatIn));
 
   //--apply delta-terms dX dY dZ
-  //cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;    //==DEBUG
-  X+= Datums[dIn].dX - Datums[dTo].dX;
-  Y+= Datums[dIn].dY - Datums[dTo].dY;
-  Z+= Datums[dIn].dZ - Datums[dTo].dZ;
-  //cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;    //==DEBUG
+  // cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;    //==DEBUG
+  X += Datums[dIn].dX - Datums[dTo].dX;
+  Y += Datums[dIn].dY - Datums[dTo].dY;
+  Z += Datums[dIn].dZ - Datums[dTo].dZ;
+  // cout<<"\tX:" <<X <<" Y:" <<Y <<" Z:" <<Z;    //==DEBUG
 
   //--transform back to LatLongHeight, using the "To" ellipsoid
   a = Ellipsoids[Datums[dTo].eId].EquatorialRadius;
-  ee= Ellipsoids[Datums[dTo].eId].eccSquared;
-  EE= ee/(1-ee);
-  p = sqrt(X*X + Y*Y);
-  b = a*sqrt(1-ee);
-  t = atan(Z*a/(p*b));
-  LatTo = atan((Z+EE*b*sin(t)*sin(t)*sin(t)) / (p-ee*a*cos(t)*cos(t)*cos(t)));
-  LongTo= atan(Y/X);
-  HtTo  = p/cos(LatTo) - a/sqrt(1-ee*sin(LatTo)*sin(LatTo));
+  ee = Ellipsoids[Datums[dTo].eId].eccSquared;
+  EE = ee / (1 - ee);
+  p = sqrt(X * X + Y * Y);
+  b = a * sqrt(1 - ee);
+  t = atan(Z * a / (p * b));
+  LatTo = atan((Z + EE * b * sin(t) * sin(t) * sin(t)) /
+               (p - ee * a * cos(t) * cos(t) * cos(t)));
+  LongTo = atan(Y / X);
+  HtTo = p / cos(LatTo) - a / sqrt(1 - ee * sin(LatTo) * sin(LatTo));
   LatTo = deg(LatTo);
   LongTo = deg(LongTo);
   LongTo -= 180;
 }
-
 
 #endif

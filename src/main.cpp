@@ -19,7 +19,8 @@
 ///
 /// Numerous people have contributed directly and indirectly to the algorithms,
 /// code structure, libraries and functionallity behind the Catchment Model.
-/// Much code has been adapted from other open source numerical models, including:
+/// Much code has been adapted from other open source numerical models,
+/// including:
 ///
 /// - The CAESAR-Lisflood model (Coulthard et. al, 2013)
 /// (Cellular automaton code, erosional model, area scanning algorithm,
@@ -31,9 +32,9 @@
 /// driver files, general C++ coding style. Simon Mudd, et al.
 ///
 ///
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
-#include <cstdlib>
 #include <sys/stat.h>
 
 #include "catchmentmodel/LSDCatchmentModel.hpp"
@@ -46,57 +47,56 @@
 
 using namespace LSDUtils;
 
-int main(int argc, char *argv[])
-{
-  #ifdef DEBUG
+int main(int argc, char *argv[]) {
+#ifdef DEBUG
   std::cout << "===================================" << std::endl;
   std::cout << "||    Running in DEBUG mode      ||" << std::endl;
   std::cout << "===================================" << std::endl;
-  #endif
+#endif
 
   std::cout << "##################################" << std::endl;
   std::cout << "#  CATCHMENT HYDROGEOMORPHOLOGY  #" << std::endl;
   std::cout << "#        MODEL version 1.0       #" << std::endl;
   std::cout << "#          (HAIL-CAESAR)         #" << std::endl;
   std::cout << "##################################" << std::endl;
-  std::cout << " Version: "<< CHM_VERS << std::endl;
+  std::cout << " Version: " << CHM_VERS << std::endl;
   std::cout << " at git commit number: " GIT_REVISION << std::endl;
   std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
 
-
-  // For the timing routine
-  #ifdef OMP_COMPILE_FOR_PARALLEL
+// For the timing routine
+#ifdef OMP_COMPILE_FOR_PARALLEL
   double start_time = omp_get_wtime();
-  #endif
+#endif
 
-  // Just prints out how many threads/cores you have, when run in parallel mode
-  #ifdef OMP_COMPILE_FOR_PARALLEL
+// Just prints out how many threads/cores you have, when run in parallel mode
+#ifdef OMP_COMPILE_FOR_PARALLEL
   quickOpenMPtest();
-  #endif
+#endif
 
-  if (argc < 3)
-  {
-    std::cout << "\n###################################################" << std::endl;
+  if (argc < 3) {
+    std::cout << "\n###################################################"
+              << std::endl;
     std::cout << "No parameter file supplied" << std::endl;
     std::cout << "You must supply a path and parameter file!" << std::endl;
     std::cout << "see https://dvalters.github.io/HAIL-CAESAR/" << std::endl;
     std::cout << "for assistance." << std::endl;
-    std::cout << "###################################################" << std::endl;
+    std::cout << "###################################################"
+              << std::endl;
 
-    exit(0);  // Game over, try again.
+    exit(0); // Game over, try again.
   }
 
-  if (argc > 3)
-  {
-    std::cout << "Too many input arguments supplied (should be 3...)" << std::endl;
+  if (argc > 3) {
+    std::cout << "Too many input arguments supplied (should be 3...)"
+              << std::endl;
     exit(0);
   }
-
 
   std::string pname(argv[1]);
   std::string pfname(argv[2]);
   // The path name and the parameter file name, respectively.
-  // Remember: argc[0] is the program name that you just typed in to the terminal.
+  // Remember: argc[0] is the program name that you just typed in to the
+  // terminal.
   std::cout << "The pathname is: " << pname
             << " and the parameter file is: " << pfname << std::endl;
 
@@ -105,8 +105,7 @@ int main(int argc, char *argv[])
   LSDCatchmentModel simulation(pname, pfname);
   simulation.initialise_model_domain_extents();
   simulation.initialise_arrays();
-  if (simulation.groundwater_mode())
-  {
+  if (simulation.groundwater_mode()) {
     simulation.initialise_groundwater(); // Is this the right arg?;
   }
 
@@ -136,8 +135,7 @@ int main(int argc, char *argv[])
 
   // Entering the main loop here
   std::cout << "Entering main model loop..." << std::endl;
-  do
-  {
+  do {
     // Simulation iteration functions
     simulation.set_loop_cycle();
     // This is the difference between water entering the catchment_waterinputs
@@ -157,8 +155,7 @@ int main(int argc, char *argv[])
     // Distribute the water with the LISFLOOD Cellular Automaton algorithm
     simulation.flow_route();
     // Groundwater updates
-    if (simulation.groundwater_mode())
-    {
+    if (simulation.groundwater_mode()) {
       simulation.wpgw_water_input(); // Is this the right arg?;
     }
     // Calculate the new water depths in the catchment
@@ -171,11 +168,10 @@ int main(int argc, char *argv[])
     simulation.check_wetted_area(scan_area_interval_iter);
 
     // Erosion processes if not a hydrology-only simulation
-    if (!simulation.is_hydro_only())
-    {
+    if (!simulation.is_hydro_only()) {
       // This is quite inefficient code in the current version...
       simulation.call_erosion();
-      //simulation.call_lateral(); // not tested in this version!
+      // simulation.call_lateral(); // not tested in this version!
     }
 
     // Water outputs from edges/catchment outlet
@@ -188,8 +184,7 @@ int main(int argc, char *argv[])
     simulation.grow_vegetation(vegetation_growth_interval_hours);
 
     // Groundwater movements
-    if (simulation.groundwater_mode())
-    {
+    if (simulation.groundwater_mode()) {
       simulation.call_groundwater_routines();
     }
 
@@ -205,14 +200,15 @@ int main(int argc, char *argv[])
 
   std::cout << "THE SIMULATION IS FINISHED!" << std::endl;
 
-  // Timing routine for parallel
-  #ifdef OMP_COMPILE_FOR_PARALLEL
+// Timing routine for parallel
+#ifdef OMP_COMPILE_FOR_PARALLEL
   double end_time = omp_get_wtime();
-  double simulation_run_time = (end_time - start_time)/60;
-  std::cout << "The simulation ran in " << simulation_run_time << \
-               " minutes. This includes everything executed within the main() function." \
+  double simulation_run_time = (end_time - start_time) / 60;
+  std::cout << "The simulation ran in " << simulation_run_time
+            << " minutes. This includes everything executed within the main() "
+               "function."
             << std::endl;
-  #endif
+#endif
 
   return 0;
 }

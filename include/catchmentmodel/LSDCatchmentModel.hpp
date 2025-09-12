@@ -2,15 +2,15 @@
 //
 // Header file for the LSDCatchmentModel
 
-#include <vector>
-#include <cmath>
-#include <string>
 #include <array>
-#include <map>
+#include <cmath>
 #include <fstream>
-#include <sstream>
 #include <iomanip>
+#include <map>
+#include <sstream>
+#include <string>
 #include <sys/stat.h>
+#include <vector>
 
 // Include for OpenMP
 #include <omp.h>
@@ -21,7 +21,7 @@
 
 #include "LSDGrainMatrix.hpp"
 #include "LSDRainfallRunoff.hpp"
-#include "TNT/tnt.h"   // Template Numerical Toolkit library: used for 2D Arrays.
+#include "TNT/tnt.h" // Template Numerical Toolkit library: used for 2D Arrays.
 
 #ifndef LSDCatchmentModel_H
 #define LSDCatchmentModel_H
@@ -29,12 +29,11 @@
 /// @brief This object is used to model the hydrology, sediment transport and
 /// evolution of individual basins.
 /// @details The object is (for now) just a rough and ready translation of the
-/// CAESAR-Lisflood model - a hydrologically explicit landscape evolution model. It
-/// models landscape evolution and hydro-geomorphic processes at the basin scale.
-class LSDCatchmentModel: public LSDRaster
-{
+/// CAESAR-Lisflood model - a hydrologically explicit landscape evolution model.
+/// It models landscape evolution and hydro-geomorphic processes at the basin
+/// scale.
+class LSDCatchmentModel : public LSDRaster {
 public:
-
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   //
   // Constructors
@@ -45,10 +44,7 @@ public:
   /// It then opens the paramter file and ingests the information
   /// @author DAV
   /// @date 2015-01-16
-  LSDCatchmentModel()
-  {
-    create();
-  }
+  LSDCatchmentModel() { create(); }
 
   /// @brief this constructor just reads the param file given by the path and
   /// filename. You must give the parameter file extension!
@@ -56,8 +52,7 @@ public:
   /// @param fname the filename of the parameter file !!INCLUDING EXTENSION!!
   /// @author DAV
   /// @date 2015-01-16
-  LSDCatchmentModel(string pname, string pfname)
-  {
+  LSDCatchmentModel(string pname, string pfname) {
     std::cout << "The constructor has been called..." << std::endl;
     create(pname, pfname);
   }
@@ -72,11 +67,11 @@ public:
   /// model fields such as elevation, water depth etc.
   void initialise_model_domain_extents();
 
-  /// @brief Checks that there is a real terrain point on at least one side of the DEM
-  /// and also counts the number of actual grid cells in the catchment.
-  /// @details This only currently checks for an edge that is not NODATA on at least one side
-  /// It does not check that the DEM has its lowest point on this edge. This
-  /// should probably be added.
+  /// @brief Checks that there is a real terrain point on at least one side of
+  /// the DEM and also counts the number of actual grid cells in the catchment.
+  /// @details This only currently checks for an edge that is not NODATA on at
+  /// least one side It does not check that the DEM has its lowest point on this
+  /// edge. This should probably be added.
   void check_DEM_edge_condition();
 
   /// @brief reads data values from the parameter file into the relevant maps
@@ -105,7 +100,8 @@ public:
   // (should probably go in separate class/file)
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-  /// @brief Loads the required data files based on the parameters set in the parameter file
+  /// @brief Loads the required data files based on the parameters set in the
+  /// parameter file
   /// @author dav
   void load_data();
 
@@ -113,21 +109,24 @@ public:
   /// as well as those default initial values in the code.
   void print_parameters();
 
-  /// @brief Loads the rainfall data file which is in a special format (headerless text file)
+  /// @brief Loads the rainfall data file which is in a special format
+  /// (headerless text file)
   /// @author DAV
-  /// @details Rainfall data file is not too big, so think it's okay to use the vector<vector>
-  /// method instead of TNT array. Easier to dynamically resize as the rainfall data contains
-  /// no header and can vary in size. Saves the user having to count the rows and cols. Reads
-  /// in the rainfall data file specified in the parameter list file as floats.
+  /// @details Rainfall data file is not too big, so think it's okay to use the
+  /// vector<vector> method instead of TNT array. Easier to dynamically resize
+  /// as the rainfall data contains no header and can vary in size. Saves the
+  /// user having to count the rows and cols. Reads in the rainfall data file
+  /// specified in the parameter list file as floats.
   /// @return Returns a vector of vector<float>. (A 2D-like vector).
-  std::vector< std::vector<float> > read_rainfalldata(std::string FILENAME);
+  std::vector<std::vector<float>> read_rainfalldata(std::string FILENAME);
 
-  /// @brief Reads in the grain data file, note, that this is not a raster and in
-  /// a special format like the rainfall file.
+  /// @brief Reads in the grain data file, note, that this is not a raster and
+  /// in a special format like the rainfall file.
   /// @author DAV
-  /// @details The grain data file consists of multiple columns of data in a text file
-  /// that store the grain size fractions for the surface and the subsurface strata. Also
-  /// contains an index number and the x y location of each grid cell containing grain data.
+  /// @details The grain data file consists of multiple columns of data in a
+  /// text file that store the grain size fractions for the surface and the
+  /// subsurface strata. Also contains an index number and the x y location of
+  /// each grid cell containing grain data.
   void ingest_graindata_from_file(std::string FILENAME);
 
   /// @brief Prints the contents of the rainfall data for checking
@@ -139,16 +138,18 @@ public:
 
   void print_reach_data();
 
-  /// @brief Calls the various save functions depending on the data types to be saved (Raster Output)
+  /// @brief Calls the various save functions depending on the data types to be
+  /// saved (Raster Output)
   /// @author DAV
-  /// @details dependent on the LSDRaster class calling the overloaded write_raster func. If you are looking
-  /// for the function that writes the hydrograph/sediment time series, see the write_output() function.
+  /// @details dependent on the LSDRaster class calling the overloaded
+  /// write_raster func. If you are looking for the function that writes the
+  /// hydrograph/sediment time series, see the write_output() function.
   void save_raster_data(double tempcycle);
 
   /// @brief Writes the timeseries file for current timestep.
   /// @detail Writes discharge and sediment flux according to
   /// the same format as found in the CAESAR-Lisflood catchmetn
-  void write_output_timeseries(runoffGrid& runoff);
+  void write_output_timeseries(runoffGrid &runoff);
 
   void save_raster_output();
 
@@ -159,8 +160,7 @@ public:
   /// @details Overloaded to take a reference to a runoff object
   /// to allow calculation from the OOP method.-
   /// @author DAV
-  void output_data(double temptotal, runoffGrid& runoff);
-
+  void output_data(double temptotal, runoffGrid &runoff);
 
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   // MODEL TIMING CONTROL
@@ -174,7 +174,8 @@ public:
 
   double courant_friedrichs_lewy_condition();
 
-  /// @brief Calculates and sets the maximum time step (also the erosion timestep)
+  /// @brief Calculates and sets the maximum time step (also the erosion
+  /// timestep)
   void set_maximum_timestep();
 
   /// @brief calculates the timestep for the hydro/flow model
@@ -236,7 +237,7 @@ public:
 
   /// @brief Sorts the acrive erosion layer in terms of its
   /// grainsizes.
-  void sort_active(int x,int y);
+  void sort_active(int x, int y);
 
   /// @brief Calculate the d50 grain size (median grainsize)
   double d50(int index1);
@@ -252,7 +253,7 @@ public:
 
   /// @brief Determines which grain size fractions are moved to
   /// neigbouring cells during erosion routines.
-  void slide_GS(int x,int y, double amount,int x2, int y2);
+  void slide_GS(int x, int y, double amount, int x2, int y2);
 
   /// @brief (Used only in lateral channel erosion - under test)
   /// @returns "elevtot" or zero.
@@ -261,7 +262,8 @@ public:
   /// @brief The main erosion routine
   /// @details Erosion only takes place above certain threshold.
   /// Contains calls to subroutines such as addGS() and d50().
-  /// Needs re-factoring to extract seprate methods (bedrock vs loose sedi erosion etc.)
+  /// Needs re-factoring to extract seprate methods (bedrock vs loose sedi
+  /// erosion etc.)
   /// @author DAV
   double erode(double mult_factor);
 
@@ -302,9 +304,9 @@ public:
   // method.)
   void slope_creep(int creep_time_interval_days, double creep_coeff);
 
-  void creep( double );
+  void creep(double);
 
-  void soil_erosion( double time );
+  void soil_erosion(double time);
 
   void soil_development();
 
@@ -314,7 +316,7 @@ public:
 
   /// @brief Initialises the rainfall runoff grid if using
   /// spatially complex rainfall runoff object.
-  void initialise_rainfall_runoff(runoffGrid& runoff);
+  void initialise_rainfall_runoff(runoffGrid &runoff);
 
   /// @brief Updates the water depths (and susp sedi concentrations)
   void depth_update();
@@ -330,21 +332,23 @@ public:
   /// runoff paterns.
   /// @todo This logic needs simplifying, why bother creating a runoff object
   /// if it is never used for the simple runoff case (which is most uses.)
-  void catchment_waterinputs(runoffGrid& runoff);
+  void catchment_waterinputs(runoffGrid &runoff);
 
   /// @brief Calculates the amount of runoff on a grid-cell from the rainfall
   /// timeseries input
-  void catchment_water_input_and_hydrology( double flow_timestep);
+  void catchment_water_input_and_hydrology(double flow_timestep);
 
-  /// @brief Overloaded function is for when u<a href="#datastructures">Understanding sing the fully distriuted/complex
+  /// @brief Overloaded function is for when u<a
+  /// href="#datastructures">Understanding sing the fully distriuted/complex
   /// rainfall patterns option in the model. Takes a reference to the runoffGrid
   /// object.
-  void catchment_water_input_and_hydrology( double flow_timestep, runoffGrid& runoff);
+  void catchment_water_input_and_hydrology(double flow_timestep,
+                                           runoffGrid &runoff);
 
   /// @brief Calculates the hydrological inputs using just reach mode
   void reach_water_and_sediment_input();
 
-  std::vector<std::vector<float> > read_reachfile(std::string REACHINPUTFILE);
+  std::vector<std::vector<float>> read_reachfile(std::string REACHINPUTFILE);
 
   /// @brief Gets the number of catchment cells that have water input to them
   /// @detail Calculates which cells contain a discharge greater than MIN_Q
@@ -354,26 +358,26 @@ public:
 
   /// @brief Same as method above but uses the runoff object-based approach
   /// @detail This version is still experimental as of 2017 -DAV TODO
-  void get_catchment_input_points(runoffGrid& runoff);
+  void get_catchment_input_points(runoffGrid &runoff);
 
-  /// Calculates the amount of water entering grid cells from the rainfall timeseries
-  /// and hydroindex if spatially variable rainfall is used.
+  /// Calculates the amount of water entering grid cells from the rainfall
+  /// timeseries and hydroindex if spatially variable rainfall is used.
   /// @details Based on the semi-dsitributed TOPMODEL rainfall runoff model
-  void topmodel_runoff( double cycle);
+  void topmodel_runoff(double cycle);
 
-  /// Calculates amount of water entering grid cells when using the fully-distributed
-  /// rainfall runoff model (i.e. where every single cell can have diffferent rainfall
-  /// and saturation levels.
+  /// Calculates amount of water entering grid cells when using the
+  /// fully-distributed rainfall runoff model (i.e. where every single cell can
+  /// have diffferent rainfall and saturation levels.
   /// @details Based on TOPMODEL, modified to fully 2D distributed version
-  void topmodel_runoff(double cycle, runoffGrid& runoff);
+  void topmodel_runoff(double cycle, runoffGrid &runoff);
 
   /// @brief Calculates the hydrograph values (TOPMODEL) for printing to
   /// the output timeseries file.
-  void calchydrograph( double time);
+  void calchydrograph(double time);
 
-  /// @brief Overloaded function for calculating hydrograph when using the fully distributed
-  /// model. Takes an extra reference to the runoff object.
-  void calchydrograph(double time, runoffGrid& runoff);
+  /// @brief Overloaded function for calculating hydrograph when using the fully
+  /// distributed model. Takes an extra reference to the runoff object.
+  void calchydrograph(double time, runoffGrid &runoff);
 
   /// @brief Evaporation routine.
   void evaporate(double time);
@@ -423,7 +427,6 @@ public:
   void initialise_groundwater();
 
 private:
-
   string dem_read_extension;
   string dem_write_extension;
   string write_path;
@@ -433,17 +436,17 @@ private:
 
   bool uniquefilecheck = false;
 
-  //constants
+  // constants
   const double root = 7.07;
   const double gravity = 9.81;
   const float g = 9.81F;
   const float kappa = 0.4F;
-  const int ACTIVE_FACTOR=1;
-  const int TRUE=1;
-  const int FALSE=0;
-  const unsigned int G_MAX=10;
-  const std::array<int, 9> deltaX = {{0,  0,  1,  1,  1,  0, -1, -1, -1}};
-  const std::array<int, 9> deltaY = {{0, -1, -1,  0,  1,  1,  1,  0, -1}};
+  const int ACTIVE_FACTOR = 1;
+  const int TRUE = 1;
+  const int FALSE = 0;
+  const unsigned int G_MAX = 10;
+  const std::array<int, 9> deltaX = {{0, 0, 1, 1, 1, 0, -1, -1, -1}};
+  const std::array<int, 9> deltaY = {{0, -1, -1, 0, 1, 1, 1, 0, -1}};
 
   double water_depth_erosion_threshold = 0.01;
   int reach_input_data_timestep = 60;
@@ -462,14 +465,15 @@ private:
 
   double bedrock_erosion_threshold = 0;
   double bedrock_erosion_rate = 0;
-  double p_b = 1.5;  // detach capacity exponent from CHILD
+  double p_b = 1.5; // detach capacity exponent from CHILD
   double bedrock_erodibility_coeff_ke = 0.002;
 
-  ///int tot_number_of_tracer_points=0;
-  int input_type_flag=0; // 0 is water input from points, 1 is input from hydrograph or rainfall file.
-  double failureangle=45;
-  double saveinterval=1000;
-  int counter=0;
+  /// int tot_number_of_tracer_points=0;
+  int input_type_flag = 0; // 0 is water input from points, 1 is input from
+                           // hydrograph or rainfall file.
+  double failureangle = 45;
+  double saveinterval = 1000;
+  int counter = 0;
 
   double waterinput = 0;
   double waterOut = 0;
@@ -489,35 +493,36 @@ private:
 
   int maxcycle = 1000;
 
-  double ERODEFACTOR=0.05;
-  double DX=5.0;
+  double ERODEFACTOR = 0.05;
+  double DX = 5.0;
 
   /// memory limit
-  int LIMIT=1;
-  double MIN_Q=0.01;
-  double MIN_Q_MAXVAL=1000.0;
-  double CREEP_RATE=0.0025;
+  int LIMIT = 1;
+  double MIN_Q = 0.01;
+  double MIN_Q_MAXVAL = 1000.0;
+  double CREEP_RATE = 0.0025;
   double SOIL_RATE = 0.0025;
-  double active=0.2;
-  int grain_array_tot =1;
+  double active = 0.2;
+  int grain_array_tot = 1;
 
   /// Number of passes for edge smoothing filter
   double edge_smoothing_passes = 100.0;
   /// Number of cells to shift lat erosion downstream
-  double downstream_shift= 5.0;
+  double downstream_shift = 5.0;
   /// Max difference allowed in cross channel smoothing of edge values
   double lateral_cross_channel_smoothing = 0.0001;
-  double lateral_constant=0.0000002;
+  double lateral_constant = 0.0000002;
 
   double time_step = 1;
   std::vector<double> j, jo, j_mean, old_j_mean, new_j_mean;
 
   /// TOPMODEL 'm'
   double M = 0.005;
-  double baseflow = 0.00000005; //end of hyd model variables usually 0.0000005 changed 2/11/05
+  double baseflow = 0.00000005; // end of hyd model variables usually 0.0000005
+                                // changed 2/11/05
   // Reverted to match CL 1.8f 17/08/16 - DV
 
-  double cycle =0;  // can't initalise static vars in header file!
+  double cycle = 0; // can't initalise static vars in header file!
   double rain_factor = 1;
   double sediQ = 0;
 
@@ -546,7 +551,8 @@ private:
   double froude_limit = 0.8;
   double recirculate_proportion = 1;
 
-  double Csuspmax = 0.05; // max concentration  of SS allowed in a cell (proportion)
+  double Csuspmax =
+      0.05; // max concentration  of SS allowed in a cell (proportion)
   double hflow_threshold = 0.00001;
 
   // KAtharine
@@ -554,18 +560,20 @@ private:
 
   // TO DO: DAV - these could be read from an input file.
   // Swale grainsizes
-  double d1=0.000065;
-  double d2=0.001;
-  double d3=0.002;
-  double d4=0.004;
-  double d5=0.008;
-  double d6=0.016;
-  double d7=0.032;
-  double d8=0.064;
-  double d9=0.128;
+  double d1 = 0.000065;
+  double d2 = 0.001;
+  double d3 = 0.002;
+  double d4 = 0.004;
+  double d5 = 0.008;
+  double d6 = 0.016;
+  double d7 = 0.032;
+  double d8 = 0.064;
+  double d9 = 0.128;
 
-  // std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068, 0.146, 0.22, 0.231, 0.121, 0.0}}; // Default
-  double dprop[11] = {0.0, 0.05, 0.05, 0.15, 0.225, 0.25, 0.1, 0.075, 0.05, 0.05, 0.0}; // Swale
+  // std::array<double, 11> dprop = {{0.0, 0.144, 0.022, 0.019, 0.029, 0.068,
+  // 0.146, 0.22, 0.231, 0.121, 0.0}}; // Default
+  double dprop[11] = {0.0, 0.05,  0.05, 0.15, 0.225, 0.25,
+                      0.1, 0.075, 0.05, 0.05, 0.0}; // Swale
 
   double previous;
   int hours = 0;
@@ -591,9 +599,9 @@ private:
   double temptot = 0;
 
   std::vector<double> sum_grain, sum_grain2;
-  std::vector<double> old_sum_grain,old_sum_grain2;
+  std::vector<double> old_sum_grain, old_sum_grain2;
   std::vector<double> Qg_step, Qg_step2, Qg_hour, Qg_hour2;
-  std::vector<double> Qg_over, Qg_over2, Qg_last,Qg_last2;
+  std::vector<double> Qg_over, Qg_over2, Qg_last, Qg_last2;
 
   TNT::Array2D<double> elev;
   TNT::Array2D<double> bedrock;
@@ -640,9 +648,9 @@ private:
   TNT::Array2D<int> inpoints;
   TNT::Array2D<bool> inputpointsarray;
 
-  std::vector< std::vector<float> > hourly_rain_data;
-  std::vector<std::vector<std::vector<float> > > inputfile;
-  //TNT::Array3D<double> inputfile;
+  std::vector<std::vector<float>> hourly_rain_data;
+  std::vector<std::vector<std::vector<float>>> inputfile;
+  // TNT::Array3D<double> inputfile;
   std::vector<double> stage_inputfile;
   // TODO above these all need initialising from read ins.
 
@@ -656,9 +664,9 @@ private:
 
   std::vector<double> hourly_m_value;
   std::vector<double> temp_grain;
-  
+
   TNT::Array3D<double> veg;
-  TNT::Array2D<double> edge, edge2; //TJC 27/1/05 array for edges
+  TNT::Array2D<double> edge, edge2; // TJC 27/1/05 array for edges
   std::vector<double> old_j_mean_store;
   TNT::Array3D<double> sr, sl, su, sd;
   TNT::Array2D<double> ss;
@@ -667,7 +675,6 @@ private:
   std::vector<double> fallVelocity;
   std::vector<bool> isSuspended;
   TNT::Array2D<double> Vsusptot;
-
 
   std::vector<int> nActualGridCells;
   double Jw_newvol = 0.0;
@@ -719,8 +726,9 @@ private:
 
   bool spatially_complex_rainfall = false;
 
-  int erode_timestep_type = 0;  // 0 for default based on erosion amount, 1 for basedon hydro timestep
-  int hydro_timestep_type = 0;  // 0 for default
+  int erode_timestep_type =
+      0; // 0 for default based on erosion amount, 1 for basedon hydro timestep
+  int hydro_timestep_type = 0; // 0 for default
 
   // Bools for writing out files
   bool write_elev_file = false;
@@ -738,7 +746,6 @@ private:
 
   // input file names #BGS groundwater
   std::string groundwater_boundary_raster_file = "";
-
 
   /// output file names
   std::string elev_fname = "";
@@ -763,9 +770,8 @@ private:
 
   int tempcycle = 0;
 
-  std::vector< std::vector<float> > raingrid;	 // this is for the rainfall data file
-
-
+  std::vector<std::vector<float>>
+      raingrid; // this is for the rainfall data file
 
   // Groundwater Option Flags
   bool groundwater_on = false;
@@ -773,9 +779,8 @@ private:
   bool groundwater_basic = false;
   bool groundwater_SLiM = false;
 
-
   // #BGS global groundwater global vars
-  double creep_time_SLiM = 1; //#BGS
+  double creep_time_SLiM = 1; // #BGS
   TNT::Array2D<double> boundary;
   TNT::Array2D<double> SY;
   TNT::Array2D<double> dailyRech;
@@ -785,11 +790,11 @@ private:
   TNT::Array2D<double> dailyBF;
   TNT::Array2D<double> test_var;
   TNT::Array2D<double> GWHeadsOrig;
-  TNT::Array2D<double> GWHeads;      //GW depth (m)
+  TNT::Array2D<double> GWHeads; // GW depth (m)
   TNT::Array2D<int> HOST;
   TNT::Array2D<int> Landuse;
   TNT::Array2D<double> PE_location;
-  std::vector<int> PEnum;    // int[]
+  std::vector<int> PEnum; // int[]
   TNT::Array2D<double> PEtab;
   TNT::Array2D<double> dNSSS;
   TNT::Array2D<double> dSMD;
@@ -808,7 +813,6 @@ private:
   std::string initial_soil_moisture_deficit_file = "";
   std::string initial_soil_storage_file = "";
 
-
   // Mainly just the definitions of the create() functions go here:
   // The implementations are in the .cpp file.
 
@@ -816,10 +820,10 @@ private:
   void create(std::string pname, std::string pfname);
 };
 
-
 // "There is no science without fancy and no art without facts", wrote the great
-// Russian author Vladimir Nabokov. I include here an ascii rendering of Vincent Van Gogh's
-// The Cafe Terrace at Night, (1888, oil on canvas). Thanks go to 'SSt' for the rendering.
+// Russian author Vladimir Nabokov. I include here an ascii rendering of Vincent
+// Van Gogh's The Cafe Terrace at Night, (1888, oil on canvas). Thanks go to
+// 'SSt' for the rendering.
 //
 // You can enjoy it while your code is compiling.
 //
